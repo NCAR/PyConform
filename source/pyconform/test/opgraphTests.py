@@ -61,8 +61,8 @@ class OpGraphTests(unittest.TestCase):
         
         dm.write()
         rvnode = opgraph.ReadVariableNode(varname, filename, slicetuple=vslice)
-        self.print_assertEqual('OperationNode.__call__()',
-                               rvnode(), dm.variables[filename][varname][vslice])
+        self.print_assertEqual('OperationNode.__call__()', rvnode(), 
+                               dm.variables[filename][varname][vslice])
         dm.clear()
 
     def test_ReadVariableNode_file_call(self):
@@ -76,8 +76,8 @@ class OpGraphTests(unittest.TestCase):
         dm.write()
         ncfile = netCDF4.Dataset(filename, 'r')
         rvnode = opgraph.ReadVariableNode(varname, ncfile, slicetuple=vslice)
-        self.print_assertEqual('OperationNode.__call__()',
-                               rvnode(), dm.variables[filename][varname][vslice])
+        self.print_assertEqual('OperationNode.__call__()', rvnode(), 
+                               dm.variables[filename][varname][vslice])
         ncfile.close()
         dm.clear()
 
