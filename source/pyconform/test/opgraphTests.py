@@ -18,8 +18,9 @@ import netCDF4
 #===============================================================================
 def print_test_message(testname, actual, expected):
     indent = ' ' * len(testname)
-    print '{} - actual =   {}'.format(testname, actual)
+    print '{} - actual   = {}'.format(testname, actual)
     print '{} - expected = {}'.format(indent, expected)
+    print
 
 
 #===============================================================================
@@ -99,7 +100,7 @@ class ReadNetCDF4SliceNodeTests(unittest.TestCase):
 
     def test_call_fileobj(self):
         ncfile = netCDF4.Dataset(self.filename, 'r')
-        testname = 'ReadNetCDF4SliceNode(file).__call__()'
+        testname = 'ReadNetCDF4SliceNode(fileobj).__call__()'
         rvnode = opgraph.ReadNetCDF4SliceNode(self.varname, ncfile, 
                                                slicetuple=self.vslice)
         actual = rvnode()
