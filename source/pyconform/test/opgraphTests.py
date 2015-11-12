@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from mkTestData import DataMaker
 from pyconform import opgraph
 from numpy.testing import assert_array_equal
+from os import linesep
 
 import unittest
 import netCDF4
@@ -18,8 +19,8 @@ import netCDF4
 #===============================================================================
 def print_test_message(testname, actual, expected):
     indent = ' ' * len(testname)
-    print '{} - actual   = {}'.format(testname, actual)
-    print '{} - expected = {}'.format(indent, expected)
+    print '{} - actual   = {}'.format(testname, actual).replace(linesep, ' ')
+    print '{} - expected = {}'.format(indent, expected).replace(linesep, ' ')
     print
 
 
@@ -68,30 +69,26 @@ class OperationNodeTests(unittest.TestCase):
 
 
 #===============================================================================
-# ReadNetCDF4SliceNodeTests - OpGraph.ReadNetCDF4SliceNode Tests
+# ReadNetCDF4SliceNodeTests - OpGraph.ReadVariableNode Tests
 #===============================================================================
 class ReadNetCDF4SliceNodeTests(unittest.TestCase):
     """
-    Units tests for the opgraph.ReadNetCDF4SliceNode class
+    Units tests for the opgraph.ReadVariableNode class
     """
     
     def setUp(self):
         self.filename = 'test.nc'
         self.dm = DataMaker(filenames=[self.filename])
         self.varname = self.dm.var_dims.keys()[0]
-        udim = self.dm.var_dims[self.varname].index(self.dm.unlimited)
-        self.vslice = [slice(None)] * len(self.dm.var_dims[self.varname])
-        self.vslice[udim] = slice(0,1)
         self.dm.write()
-        self.expected = self.dm.variables[self.filename][self.varname][self.vslice]
+        self.expected = self.dm.variables[self.filename][self.varname]
         
     def tearDown(self):
         self.dm.clear()
 
     def test_call_filename(self):
-        testname = 'ReadNetCDF4SliceNode(filename).__call__()'
-        rvnode = opgraph.ReadNetCDF4SliceNode(self.varname, self.filename, 
-                                               slicetuple=self.vslice)
+        testname = 'ReadVariableNode(filename).__call__()'
+        rvnode = opgraph.ReadVariableNode(self.varname, self.filename)
         actual = rvnode()
         expected = self.expected
         print_test_message(testname, actual, expected)
@@ -100,9 +97,8 @@ class ReadNetCDF4SliceNodeTests(unittest.TestCase):
 
     def test_call_fileobj(self):
         ncfile = netCDF4.Dataset(self.filename, 'r')
-        testname = 'ReadNetCDF4SliceNode(fileobj).__call__()'
-        rvnode = opgraph.ReadNetCDF4SliceNode(self.varname, ncfile, 
-                                               slicetuple=self.vslice)
+        testname = 'ReadVariableNode(fileobj).__call__()'
+        rvnode = opgraph.ReadVariableNode(self.varname, ncfile)
         actual = rvnode()
         expected = self.expected
         print_test_message(testname, actual, expected)
