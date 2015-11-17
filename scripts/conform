@@ -9,6 +9,10 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from os.path import exists
+from glob import glob
+from json import load as json_load
+from collections import OrderedDict
 import argparse
 
 
@@ -21,8 +25,8 @@ def cli(argv=None):
               specification file (specfile)."""
 
     parser = argparse.ArgumentParser(prog='conform', description=desc)
-    parser.add_argument('-i', '--infile', default=None,
-                        type=str, metavar='INFILE', 
+    parser.add_argument('-i', '--infile', dest='infiles', default=[],
+                        metavar='INFILE', action='append', type=str,
                         help='Input file path or globstring specifying input '
                              'data for the PyConform operation.  If no input '
                              'files are specified, then PyConform will validate '
@@ -37,7 +41,7 @@ def cli(argv=None):
                              'of 0 means no output, and a value greater than '
                              '0 means more output detail. [Default: 1]')
     parser.add_argument('specfile', default=None, metavar='SPECFILE', type=str,
-                        help='YAML-formatted output specification file '
+                        help='JSON-formatted output specification file '
                              '[REQUIRED]')
 
     return parser.parse_args(argv)
@@ -48,8 +52,16 @@ def cli(argv=None):
 #==============================================================================
 def main(argv=None):
     args = cli(argv)
-
-    pass
+    
+    input_files = []
+    for infile in args.infiles:
+        input_files.extend(glob(infile))
+    
+    if not exists(args.specfile):
+        raise OSError('Output specification file {!r} not '
+                      'found'.format(args.specfile))
+    output_specification = json_load(open(args.specfile, 'r'),
+                                     object_pairs_hook=OrderedDict)
 
 
 #==============================================================================

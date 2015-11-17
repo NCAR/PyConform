@@ -29,9 +29,10 @@ class DataMaker(object):
                  unlimited='time',
                  variables=OrderedDict([('T1', ('time','space')),
                                         ('T2', ('space', 'time'))]),
-                 units={'space': 'm',
-                        'time': 'days since 01-01-0001',
-                        'T1': 'K', 'T2': 'C'}):
+                 units=OrderedDict([('space', 'm'),
+                                    ('time', 'days since 01-01-0001'),
+                                    ('T1', 'K'),
+                                    ('T2', 'C')])):
         self.filenames = filenames
         self.attributes = attributes
         self.dimensions = dimensions
