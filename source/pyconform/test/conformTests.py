@@ -5,14 +5,15 @@ Copyright 2015, University Corporation for Atmospheric Research
 See LICENSE.txt for details
 """
 
-import os
-import imp
 import unittest
-import json
+
+from json import loads, dump
+from os import remove
+from os.path import exists
 from collections import OrderedDict
 from mkTestData import DataMaker
-
-conform = imp.load_source('conform', '../../../scripts/conform')
+from imp import load_source
+conform = load_source('conform', '../../../scripts/conform')
 
 
 #===============================================================================
@@ -50,15 +51,15 @@ class conformTests(unittest.TestCase):
                         "type": "double",
                         "formula": "0.5*(in.T2 + in.T1)"}}
 }"""
-        self.specdata = json.loads(specstr, object_pairs_hook=OrderedDict)
-        json.dump(self.specdata, open(self.specfile, 'w'), indent=4)
+        self.specdata = loads(specstr, object_pairs_hook=OrderedDict)
+        dump(self.specdata, open(self.specfile, 'w'), indent=4)
         self.dm = DataMaker()
         self.dm.write()
         
     def tearDown(self):
         self.dm.clear()
-        if os.path.exists(self.specfile):
-            os.remove(self.specfile)
+        if exists(self.specfile):
+            remove(self.specfile)
         
     def test_CLI_empty(self):
         argv = []
