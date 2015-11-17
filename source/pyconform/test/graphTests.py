@@ -1,5 +1,5 @@
 """
-Graph Unit Tests
+DirGraph Unit Tests
 
 COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -26,22 +26,22 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 class GraphTests(unittest.TestCase):
     """
-    Unit tests for the graph.Graph class
+    Unit tests for the graph.DirGraph class
     """
 
     def test_init(self):
-        testname = 'Graph.__init__()'
-        G = graph.Graph()
+        testname = 'DirGraph.__init__()'
+        G = graph.DirGraph()
         actual = type(G)
-        expected = graph.Graph
+        expected = graph.DirGraph
         print_test_message(testname, actual, expected)
         self.assertIsInstance(G, expected,
                               '{} returned unexpected result'.format(testname))
 
     def test_add_hashable(self):
         indata = 1
-        testname = 'Graph.add({})'.format(indata)
-        G = graph.Graph()
+        testname = 'DirGraph.add({})'.format(indata)
+        G = graph.DirGraph()
         G.add(indata)
         actual = G._vertices
         expected = {indata}
@@ -50,8 +50,8 @@ class GraphTests(unittest.TestCase):
                               '{} returned unexpected result'.format(testname))
 
     def test_vertices(self):
-        testname = 'Graph.vertices()'
-        G = graph.Graph()
+        testname = 'DirGraph.vertices()'
+        G = graph.DirGraph()
         indata = 1
         G.add(indata)
         actual = G.vertices()
@@ -62,15 +62,15 @@ class GraphTests(unittest.TestCase):
         
     def test_add_unhashable(self):
         indata = {'a': 1, 'b': 2}
-        testname = 'Graph.add({})'.format(indata)
-        G = graph.Graph()
+        testname = 'DirGraph.add({})'.format(indata)
+        G = graph.DirGraph()
         print_test_message(testname, '???', 'TypeError')
         self.assertRaises(TypeError, G.add, indata)
 
     def test_remove(self):
         indata = 1
-        testname = 'Graph.remove({})'.format(indata)
-        G = graph.Graph()
+        testname = 'DirGraph.remove({})'.format(indata)
+        G = graph.DirGraph()
         G.add(2)
         G.add(indata)
         G.remove(indata)
@@ -82,8 +82,8 @@ class GraphTests(unittest.TestCase):
         
     def test_connect(self):
         indata = (1,'a')
-        testname = 'Graph.connect({}, {})'.format(*indata)
-        G = graph.Graph()
+        testname = 'DirGraph.connect({}, {})'.format(*indata)
+        G = graph.DirGraph()
         G.add(indata[0])
         G.add(indata[1])
         G.connect(*indata)
@@ -95,8 +95,8 @@ class GraphTests(unittest.TestCase):
 
     def test_edges(self):
         indata = (1,'a')
-        testname = 'Graph.edges()'
-        G = graph.Graph()
+        testname = 'DirGraph.edges()'
+        G = graph.DirGraph()
         G.connect(*indata)
         actual = G.edges()
         expected = {indata}
@@ -106,8 +106,8 @@ class GraphTests(unittest.TestCase):
 
     def test_disconnect(self):
         indata = (1,'a')
-        testname = 'Graph.disconnect({}, {})'.format(*indata)
-        G = graph.Graph()
+        testname = 'DirGraph.disconnect({}, {})'.format(*indata)
+        G = graph.DirGraph()
         G.connect(*indata)
         G.connect(3,5)
         G.disconnect(*indata)
@@ -119,8 +119,8 @@ class GraphTests(unittest.TestCase):
 
     def test_neighbors_from(self):
         indata = 1
-        testname = 'Graph.neighbors_from({})'.format(indata)
-        G = graph.Graph()
+        testname = 'DirGraph.neighbors_from({})'.format(indata)
+        G = graph.DirGraph()
         G.connect(indata, 'a')
         G.connect(indata, 2)
         actual = G.neighbors_from(indata)
@@ -131,8 +131,8 @@ class GraphTests(unittest.TestCase):
 
     def test_neighbors_to(self):
         indata = 1
-        testname = 'Graph.neighbors_to({})'.format(indata)
-        G = graph.Graph()
+        testname = 'DirGraph.neighbors_to({})'.format(indata)
+        G = graph.DirGraph()
         G.connect(indata, 'a')
         G.connect(2, indata)
         actual = G.neighbors_to(indata)

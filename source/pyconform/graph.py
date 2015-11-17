@@ -1,5 +1,5 @@
 """
-Directed Graph Data Structures and Tools
+Directed DirGraph Data Structures and Tools
 
 This module contains the necessary pieces to define and construct the basic 
 graph data structures needed for the PyConform operations to work.
@@ -10,9 +10,9 @@ LICENSE: See the LICENSE.rst file for details
 
 
 #===============================================================================
-# Graph
+# DirGraph
 #===============================================================================
-class Graph(object):
+class DirGraph(object):
     """
     A rudimentary directed graph data structure
     """
