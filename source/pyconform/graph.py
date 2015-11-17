@@ -101,3 +101,5 @@ class Graph(object):
             vertex: The vertex object to query
         """
         return [v1 for (v1,v2) in self._edges if v2 == vertex]
+
+    
