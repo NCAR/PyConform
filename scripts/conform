@@ -1,0 +1,59 @@
+"""
+PyConform - Command-Line Interface
+
+This is the command-line interface to the PyConform tool.  It takes input from
+the command-line directly, and from an "output specification" file, which
+defines the output dataset entirely.
+
+COPYRIGHT: 2015, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
+import argparse
+
+
+#==============================================================================
+# Command-line Interface
+#==============================================================================
+def cli(argv=None):
+    desc = """This tool is designed to run the PyConform command-line tool,
+              taking input from the command-line and a predefined output
+              specification file (specfile)."""
+
+    parser = argparse.ArgumentParser(prog='conform', description=desc)
+    parser.add_argument('-i', '--infile', default=None,
+                        type=str, metavar='INFILE', 
+                        help='Input file path or globstring specifying input '
+                             'data for the PyConform operation.  If no input '
+                             'files are specified, then PyConform will validate '
+                             'the output specification file only, and then '
+                             'exit.  [No default]')
+    parser.add_argument('-s', '--serial', default=False,
+                        action='store_true', dest='serial',
+                        help='Whether to run in serial (True) or parallel '
+                             '(False). [Default: False]')
+    parser.add_argument('-v', '--verbosity', default=1, type=int,
+                        help='Verbosity level for level of output.  A value '
+                             'of 0 means no output, and a value greater than '
+                             '0 means more output detail. [Default: 1]')
+    parser.add_argument('specfile', default=None, metavar='SPECFILE', type=str,
+                        help='YAML-formatted output specification file '
+                             '[REQUIRED]')
+
+    return parser.parse_args(argv)
+
+
+#==============================================================================
+# Main Script Function
+#==============================================================================
+def main(argv=None):
+    args = cli(argv)
+
+    pass
+
+
+#==============================================================================
+# Command-line Operation
+#==============================================================================
+if __name__ == '__main__':
+    main()
