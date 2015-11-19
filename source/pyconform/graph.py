@@ -7,7 +7,6 @@ graph data structures needed for the PyConform operations to work.
 COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
-from networkx.classes.function import neighbors
 
 
 #===============================================================================
