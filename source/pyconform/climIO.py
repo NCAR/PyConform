@@ -1,10 +1,20 @@
+"""
+Climate I/O Facade
+
+This defines the facade for netCDF I/O operations, either with netCDF4 or
+PyNIO.
+
+COPYRIGHT: 2015, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
 import os,sys
 try:
-   import Nio
-   import netCDF4
+    import Nio
+    import netCDF4
 except ImportError:
-   # A failure here is okay.  It will check again later while importing io port
-   check = False    
+    check = False    
+
 
 #=============================================
 # Initializes the correct I/O version to use
@@ -82,9 +92,6 @@ class PyNioPort(object):
     def __init__(self):
         super(PyNioPort, self).__init__()
 
-    #=============================================
-    # PyNIO: Open an existing NetCDF file
-    #=============================================
     def open_file(self, file_name):
         """
         Open a NetCDF file for reading. 
@@ -99,9 +106,6 @@ class PyNioPort(object):
         open_file = Nio.open_file(file_name,"r")
         return open_file
 
-    #=============================================
-    # PyNIO: Reads and returns a chunk of data
-    #=============================================
     def read_slice(self, open_file, var, index, all_values=False):
         """
         Retreives a chunk of data. 
@@ -174,7 +178,7 @@ class PyNioPort(object):
             opt.Format  = 'NetCDF4Classic'
         opt.PreFill = False
         if hist_string is None:
-           hist_string = 'clim-convert'+new_file_name
+            hist_string = 'clim-convert'+new_file_name
         # Open new output file
         new_file = Nio.open_file(new_file_name, "w", options=opt, history=hist_string)
 
