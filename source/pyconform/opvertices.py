@@ -17,9 +17,45 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from os.path import exists
+from collections import OrderedDict
 import netCDF4
 
 
+#===============================================================================
+# NetCDF File Header Reader
+#===============================================================================
+class NCFileHeaderReader(object):
+    """
+    Read and return the header information in a NetCDF file
+    """
+    
+    def __init__(self, filename):
+        """
+        Initialization
+        
+        Parameters:
+            filename (str): Name of NetCDF file to read
+        """
+        if not exists(filename):
+            raise OSError('Cannot find NetCDF file {!r}'.format(filename))
+        self._filename = str(filename)
+        ncfile = netCDF4.Dataset(self._filename, 'r')
+        ncfile.close()
+                
+    def do(self):
+        """
+        Perform the operation
+        
+        Returns:
+            dict: NetCDF file header dictionary        
+        """
+        header = OrderedDict()
+        ncfile = netCDF4.Dataset(self._filename, 'r')
+        
+        ncfile.close()
+        
+        
+        
 #===============================================================================
 # NetCDF Variable Slice Reader
 #===============================================================================
@@ -56,7 +92,7 @@ class NCVariableSliceReader(object):
         Perform the operation
         
         Returns:
-            dict: Global attributes of the file
+            NDArray: the data slice of the variable
         """
         ncfile = netCDF4.Dataset(self._filename, 'r')
         data = ncfile.variables[self._variable][self._slice]
