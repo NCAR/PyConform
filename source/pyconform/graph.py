@@ -1,8 +1,7 @@
 """
-Directed DiGraph Data Structures and Tools
+Directed Graph Data Structures and Tools
 
-This module contains the necessary pieces to define and construct the basic 
-graph data structures needed for the PyConform operations to work.
+This module contains the DiGraph directional graph generic data structure.
 
 COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
