@@ -107,7 +107,7 @@ class GraphTests(unittest.TestCase):
         indata = 1
         G.add(indata)
         actual = G.vertices()
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -118,7 +118,7 @@ class GraphTests(unittest.TestCase):
         G = graph.DiGraph()
         G.connect(*indata)
         actual = G.edges()
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -170,7 +170,8 @@ class GraphTests(unittest.TestCase):
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I._edges
-        expected = G._edges.union(H._edges)
+        expected = list(G._edges)
+        expected.extend(H._edges)
         testname = 'DiGraph.update(DiGraph)._edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -186,13 +187,14 @@ class GraphTests(unittest.TestCase):
         I = G.union(H)
         actual = I._vertices
         expected = G._vertices.union(H._vertices)
-        testname = 'DiGraph.update(DiGraph)._vertices'
+        testname = 'DiGraph.union(DiGraph)._vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I._edges
-        expected = G._edges.union(H._edges)
-        testname = 'DiGraph.update(DiGraph)._edges'
+        expected = list(G._edges)
+        expected.extend(H._edges)
+        testname = 'DiGraph.union(DiGraph)._edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -205,7 +207,7 @@ class GraphTests(unittest.TestCase):
         G.add(indata[1])
         G.connect(*indata)
         actual = G._edges
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -218,7 +220,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3,5)
         G.disconnect(*indata)
         actual = G.edges()
-        expected = {(3,5)}
+        expected = [(3,5)]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -230,7 +232,7 @@ class GraphTests(unittest.TestCase):
         G.connect(indata, 'a')
         G.connect(indata, 2)
         actual = G.neighbors_from(indata)
-        expected = {'a', 2}
+        expected = ['a', 2]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -242,7 +244,7 @@ class GraphTests(unittest.TestCase):
         G.connect(indata, 'a')
         G.connect(2, indata)
         actual = G.neighbors_to(indata)
-        expected = {2}
+        expected = [2]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -353,7 +355,7 @@ class GraphTests(unittest.TestCase):
         H.connect(5, 6)
         I = G.union(H)
         actual = I.components()
-        expected = {G,H}
+        expected = [G,H]
         print_test_message(testname, actual, expected)
         for g in actual:
             self.assertTrue(g==G or g==H, 
