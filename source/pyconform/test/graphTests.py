@@ -361,8 +361,8 @@ class GraphTests(unittest.TestCase):
             self.assertTrue(g==G or g==H, 
                             '{} returned unexpected result'.format(testname))
     
-    def test_commutable_call_graph(self):
-        testname = 'DiGraph Commutable Call-Graph Evaluation'
+    def test_commutative_call_graph(self):
+        testname = 'DiGraph Commutative Call-Graph Evaluation'
         G = graph.DiGraph()
         f1 = lambda: 1
         f2 = lambda: 2
@@ -371,7 +371,7 @@ class GraphTests(unittest.TestCase):
         G.add(op.add)
         G.connect(f1, op.add)
         G.connect(f2, op.add) # 1 + 2 = 3
-        G.add(op.sub)
+        G.add(op.mul)
         G.connect(op.add, op.mul)
         G.connect(f2, op.mul) # 3 *2 = 6
         def evaluate_G(v):
@@ -381,7 +381,28 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
-               
+
+    def test_noncommutative_call_graph(self):
+        testname = 'DiGraph Non-Commutative Call-Graph Evaluation'
+        G = graph.DiGraph()
+        f1 = lambda: 1
+        f2 = lambda: 2
+        G.add(f1)
+        G.add(f2)
+        G.add(op.add)
+        G.connect(f1, op.add)
+        G.connect(f2, op.add) # 1 + 2 = 3
+        G.add(op.sub)
+        G.connect(op.add, op.sub)
+        G.connect(f2, op.sub) # 3 - 2 = 1
+        def evaluate_G(v):
+            return v(*map(evaluate_G, G.neighbors_to(v)))
+        actual = evaluate_G(op.sub)        
+        expected = 1
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+                              
 
 #===============================================================================
 # Command-Line Operation
