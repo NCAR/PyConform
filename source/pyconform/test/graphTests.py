@@ -385,15 +385,15 @@ class GraphTests(unittest.TestCase):
     def test_noncommutative_call_graph(self):
         testname = 'DiGraph Non-Commutative Call-Graph Evaluation'
         G = graph.DiGraph()
-        f1 = lambda: 1
+        f6 = lambda: 6
         f2 = lambda: 2
-        G.add(f1)
+        G.add(f6)
         G.add(f2)
-        G.add(op.add)
-        G.connect(f1, op.add)
-        G.connect(f2, op.add) # 1 + 2 = 3
+        G.add(op.div)
+        G.connect(f6, op.div)
+        G.connect(f2, op.div) # 6 / 2 = 3
         G.add(op.sub)
-        G.connect(op.add, op.sub)
+        G.connect(op.div, op.sub)
         G.connect(f2, op.sub) # 3 - 2 = 1
         def evaluate_G(v):
             return v(*map(evaluate_G, G.neighbors_to(v)))
