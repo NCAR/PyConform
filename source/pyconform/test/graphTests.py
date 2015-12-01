@@ -402,7 +402,23 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
-                              
+
+    def test_incremented_call_graph(self):
+        testname = 'DiGraph Incremented Call-Graph Evaluation'
+        G = graph.DiGraph()
+        f1 = lambda: 1
+        finc = lambda x: x+1
+        G.connect((0, f1), (1, finc)) # 1 + 1 = 2
+        G.connect((1, finc), (2, finc)) # 2 + 1 = 3
+        G.connect((2, finc), (3, finc)) # 3 + 1 = 4
+        def evaluate_G(v):
+            return v[1](*map(evaluate_G, G.neighbors_to(v)))
+        actual = evaluate_G((3, finc))        
+        expected = 4
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
 
 #===============================================================================
 # Command-Line Operation
