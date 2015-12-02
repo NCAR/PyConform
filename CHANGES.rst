@@ -7,6 +7,10 @@ See the LICENSE.rst file for details
 VERSION 0.0.1
 -------------
 
+19 Nov 2015:
+ - Added initial CESM to CMIP6 JSON tables to the examples directory.
+ - Added the code within examples/CESM/CMIP6/src used to generate these tables.
+
 18 Nov 2015:
  - Added initial CESM to CMIP5 JSON tables to examples directory
 
