@@ -9,6 +9,7 @@ from pyconform import graph
 from os import linesep
 
 import unittest
+import operator as op
 
 
 #===============================================================================
@@ -106,7 +107,7 @@ class GraphTests(unittest.TestCase):
         indata = 1
         G.add(indata)
         actual = G.vertices()
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -117,7 +118,7 @@ class GraphTests(unittest.TestCase):
         G = graph.DiGraph()
         G.connect(*indata)
         actual = G.edges()
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -169,7 +170,8 @@ class GraphTests(unittest.TestCase):
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I._edges
-        expected = G._edges.union(H._edges)
+        expected = list(G._edges)
+        expected.extend(H._edges)
         testname = 'DiGraph.update(DiGraph)._edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -185,13 +187,14 @@ class GraphTests(unittest.TestCase):
         I = G.union(H)
         actual = I._vertices
         expected = G._vertices.union(H._vertices)
-        testname = 'DiGraph.update(DiGraph)._vertices'
+        testname = 'DiGraph.union(DiGraph)._vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I._edges
-        expected = G._edges.union(H._edges)
-        testname = 'DiGraph.update(DiGraph)._edges'
+        expected = list(G._edges)
+        expected.extend(H._edges)
+        testname = 'DiGraph.union(DiGraph)._edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -204,7 +207,7 @@ class GraphTests(unittest.TestCase):
         G.add(indata[1])
         G.connect(*indata)
         actual = G._edges
-        expected = {indata}
+        expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -217,7 +220,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3,5)
         G.disconnect(*indata)
         actual = G.edges()
-        expected = {(3,5)}
+        expected = [(3,5)]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -229,7 +232,7 @@ class GraphTests(unittest.TestCase):
         G.connect(indata, 'a')
         G.connect(indata, 2)
         actual = G.neighbors_from(indata)
-        expected = {'a', 2}
+        expected = ['a', 2]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -241,7 +244,7 @@ class GraphTests(unittest.TestCase):
         G.connect(indata, 'a')
         G.connect(2, indata)
         actual = G.neighbors_to(indata)
-        expected = {2}
+        expected = [2]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -352,12 +355,70 @@ class GraphTests(unittest.TestCase):
         H.connect(5, 6)
         I = G.union(H)
         actual = I.components()
-        expected = {G,H}
+        expected = [G,H]
         print_test_message(testname, actual, expected)
         for g in actual:
             self.assertTrue(g==G or g==H, 
                             '{} returned unexpected result'.format(testname))
-               
+    
+    def test_commutative_call_graph(self):
+        testname = 'DiGraph Commutative Call-Graph Evaluation'
+        G = graph.DiGraph()
+        f1 = lambda: 1
+        f2 = lambda: 2
+        G.add(f1)
+        G.add(f2)
+        G.add(op.add)
+        G.connect(f1, op.add)
+        G.connect(f2, op.add) # 1 + 2 = 3
+        G.add(op.mul)
+        G.connect(op.add, op.mul)
+        G.connect(f2, op.mul) # 3 * 2 = 6
+        def evaluate_G(v):
+            return v(*map(evaluate_G, G.neighbors_to(v)))
+        actual = evaluate_G(op.mul)        
+        expected = 6
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
+    def test_noncommutative_call_graph(self):
+        testname = 'DiGraph Non-Commutative Call-Graph Evaluation'
+        G = graph.DiGraph()
+        f6 = lambda: 6
+        f2 = lambda: 2
+        G.add(f6)
+        G.add(f2)
+        G.add(op.div)
+        G.connect(f6, op.div)
+        G.connect(f2, op.div) # 6 / 2 = 3
+        G.add(op.sub)
+        G.connect(op.div, op.sub)
+        G.connect(f2, op.sub) # 3 - 2 = 1
+        def evaluate_G(v):
+            return v(*map(evaluate_G, G.neighbors_to(v)))
+        actual = evaluate_G(op.sub)        
+        expected = 1
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
+    def test_incremented_call_graph(self):
+        testname = 'DiGraph Incremented Call-Graph Evaluation'
+        G = graph.DiGraph()
+        f1 = lambda: 1
+        finc = lambda x: x+1
+        G.connect((0, f1), (1, finc)) # 1 + 1 = 2
+        G.connect((1, finc), (2, finc)) # 2 + 1 = 3
+        G.connect((2, finc), (3, finc)) # 3 + 1 = 4
+        def evaluate_G(v):
+            return v[1](*map(evaluate_G, G.neighbors_to(v)))
+        actual = evaluate_G((3, finc))        
+        expected = 4
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
 
 #===============================================================================
 # Command-Line Operation

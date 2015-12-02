@@ -1,8 +1,7 @@
 """
-Directed DiGraph Data Structures and Tools
+Directed Graph Data Structures and Tools
 
-This module contains the necessary pieces to define and construct the basic 
-graph data structures needed for the PyConform operations to work.
+This module contains the DiGraph directional graph generic data structure.
 
 COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -22,7 +21,7 @@ class DiGraph(object):
         Initializer
         """
         self._vertices = set()
-        self._edges = set()
+        self._edges = list()
 
     def __eq__(self, other):
         """
@@ -76,7 +75,7 @@ class DiGraph(object):
         """
         new_graph = DiGraph()
         new_graph._vertices = set(self._vertices) 
-        new_graph._edges = set(self._edges)
+        new_graph._edges = list(self._edges)
         return new_graph
     
     def vertices(self):
@@ -115,7 +114,7 @@ class DiGraph(object):
         """
         if vertex in self._vertices:
             self._vertices.remove(vertex)
-        for edge in tuple(self._edges):
+        for edge in self._edges:
             if vertex in edge:
                 self._edges.remove(edge)
                 
@@ -129,7 +128,7 @@ class DiGraph(object):
         if not isinstance(other, DiGraph):
             raise TypeError("Cannot for union between DiGraph and non-DiGraph")
         self._vertices.update(other._vertices)
-        self._edges.update(other._edges)
+        self._edges.extend(other._edges)
 
     def union(self, other):
         """
@@ -159,7 +158,9 @@ class DiGraph(object):
         """
         self.add(start)
         self.add(stop)
-        self._edges.add((start, stop))
+        edge = (start, stop)
+        if edge not in self._edges:
+            self._edges.append((start, stop))
 
     def disconnect(self, start, stop):
         """
@@ -181,9 +182,9 @@ class DiGraph(object):
             vertex: The vertex object to query
         
         Returns:
-            set: The set of vertices with incoming edges from vertex
+            list: The list of vertices with incoming edges from vertex
         """
-        return set(v2 for (v1, v2) in self._edges if v1 == vertex)
+        return [v2 for (v1, v2) in self._edges if v1 == vertex]
 
     def neighbors_to(self, vertex):
         """
@@ -193,9 +194,9 @@ class DiGraph(object):
             vertex: The vertex object to query
         
         Returns:
-            set: The set of vertices with outgoing edges to vertex
+            list: The list of vertices with outgoing edges to vertex
         """
-        return set(v1 for (v1,v2) in self._edges if v2 == vertex)
+        return [v1 for (v1,v2) in self._edges if v2 == vertex]
 
     def iter_bfs(self, start, reverse=False):
         """
@@ -212,7 +213,7 @@ class DiGraph(object):
         if start not in self._vertices:
             raise KeyError('Root vertex not in graph')
         
-        visited = set()
+        visited = []
         queue = [start]
         if reverse:
             neighbors = self.neighbors_to
@@ -222,8 +223,8 @@ class DiGraph(object):
             vertex = queue.pop(0)
             if vertex not in visited:
                 yield vertex
-                visited.add(vertex)
-                queue.extend(neighbors(vertex) - visited)
+                visited.append(vertex)
+                queue.extend(v for v in neighbors(vertex) if v not in visited)
 
     def iter_dfs(self, start, reverse=False):
         """
@@ -237,7 +238,7 @@ class DiGraph(object):
         if start not in self._vertices:
             raise KeyError('Root vertex not in graph')
         
-        visited = set()
+        visited = []
         stack = [start]
         if reverse:
             neighbors = self.neighbors_to
@@ -247,15 +248,18 @@ class DiGraph(object):
             vertex = stack.pop()
             if vertex not in visited:
                 yield vertex
-                visited.add(vertex)
-                stack.extend(neighbors(vertex) - visited)
+                visited.append(vertex)
+                stack.extend(v for v in neighbors(vertex) if v not in visited)
 
     def toposort(self):
         """
         Return a topological ordering of the vertices using Kahn's algorithm
         
         Returns:
-            list: The list of topologically ordered vertices
+            list: If topological ordering is possible, then return the list of
+                topologically ordered vertices
+            None: If topological ordering is not possible (i.e., if the DiGraph
+                is cyclic), then return None
         """
         G = self.copy()
         sorted_list = []
@@ -277,10 +281,10 @@ class DiGraph(object):
         Return the connected components of the graph
         
         Returns:
-            set: A set of connected DiGraphs
+            list: A list of connected DiGraphs
         """
         unvisited = set(self._vertices)
-        components = set()
+        components = []
         while unvisited:
             start = unvisited.pop()
             comp = DiGraph()
@@ -288,17 +292,19 @@ class DiGraph(object):
             while stack:
                 vertex = stack.pop()
                 # Forward
-                neighbors = self.neighbors_from(vertex) - comp._vertices
+                neighbors = [v for v in self.neighbors_from(vertex) 
+                             if v not in comp._vertices]
                 for neighbor in neighbors:
                     comp.connect(vertex, neighbor)
                 stack.extend(neighbors)
                 # Backward
-                neighbors = self.neighbors_to(vertex) - comp._vertices
+                neighbors = [v for v in self.neighbors_to(vertex) 
+                             if v not in comp._vertices]
                 for neighbor in neighbors:
                     comp.connect(neighbor, vertex)
                 stack.extend(neighbors)
                 if vertex in unvisited:
                     unvisited.remove(vertex)
             if len(comp._vertices) > 0:
-                components.add(comp)
+                components.append(comp)
         return components
