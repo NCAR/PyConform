@@ -196,6 +196,22 @@ class FunctionEvaluatorTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
+    def test_add_constant_1st(self):
+        testname = 'FunctionEvaluator(add, 1).__call__(a)'
+        FE = ops.FunctionEvaluator(operator.add, 1)
+        actual = FE(self.params[0])
+        expected = operator.add(1, self.params[0])
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
+
+    def test_add_constant_2nd(self):
+        testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
+        FE = ops.FunctionEvaluator(operator.add, None, 2)
+        actual = FE(self.params[0])
+        expected = operator.add(self.params[0], 2)
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
+
     def test_sub(self):
         testname = 'FunctionEvaluator(sub).__call__(a, b)'
         FE = ops.FunctionEvaluator(operator.sub)

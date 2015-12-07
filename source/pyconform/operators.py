@@ -127,12 +127,14 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, func):
+    def __init__(self, func, *args):
         """
         Initializer
         
         Parameters:
             func (Function): A function with arguments taken from other operators
+            args (list): Arguments to the function, in order, where 'None'
+                indicates an argument passed in at runtime
         """
         # Call base class initializer
         super(FunctionEvaluator, self).__init__()
@@ -143,12 +145,24 @@ class FunctionEvaluator(Operator):
         
         # Store the function pointer
         self._function = func
-
-    def __call__(self, *params):
+        
+        # Store the arguments
+        self._arguments = args
+        
+        # Count the number of runtime arguments needed
+        self._nargs = sum(i is None for i in args)
+        
+    def __call__(self, *args):
         """
         Make callable like a function
         
         Parameters:
-            params: List of parameters passed to the function
+            args: List of arguments passed to the function
         """
-        return self._function(*params)
+        if len(args) < self._nargs:
+            raise RuntimeError('Received {} arguments, expected '
+                               '{}'.format(len(args), self._nargs))
+        tmp_args = list(args)
+        rtargs = [arg if arg else tmp_args.pop(0) for arg in self._arguments]
+        rtargs.extend(tmp_args)
+        return self._function(*rtargs)
