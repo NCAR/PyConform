@@ -11,8 +11,8 @@ LICENSE: See the LICENSE.rst file for details
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
+from mpi4py import MPI
 
-import pyparsing
 import operator
 import numpy as np
 
@@ -152,4 +152,3 @@ class FunctionEvaluator(Operator):
             params: List of parameters passed to the function
         """
         return self._function(*params)
-    
