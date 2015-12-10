@@ -11,10 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
-from mpi4py import MPI
 
-import operator
-import numpy as np
 
 #===============================================================================
 # Operator
@@ -150,7 +147,7 @@ class FunctionEvaluator(Operator):
         self._arguments = args
         
         # Count the number of runtime arguments needed
-        self._nargs = sum(i is None for i in args)
+        self._nargs = sum(arg is None for arg in args)
         
     def __call__(self, *args):
         """
