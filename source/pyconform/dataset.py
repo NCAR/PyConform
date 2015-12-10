@@ -134,12 +134,12 @@ def parse_dataset_filelist(filenames):
         fobj = FileInfo(fname)
         for attr in ncf.ncattrs():
             fobj.attributes[attr] = ncf.getncattr(attr)
-        for name, obj in ncf.dimensions:
+        for name, obj in ncf.dimensions.iteritems():
             if obj.isunlimited():
                 fobj.dimensions[name] = [len(obj)]
             else:
                 fobj.dimensions[name] = len(obj)
-        for name, obj in ncf.variables:
+        for name, obj in ncf.variables.iteritems():
             vobj = VariableInfo(name)
             vobj.dtype = str(obj.dtype)
             for attr in obj.ncattrs():
