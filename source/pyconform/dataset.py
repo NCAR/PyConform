@@ -168,6 +168,27 @@ class VariableInfo(object):
         self.dimensions = tuple()
         self.attributes = OrderedDict()
         self.definition = None
+    
+    def __eq__(self, other):
+        if self.name != other.name:
+            print 'Names: {} != {}'.format(self.name, other.name)
+            return False
+        if self.dtype != other.dtype:
+            print 'Data Type: {} != {}'.format(self.dtype, other.dtype)
+            return False
+        if self.dimensions != other.dimensions:
+            print 'Dimensions: {} != {}'.format(self.dimensions, other.dimensions)
+            return False
+        if self.attributes != other.attributes:
+            print 'Attributes: {} != {}'.format(self.attributes, other.attributes)
+            return False
+        if self.definition != other.definition:
+            print 'Definition: {} != {}'.format(self.definition, other.definition)
+            return False
+        return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 #===============================================================================
@@ -186,6 +207,24 @@ class FileInfo(object):
         self.attributes = OrderedDict()
         self.dimensions = OrderedDict()
         self.variables = OrderedDict()
+
+    def __eq__(self, other):
+        if self.name != other.name:
+            print 'Names: {} != {}'.format(self.name, other.name)
+            return False
+        if self.dimensions != other.dimensions:
+            print 'Dimensions: {} != {}'.format(self.dimensions, other.dimensions)
+            return False
+        if self.attributes != other.attributes:
+            print 'Attributes: {} != {}'.format(self.attributes, other.attributes)
+            return False
+        if self.variables != other.variables:
+            print 'Variables: {} != {}'.format(self.variables, other.variables)
+            return False
+        return True
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 #===============================================================================
