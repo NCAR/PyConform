@@ -148,32 +148,33 @@ class DatasetTests(unittest.TestCase):
         self.assertListEqual(actual, expected,
                              'Parse methods do not yield same filename keys')
 
-        actual = [f.name for f in dfiles.values()]
-        expected = [f.name for f in ffiles.values()]
-        print_test_message('InputDataset.names() == OutputDataset.names()',
-                           actual=actual, expected=expected)
-        self.assertListEqual(actual, expected,
+        for df, ff in zip(dfiles.values(), ffiles.values()):
+            actual = df.name
+            expected = ff.name
+            print_test_message('InputDataset.name() == OutputDataset.name()',
+                               actual=actual, expected=expected)
+            self.assertEqual(actual, expected,
                              'Parse methods do not yield same file names')
         
-        actual = [f.attributes for f in dfiles.values()]
-        expected = [f.attributes for f in ffiles.values()]
-        print_test_message('InputDataset.attributes() == OutputDataset.attributes()',
-                           actual=actual, expected=expected)
-        self.assertListEqual(actual, expected,
+            actual = df.attributes
+            expected = ff.attributes
+            print_test_message('InputDataset.attributes() == OutputDataset.attributes()',
+                               actual=actual, expected=expected)
+            self.assertEqual(actual, expected,
                              'Parse methods do not yield same file attributes')
 
-        actual = [f.dimensions for f in dfiles.values()]
-        expected = [f.dimensions for f in ffiles.values()]
-        print_test_message('InputDataset.dimensions() == OutputDataset.dimensions()',
-                           actual=actual, expected=expected)
-        self.assertListEqual(actual, expected,
+            actual = df.dimensions
+            expected = ff.dimensions
+            print_test_message('InputDataset.dimensions() == OutputDataset.dimensions()',
+                               actual=actual, expected=expected)
+            self.assertEqual(actual, expected,
                              'Parse methods do not yield same file dimensions')
 
-        actual = [f.variables for f in dfiles.values()]
-        expected = [f.variables for f in ffiles.values()]
-        print_test_message('InputDataset.variables() == OutputDataset.variables()',
-                           actual=actual, expected=expected)
-        self.assertListEqual(actual, expected,
+            actual = df.variables
+            expected = ff.variables
+            print_test_message('InputDataset.variables() == OutputDataset.variables()',
+                               actual=actual, expected=expected)
+            self.assertEqual(actual, expected,
                              'Parse methods do not yield same file variables')
         
 

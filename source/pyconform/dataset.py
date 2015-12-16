@@ -241,6 +241,77 @@ class Dataset(object):
         """
         self.name = str(name)
         self.files = OrderedDict()
+        self.dimensions = OrderedDict()
+        self.variables = []
+    
+    def _analyze(self):
+        file_1 = self.files.values()[0]
+        self.dimensions = OrderedDict(file_1.dimensions)
+        self.variables = list(file_1.variables.keys())
+        dims_1 = set(self.dimensions.keys())
+        vars_1 = set(self.variables)
+        for fobj in self.files.values()[1:]:
+            dims_i = set(fobj.dimensions.keys())
+            dims_1mi = dims_1 - dims_i
+            if len(dims_1mi) > 0:
+                err_msg = ('Dimensions {} found in file {!r} but not in '
+                           '{!r}').format(list(dims_1mi), file_1.name,
+                                          fobj.name)
+                raise KeyError(err_msg)
+            dims_im1 = dims_i - dims_1
+            if len(dims_im1) > 0:
+                err_msg = ('Dimensions {} found in file {!r} but not in '
+                           '{!r}').format(list(dims_im1), fobj.name,
+                                          file_1.name)
+                raise KeyError(err_msg)
+            for dname, dvalue in fobj.dimensions.iteritems():
+                if isinstance(dvalue, list):
+                    if isinstance(self.dimensions[dname], list):
+                        self.dimensions[dname] += dvalue
+                    else:
+                        err_msg = ('Dimension {!r} is unlimited in file '
+                                   '{!r} but limited in file '
+                                   '{!r}').format(dname, fobj.name, file_1.name)
+                        raise TypeError(err_msg)
+                elif isinstance(dvalue, int):
+                    if (isinstance(self.dimensions[dname], int) and
+                        dvalue != self.dimensions[dname]):
+                        err_msg = ('Dimension {!r} in file {!r} has '
+                                   'size {} but expected size '
+                                   '{}').format(dname, fobj.name, dvalue,
+                                                self.dimensions[dname])
+                        raise ValueError(err_msg)
+                    else:
+                        err_msg = ('Dimension {!r} is limited in file '
+                                   '{!r} but unlimited in file '
+                                   '{!r}').format(dname, fobj.name, file_1.name)
+                        raise TypeError(err_msg)
+            vars_i = set(fobj.variables.keys())
+            vars_1mi = vars_1 - vars_i
+            if len(vars_1mi) > 0:
+                err_msg = ('Variables {!r} found in file {!r} but not in '
+                           '{!r}').format(list(vars_1mi), file_1.name,
+                                          fobj.name)
+                raise KeyError(err_msg)
+            vars_im1 = vars_i - vars_1
+            if len(vars_im1) > 0:
+                err_msg = ('Variables {!r} found in file {!r} but not in '
+                           '{!r}').format(list(vars_im1), fobj.name,
+                                          file_1.name)
+                raise KeyError(err_msg)
+            for vname, vobj in fobj.variables.iteritems():
+                if vobj.dtype != file_1.variables[vname].dtype:
+                    err_msg = ('Variable {!r} in file {!r} has data type'
+                               ' {} but expected '
+                               '{}').format(vname, fobj.name, vobj.dtype,
+                                            file_1.variables[vname].dtype)
+                    raise ValueError(err_msg)
+                if vobj.dimensions != file_1.variables[vname].dimensions:
+                    err_msg = ('Variable {!r} in file {!r} has dimensions'
+                               ' {} but expected '
+                               '{}').format(vname, fobj.name, vobj.dimensions,
+                                            file_1.variables[vname].dimensions)
+                    raise ValueError(err_msg)
 
 
 #===============================================================================
@@ -259,6 +330,7 @@ class OutputDataset(Dataset):
         """
         super(OutputDataset, self).__init__(name)
         self.files = parse_dataset_dictionary(dsdict)
+        self._analyze()
 
 
 #===============================================================================
@@ -276,4 +348,5 @@ class InputDataset(Dataset):
         """
         super(InputDataset, self).__init__(name)
         self.files = parse_dataset_filelist(filenames)
+        self._analyze()
         
