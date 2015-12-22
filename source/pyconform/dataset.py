@@ -276,24 +276,29 @@ class Dataset(object):
                 if isinstance(dvalue, list):
                     if isinstance(self.dimensions[dname], list):
                         self.dimensions[dname] += dvalue
-                    else:
+                    elif isinstance(self.dimensions[dname], int):
                         err_msg = ('Dimension {!r} is unlimited in file '
                                    '{!r} but limited in file '
                                    '{!r}').format(dname, fobj.name, file_1.name)
                         raise TypeError(err_msg)
                 elif isinstance(dvalue, int):
-                    if (isinstance(self.dimensions[dname], int) and
-                            dvalue != self.dimensions[dname]):
-                        err_msg = ('Dimension {!r} in file {!r} has '
-                                   'size {} but expected size '
-                                   '{}').format(dname, fobj.name, dvalue,
-                                                self.dimensions[dname])
-                        raise ValueError(err_msg)
-                    else:
+                    if isinstance(self.dimensions[dname], int):
+                        if dvalue != self.dimensions[dname]:
+                            err_msg = ('Dimension {!r} in file {!r} has '
+                                       'size {} but expected size '
+                                       '{}').format(dname, fobj.name, dvalue,
+                                                    self.dimensions[dname])
+                            raise ValueError(err_msg)
+                    elif isinstance(self.dimensions[dname], list):
                         err_msg = ('Dimension {!r} is limited in file '
                                    '{!r} but unlimited in file '
                                    '{!r}').format(dname, fobj.name, file_1.name)
                         raise TypeError(err_msg)
+                else:
+                    err_msg = ('Dimension {!r} in file {!r} has unrecognized '
+                               'type {!r}').format(dname, fobj.name,
+                                                   type(dvalue))
+                    raise TypeError(err_msg)
 
             vars_i = set(fobj.variables.keys())
             vars_1mi = vars_1 - vars_i
