@@ -151,11 +151,10 @@ def parse_dataset_filelist(filenames):
 
     return files
 
+
 #=========================================================================
 # VariableInfo
 #=========================================================================
-
-
 class VariableInfo(object):
 
     def __init__(self, name):
@@ -191,6 +190,12 @@ class VariableInfo(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def units(self):
+        return self.attributes.get('units')
+
+    def standard_name(self):
+        return self.attributes.get('standard_name')
 
 
 #=========================================================================
@@ -336,11 +341,10 @@ class Dataset(object):
                                               stdnm_1, file_1.name)
                     raise ValueError(err_msg)
 
+
 #=========================================================================
 # OutputDataset
 #=========================================================================
-
-
 class OutputDataset(Dataset):
 
     def __init__(self, name='output', dsdict=OrderedDict()):
