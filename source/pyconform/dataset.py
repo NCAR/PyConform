@@ -11,6 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 from collections import OrderedDict
 
 import netCDF4
+from copy import deepcopy
 
 
 #=========================================================================
@@ -345,7 +346,30 @@ class Dataset(object):
                                '{!r}').format(vname, stdnm_i, fobj.name,
                                               stdnm_1, file_1.name)
                     raise ValueError(err_msg)
-
+                
+    def get_dict(self):
+        """
+        Return the dictionary form of the Dataset
+        
+        Returns:
+            OrderedDict: The ordered dictionary describing the dataset
+        """
+        dsdict = OrderedDict()
+        for fname, finfo in self.files.iteritems():
+            dsdict[fname] = OrderedDict()
+            dsdict[fname]['attributes'] = deepcopy(finfo.attributes)
+            dsdict[fname]['dimensions'] = deepcopy(finfo.dimensions)
+            dsdict[fname]['variables'] = OrderedDict()
+            for vname, vinfo in finfo.variables.iteritems():
+                vdict = OrderedDict()
+                vdict['dtype'] = vinfo.dtype
+                vdict['attributes'] = deepcopy(vinfo.attributes)
+                vdict['dimensions'] = deepcopy(vinfo.dimensions)
+                if vinfo.definition:
+                    vdict['definition'] = vinfo.definition
+                dsdict[fname]['variables'][vname] = vdict
+        return dsdict
+    
 
 #=========================================================================
 # OutputDataset
