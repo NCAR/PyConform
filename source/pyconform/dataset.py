@@ -11,6 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 from collections import OrderedDict
 
 import netCDF4
+from copy import deepcopy
 
 
 #=========================================================================
@@ -39,6 +40,13 @@ def parse_dataset_dictionary(dsdict):
         if not isinstance(fdict, dict):
             raise TypeError('Dataset file must be specified with a dict')
 
+        # Parse file attributes (optional section)
+        if 'attributes' in fdict:
+            if not isinstance(fdict['attributes'], dict):
+                raise TypeError('Dataset file attributes must be of type dict')
+            for name, value in fdict['attributes'].iteritems():
+                fobj.attributes[name] = value
+
         # Parse file dimensions (required section)
         if 'dimensions' not in fdict:
             raise KeyError(('Dataset file {!r}: File dict must have dimensions '
@@ -47,8 +55,12 @@ def parse_dataset_dictionary(dsdict):
             raise TypeError(('Dataset file {!r}: File dimensions section must '
                              'be of a dict').format(fname))
         for name, value in fdict['dimensions'].iteritems():
-            if isinstance(value, list):
-                if len(value) != 1 or not isinstance(value[0], int):
+            if isinstance(value, (tuple, list)):
+                if len(value) != 1:
+                    raise TypeError(('Unlimited dimension {!r} in file {!r} '
+                                     'must be declared with a list of length '
+                                     '1').format(name, fname))
+                if not isinstance(value[0], int):
                     raise TypeError(('Unlimited dimension {!r} in file {!r} '
                                      'must be declared with a list of 1 '
                                      'integer').format(name, fname))
@@ -73,38 +85,32 @@ def parse_dataset_dictionary(dsdict):
                 raise TypeError(('Dataset file {!r}: File variable {!r} must '
                                  'be of a dict').format(fname, name))
 
-            if 'type' not in value:
+            if 'dtype' not in value:
                 raise KeyError(('Variable {!r} in file {!r} must have a '
                                 'declared type').format(name, fname))
-            vobj.dtype = str(value['type'])
+            vobj.dtype = deepcopy(str(value['dtype']))
 
             if 'dimensions' not in value:
                 raise KeyError(('Variable {!r} in file {!r} must have a '
                                 'declared dimensions list').format(name, fname))
-            if not isinstance(value['dimensions'], list):
+            if not isinstance(value['dimensions'], (tuple, list)):
                 raise TypeError('Variable dimensions must be a list')
-            vobj.dimensions = tuple(value['dimensions'])
+            for dname in value['dimensions']:
+                vobj.dimensions[dname] = deepcopy(fdict['dimensions'][dname])
 
             if 'attributes' in value:
                 if not isinstance(value['attributes'], dict):
                     raise TypeError(('Variable {!r} in file {!r} must declare '
                                      'attributes in a dict').format(name, fname))
-                vobj.attributes = value['attributes']
+                vobj.attributes = deepcopy(value['attributes'])
 
             if 'definition' in value:
                 if not isinstance(value['definition'], (str, unicode)):
                     raise TypeError(('Variable {!r} in file {!r} must declare '
                                      'definition with a string').format(name, fname))
-                vobj.definition = str(value['definition'])
+                vobj.definition = deepcopy(str(value['definition']))
 
             fobj.variables[name] = vobj
-
-        # Parse file attributes (optional section)
-        if 'attributes' in fdict:
-            if not isinstance(fdict['attributes'], dict):
-                raise TypeError('Dataset file attributes must be of type dict')
-            for name, value in fdict['attributes'].iteritems():
-                fobj.attributes[name] = value
 
         files[fname] = fobj
 
@@ -142,9 +148,11 @@ def parse_dataset_filelist(filenames):
         for name, obj in ncf.variables.iteritems():
             vobj = VariableInfo(name)
             vobj.dtype = str(obj.dtype)
+            vobj.dimensions = OrderedDict()
+            for dname in obj.dimensions:
+                vobj.dimensions[dname] = deepcopy(fobj.dimensions[dname])
             for attr in obj.ncattrs():
                 vobj.attributes[attr] = obj.getncattr(attr)
-            vobj.dimensions = tuple(obj.dimensions)
             fobj.variables[name] = vobj
         ncf.close()
         files[fname] = fobj
@@ -166,7 +174,7 @@ class VariableInfo(object):
         """
         self.name = str(name)
         self.dtype = None
-        self.dimensions = tuple()
+        self.dimensions = OrderedDict()
         self.attributes = OrderedDict()
         self.definition = None
 
@@ -253,7 +261,7 @@ class Dataset(object):
 
     def _analyze(self):
         file_1 = self.files.values()[0]
-        self.dimensions = OrderedDict(file_1.dimensions)
+        self.dimensions = deepcopy(file_1.dimensions)
         self.variables = list(file_1.variables.keys())
 
         dims_1 = set(self.dimensions.keys())
@@ -320,7 +328,7 @@ class Dataset(object):
                                '{}').format(vname, fobj.name, vobj.dtype,
                                             file_1.variables[vname].dtype)
                     raise ValueError(err_msg)
-                if vobj.dimensions != file_1.variables[vname].dimensions:
+                if vobj.dimensions.keys() != file_1.variables[vname].dimensions.keys():
                     err_msg = ('Variable {!r} in file {!r} has dimensions'
                                ' {} but expected '
                                '{}').format(vname, fobj.name, vobj.dimensions,
@@ -345,7 +353,32 @@ class Dataset(object):
                                '{!r}').format(vname, stdnm_i, fobj.name,
                                               stdnm_1, file_1.name)
                     raise ValueError(err_msg)
-
+                
+    def get_dict(self):
+        """
+        Return the dictionary form of the Dataset
+        
+        Returns:
+            OrderedDict: The ordered dictionary describing the dataset
+        """
+        dsdict = OrderedDict()
+        findex = 0
+        for fname, finfo in self.files.iteritems():
+            dsdict[fname] = OrderedDict()
+            dsdict[fname]['attributes'] = deepcopy(finfo.attributes)
+            dsdict[fname]['dimensions'] = deepcopy(finfo.dimensions)
+            dsdict[fname]['variables'] = OrderedDict()
+            for vname, vinfo in finfo.variables.iteritems():
+                vdict = {}
+                vdict['dtype'] = vinfo.dtype
+                vdict['dimensions'] = deepcopy(tuple(vinfo.dimensions.keys()))
+                vdict['attributes'] = deepcopy(vinfo.attributes)
+                if vinfo.definition:
+                    vdict['definition'] = vinfo.definition
+                dsdict[fname]['variables'][vname] = vdict
+            findex += 1
+        return dsdict
+    
 
 #=========================================================================
 # OutputDataset
