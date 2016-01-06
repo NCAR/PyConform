@@ -63,27 +63,27 @@ class DatasetTests(unittest.TestCase):
         self.dimensions['lon'] = 2
 
         self.variables = OrderedDict()
-        self.variables['time'] = {'type': 'float64',
-                                  'dimensions': ['time'],
+        self.variables['time'] = {'dtype': 'float64',
+                                  'dimensions': ('time',),
                                   'attributes': OrderedDict()}
         self.variables['time']['attributes']['standard_name'] = 'time'
         self.variables['time']['attributes']['units'] = 'days since 01-01-0001'
         self.variables['time']['attributes']['calendar'] = 'noleap'
 
-        self.variables['lat'] = {'type': 'float64',
-                                 'dimensions': ['lat'],
+        self.variables['lat'] = {'dtype': 'float64',
+                                 'dimensions': ('lat',),
                                  'attributes': OrderedDict()}
         self.variables['lat']['attributes']['standard_name'] = 'latitude'
         self.variables['lat']['attributes']['units'] = 'degrees_north'
 
-        self.variables['lon'] = {'type': 'float64',
-                                 'dimensions': ['lon'],
+        self.variables['lon'] = {'dtype': 'float64',
+                                 'dimensions': ('lon',),
                                  'attributes': OrderedDict()}
         self.variables['lon']['attributes']['standard_name'] = 'longitude'
         self.variables['lon']['attributes']['units'] = 'degrees_east'
 
-        self.variables['v'] = {'type': 'float32',
-                               'dimensions': ['time', 'lat', 'lon'],
+        self.variables['v'] = {'dtype': 'float32',
+                               'dimensions': ('time', 'lat', 'lon'),
                                'attributes': OrderedDict()}
         self.variables['v']['attributes']['standard_name'] = 'variable'
         self.variables['v']['attributes']['units'] = 'unit'
@@ -108,7 +108,7 @@ class DatasetTests(unittest.TestCase):
                     fobj.createDimension(name)
             for name, value in self.dsdict[f]['variables'].iteritems():
                 var = fobj.createVariable(
-                    name, value['type'], value['dimensions'])
+                    name, value['dtype'], value['dimensions'])
                 for aname, aval in value['attributes'].iteritems():
                     var.setncattr(aname, aval)
                 shape = []
@@ -195,6 +195,16 @@ class DatasetTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'OutputDataset has wrong type')
+
+    def test_dataset_get_dict_from_output(self):
+        outds = dataset.OutputDataset('myoutds', self.dsdict)
+        actual = outds.get_dict()
+        expected = self.dsdict
+        print_test_message('get_dict()',
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Dataset.get_dict() returns wrong data')
+        
 
 
 if __name__ == "__main__":
