@@ -27,10 +27,12 @@ class DataMaker(object):
                  dimensions=OrderedDict([('time', 3),
                                          ('space', 2)]),
                  unlimited='time',
+                 calendar='noleap',
+                 time_slices=None,
                  variables=OrderedDict([('T1', ('time','space')),
                                         ('T2', ('space', 'time'))]),
                  units=OrderedDict([('space', 'm'),
-                                    ('time', 'days since 01-01-0001'),
+                                    ('time', 'days since 1979-01-01 00:00:00'),
                                     ('T1', 'K'),
                                     ('T2', 'C')])):
         self.filenames = filenames
@@ -39,6 +41,7 @@ class DataMaker(object):
         self.unlimited = unlimited
         self.var_dims = variables
         self.var_units = units
+        self.calendar = calendar
         
         self.variables = {}
         for filenum, filename in enumerate(self.filenames):
@@ -46,15 +49,16 @@ class DataMaker(object):
             filevars = self.variables[filename]
             for coordname, dimsize in self.dimensions.iteritems():
                 if coordname == self.unlimited:
-                    start = filenum * dimsize
-                    end = (filenum + 1) * dimsize
-                    filevars[coordname] = np.linspace(start, end, dimsize, 
-                                                      endpoint=False, 
-                                                      dtype=np.float64)
+                    if time_slices==None:
+                        start = filenum * dimsize
+                        end = (filenum + 1) * dimsize
+                        filevars[coordname] = np.arange(start, end, 
+                                                        dtype=np.float64)
+                    else:
+                        filevars[coordname] = time_slices[filenum]
                 else:
-                    filevars[coordname] = np.linspace(-(dimsize/2), dimsize/2, 
-                                                      dimsize, endpoint=True,
-                                                      dtype=np.float64)
+                    filevars[coordname] = np.arange(-(dimsize/2), dimsize/2,
+                                                    dtype=np.float64)
 
             for varname, vardims in self.var_dims.iteritems():
                 vshape = tuple([self.dimensions[d] for d in vardims])
@@ -85,6 +89,8 @@ class DataMaker(object):
             for coordname, dimsize in self.dimensions.iteritems():
                 coordvar = ncfile.variables[coordname]
                 setattr(coordvar, 'units', self.var_units[coordname])
+                if coordname == self.unlimited:
+                    setattr(coordvar, 'calendar',self.calendar)
                 coordvar[:] = self.variables[filename][coordname]
 
             for varname, vardims in self.var_dims.iteritems():
