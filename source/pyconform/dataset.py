@@ -11,7 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 from collections import OrderedDict
 
 import netCDF4
-from copy import deepcopy, copy
+from copy import deepcopy
 
 
 #=========================================================================
