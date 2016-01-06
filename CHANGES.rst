@@ -6,6 +6,8 @@ See the LICENSE.rst file for details
 
 VERSION 0.0.1
 -------------
+06 Jan 2016:
+ - Add date check/mapping ability.
 
 19 Nov 2015:
  - Added initial CESM to CMIP6 JSON tables to the examples directory.
