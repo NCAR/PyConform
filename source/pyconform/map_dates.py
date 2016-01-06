@@ -36,7 +36,7 @@ def __get_time_info__(f, io):
         average (int): The average of all time slices.
     """
     date_info = {}
-    tc, dim, att = io.get_var_info(f,'time')
+    _tc, _dim, att = io.get_var_info(f,'time')
     stand_cal = cfunits.Units('days since 1-1-1 0:0:0', calendar=att['calendar'])
     cal_unit = cfunits.Units(att['units'], calendar=att['calendar'])
     if ('bounds' in att.keys()):
@@ -84,14 +84,14 @@ def __get_time_info__(f, io):
  
     # Check to see if the number of slices matches how many should be in the date range 
     if t_per == 'year':
-        ok = (tn[0]-t0[0] == l) 
+        _ok = (tn[0]-t0[0] == l) 
     elif t_per == 'mon':
-        ok = (((tn[0]-t0[0])*12)+(tn[1]-t0[1] + 1) == l)
+        _ok = (((tn[0]-t0[0])*12)+(tn[1]-t0[1] + 1) == l)
     elif t_per == 'day':
-        ok = ((dn - d0 + 1) == l)
+        _ok = ((dn - d0 + 1) == l)
     elif 'hour' in t_per:
         cnt_per_day = 24.0/h
-        ok = (((dn - d0)*cnt_per_day+1) == l)
+        _ok = (((dn - d0)*cnt_per_day+1) == l)
                  
     return average, date_info
 
@@ -118,34 +118,34 @@ def __check_date_alignment__(keys, date_info):
         date = (parser.parse(str(netCDF4.num2date(date_info[keys[0]]['tn'], 
                 date_info[keys[0]]['units'],calendar=date_info[keys[0]]['calendar']))).timetuple())  
         if date[1] == 12:
-            next = 1
+            next_val = 1
         else:
-            next = date[1] + 1
+            next_val = date[1] + 1
          
     else:
-        next = prev_last + t_step 
+        next_val = prev_last + t_step 
 
     for i in range(1,len(keys)):
         if date_info[keys[i]]['t_per'] == 'mon':
             new_date = (parser.parse(str(netCDF4.num2date(date_info[keys[i]]['t0'],
                         date_info[keys[i]]['units'],calendar=date_info[keys[i]]['calendar']))).timetuple()) 
-            if (next == new_date[1]):
+            if (next_val == new_date[1]):
                 date = (parser.parse(str(netCDF4.num2date(date_info[keys[i]]['tn'], 
                         date_info[keys[i]]['units'],calendar=date_info[keys[i]]['calendar']))).timetuple())
                 if date[1] == 12:
-                    next = 1
+                    next_val = 1
                 else:
-                    next = date[1] + 1
+                    next_val = date[1] + 1
             else:
-                print "Disconnect? Expected: ",next," Got: ",new_date[1]
+                print "Disconnect? Expected: ",next_val," Got: ",new_date[1]
                 return 1
         else:
-            if (next == date_info[keys[i]]['t0']):
+            if (next_val == date_info[keys[i]]['t0']):
                 #print "Looks okay",date_info[keys[i]]['t0'],'-',date_info[keys[i]]['tn']
                 prev_last = date_info[keys[i]]['tn']
-                next = prev_last + t_step
+                next_val = prev_last + t_step
             else:
-                print "Disconnect? Expected: ",next," Got: ",date_info[keys[i]]['t0']
+                print "Disconnect? Expected: ",next_val," Got: ",date_info[keys[i]]['t0']
                 return 1
 
     return 0
@@ -172,26 +172,26 @@ def __check_date_alignment_in_file__(date):
 
     # If the time period in monthly, then the time difference between slices is not uniform and
     # requires looking into the month length array to get correct day #'s between slices.
-    if date['t_per'] == 'mon':
-        if date['t_per'] == 'mon':
+    if t_per == 'mon':
+        if t_per == 'mon':
             date1 = (parser.parse(str(netCDF4.num2date(t[0],
                      date['units'],calendar=date['calendar']))).timetuple())
             if date1[1] == 12:
-                next = 1
+                next_val = 1
             else:
-                next = date1[1] + 1
+                next_val = date1[1] + 1
         for i in range(1,len(t)):
             new_date = (parser.parse(str(netCDF4.num2date(t[i],
                         date['units'],calendar=date['calendar']))).timetuple())
-            if (next == new_date[1]):
+            if (next_val == new_date[1]):
                 date1 = (parser.parse(str(netCDF4.num2date(t[i],
                         date['units'],calendar=date['calendar']))).timetuple())
                 if date1[1] == 12:
-                    next = 1
+                    next_val = 1
                 else:
-                    next = date1[1] + 1
+                    next_val = date1[1] + 1
             else:
-                print "Disconnect? Expected: ",next," Got: ",new_date[1], ' around time step: ',i
+                print "Disconnect? Expected: ",next_val," Got: ",new_date[1], ' around time step: ',i
                 return 1
     #  All other time periods should have the same number of days between slices.
     else:

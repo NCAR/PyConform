@@ -61,7 +61,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         self. _clean_directory()
 
@@ -75,7 +75,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         self. _clean_directory()
 
@@ -144,7 +144,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         self. _clean_directory()
 
@@ -166,13 +166,11 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         self. _clean_directory()
 
     def test_get_files_yearly(self):
-
-        from collections import OrderedDict
 
         # Create some data 
         a = np.asarray([365, 730, 1095])
