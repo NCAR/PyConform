@@ -8,7 +8,7 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import netcdftime
+import netCDF4
 import climIO
 from dateutil import parser
 import os
@@ -36,32 +36,32 @@ def __get_time_info__(f, io):
         average (int): The average of all time slices.
     """
     date_info = {}
-    tc,dim,att = io.get_var_info(f,'time')
+    tc, dim, att = io.get_var_info(f,'time')
     stand_cal = cfunits.Units('days since 1-1-1 0:0:0', calendar=att['calendar'])
     cal_unit = cfunits.Units(att['units'], calendar=att['calendar'])
     if ('bounds' in att.keys()):
-      #print 'Using bounds'
-      tb = f.variables[att['bounds']]
-      l = len(tb)
-      d0 = tb[0,0]
-      d1 = tb[1,0]
-      d2 = tb[2,0]
-      dn = tb[l-1,1]-1
-      time = tb[:,0]
+        #print 'Using bounds'
+        tb = f.variables[att['bounds']]
+        l = len(tb)
+        d0 = tb[0,0]
+        d1 = tb[1,0]
+        d2 = tb[2,0]
+        dn = tb[l-1,1]-1
+        time = tb[:,0]
     else:
-      #print 'Using time'
-      tb = f.variables['time']
-      l = len(tb)
-      d0 = tb[0]
-      d1 = tb[1]
-      d2 = tb[2]
-      dn = tb[l-1]
-      time = tb[:]
+        #print 'Using time'
+        tb = f.variables['time']
+        l = len(tb)
+        d0 = tb[0]
+        d1 = tb[1]
+        d2 = tb[2]
+        dn = tb[l-1]
+        time = tb[:]
     date_info['time'] = time
 
     # Get second and third time bounds to figure out the time period
-    t1 = (parser.parse(str(netcdftime.num2date(d1, att['units'],calendar=att['calendar']))).timetuple()) 
-    t2 = (parser.parse(str(netcdftime.num2date(d2, att['units'],calendar=att['calendar']))).timetuple())
+    t1 = (parser.parse(str(netCDF4.num2date(d1, att['units'],calendar=att['calendar']))).timetuple()) 
+    t2 = (parser.parse(str(netCDF4.num2date(d2, att['units'],calendar=att['calendar']))).timetuple())
     # Get time difference between the steps
     t_step = d2 - d1
     h = t2[3] - t1[3]
@@ -73,8 +73,8 @@ def __get_time_info__(f, io):
     date_info['t_per'] = t_per
     date_info['t_step'] = t_step
     # Get first and last dates
-    t0 = (parser.parse(str(netcdftime.num2date(d0, att['units'],calendar=att['calendar']))).timetuple())
-    tn = (parser.parse(str(netcdftime.num2date(dn, att['units'],calendar=att['calendar']))).timetuple())
+    t0 = (parser.parse(str(netCDF4.num2date(d0, att['units'],calendar=att['calendar']))).timetuple())
+    tn = (parser.parse(str(netCDF4.num2date(dn, att['units'],calendar=att['calendar']))).timetuple())
     date_info['t0'] = cfunits.Units.conform(d0,cal_unit,stand_cal)
     date_info['tn'] = cfunits.Units.conform(dn,cal_unit,stand_cal)
     date_info['cnt'] = l
@@ -115,7 +115,7 @@ def __check_date_alignment__(keys, date_info):
     t_step = date_info[keys[0]]['t_step']
 
     if date_info[keys[0]]['t_per'] == 'mon':
-        date = (parser.parse(str(netcdftime.num2date(date_info[keys[0]]['tn'], 
+        date = (parser.parse(str(netCDF4.num2date(date_info[keys[0]]['tn'], 
                 date_info[keys[0]]['units'],calendar=date_info[keys[0]]['calendar']))).timetuple())  
         if date[1] == 12:
             next = 1
@@ -127,10 +127,10 @@ def __check_date_alignment__(keys, date_info):
 
     for i in range(1,len(keys)):
         if date_info[keys[i]]['t_per'] == 'mon':
-            new_date = (parser.parse(str(netcdftime.num2date(date_info[keys[i]]['t0'],
+            new_date = (parser.parse(str(netCDF4.num2date(date_info[keys[i]]['t0'],
                         date_info[keys[i]]['units'],calendar=date_info[keys[i]]['calendar']))).timetuple()) 
             if (next == new_date[1]):
-                date = (parser.parse(str(netcdftime.num2date(date_info[keys[i]]['tn'], 
+                date = (parser.parse(str(netCDF4.num2date(date_info[keys[i]]['tn'], 
                         date_info[keys[i]]['units'],calendar=date_info[keys[i]]['calendar']))).timetuple())
                 if date[1] == 12:
                     next = 1
@@ -174,25 +174,25 @@ def __check_date_alignment_in_file__(date):
     # requires looking into the month length array to get correct day #'s between slices.
     if date['t_per'] == 'mon':
         if date['t_per'] == 'mon':
-            date1 = (parser.parse(str(netcdftime.num2date(t[0],
-                    date['units'],calendar=date['calendar']))).timetuple())
+            date1 = (parser.parse(str(netCDF4.num2date(t[0],
+                     date['units'],calendar=date['calendar']))).timetuple())
             if date1[1] == 12:
                 next = 1
             else:
                 next = date1[1] + 1
         for i in range(1,len(t)):
-            new_date = (parser.parse(str(netcdftime.num2date(t[i],
+            new_date = (parser.parse(str(netCDF4.num2date(t[i],
                         date['units'],calendar=date['calendar']))).timetuple())
             if (next == new_date[1]):
-                date1 = (parser.parse(str(netcdftime.num2date(t[i],
+                date1 = (parser.parse(str(netCDF4.num2date(t[i],
                         date['units'],calendar=date['calendar']))).timetuple())
                 if date1[1] == 12:
                     next = 1
                 else:
                     next = date1[1] + 1
             else:
-               print "Disconnect? Expected: ",next," Got: ",new_date[1], ' around time step: ',i
-               return 1
+                print "Disconnect? Expected: ",next," Got: ",new_date[1], ' around time step: ',i
+                return 1
     #  All other time periods should have the same number of days between slices.
     else:
         for i in range(1,len(t)):

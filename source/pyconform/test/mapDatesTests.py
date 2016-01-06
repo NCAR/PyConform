@@ -1,7 +1,7 @@
 import numpy as np
 from cStringIO import StringIO
 from mkTestData import DataMaker
-import map_dates
+from pyconform import map_dates
 from glob import glob
 from os import remove
 import unittest
