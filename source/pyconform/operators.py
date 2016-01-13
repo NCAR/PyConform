@@ -11,7 +11,9 @@ LICENSE: See the LICENSE.rst file for details
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
+from mpi4py import MPI
 
+import numpy
 
 #===============================================================================
 # Operator
@@ -163,3 +165,47 @@ class FunctionEvaluator(Operator):
         rtargs = [arg if arg else tmp_args.pop(0) for arg in self._arguments]
         rtargs.extend(tmp_args)
         return self._function(*rtargs)
+
+
+#===============================================================================
+# SendOperator
+#===============================================================================
+class SendOperator(Operator):
+    """
+    Send data to a specified remote rank in COMM_WORLD
+    """
+    
+    def __init__(self, dest):
+        """
+        Initializer
+        
+        Parameters:
+            dest (int): The destination rank in COMM_WORLD to send the data
+        """
+        # Call base class initializer
+        super(FunctionEvaluator, self).__init__()
+        
+        # Check if the function is callable
+        if not isinstance(dest, int):
+            raise TypeError('Destination rank must be an integer')
+        size = MPI.COMM_WORLD.Get_size()
+        if dest < 0 or dest >= size:
+            raise ValueError(('Destination rank must be between 0 and '
+                              '{}').format(size))
+        
+        # Store the destination rank
+        self._dest = dest
+        
+    def __call__(self, data):
+        """
+        Make callable like a function
+        
+        Parameters:
+            data: The data to send
+        """
+        if isinstance(data, numpy.ndarray):
+            send_data = data
+        else:
+            send_data = numpy.array(data)
+        MPI.COMM_WORLD.Send(data, dest=self._dest)
+        return None
