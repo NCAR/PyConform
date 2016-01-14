@@ -203,32 +203,33 @@ class SendOperator(Operator):
         Parameters:
             data: The data to send
         """
+        # Check data type
+        if not isinstance(data, numpy.ndarray):
+            raise TypeError('SendOperator only works with NDArrays')
 
-        # Create the handshake message
+        # Create the handshake message - Assumes data is an NDArray
         msg = {}
-        msg['type'] = type(data)
-        msg['shape'] = data.shape if hasattr(data, 'shape') else None
-        msg['dtype'] = data.dtype if hasattr(data, 'dtype') else None
+        msg['shape'] = data.shape
+        msg['dtype'] = data.dtype
 
-        # Send the handshake message to the requesting worker
+        # Send the handshake message to the RecvOperator
         tag = MPI.COMM_WORLD.Get_rank()
         MPI.COMM_WORLD.send(msg, dest=self._dest, tag=tag)
 
-        # Receive the acknowledgement from the requesting worker
+        # Receive the acknowledgement from the RecvOperator
         tag += MPI.COMM_WORLD.Get_size()
         ack = MPI.COMM_WORLD.recv(source=self._dest, tag=tag)
 
         # Check the acknowledgement, if not OK error
         if not ack:
-            raise RuntimeError('Failed to receive acknowledgement')
+            raise RuntimeError(('SendOperator on rank {} failed to '
+                                'receive acknowledgement from rank '
+                                '{}').format(MPI.COMM_WORLD.Get_rank(),
+                                             self._dest))
 
-        # If OK, send the data to the requesting worker
+        # If OK, send the data to the RecvOperator
         tag += MPI.COMM_WORLD.Get_size()
-        if isinstance(data, numpy.ndarray):
-            MPI.COMM_WORLD.Send(data, dest=self._dest, tag=tag)
-        else:
-            MPI.COMM_WORLD.send(data, dest=self._dest, tag=tag)
-
+        MPI.COMM_WORLD.Send(data, dest=self._dest, tag=tag)
         return None
 
 
@@ -266,28 +267,27 @@ class RecvOperator(Operator):
         Make callable like a function
         """
 
-        # Receive the handshake message from the manager
+        # Receive the handshake message from the SendOperator
         tag = self._source
         msg = MPI.COMM_WORLD.recv(source=self._source, tag=tag)
 
         # Check the message content
         ack = (type(msg) is dict and
-               all([key in msg for key in ['type', 'shape', 'dtype']]))
+               all([key in msg for key in ['shape', 'dtype']]))
 
-        # Send acknowledgement back to the manager
+        # Send acknowledgement back to the SendOperator
         tag += MPI.COMM_WORLD.Get_size()
         MPI.COMM_WORLD.send(ack, dest=self._source, tag=tag)
 
         # If acknowledgement is bad, don't receive
         if not ack:
-            raise RuntimeError('Failed to receive acknowledgement')
+            raise RuntimeError(('RecvOperator on rank {} failed to '
+                                'receive acknowledgement from rank '
+                                '{}').format(MPI.COMM_WORLD.Get_rank(),
+                                             self._dest))
 
-        # Receive the data from the manager
+        # Receive the data from the SendOperator
         tag += MPI.COMM_WORLD.Get_size()
-        if msg['type'] == numpy.ndarray:
-            recvd = numpy.empty(msg['shape'], dtype=msg['dtype'])
-            MPI.COMM_WORLD.Recv(recvd, source=self._source, tag=tag)
-        else:
-            recvd = MPI.COMM_WORLD.recv(source=self._source, tag=tag)
-        
+        recvd = numpy.empty(msg['shape'], dtype=msg['dtype'])
+        MPI.COMM_WORLD.Recv(recvd, source=self._source, tag=tag)        
         return recvd
