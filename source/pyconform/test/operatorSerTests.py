@@ -155,7 +155,7 @@ class VariableSliceReaderTests(unittest.TestCase):
 #===============================================================================
 class FunctionEvaluatorTests(unittest.TestCase):
     """
-    Unit tests for the operators.VariableCalculator class
+    Unit tests for the operators.FunctionEvaluator class
     """
     
     def setUp(self):
