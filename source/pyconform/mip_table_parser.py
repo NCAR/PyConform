@@ -473,10 +473,18 @@ class ParseXML(object):
 
         # Get table id
         g_id = dq.inx.requestVarGroup.label[table_name]
-       
+        table_info['table_id'] = g_id
+        if len(g_id) == 0:
+            print 'ERROR: Variable group/table ',table_name, ' not supported.'  
+            print 'Please select from the following: '
+            print dq.inx.requestVarGroup.label.keys()
+            print '\nIf your selected table is listed, it may not be supported in this verison of dreqpy.'
+            print '\nEXITING. \n'
+            sys.exit(1) 
         # Get the id's of the variables in this table
         g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
+        axes_list = []
         # Loop through the variables and set their values
         for v in g_vars['requestVar']:
 	    var = {}
@@ -513,6 +521,10 @@ class ParseXML(object):
 	    # Set what we can from the sp section
 	    sp_var = dq.inx.uid[s_var.spid]
 	    var['dimensions']= sp_var.dimensions
+            dims = sp_var.dimensions.split('|')
+            for d in dims:
+                if d not in axes_list:
+                    axes_list.append(d) 
 
 	    # Set what we can from the variable section
 	    v_var = dq.inx.uid[c_var.vid]
@@ -525,8 +537,19 @@ class ParseXML(object):
 
             # Add variable to variable dictionary
 	    variables[c_var.label] = var
+
+        #for a in dq.inx.grids.label.keys():
+        for a in axes_list:
+            id = dq.inx.var.sn[a]
+            ax = {}
+            if len(id) > 0:
+                v = dq.inx.uid[id[0]]
+                ax['units'] = v.units
+            axes[a] = ax
        
         table_dict['variables'] = variables
+        table_dict['axes'] = axes 
+        table_dict['table_info'] = table_info
 
         return table_dict
 

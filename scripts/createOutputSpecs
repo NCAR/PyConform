@@ -1,0 +1,143 @@
+#! /usr/bin/env python
+"""
+createOutputSpecs 
+
+Creates the Json output specification file.
+
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
+import argparse, os
+import yaml, json
+import mip_table_parser
+from dateutil.parser import parse
+
+data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
+              'float': 'float32', 'real': 'float32', 'double': 'float64'}
+
+def parseArgs(argv = None):
+
+    desc = "This tool creates a specification file that is needed to run PyConform."
+
+    parser = argparse.ArgumentParser(prog='createOutputSpecs',
+                                     description=desc)
+    parser.add_argument('-d', '--defFile', default=None, type=str,
+                        help='A file listing the variable definitions.')
+    parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
+                        help='A file listing the global attributes that ' 
+                             'are common to all files.')
+    parser.add_argument('-t', '--mipTable', default=None, type=str,
+                        help='MIP table file.  Can be in xml, cmor, or '
+                             'an Excel SS saved as a tab deliminated file.')
+    parser.add_argument('-tt', '--mipTableType', default=None, type=str,
+                        help='MIP table file type.  Can be xml, cmor, or excel.')
+    parser.add_argument('outputfile', default='out.json', type=str,
+                        help='Filename for the output specification file.')
+
+    return parser.parse_args(argv)
+
+def main(argv=None):
+   
+    outSpec = {}
+    a_key = '__ALL__'
+    args = parseArgs(argv)
+    
+    print "\n" 
+    print "------------------------------------------"
+    print 'Running createOutputSpecs with these args:\n'
+    print 'Variable Definitions: ', args.defFile
+    print 'Global Attributes to be added to each file: ', args.globalAttrFile
+    print 'MIP Table to be used: ', args.mipTable
+    print 'MIP Table Type: ',args.mipTableType
+    print 'Will create this spec file to use with PyConform:', args.outputfile
+    print "------------------------------------------"
+
+    # Open/Read the definition file
+    with open(args.defFile) as y_definitions:
+        definitions = yaml.load(y_definitions, Loader=yaml.BaseLoader)
+        #print 'DEFINITIONS: ',definitions
+
+    # Open/Read the global attributes file
+    with open(args.globalAttrFile) as y_attributes:
+        attributes = yaml.load(y_attributes, Loader=yaml.BaseLoader)
+        #print 'GLOBAL ATTRIBUTES: ',attributes
+     
+    try:
+        # Open/Read the MIP table
+        table_dict = mip_table_parser.mip_table_parser(args.mipTable,type=args.mipTableType)
+        variables = table_dict['variables']
+        axes = table_dict['axes']
+        table_info = table_dict['table_info']
+        attributes.update(table_info)
+        if 'generic_levels' in table_info.keys():
+            g_levels = table_info['generic_levels']
+            g_split = g_levels.split(' ')
+            for l in g_split:
+                axes[l] = {}
+        #print variables,'\n',axes,'\n',table_info
+
+        # Get variables needed to piece together the filename
+        temp = os.path.split(args.mipTable)
+        table = temp[len(temp)-1]
+        model = attributes['model_id']
+        experiment = ("r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'], 
+                                                    attributes['initialization_index'],
+                                                    attributes['physics_index'],
+                                                    attributes['forcing_index'],
+                                                    attributes['grid_index']))
+        attributes['experiment_id'] = table 
+        attributes['experiment'] = table
+        # Do we need to add anything to further_info_url?
+        if 'further_info_url' in attributes.keys():
+            fiu_split = str(attributes['further_info_url']).split('/')
+            if table not in fiu_split:
+                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
+            if experiment not in fiu_split:
+                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
+
+        # Create Output Spec
+        # First add global attributes that are common to all files
+        all = {"attributes":attributes}
+        outSpec[a_key] = all
+        
+        # For each variable in the definition file, create a file entry in the spec and define it
+        for v,d in definitions.iteritems():
+            f_id = ("{0}_{1}_{2}_{3}".format(v,table,model,experiment))
+            file_info = {}
+            file_info["attributes"] = {}
+            dimensions = variables[v]['dimensions'].split(' ')
+            if len(dimensions) == 1:
+                dimensions = variables[v]['dimensions'].split('|')
+            file_info["dimensions"] = dimensions
+            file_info["variables"] = {}
+            for dim in dimensions:
+                var = {}
+                if dim in axes.keys():
+                    var["attributes"] = axes[dim]
+                if 'type' in axes[dim].keys():
+                    var["dtype"] = data_types[axes[dim]['type']]
+                file_info["variables"][dim] = var        
+            var = {"attributes":variables[v], "definition":d}
+            if 'type' in variables[v].keys():
+                var["dtype"] = data_types[variables[v]['type']]
+            if 'dimensions' in variables[v].keys():
+                var["dimensions"] = variables[v]['dimensions']
+            file_info["variables"][v] = var
+            outSpec[f_id] = file_info   
+    except KeyError as e:
+        print "Variable not found in MIP table: ",e.args
+
+#    for k,v in outSpec.iteritems():
+#       print '\n',k
+#       for k2,v2 in v.iteritems():
+#           print k2,v2
+
+#    print 'Number of Variables: ', len(outSpec.keys())
+     
+    # Write the JSON output spec file
+    with open(args.outputfile, 'w') as outfile:
+        json.dump(outSpec, outfile)
+ 
+if __name__ == '__main__':
+    main()

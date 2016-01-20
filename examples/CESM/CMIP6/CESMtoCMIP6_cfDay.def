@@ -1,0 +1,44 @@
+va: V on model levels
+hur: RHCFMIP on model levels
+prc: PRECC unit conversion from m s-1 to kg m-2 s-1
+cl: CLOUD on model levels, no change
+rsuscs: FSDSC - FSNSC
+rsdscs: FSDSC no change
+zg: Z3 on model levels
+hfss: SHFLX no change
+parasolRefl: RFL_PARASOL no change
+rlutcs: FLUTC no change
+rsutcs: SOLIN - FSNTOAC
+hfls: LHFLX no change
+rldscs: FLDSC no change
+clmcalipso: CLDMED_CAL no change
+ps: PS no change
+cli: CLDICE on model levels, no change
+rlus: FLDS + FLNS
+rlds: FLDS no change
+wap500: OMEGA500
+pctisccp: MEANPTOP_ISCCP
+clt: CLDTOT unit conversion
+clw: CLDLIQ on model levels, no change
+clisccp: FISCCP1_COSP
+ta: T on model levels
+cltisccp: CLDTOT_ISCCP
+rlut: FSNTOA-FSNT+FLNT ????
+rsdt: SOLIN no change
+albisccp: MEANCLDALB_ISCCP
+rsds: FSDS no change
+hus: Q on model levels
+clivi: TGCLDIWP no change
+ta700: T700
+mc: CMFMC + CMFMCDZM on model levels, no change ????
+cct: PCLDTOP
+wap: OMEGA on model levels
+clcalipso: CLD_CAL no change
+cltcalipso: CLDTOT_CAL no change
+cllcalipso: CLDLOW_CAL no change
+clwvi: TGCLDLWP no change
+rsus: FSDS - FSNS
+clhcalipso: CLDHGH_CAL no change
+ccb: PCLDBOT
+ua: U on model levels
+rsut: FSUTOA no change
