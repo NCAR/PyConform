@@ -1,0 +1,26 @@
+parasolRefl: RFL_PARASOL no change
+tnhus: TAQ+PTEQ
+ta: T on model levels, no change
+tntscpbl: HPROGCLD/CPAIR+HSED/CPAIR (CPAIR:1004.64)
+tnhusmp: PTEQ on model levels
+orog:  MISSING
+tntc: ZMDT+EVAPTZM+ZMMTT+CMFDT
+tntr: QRL+QRS
+albisccp: MEANCLDALB_ISCCP
+cltcalipso: CLDTOT_CAL no change
+ps: PS no change
+clisccp: FISCCP1_COSP
+tntmp: PTTEND on model levels, no change
+hur: RELHUM on model levels
+hus: Q on model levels
+tnt: TTEND_TOT on model levels, no change
+clmcalipso: CLDMED_CAL no change
+pctisccp: MEANPTOP_ISCCP
+tnhusd: VD01 on model levels
+tnhusa: TAQ on model levels, no change
+tnhusc: ZMDQ+EVAPQZM+CMFDQ
+cltisccp: CLDTOT_ISCCP
+clcalipso: CLD_CAL no change
+tnhusscpbl: EVAPPREC+DQSED-CME
+clhcalipso: CLDHGH_CAL no change
+cllcalipso: CLDLOW_CAL no change

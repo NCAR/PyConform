@@ -1,0 +1,61 @@
+sci: FREQSH
+parasolRefl: RFL_PARASOL
+rsutcs: SOLIN - FSNTOAC 
+rldscs: FLDSC
+ts: TS
+reffclws: REL on model levels
+clt: CLDTOT unit conversion
+ta: T on model levels
+psl: PSL
+cfadDbze94: CFAD_DBZE94_CS
+cfadLidarsr532: CFAD_SR532_CAL
+clwvi: TGCLDLWP
+rsdscs: FSDSC
+huss: QREFHT
+rtmt: FSNT - FLNT 
+evspsbl: QFLX
+clmcalipso: CLDMED_CAL
+rlds: FLDS
+rlut: FSNTOA-FSNT+FLNT 
+clwc: CLDLIQCON on model levels
+rsdt: SOLIN
+rsds: FSDS
+clws: CLDLIQSTR on model levels
+rsus: FSDS - FSNS 
+rsut: SOLIN - FSNTOA 
+ci: FREQZM unit conversion
+cltcalipso: CLDTOT_CAL
+clcalipso2: CLD_CAL_NOTCS
+rlutcs: FLUTC
+hfls: LHFLX
+cltc: CONCLD
+demc: EMIS on model levels
+pr: PRECT unit conversion
+ps: PS
+rlus: FLDS + FLNS 
+hurs: RHREFHT
+prsnc: ZMFLXSNW+HKFLXSNW on model levels
+clic: CLDICECON on model levels
+dems: EMIS on model levels
+tauv: TAUY
+tauu: TAUX
+clis: CLDICESTR on model levels
+prc: PRECC unit conversion
+tas: TREFHT
+rsuscs: FSDSC - FSNSC 
+hfss: SHFLX
+prlsns: LS_FLXSNW on model levels
+prlsprof: LS_FLXPRC-LS_FLXSNW on model levels
+prw: TMQ
+prsn: PRECSC + PRECSL and unit conversion
+dtauc: TOT_ICLD_VISTAU on model levels
+dtaus: TOT_ICLD_VISTAU on model levels
+clivi: TGCLDIWP
+prcprof: ZMFLXPRC-ZMFLXSNW + RKFLXPRC-RKFLXSNW on model levels (*** the Xwalk and code show this in commnets, but xwalk lists these vars, HKFLXPRC-HKFLXSNW, as 2nd args)
+cct: PCLDTOP
+reffclis: REI on model levels
+clcalipso: CLD_CAL
+h2o: Q+CLDICE+CLDLIQ on model levels
+cllcalipso: CLDLOW_CAL
+clhcalipso: CLDHGH_CAL
+ccb: PCLDBOT

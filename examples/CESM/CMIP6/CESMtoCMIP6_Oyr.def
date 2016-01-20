@@ -1,0 +1,33 @@
+chlpico: spChl
+co3satcalc: co3_sat_calc
+co3satarag: co3_sat_arag
+chldiaz: diazChl
+phydiaz: diazC
+no3: NO3
+phydiat: diatC
+expcalc: CaCO3_FLUX_IN
+expsi: SiO2_FLUX_IN
+physi: diatSi
+dfe: Fe
+ph: pH_3D
+o2: O2
+chldiat: diatChl
+phyp: (diatC+spC)*.00855+diazC*.002735 ?????
+po4: PO4
+dissoc: DOC
+co3: CO3
+dissic: DIC
+zooc: zooC
+phyc: spC+diatC+diazC ?????
+phyn: (diatC+spC+diazC)*.137 ?????
+phymisc: diatFe+spFe+diazFe ?????
+phyfe: spFe
+phypico: spC
+chlcalc: spChl*(spCaCO3/spC) ?????
+nh4: NH4
+si: SiO3
+chl: diatChl+spChl+diazChl ?????
+expc: POC_FLUX_IN
+phycalc: spC
+talk: ALK
+expcfe: P_iron_FLUX_IN
