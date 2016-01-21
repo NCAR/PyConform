@@ -63,46 +63,46 @@ def main(argv=None):
         attributes = yaml.load(y_attributes, Loader=yaml.BaseLoader)
         #print 'GLOBAL ATTRIBUTES: ',attributes
      
-    try:
-        # Open/Read the MIP table
-        table_dict = mip_table_parser.mip_table_parser(args.mipTable,type=args.mipTableType)
-        variables = table_dict['variables']
-        axes = table_dict['axes']
-        table_info = table_dict['table_info']
-        attributes.update(table_info)
-        if 'generic_levels' in table_info.keys():
-            g_levels = table_info['generic_levels']
-            g_split = g_levels.split(' ')
-            for l in g_split:
-                axes[l] = {}
-        #print variables,'\n',axes,'\n',table_info
+    # Open/Read the MIP table
+    table_dict = mip_table_parser.mip_table_parser(args.mipTable,type=args.mipTableType)
+    variables = table_dict['variables']
+    axes = table_dict['axes']
+    table_info = table_dict['table_info']
+    attributes.update(table_info)
+    if 'generic_levels' in table_info.keys():
+        g_levels = table_info['generic_levels']
+        g_split = g_levels.split(' ')
+        for l in g_split:
+            axes[l] = {}
+    #print variables,'\n',axes,'\n',table_info
 
-        # Get variables needed to piece together the filename
-        temp = os.path.split(args.mipTable)
-        table = temp[len(temp)-1]
-        model = attributes['model_id']
-        experiment = ("r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'], 
-                                                    attributes['initialization_index'],
-                                                    attributes['physics_index'],
-                                                    attributes['forcing_index'],
-                                                    attributes['grid_index']))
-        attributes['experiment_id'] = table 
-        attributes['experiment'] = table
-        # Do we need to add anything to further_info_url?
-        if 'further_info_url' in attributes.keys():
-            fiu_split = str(attributes['further_info_url']).split('/')
-            if table not in fiu_split:
-                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
-            if experiment not in fiu_split:
-                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
+    # Get variables needed to piece together the filename
+    temp = os.path.split(args.mipTable)
+    table = temp[len(temp)-1]
+    model = attributes['model_id']
+    experiment = ("r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'], 
+                                                attributes['initialization_index'],
+                                                attributes['physics_index'],
+                                                attributes['forcing_index'],
+                                                attributes['grid_index']))
+    attributes['experiment_id'] = table 
+    attributes['experiment'] = table
+    # Do we need to add anything to further_info_url?
+    if 'further_info_url' in attributes.keys():
+        fiu_split = str(attributes['further_info_url']).split('/')
+        if table not in fiu_split:
+            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
+        if experiment not in fiu_split:
+            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
 
-        # Create Output Spec
-        # First add global attributes that are common to all files
-        all = {"attributes":attributes}
-        outSpec[a_key] = all
+    # Create Output Spec
+    # First add global attributes that are common to all files
+    all = {"attributes":attributes}
+    outSpec[a_key] = all
         
-        # For each variable in the definition file, create a file entry in the spec and define it
-        for v,d in definitions.iteritems():
+    # For each variable in the definition file, create a file entry in the spec and define it
+    for v,d in definitions.iteritems():
+        try:   
             f_id = ("{0}_{1}_{2}_{3}".format(v,table,model,experiment))
             file_info = {}
             file_info["attributes"] = {}
@@ -122,11 +122,12 @@ def main(argv=None):
             if 'type' in variables[v].keys():
                 var["dtype"] = data_types[variables[v]['type']]
             if 'dimensions' in variables[v].keys():
-                var["dimensions"] = variables[v]['dimensions']
+                var["dimensions"] = variables[v]['dimensions'].split('|')
             file_info["variables"][v] = var
             outSpec[f_id] = file_info   
-    except KeyError as e:
-        print "Variable not found in MIP table: ",e.args
+        except KeyError as e:
+            pass
+            print "Variable not found in MIP table: ",e.args[0]
 
 #    for k,v in outSpec.iteritems():
 #       print '\n',k
@@ -137,7 +138,7 @@ def main(argv=None):
      
     # Write the JSON output spec file
     with open(args.outputfile, 'w') as outfile:
-        json.dump(outSpec, outfile)
+        json.dump(outSpec, outfile, sort_keys=True, indent=4)
  
 if __name__ == '__main__':
     main()
