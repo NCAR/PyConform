@@ -540,11 +540,24 @@ class ParseXML(object):
 
         #for a in dq.inx.grids.label.keys():
         for a in axes_list:
-            id = dq.inx.var.sn[a]
+            #id = dq.inx.var.sn[a]
+            id = dq.inx.grids.label[a]
             ax = {}
             if len(id) > 0:
-                v = dq.inx.uid[id[0]]
+                v = dq.inx.grids.uid[id[0]]
                 ax['units'] = v.units
+                ax['axis'] = v.axis
+                ax['valid_max'] = v.valid_max
+                ax['valid_min'] = v.valid_min
+                ax['cf_standard_name'] = v.standardName
+                ax['type'] = v.type
+                ax['id'] = v.label
+                ax['positive'] = v.positive
+                ax['title'] = v.title
+                ax['bounds'] = v.bounds
+                ax['boundsRequested'] = v.boundsRequested
+                ax['boundsValues'] = v.boundsValues
+                ax['coords'] = v.coords
             axes[a] = ax
        
         table_dict['variables'] = variables
