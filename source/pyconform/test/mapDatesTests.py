@@ -2,8 +2,6 @@ import numpy as np
 from cStringIO import StringIO
 from mkTestData import DataMaker
 from pyconform import map_dates
-from glob import glob
-from os import remove
 import unittest
 
 files=['test1.nc', 'test2.nc', 'test3.nc']
@@ -13,15 +11,11 @@ files=['test1.nc', 'test2.nc', 'test3.nc']
 #===============================================================================
 class dateMapTests(unittest.TestCase):
 
-    def _clean_directory(self):
-        for ncfile in glob('*.nc'):
-            remove(ncfile)
-
-
     def test_get_files_in_order(self):
 
         # Create some data that should be contiguous
-        dm = DataMaker(filenames=files)
+        t = {'time': [3,3,3], 'space': 2}
+        dm = DataMaker(dimensions=t, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -31,7 +25,7 @@ class dateMapTests(unittest.TestCase):
         self.assertTrue(counts == [3,3,3],
                         "get_files_in_order, counts".format())
         self.assertTrue(error == 0,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_out_of_order(self):
  
@@ -39,7 +33,8 @@ class dateMapTests(unittest.TestCase):
         a = np.asarray([1,2,3])
         b = np.asarray([7,8,9])
         c = np.asarray([4,5,6])
-        dm = DataMaker(time_slices=[a,b,c], filenames=files)
+        t = {'time': [3,3,3], 'space': 2}
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -49,7 +44,7 @@ class dateMapTests(unittest.TestCase):
         self.assertTrue(counts == [3,3,3],
                         "get_files_in_order, counts".format())
         self.assertTrue(error == 0,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_gap_between_files(self):
 
@@ -57,13 +52,14 @@ class dateMapTests(unittest.TestCase):
         a = np.asarray([1,2,3])
         b = np.asarray([4,5,6])
         c = np.asarray([10,11,12])
-        dm = DataMaker(time_slices=[a,b,c], filenames=files)
+        t = {'time': [3,3,3], 'space': 2}
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
         _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_gap_in_a_file(self):
 
@@ -71,13 +67,14 @@ class dateMapTests(unittest.TestCase):
         a = np.asarray([1,2,4])
         b = np.asarray([5,6,7])
         c = np.asarray([8,9,10])
-        dm = DataMaker(time_slices=[a,b,c], filenames=files)
+        t = {'time': [3,3,3], 'space': 2}
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
         _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_6hr(self):
 
@@ -87,8 +84,8 @@ class dateMapTests(unittest.TestCase):
         a = np.asarray([1,1.25,1.50,1.75])
         b = np.asarray([2,2.25,2.50,2.75])
         c = np.asarray([3,3.25,3.50,3.75])
-        t = OrderedDict([('time', 4),('space', 2)])
-        dm = DataMaker(dimensions=t, time_slices=[a,b,c], filenames=files)
+        t = OrderedDict([('time', [4,4,4]),('space', 2)])
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -98,7 +95,7 @@ class dateMapTests(unittest.TestCase):
         self.assertTrue(counts == [4,4,4],
                         "get_files_in_order, counts".format())
         self.assertTrue(error == 0,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_monthly(self):
 
@@ -113,8 +110,8 @@ class dateMapTests(unittest.TestCase):
             c1.append(a[i]+730)
         b = np.asarray(b1)
         c = np.asarray(c1)  
-        t = OrderedDict([('time', 12),('space', 2)])
-        dm = DataMaker(dimensions=t, time_slices=[a,b,c], filenames=files)
+        t = OrderedDict([('time', [12,12,12]),('space', 2)])
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -124,7 +121,7 @@ class dateMapTests(unittest.TestCase):
         self.assertTrue(counts == [12,12,12],
                         "get_files_in_order, counts".format())
         self.assertTrue(error == 0,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_monthly_gap_between_files(self):
 
@@ -139,14 +136,14 @@ class dateMapTests(unittest.TestCase):
             c1.append(a[i]+730)
         b = np.asarray(b1)
         c = np.asarray(c1)
-        t = OrderedDict([('time', 11),('space', 2)])
-        dm = DataMaker(dimensions=t, time_slices=[a,b,c], filenames=files)
+        t = OrderedDict([('time', [11,11,11]),('space', 2)])
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
         _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_monthly_gap_in_a_file(self):
 
@@ -161,14 +158,14 @@ class dateMapTests(unittest.TestCase):
             c1.append(a[i]+730)
         b = np.asarray(b1)
         c = np.asarray(c1)
-        t = OrderedDict([('time', 11),('space', 2)])
-        dm = DataMaker(dimensions=t, time_slices=[a,b,c], filenames=files)
+        t = OrderedDict([('time', [11,11,11]),('space', 2)])
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
         _ordered_files, _counts, error = map_dates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
     def test_get_files_yearly(self):
 
@@ -176,7 +173,8 @@ class dateMapTests(unittest.TestCase):
         a = np.asarray([365, 730, 1095])
         b = np.asarray([1460, 1825, 2190])
         c = np.asarray([2555, 2920, 3285])
-        dm = DataMaker(time_slices=[a,b,c], filenames=files)
+        t = {'time': [3,3,3], 'space': 2}
+        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -186,7 +184,7 @@ class dateMapTests(unittest.TestCase):
         self.assertTrue(counts == [3,3,3],
                         "get_files_in_order, counts".format())
         self.assertTrue(error == 0,  "get_files_in_order, error".format())
-        self. _clean_directory()
+        dm.clear()
 
 #===============================================================================
 # Command-Line Operation
