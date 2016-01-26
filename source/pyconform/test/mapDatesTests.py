@@ -34,7 +34,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray([7,8,9])
         c = np.asarray([4,5,6])
         t = {'time': [3,3,3], 'space': 2}
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -53,7 +53,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray([4,5,6])
         c = np.asarray([10,11,12])
         t = {'time': [3,3,3], 'space': 2}
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
@@ -68,7 +68,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray([5,6,7])
         c = np.asarray([8,9,10])
         t = {'time': [3,3,3], 'space': 2}
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
@@ -85,7 +85,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray([2,2.25,2.50,2.75])
         c = np.asarray([3,3.25,3.50,3.75])
         t = OrderedDict([('time', [4,4,4]),('space', 2)])
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -111,7 +111,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray(b1)
         c = np.asarray(c1)  
         t = OrderedDict([('time', [12,12,12]),('space', 2)])
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -137,7 +137,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray(b1)
         c = np.asarray(c1)
         t = OrderedDict([('time', [11,11,11]),('space', 2)])
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -159,7 +159,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray(b1)
         c = np.asarray(c1)
         t = OrderedDict([('time', [11,11,11]),('space', 2)])
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
@@ -174,7 +174,7 @@ class dateMapTests(unittest.TestCase):
         b = np.asarray([1460, 1825, 2190])
         c = np.asarray([2555, 2920, 3285])
         t = {'time': [3,3,3], 'space': 2}
-        dm = DataMaker(dimensions=t, data={'time': [a,b,c]}, filenames=files)
+        dm = DataMaker(dimensions=t, vardata={'time': [a,b,c]}, filenames=files)
         dm.write()
 
         # Call get_files_in_order and evaluate the return values

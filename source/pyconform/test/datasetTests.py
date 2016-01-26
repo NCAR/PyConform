@@ -9,6 +9,7 @@ from glob import glob
 from os import remove, linesep
 from pyconform import dataset
 from collections import OrderedDict
+from mkTestData import DataMaker
 
 import unittest
 import netCDF4
@@ -51,89 +52,59 @@ class DatasetTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.filenames = ['file1.nc', 'file2.nc', 'file3.nc']
-
-        self.fattribs = OrderedDict()
-        self.fattribs['a1'] = 'attribute 1'
-        self.fattribs['a2'] = 'attribute 2'
-
-        self.dimensions = OrderedDict()
-        self.dimensions['time'] = [4, 5, 6]
-        self.dimensions['lat'] = 3
-        self.dimensions['lon'] = 2
-
-        self.variables = OrderedDict()
-        self.variables['time'] = {'dtype': 'float64',
-                                  'dimensions': ('time',),
-                                  'attributes': OrderedDict()}
-        self.variables['time']['attributes']['standard_name'] = 'time'
-        self.variables['time']['attributes']['units'] = 'days since 01-01-0001'
-        self.variables['time']['attributes']['calendar'] = 'noleap'
-
-        self.variables['lat'] = {'dtype': 'float64',
-                                 'dimensions': ('lat',),
-                                 'attributes': OrderedDict()}
-        self.variables['lat']['attributes']['standard_name'] = 'latitude'
-        self.variables['lat']['attributes']['units'] = 'degrees_north'
-
-        self.variables['lon'] = {'dtype': 'float64',
-                                 'dimensions': ('lon',),
-                                 'attributes': OrderedDict()}
-        self.variables['lon']['attributes']['standard_name'] = 'longitude'
-        self.variables['lon']['attributes']['units'] = 'degrees_east'
-
-        self.variables['v'] = {'dtype': 'float32',
-                               'dimensions': ('time', 'lat', 'lon'),
-                               'attributes': OrderedDict()}
-        self.variables['v']['attributes']['standard_name'] = 'variable'
-        self.variables['v']['attributes']['units'] = 'unit'
+        self.dm = DataMaker(filenames=['file1.nc', 'file2.nc', 'file3.nc'],
+                            dimensions=OrderedDict([('time', [4,5,6]),
+                                                    ('lat', 3),
+                                                    ('lon', 2)]),
+                            vardims=OrderedDict([('v', ('time', 'lat', 'lon'))]),
+                            vartypes=OrderedDict([('v', 'float32')]),
+                            varattribs=OrderedDict([('time', OrderedDict([('standard_name', 'time'),
+                                                                          ('units', 'days since 01-01-0001'),
+                                                                          ('calendar', 'noleap')])),
+                                                    ('lat', OrderedDict([('standard_name', 'latitude'),
+                                                                         ('units', 'degrees_north')])),
+                                                    ('lon', OrderedDict([('standard_name', 'longitude'),
+                                                                         ('units', 'degrees_east')])),
+                                                    ('v', OrderedDict([('standard_name', 'variable'),
+                                                                       ('units', 'unit')]))]))
 
         self.dsdict = OrderedDict()
-        for i, f in enumerate(self.filenames):
+        for i, f in enumerate(self.dm.filenames):
             self.dsdict[f] = OrderedDict()
-            self.dsdict[f]['attributes'] = OrderedDict(self.fattribs)
+            self.dsdict[f]['attributes'] = OrderedDict(self.dm.fileattribs[i])
             self.dsdict[f]['dimensions'] = OrderedDict()
-            self.dsdict[f]['dimensions']['time'] = [self.dimensions['time'][i]]
-            self.dsdict[f]['dimensions']['lat'] = self.dimensions['lat']
-            self.dsdict[f]['dimensions']['lon'] = self.dimensions['lon']
-            self.dsdict[f]['variables'] = OrderedDict(self.variables)
-
-        for i, f in enumerate(self.filenames):
-            fobj = netCDF4.Dataset(f, 'w')
-            fobj.setncatts(self.dsdict[f]['attributes'])
-            for name, value in self.dsdict[f]['dimensions'].iteritems():
-                if isinstance(value, int):
-                    fobj.createDimension(name, value)
-                elif isinstance(value, list):
-                    fobj.createDimension(name)
-            for name, value in self.dsdict[f]['variables'].iteritems():
-                var = fobj.createVariable(
-                    name, value['dtype'], value['dimensions'])
-                for aname, aval in value['attributes'].iteritems():
-                    var.setncattr(aname, aval)
-                shape = []
-                for d in value['dimensions']:
-                    if isinstance(self.dimensions[d], int):
-                        shape.append(self.dimensions[d])
-                    elif isinstance(self.dimensions[d], list):
-                        shape.append(self.dimensions[d][i])
-                size = reduce(lambda x, y: x * y, shape, 1)
-                var[:] = numpy.arange(size).reshape(shape)
-            fobj.close()
+            self.dsdict[f]['dimensions']['time'] = [self.dm.dimensions['time'][i]]
+            self.dsdict[f]['dimensions']['lat'] = self.dm.dimensions['lat']
+            self.dsdict[f]['dimensions']['lon'] = self.dm.dimensions['lon']
+            self.dsdict[f]['variables'] = OrderedDict()
+            for vname, vdict in self.dm.varattribs.iteritems():
+                self.dsdict[f]['variables'][vname] = OrderedDict()
+                if vname in self.dm.vartypes:
+                    self.dsdict[f]['variables'][vname]['dtype'] = self.dm.vartypes[vname]
+                else:
+                    self.dsdict[f]['variables'][vname]['dtype'] = 'float64'
+                if vname in self.dm.vardims:
+                    self.dsdict[f]['variables'][vname]['dimensions'] = self.dm.vardims[vname]
+                else:
+                    self.dsdict[f]['variables'][vname]['dimensions'] = (vname,)
+                self.dsdict[f]['variables'][vname]['attributes'] = OrderedDict()
+                for aname, avalue in vdict.iteritems():
+                    self.dsdict[f]['variables'][vname]['attributes'][aname] = avalue
+        
+        self.dm.write()
 
     def tearDown(self):
-        for ncf in glob('*.nc'):
-            remove(ncf)
+        self.dm.clear()
 
     def test_parse_dataset_dictionary(self):
         dataset.parse_dataset_dictionary(self.dsdict)
 
     def test_parse_dataset_filelist(self):
-        dataset.parse_dataset_filelist(self.filenames)
+        dataset.parse_dataset_filelist(self.dm.filenames)
 
     def test_parse_dataset_equal(self):
         dfiles = dataset.parse_dataset_dictionary(self.dsdict)
-        ffiles = dataset.parse_dataset_filelist(self.filenames)
+        ffiles = dataset.parse_dataset_filelist(self.dm.filenames)
 
         actual = len(dfiles)
         expected = len(ffiles)
@@ -179,7 +150,7 @@ class DatasetTests(unittest.TestCase):
                              'Parse methods do not yield same file variables')
 
     def test_input_dataset_type(self):
-        inds = dataset.InputDataset('myinds', self.filenames)
+        inds = dataset.InputDataset('myinds', self.dm.filenames)
         actual = type(inds)
         expected = dataset.InputDataset
         print_test_message('type(InputDataset)',
