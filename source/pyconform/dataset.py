@@ -392,7 +392,7 @@ class OutputDataset(Dataset):
         Parameters:
             name (str): String name to optionally give to a dataset
             dsdict (dict): Dictionary describing the dataset, ordered by
-                files, file attributes, file dimensions, and file variables.
+                files, file attributes, file dimensions, and file vardims.
         """
         super(OutputDataset, self).__init__(name)
         self.files = parse_dataset_dictionary(dsdict)
