@@ -5,15 +5,12 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from glob import glob
-from os import remove, linesep
+from os import linesep
 from pyconform import dataset
 from collections import OrderedDict
 from mkTestData import DataMaker
 
 import unittest
-import netCDF4
-import numpy
 
 
 #=========================================================================
