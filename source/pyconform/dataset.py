@@ -9,9 +9,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from collections import OrderedDict
+from copy import deepcopy
 
 import netCDF4
-from copy import deepcopy
 
 
 #=========================================================================
