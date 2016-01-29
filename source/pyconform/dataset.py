@@ -8,11 +8,11 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from os import linesep
 from collections import OrderedDict
-from copy import deepcopy
 from numpy import dtype
 
-import netCDF4
+from netCDF4 import Dataset as NC4Dataset
 
 
 #===============================================================================
@@ -33,6 +33,21 @@ class DimensionInfo(object):
         self.size = int(size)
         self.unlimited = bool(unlimited)
 
+    def __eq__(self, other):
+        if self.name != other.name:
+            return False
+        if self.size != other.size:
+            return False
+        if self.unlimited != other.unlimited:
+            return False
+        return True
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        unlim_str = ', unlimited' if self.unlimited else ''
+        return '{!r} [{}{}]'.format(self.name, self.size, unlim_str)
         
 #=========================================================================
 # VariableInfo
@@ -42,7 +57,7 @@ class VariableInfo(object):
     def __init__(self, name, 
                  datatype='float64', 
                  dimensions=(), 
-                 attributes={},
+                 attributes=OrderedDict(),
                  definition=None,
                  filename=None):
         """
@@ -60,23 +75,37 @@ class VariableInfo(object):
         self.datatype = '{!s}'.format(dtype(datatype))
         self.dimensions = dimensions
         self.attributes = attributes
-        self.definition = str(definition)
-        self.filename = str(filename)
+        self.definition = definition
+        self.filename = filename
 
     def __eq__(self, other):
         if self.name != other.name:
-            print 'Names: {} != {}'.format(self.name, other.name)
             return False
         if self.datatype != other.datatype:
-            print 'Data Type: {} != {}'.format(self.datatype, other.datatype)
             return False
         if self.dimensions != other.dimensions:
-            print 'Dimensions: {} != {}'.format(self.dimensions, other.dimensions)
+            return False
+        if self.attributes != other.attributes:
+            return False
+        if self.definition != other.definition:
+            return False
+        if self.filename != other.filename:
             return False
         return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
+    
+    def __str__(self):
+        strval = 'Variable: {!r}'.format(self.name) + linesep
+        strval += '   datatype: {!r}'.format(self.datatype) + linesep
+        strval += '   dimensions: {!s}'.format(self.dimensions) + linesep
+        if self.definition:
+            strval += '   definition: {!r}'.format(self.definition) + linesep
+        if self.attributes:
+            strval += '   attributes:' + linesep
+            for aname, avalue in self.attributes.iteritems():
+                strval += '      {}: {!r}'.format(aname, avalue) + linesep
 
     def units(self):
         return self.attributes.get('units')
@@ -90,7 +119,8 @@ class VariableInfo(object):
 #=========================================================================
 class Dataset(object):
 
-    def __init__(self, name='', dimensions={}, variables={}):
+    def __init__(self, name='',
+                 dimensions=OrderedDict(), variables=OrderedDict()):
         """
         Initializer
 
@@ -144,12 +174,12 @@ class Dataset(object):
             vdict = OrderedDict()
             vdict['datatype'] = vinfo.datatype
             vdict['dimensions'] = vinfo.dimensions
-            if vinfo.attributes:
-                vdict['attributes'] = vinfo.attributes
             if vinfo.definition:
                 vdict['definition'] = vinfo.definition
             if vinfo.filename:
                 vdict['filename'] = vinfo.filename
+            if vinfo.attributes:
+                vdict['attributes'] = vinfo.attributes
             dsdict[vinfo.name] = vdict
         return dsdict
     
@@ -163,8 +193,11 @@ class Dataset(object):
         if name not in self.variables:
             err_msg = 'Variable {!r} not in Dataset {!r}'.format(name, self.name)
             raise KeyError(err_msg)
-        shape = [self.dimensions[d].size for d in self.variables[name].dimensions]
-        return tuple(shape)
+        if self.dimensions:
+            return tuple(self.dimensions[d].size 
+                         for d in self.variables[name].dimensions)
+        else:
+            return None
     
     def get_size(self, name):
         """
@@ -209,43 +242,66 @@ class InputDataset(Dataset):
             name (str): String name to optionally give to a dataset
             filenames (list): List of filenames in the dataset
         """
-        variables = []
+        variables = {}
+        varfiles = {}
         dimensions = {}
         for fname in filenames:
             try:
-                ncfile = Dataset(fname)
-                for dname, dobj in ncfile.dimensions.iteritems():
-                    if dname not in dimensions:
-                        if dobj.isunlimited():
-                            dimensions[dname] = [dobj.size]
-                        else:
-                            dimensions[dname] = dobj.size
-                    else:
-                        err_msg = ('Dimension {!r} in input file {!r} '
-                                   'does not match expected dimension '
-                                   '{!r}').format(dname, fname,
-                                                  dimensions[dname])
-                        if dobj.isunlimited():
-                            if dimensions[dname] != [dobj.size]:
-                                raise ValueError(err_msg)
-                        else:
-                            if dimensions[dname] != dobj.size:
-                                raise ValueError(err_msg)
-                for vname, vobj in ncfile.variables.iteritems():
-                    datatype = '{!s}'.format(vobj.dtype)
-                    dimensions = vobj.dimensions
-                    attributes = OrderedDict()
-                    for attr in vobj.ncattrs:
-                        attributes[attr] = vobj.getncattr(attr)
-                    variables.append(VariableInfo(name=vname,
-                                                  datatype=datatype,
-                                                  dimensions=dimensions,
-                                                  attributes=attributes,
-                                                  filename=fname))
-                ncfile.close()
+                ncfile = NC4Dataset(fname)
             except:
                 err_msg = 'Could not open or read input file {!r}'.format(fname)
                 raise RuntimeError(err_msg)
+
+            # Check dimensions
+            for dname, dobj in ncfile.dimensions.iteritems():
+                dinfo = DimensionInfo(dobj.name, dobj.size, dobj.isunlimited())
+                if dname in dimensions:
+                    if dinfo != dimensions[dname]:
+                        err_msg = ('Dimension {!r} in input file {!r} is '
+                                   'different from expected dimension '
+                                   '{!r}').format(dinfo, fname,
+                                                  dimensions[dname])
+                        raise ValueError(err_msg)
+                else:
+                    dimensions[dname] = dinfo
+
+            # Check variables
+            for vname, vobj in ncfile.variables.iteritems():
+                vattrs = OrderedDict()
+                for vattr in vobj.ncattrs:
+                    vattrs[vattr] = vobj.getncattr(vattr)
+                vinfo = VariableInfo(name=vname,
+                                     datatype='{!s}'.format(vobj.dtype),
+                                     dimensions=vobj.dimensions,
+                                     attributes=vattrs)
+
+                if vname in variables:
+                    if vinfo != variables[vname]:
+                        err_msg = ('{}Variable {!r} in file {!r}:'
+                                   '{}{}'
+                                   'differs from same variable in other files:'
+                                   '{}{}').format(linesep, vname, fname,
+                                                  linesep, vinfo,
+                                                  linesep, variables[vname])
+                        raise ValueError(err_msg)
+                    else:
+                        varfiles[vname].append(fname)
+                else:
+                    variables[vname] = vinfo
+                    varfiles[vname] = [fname]
+                
+            # Check variable file occurrences
+            for vname, vfiles in varfiles.iteritems():
+                if len(vfiles) == 1:
+                    variables[vname].filename = vfiles[0]
+                elif len(vfiles) < len(filenames):
+                    missing_files = set(filenames) - set(vfiles)
+                    wrn_msg = ('Variable {!r} appears to be metadata but does '
+                               'not appear in the files:{}'
+                               '{}').format(vname, linesep, missing_files)
+                    raise RuntimeWarning(wrn_msg)
+
+            ncfile.close()
         super(InputDataset, self).__init__(name, dimensions, variables)
         
         
@@ -254,29 +310,36 @@ class InputDataset(Dataset):
 #=========================================================================
 class OutputDataset(Dataset):
 
-    def __init__(self, name='output', dsdict=OrderedDict(),
-                 prefix='conform.', suffix='.nc'):
+    def __init__(self, name='output', dsdict=OrderedDict()):
         """
         Initializer
 
         Parameters:
             name (str): String name to optionally give to a dataset
             dsdict (dict): Dictionary describing the dataset variables
-            prefix (str): String prefix to output filenames
-            suffic (str): String suffix to output filenames 
         """
-        variables = []
-        for vname, vdict in dsdict:
-            kwargs = {'dimensions': vdict['dimensions'],
-                      'definition': vdict['definition']}
-            if 'attributes' in vdict:
-                kwargs['attributes'] = vdict['attributes']
+        variables = {}
+        for vname, vdict in dsdict.iteritems():
+            kwargs = {}
+            if 'dimensions' not in vdict['dimensions']:
+                err_msg = ('Dimensions are required for variable '
+                           '{!r}').format(vname)
+                raise ValueError(err_msg)
+            else:
+                kwargs['dimensions'] = vdict['dimensions']
+            if 'definition' not in vdict['definition']:
+                err_msg = ('Definition is required for output variable '
+                           '{!r}').format(vname)
+                raise ValueError(err_msg)
+            else:
+                kwargs['dimensions'] = vdict['dimensions']
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
-            filename = '{}{}{}'.format(prefix, vname, suffix)            
-            variables.append(VariableInfo(vname, vdict['datatype'],
-                                          vdict['dimensions'], 
-                                          vdict['attributes'],
-                                          vdict['definition'],
-                                          filename))
-
+            else:
+                kwargs['datatype'] = 'float32'
+            if 'attributes' in vdict:
+                kwargs['attributes'] = vdict['attributes']
+            if 'filename' in vdict:
+                kwargs['filename'] = vdict['filename']
+            variables[vname] = VariableInfo(vname, **kwargs)
+        super(OutputDataset, self).__init__(name, variables=variables)
