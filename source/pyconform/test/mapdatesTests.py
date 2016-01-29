@@ -1,7 +1,7 @@
 import numpy as np
 from cStringIO import StringIO
 from mkTestData import DataMaker
-from pyconform import map_dates
+from pyconform import mapdates
 import unittest
 
 files=['test1.nc', 'test2.nc', 'test3.nc']
@@ -19,7 +19,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        ordered_files,counts,error = mapdates.get_files_in_order(files)
         self.assertTrue(ordered_files == ['test1.nc', 'test2.nc', 'test3.nc'],
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3,3,3],
@@ -38,7 +38,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        ordered_files,counts,error = mapdates.get_files_in_order(files)
         self.assertTrue(ordered_files == ['test1.nc', 'test3.nc', 'test2.nc'],
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3,3,3],
@@ -57,7 +57,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
-        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = mapdates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         dm.clear()
 
@@ -72,7 +72,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values, return value should fail
-        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = mapdates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         dm.clear()
 
@@ -89,7 +89,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        ordered_files,counts,error = mapdates.get_files_in_order(files)
         self.assertTrue(ordered_files == ['test1.nc', 'test2.nc', 'test3.nc'],
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [4,4,4],
@@ -115,7 +115,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        ordered_files,counts,error = mapdates.get_files_in_order(files)
         self.assertTrue(ordered_files == ['test1.nc', 'test2.nc', 'test3.nc'],
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [12,12,12],
@@ -141,7 +141,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = mapdates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         dm.clear()
 
@@ -163,7 +163,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        _ordered_files, _counts, error = map_dates.get_files_in_order(files)
+        _ordered_files, _counts, error = mapdates.get_files_in_order(files)
         self.assertTrue(error == 1,  "get_files_in_order, error".format())
         dm.clear()
 
@@ -178,7 +178,7 @@ class dateMapTests(unittest.TestCase):
         dm.write()
 
         # Call get_files_in_order and evaluate the return values
-        ordered_files,counts,error = map_dates.get_files_in_order(files)
+        ordered_files,counts,error = mapdates.get_files_in_order(files)
         self.assertTrue(ordered_files == ['test1.nc', 'test2.nc', 'test3.nc'],
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3,3,3],
