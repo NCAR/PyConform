@@ -90,6 +90,25 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
 
+    def test_clear(self):
+        G = graph.DiGraph()
+        G.connect(1, 2)
+        G.connect(2, 3)
+        G.connect(2, 4)
+        G.clear()
+        testname = 'DiGraph.clear() vertices'
+        actual = G.vertices()
+        expected = list()
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+        testname = 'DiGraph.clear() - edges'
+        actual = G.edges()
+        expected = list()
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+        
     def test_copy(self):
         testname = 'DiGraph.copy()'
         G = graph.DiGraph()

@@ -65,6 +65,13 @@ class DiGraph(object):
             bool: True if vertex in graph, False otherwise
         """
         return vertex in self._vertices
+    
+    def clear(self):
+        """
+        Remove all vertices and edges from the graph
+        """
+        self._vertices.clear()
+        self._edges = list()
 
     def copy(self):
         """
