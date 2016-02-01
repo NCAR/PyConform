@@ -90,6 +90,18 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
 
+    def test_len(self):
+        testname = 'len(DiGraph)'
+        G = graph.DiGraph()
+        G.add(2)
+        G.add(3)
+        G.add(5)
+        actual = len(G)
+        expected = 3
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
     def test_clear(self):
         G = graph.DiGraph()
         G.connect(1, 2)
@@ -268,6 +280,32 @@ class GraphTests(unittest.TestCase):
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
 
+    def test_leaves(self):
+        testname = 'DiGraph.leaves()'
+        G = graph.DiGraph()
+        G.connect(1, 3)
+        G.connect(2, 3)
+        G.connect(3, 4)
+        G.connect(3, 5)
+        actual = G.leaves()
+        expected = set([4, 5])
+        print_test_message(testname, actual, expected)
+        self.assertSetEqual(actual, expected,
+                            '{} returned unexpected result'.format(testname))
+
+    def test_roots(self):
+        testname = 'DiGraph.roots()'
+        G = graph.DiGraph()
+        G.connect(1, 3)
+        G.connect(2, 3)
+        G.connect(3, 4)
+        G.connect(3, 5)
+        actual = G.roots()
+        expected = set([1, 2])
+        print_test_message(testname, actual, expected)
+        self.assertSetEqual(actual, expected,
+                            '{} returned unexpected result'.format(testname))
+                
     def test_bfs(self):
         indata = 1
         testname = 'DiGraph.iter_bfs({})'.format(indata)
