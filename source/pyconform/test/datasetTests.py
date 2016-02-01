@@ -495,13 +495,20 @@ class DatasetTests(unittest.TestCase):
         outds = dataset.OutputDataset('myoutds', self.dsdict)
         actual = outds.get_dict()
         expected = self.dsdict
-        print_test_message('get_dict()',
+        print_test_message('OutputDataset.get_dict()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Dataset.get_dict() returns wrong data')
+                         'OutputDataset.get_dict() returns wrong data')
+        
+    def test_dataset_get_dict_from_input(self):
+        inds = dataset.InputDataset('myinds', self.filenames.values())
+        actual = inds.get_dict()
+        print_test_message('InputDataset.get_dict()', actual=actual)
         
 
-
+#===============================================================================
+# Command-Line Execution
+#===============================================================================
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

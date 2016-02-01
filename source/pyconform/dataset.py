@@ -262,9 +262,9 @@ class InputDataset(Dataset):
             name (str): String name to optionally give to a dataset
             filenames (list): List of filenames in the dataset
         """
-        variables = {}
+        variables = OrderedDict()
         varfiles = {}
-        dimensions = {}
+        dimensions = OrderedDict()
         attributes = OrderedDict()
         for fname in filenames:
 
