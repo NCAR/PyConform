@@ -72,10 +72,8 @@ class OperationGraph(DiGraph):
         """
         if not isinstance(vertex, operators.Operator):
             raise TypeError('OperationGraph must consist only of Operators')
-        if vertex not in self:
-            self._root = vertex
         DiGraph.add(self, vertex)
-    
+
     def __call__(self):
         """
         Perform the OperationGraph operations
@@ -90,16 +88,6 @@ class OperationGraph(DiGraph):
     def iter_dfs(self):
         super(OperationGraph, self).iter_dfs(self._root, reverse=True)
 
-    def count_leaves(self):
-        """
-        Count the number of leaves in the OperationGraph
-        """
-        num_leaves = 0
-        for v in self.iter_bfs():
-            if len(v.neighbors_to()) == 0:
-                num_leaves += 1
-        return num_leaves
-
     def distribute(self, ranks=[]):
         """
         Distribute the graph operations to other ranks
@@ -112,25 +100,5 @@ class OperationGraph(DiGraph):
         if not all([isinstance(rank, int) for rank in ranks]):
             raise TypeError('Ranks must be specified as a list of integers')
 
-        if len(ranks) == 0:
-            return
-        else:
-            original = self.copy()
-            num_leaves = original.count_leaves()
-            
-            this_rank = MPI.COMM_WORLD.Get_rank()
-            ranks_left = copy(ranks)
-            next_rank = ranks_left.pop()
-            
-            self.clear()
-            this_op = operators.RecvOperator(source=next_rank)
-            self.add(this_op)
-            
-            next_graph = OperationGraph()
-            next_op = operators.SendOperator(dest=this_rank)
-            next_graph.add(next_op)
-            
-            while ranks_left:
-                
-                pass
+        pass
             
