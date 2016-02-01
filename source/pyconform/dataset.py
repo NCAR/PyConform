@@ -11,7 +11,6 @@ LICENSE: See the LICENSE.rst file for details
 from os import linesep
 from collections import OrderedDict
 from numpy import dtype
-
 from netCDF4 import Dataset as NC4Dataset
 
 
@@ -20,7 +19,7 @@ from netCDF4 import Dataset as NC4Dataset
 #===============================================================================
 class DimensionInfo(object):
     
-    def __init__(self, name, size, unlimited=False):
+    def __init__(self, name, size=None, unlimited=False):
         """
         Initializer
         
@@ -30,7 +29,7 @@ class DimensionInfo(object):
             unlimited (bool): Whether the dimension is unlimited or not
         """
         self.name = str(name)
-        self.size = int(size)
+        self.size = int(size) if size else None        
         self.unlimited = bool(unlimited)
 
     def __eq__(self, other):
@@ -55,7 +54,7 @@ class DimensionInfo(object):
 class VariableInfo(object):
 
     def __init__(self, name, 
-                 datatype='float64', 
+                 datatype='float32', 
                  dimensions=(), 
                  attributes=OrderedDict(),
                  definition=None,
@@ -80,16 +79,22 @@ class VariableInfo(object):
 
     def __eq__(self, other):
         if self.name != other.name:
+            print '**** name: {} != {}'.format(self.name, other.name)
             return False
         if self.datatype != other.datatype:
+            print '**** dtype: {} != {}'.format(self.datatype, other.datatype)
             return False
         if self.dimensions != other.dimensions:
+            print '**** dims: {} != {}'.format(self.dimensions, other.dimensions)
             return False
         if self.attributes != other.attributes:
+            print '**** attrs: {} != {}'.format(self.attributes, other.attributes)
             return False
         if self.definition != other.definition:
+            print '**** def: {} != {}'.format(self.definition, other.definition)
             return False
         if self.filename != other.filename:
+            print '**** fname: {} != {}'.format(self.filename, other.filename)
             return False
         return True
 
@@ -102,10 +107,13 @@ class VariableInfo(object):
         strval += '   dimensions: {!s}'.format(self.dimensions) + linesep
         if self.definition:
             strval += '   definition: {!r}'.format(self.definition) + linesep
+        if self.filename:
+            strval += '   filename: {!r}'.format(self.filename) + linesep
         if self.attributes:
             strval += '   attributes:' + linesep
             for aname, avalue in self.attributes.iteritems():
                 strval += '      {}: {!r}'.format(aname, avalue) + linesep
+        return strval
 
     def units(self):
         return self.attributes.get('units')
@@ -120,7 +128,9 @@ class VariableInfo(object):
 class Dataset(object):
 
     def __init__(self, name='',
-                 dimensions=OrderedDict(), variables=OrderedDict()):
+                 dimensions=OrderedDict(), 
+                 variables=OrderedDict(),
+                 gattribs=OrderedDict()):
         """
         Initializer
 
@@ -129,6 +139,8 @@ class Dataset(object):
             dimensions (dict): Dictionary of dimension sizes
             variables (dict): Dictionary of VariableInfo objects defining
                 the dataset
+            gattribs (dict): Dictionary of attributes common to all files
+                in the dataset
         """
         self.name = str(name)
         
@@ -161,15 +173,23 @@ class Dataset(object):
                            'type').format(self.name)
                 raise TypeError(err_msg)
         self.dimensions = dimensions
+
+        if not isinstance(gattribs, dict):
+            err_msg = ('Dataset {!r} global attributes must be given in a '
+                       'dict').format(self.name)
+            raise TypeError(err_msg)
+        self.attributes = gattribs
                 
     def get_dict(self):
         """
         Return the dictionary form of the Dataset definition
         
         Returns:
-            OrderedDict: The ordered dictionary describing the dataset
+            dict: The ordered dictionary describing the dataset
         """
         dsdict = OrderedDict()
+        dsdict['attributes'] = self.attributes
+        dsdict['variables'] = OrderedDict()
         for vinfo in self.variables.itervalues():
             vdict = OrderedDict()
             vdict['datatype'] = vinfo.datatype
@@ -180,7 +200,7 @@ class Dataset(object):
                 vdict['filename'] = vinfo.filename
             if vinfo.attributes:
                 vdict['attributes'] = vinfo.attributes
-            dsdict[vinfo.name] = vdict
+            dsdict['variables'][vinfo.name] = vdict
         return dsdict
     
     def get_shape(self, name):
@@ -245,12 +265,19 @@ class InputDataset(Dataset):
         variables = {}
         varfiles = {}
         dimensions = {}
+        attributes = OrderedDict()
         for fname in filenames:
+
             try:
                 ncfile = NC4Dataset(fname)
             except:
                 err_msg = 'Could not open or read input file {!r}'.format(fname)
                 raise RuntimeError(err_msg)
+            
+            # Check attributes
+            for aname in ncfile.ncattrs():
+                if aname not in attributes:
+                    attributes[aname] = ncfile.getncattr(aname)
 
             # Check dimensions
             for dname, dobj in ncfile.dimensions.iteritems():
@@ -268,7 +295,7 @@ class InputDataset(Dataset):
             # Check variables
             for vname, vobj in ncfile.variables.iteritems():
                 vattrs = OrderedDict()
-                for vattr in vobj.ncattrs:
+                for vattr in vobj.ncattrs():
                     vattrs[vattr] = vobj.getncattr(vattr)
                 vinfo = VariableInfo(name=vname,
                                      datatype='{!s}'.format(vobj.dtype),
@@ -290,19 +317,21 @@ class InputDataset(Dataset):
                     variables[vname] = vinfo
                     varfiles[vname] = [fname]
                 
-            # Check variable file occurrences
-            for vname, vfiles in varfiles.iteritems():
-                if len(vfiles) == 1:
-                    variables[vname].filename = vfiles[0]
-                elif len(vfiles) < len(filenames):
-                    missing_files = set(filenames) - set(vfiles)
-                    wrn_msg = ('Variable {!r} appears to be metadata but does '
-                               'not appear in the files:{}'
-                               '{}').format(vname, linesep, missing_files)
-                    raise RuntimeWarning(wrn_msg)
-
             ncfile.close()
-        super(InputDataset, self).__init__(name, dimensions, variables)
+
+        # Check variable file occurrences
+        for vname, vfiles in varfiles.iteritems():
+            if len(vfiles) == 1:
+                variables[vname].filename = vfiles[0]
+            elif len(vfiles) < len(filenames):
+                missing_files = set(filenames) - set(vfiles)
+                wrn_msg = ('Variable {!r} appears to be metadata but does '
+                           'not appear in the files:{}'
+                           '{}').format(vname, linesep, missing_files)
+                raise RuntimeWarning(wrn_msg)
+
+        super(InputDataset, self).__init__(name, dimensions,
+                                           variables, attributes)
         
         
 #=========================================================================
@@ -318,28 +347,30 @@ class OutputDataset(Dataset):
             name (str): String name to optionally give to a dataset
             dsdict (dict): Dictionary describing the dataset variables
         """
-        variables = {}
-        for vname, vdict in dsdict.iteritems():
+        attributes = dsdict['attributes']
+        print 'attributes', attributes
+        variables = OrderedDict()
+        print 'variables', variables
+        for vname, vdict in dsdict['variables'].iteritems():
             kwargs = {}
-            if 'dimensions' not in vdict['dimensions']:
+            if 'dimensions' not in vdict:
                 err_msg = ('Dimensions are required for variable '
                            '{!r}').format(vname)
                 raise ValueError(err_msg)
             else:
                 kwargs['dimensions'] = vdict['dimensions']
-            if 'definition' not in vdict['definition']:
+            if 'definition' not in vdict:
                 err_msg = ('Definition is required for output variable '
                            '{!r}').format(vname)
                 raise ValueError(err_msg)
             else:
-                kwargs['dimensions'] = vdict['dimensions']
+                kwargs['definition'] = vdict['definition']
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
-            else:
-                kwargs['datatype'] = 'float32'
             if 'attributes' in vdict:
                 kwargs['attributes'] = vdict['attributes']
             if 'filename' in vdict:
                 kwargs['filename'] = vdict['filename']
             variables[vname] = VariableInfo(vname, **kwargs)
-        super(OutputDataset, self).__init__(name, variables=variables)
+        super(OutputDataset, self).__init__(name, variables=variables,
+                                            gattribs=attributes)
