@@ -5,11 +5,14 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os import linesep
-from pyconform import dataset
+from os import linesep, remove
+from os.path import exists
+from pyconform import conform, dataset
 from collections import OrderedDict
-from mkTestData import DataMaker
+from netCDF4 import Dataset as NCDataset
 
+import numpy
+import operator
 import unittest
 
 
@@ -41,140 +44,193 @@ def print_test_message(testname, indata=None, actual=None, expected=None):
 
 
 #=========================================================================
-# DatasetTests - Tests for the dataset module
+# ConformTests - Tests for the conform module
 #=========================================================================
-class DatasetTests(unittest.TestCase):
+class ConformTests(unittest.TestCase):
     """
     Unit Tests for the pyconform.dataset module
     """
 
-    def setUp(self):
-        self.dm = DataMaker(filenames=['file1.nc', 'file2.nc', 'file3.nc'],
-                            dimensions=OrderedDict([('time', [4,5,6]),
-                                                    ('lat', 3),
-                                                    ('lon', 2)]),
-                            vardims=OrderedDict([('v', ('time', 'lat', 'lon'))]),
-                            vartypes=OrderedDict([('v', 'float32')]),
-                            varattribs=OrderedDict([('time', OrderedDict([('standard_name', 'time'),
-                                                                          ('units', 'days since 01-01-0001'),
-                                                                          ('calendar', 'noleap')])),
-                                                    ('lat', OrderedDict([('standard_name', 'latitude'),
-                                                                         ('units', 'degrees_north')])),
-                                                    ('lon', OrderedDict([('standard_name', 'longitude'),
-                                                                         ('units', 'degrees_east')])),
-                                                    ('v', OrderedDict([('standard_name', 'variable'),
-                                                                       ('units', 'unit')]))]))
+    def setUp(self):        
+        self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
+        self._clear_()
+        
+        self.fattribs = OrderedDict([('a1', 'attribute 1'),
+                                     ('a2', 'attribute 2')])
+        self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
+        self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
+                                  ('u2', ('time', 'lat', 'lon'))])
+        self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
+                                            'standard_name': 'latitude'}),
+                                   ('lon', {'units': 'degrees_east',
+                                            'standard_name': 'longitude'}),
+                                   ('time', {'units': 'days since 1979-01-01 0:0:0',
+                                             'calendar': 'noleap',
+                                             'standard_name': 'time'}),
+                                   ('u1', {'units': 'm',
+                                           'standard_name': 'u variable 1'}),
+                                   ('u2', {'units': 'm',
+                                           'standard_name': 'u variable 2'})])
+        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd'}
+        ydat = numpy.linspace(-90, 90, num=self.dims['lat'],
+                              endpoint=True, dtype=self.dtypes['lat'])
+        xdat = numpy.linspace(-180, 180, num=self.dims['lon'],
+                              endpoint=False, dtype=self.dtypes['lon'])
+        tdat = numpy.linspace(0, self.dims['time'], num=self.dims['time'],
+                              endpoint=False, dtype=self.dtypes['time'])
+        ulen = reduce(lambda x,y: x*y, self.dims.itervalues(), 1)
+        ushape = tuple(d for d in self.dims.itervalues())
+        u1dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
+                               dtype=self.dtypes['u1']).reshape(ushape)
+        u2dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
+                               dtype=self.dtypes['u2']).reshape(ushape)
+        self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
+                     'u1': u1dat, 'u2': u2dat}
+
+        for vname, fname in self.filenames.iteritems():
+            ncf = NCDataset(fname, 'w')
+            ncf.setncatts(self.fattribs)
+            ncvars = {}
+            for dname, dvalue in self.dims.iteritems():
+                dsize = dvalue if dname!='time' else None
+                ncf.createDimension(dname, dsize)
+                ncvars[dname] = ncf.createVariable(dname, 'd', (dname,))
+            ncvars[vname] = ncf.createVariable(vname, 'd', self.vdims[vname])
+            for vnam, vobj in ncvars.iteritems():
+                for aname, avalue in self.vattrs[vnam].iteritems():
+                    setattr(vobj, aname, avalue)
+                vobj[:] = self.vdat[vnam]
+            ncf.close()
+            
+        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
 
         self.dsdict = OrderedDict()
-        for i, f in enumerate(self.dm.filenames):
-            self.dsdict[f] = OrderedDict()
-            self.dsdict[f]['attributes'] = OrderedDict(self.dm.fileattribs[i])
-            self.dsdict[f]['dimensions'] = OrderedDict()
-            self.dsdict[f]['dimensions']['time'] = [self.dm.dimensions['time'][i]]
-            self.dsdict[f]['dimensions']['lat'] = self.dm.dimensions['lat']
-            self.dsdict[f]['dimensions']['lon'] = self.dm.dimensions['lon']
-            self.dsdict[f]['variables'] = OrderedDict()
-            for vname, vdict in self.dm.varattribs.iteritems():
-                self.dsdict[f]['variables'][vname] = OrderedDict()
-                if vname in self.dm.vartypes:
-                    self.dsdict[f]['variables'][vname]['dtype'] = self.dm.vartypes[vname]
-                else:
-                    self.dsdict[f]['variables'][vname]['dtype'] = 'float64'
-                if vname in self.dm.vardims:
-                    self.dsdict[f]['variables'][vname]['dimensions'] = self.dm.vardims[vname]
-                else:
-                    self.dsdict[f]['variables'][vname]['dimensions'] = (vname,)
-                self.dsdict[f]['variables'][vname]['attributes'] = OrderedDict()
-                for aname, avalue in vdict.iteritems():
-                    self.dsdict[f]['variables'][vname]['attributes'][aname] = avalue
+        self.dsdict['attributes'] = self.fattribs
+        self.dsdict['variables'] = OrderedDict()
+        vdicts = self.dsdict['variables']
         
-        self.dm.write()
+        vdicts['X'] = OrderedDict()
+        vdicts['X']['datatype'] = 'float64'
+        vdicts['X']['dimensions'] = ('x',)
+        vdicts['X']['definition'] = 'lon'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'longitude'
+        vattribs['units'] = 'degrees_east'
+        vdicts['X']['attributes'] = vattribs
+
+        vdicts['Y'] = OrderedDict()
+        vdicts['Y']['datatype'] = 'float64'
+        vdicts['Y']['dimensions'] = ('y',)
+        vdicts['Y']['definition'] = 'lat'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'latitude'
+        vattribs['units'] = 'degrees_north'
+        vdicts['Y']['attributes'] = vattribs
+
+        vdicts['T'] = OrderedDict()
+        vdicts['T']['datatype'] = 'float64'
+        vdicts['T']['dimensions'] = ('t',)
+        vdicts['T']['definition'] = 'time'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'time'
+        vattribs['units'] = 'days since 01-01-0001 00:00:00'
+        vattribs['calendar'] = 'noleap'
+        vdicts['T']['attributes'] = vattribs
+
+        vdicts['V1'] = OrderedDict()
+        vdicts['V1']['datatype'] = 'float64'
+        vdicts['V1']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V1']['definition'] = 'u1 + u2'
+        vdicts['V1']['filename'] = 'var1.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 1'
+        vattribs['units'] = 'm'
+        vdicts['V1']['attributes'] = vattribs
+
+        vdicts['V2'] = OrderedDict()
+        vdicts['V2']['datatype'] = 'float64'
+        vdicts['V2']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V2']['definition'] = 'u2 - u1'
+        vdicts['V2']['filename'] = 'var2.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 2'
+        vattribs['units'] = 'm'
+        vdicts['V2']['attributes'] = vattribs
+        
+        self.outds = dataset.OutputDataset('outds', self.dsdict)
 
     def tearDown(self):
-        self.dm.clear()
+        self._clear_()
+        
+    def _clear_(self):
+        for fname in self.filenames.itervalues():
+            if exists(fname):
+                remove(fname)
 
-    def test_parse_dataset_dictionary(self):
-        dataset.parse_dataset_dictionary(self.dsdict)
+    #===== name_deftuple tests =================================================
 
-    def test_parse_dataset_filelist(self):
-        dataset.parse_dataset_filelist(self.dm.filenames)
-
-    def test_parse_dataset_equal(self):
-        dfiles = dataset.parse_dataset_dictionary(self.dsdict)
-        ffiles = dataset.parse_dataset_filelist(self.dm.filenames)
-
-        actual = len(dfiles)
-        expected = len(ffiles)
-        print_test_message('len(InputDataset) == len(OutputDataset)',
+    def test_name_deftuple(self):
+        indata = (operator.add, (operator.div, 'y', 3), 'x')
+        actual = conform.name_deftuple(indata)
+        expected = 'add(div(y,3),x)'
+        print_test_message('name_deftuple({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Parse methods do not yield same number of files')
+                         'name_deftuple() incorrect')
 
-        actual = dfiles.keys()
-        expected = ffiles.keys()
-        print_test_message('InputDataset.keys() == OutputDataset.keys()',
-                           actual=actual, expected=expected)
-        self.assertListEqual(actual, expected,
-                             'Parse methods do not yield same filename keys')
-
-        for df, ff in zip(dfiles.values(), ffiles.values()):
-            actual = df.name
-            expected = ff.name
-            print_test_message('InputDataset.name() == OutputDataset.name()',
-                               actual=actual, expected=expected)
-            self.assertEqual(actual, expected,
-                             'Parse methods do not yield same file names')
-
-            actual = df.attributes
-            expected = ff.attributes
-            print_test_message('InputDataset.attributes() == OutputDataset.attributes()',
-                               actual=actual, expected=expected)
-            self.assertEqual(actual, expected,
-                             'Parse methods do not yield same file attributes')
-
-            actual = df.dimensions
-            expected = ff.dimensions
-            print_test_message('InputDataset.dimensions() == OutputDataset.dimensions()',
-                               actual=actual, expected=expected)
-            self.assertEqual(actual, expected,
-                             'Parse methods do not yield same file dimensions')
-
-            actual = df.variables
-            expected = ff.variables
-            print_test_message('InputDataset.variables() == OutputDataset.variables()',
-                               actual=actual, expected=expected)
-            self.assertEqual(actual, expected,
-                             'Parse methods do not yield same file variables')
-
-    def test_input_dataset_type(self):
-        inds = dataset.InputDataset('myinds', self.dm.filenames)
-        actual = type(inds)
-        expected = dataset.InputDataset
-        print_test_message('type(InputDataset)',
+    def test_name_deftuple_var_only(self):
+        indata = 'xyz'
+        actual = conform.name_deftuple(indata)
+        expected = indata
+        print_test_message('name_deftuple({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'InputDataset has wrong type')
+                         'name_deftuple() incorrect')
 
-    def test_output_dataset_type(self):
-        outds = dataset.OutputDataset('myoutds', self.dsdict)
-        actual = type(outds)
-        expected = dataset.OutputDataset
-        print_test_message('type(OutputDataset)',
+    #===== get_dimensions tests ================================================
+    
+    def test_get_dimensions(self):
+        indata = (operator.mul, 0.5, (operator.add, 'u1', 'u2'))
+        actual = conform.get_dimensions(indata, self.inpds)
+        expected = {'mul(0.5,add(u1,u2))':
+                    {'add(u1,u2)':
+                     {'u1': self.inpds.variables['u1'].dimensions, 
+                      'u2': self.inpds.variables['u2'].dimensions}}}
+        print_test_message('get_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+
+    #===== reduce_dimensions tests =============================================
+
+    def test_reduce_dimensions(self):
+        indata = {'mul(0.5,add(u1,u2))':
+                  {'add(u1,u2)':
+                   {'u1': self.inpds.variables['u1'].dimensions, 
+                    'u2': self.inpds.variables['u2'].dimensions}}}
+        actual = conform.reduce_dimensions(indata)
+        expected = None
+        print_test_message('reduce_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
+        
+    #===== map_dimensions tests ================================================
+
+    def test_map_dimensions(self):
+        indata = {'X': 'lon', 'Y': 'lat', 'T': 'time',
+                  'V1': (operator.mul, 0.5, (operator.add, 'u1', 'u2')),
+                  'V2': (operator.mul, 0.5, (operator.sub, 'u2', 'u1'))}
+        actual = conform.map_dimensions(indata, self.inpds, self.outds)
+        expected = None
+        print_test_message('map_dimensions({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'OutputDataset has wrong type')
-
-    def test_dataset_get_dict_from_output(self):
-        outds = dataset.OutputDataset('myoutds', self.dsdict)
-        actual = outds.get_dict()
-        expected = self.dsdict
-        print_test_message('get_dict()',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Dataset.get_dict() returns wrong data')
+                         'map_dimensions() incorrect')
+        
         
 
-
+#===============================================================================
+# Command-Line Execution
+#===============================================================================
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
