@@ -79,22 +79,16 @@ class VariableInfo(object):
 
     def __eq__(self, other):
         if self.name != other.name:
-            print '**** name: {} != {}'.format(self.name, other.name)
             return False
         if self.datatype != other.datatype:
-            print '**** dtype: {} != {}'.format(self.datatype, other.datatype)
             return False
         if self.dimensions != other.dimensions:
-            print '**** dims: {} != {}'.format(self.dimensions, other.dimensions)
             return False
         if self.attributes != other.attributes:
-            print '**** attrs: {} != {}'.format(self.attributes, other.attributes)
             return False
         if self.definition != other.definition:
-            print '**** def: {} != {}'.format(self.definition, other.definition)
             return False
         if self.filename != other.filename:
-            print '**** fname: {} != {}'.format(self.filename, other.filename)
             return False
         return True
 
@@ -348,9 +342,7 @@ class OutputDataset(Dataset):
             dsdict (dict): Dictionary describing the dataset variables
         """
         attributes = dsdict['attributes']
-        print 'attributes', attributes
         variables = OrderedDict()
-        print 'variables', variables
         for vname, vdict in dsdict['variables'].iteritems():
             kwargs = {}
             if 'dimensions' not in vdict:
