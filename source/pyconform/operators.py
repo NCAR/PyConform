@@ -189,7 +189,6 @@ class SendOperator(Operator):
         Initializer
         
         Parameters:
-            name (str): A string name/identifier for the operator
             dest (int): The destination rank in COMM_WORLD to send the data
         """
         # Check if the function is callable
@@ -252,17 +251,13 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, name, source):
+    def __init__(self, source):
         """
         Initializer
         
         Parameters:
-            name (str): A string name/identifier for the operator
             source (int): The source rank in COMM_WORLD to send the data
         """
-        # Call base class initializer
-        super(RecvOperator, self).__init__()
-        
         # Check if the function is callable
         if not isinstance(source, int):
             raise TypeError('Source rank must be an integer')
