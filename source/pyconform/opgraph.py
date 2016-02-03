@@ -10,8 +10,6 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from copy import copy
-from mpi4py import MPI
 from graph import DiGraph
 
 import operators
@@ -33,35 +31,6 @@ class OperationGraph(DiGraph):
         Initialize
         """
         self._root = None
-    
-    @classmethod
-    def from_tree(cls, treerep):
-        """
-        Initialize from a tree (nested-tuple) representation
-        
-        Parameters:
-            treerep (tuple): A tuple, or nested tuple, containing Operators
-        """
-        def append_tree_to_graph(opgraph, lastop, treerep):
-            if not isinstance(opgraph, OperationGraph):
-                raise TypeError('Can add tree element only to OperationGraph')
-            if lastop and not isinstance(lastop, operators.Operator):
-                raise TypeError('Vertices in OperationGraphs must be Operators')
-            if not isinstance(treerep, tuple):
-                raise TypeError('Tree representation must be a tuple')
-            for elem in treerep:
-                if isinstance(elem, operators.Operator):
-                    if lastop is None:
-                        opgraph.add(elem)
-                        opgraph._root = elem
-                    else:
-                        opgraph.connect(elem, lastop)
-                elif isinstance(elem, tuple):
-                    opgraph.connect(elem[0], lastop)
-                    append_tree_to_graph(opgraph, elem[0], elem[1:])
-        opgraph = cls()
-        append_tree_to_graph(opgraph, None, treerep)
-        return opgraph
     
     def add(self, vertex):
         """
