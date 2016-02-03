@@ -167,55 +167,55 @@ class ConformTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
 
-    #===== name_deftuple tests =================================================
+    #===== name_definition tests =================================================
 
-    def test_name_deftuple(self):
+    def test_name_definition(self):
         indata = (operator.add, (operator.div, 'y', 3), 'x')
-        actual = conform.name_deftuple(indata)
+        actual = conform.name_definition(indata)
         expected = 'add(div(y,3),x)'
-        print_test_message('name_deftuple({!r})'.format(indata),
+        print_test_message('name_definition({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'name_deftuple() incorrect')
+                         'name_definition() incorrect')
 
-    def test_name_deftuple_var_only(self):
+    def test_name_definition_var_only(self):
         indata = 'xyz'
-        actual = conform.name_deftuple(indata)
+        actual = conform.name_definition(indata)
         expected = indata
-        print_test_message('name_deftuple({!r})'.format(indata),
+        print_test_message('name_definition({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'name_deftuple() incorrect')
+                         'name_definition() incorrect')
 
-    #===== get_dimensions tests ================================================
+    #===== gather_dimensions tests =============================================
     
-    def test_get_dimensions(self):
+    def test_gather_dimensions(self):
         indata = (operator.mul, 0.5, (operator.add, 'u1', 'u2'))
-        actual = conform.get_dimensions(indata, self.inpds)
+        actual = conform.gather_dimensions(indata, self.inpds)
         expected = {'mul(0.5,add(u1,u2))':
                     {'add(u1,u2)':
                      {'u1': self.inpds.variables['u1'].dimensions, 
                       'u2': self.inpds.variables['u2'].dimensions},
                      '0.5': None}}
-        print_test_message('get_dimensions()',
+        print_test_message('gather_dimensions()',
                            actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
 
-    def test_get_dimensions_var_only(self):
+    def test_gather_dimensions_var_only(self):
         indata = 'u1'
-        actual = conform.get_dimensions(indata, self.inpds)
+        actual = conform.gather_dimensions(indata, self.inpds)
         expected = {'u1': self.inpds.variables['u1'].dimensions}
-        print_test_message('get_dimensions()',
+        print_test_message('gather_dimensions()',
                            actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
 
-    def test_get_dimensions_number_only(self):
+    def test_gather_dimensions_number_only(self):
         indata = 1
-        actual = conform.get_dimensions(indata, self.inpds)
+        actual = conform.gather_dimensions(indata, self.inpds)
         expected = {str(indata): None}
-        print_test_message('get_dimensions()',
+        print_test_message('gather_dimensions()',
                            actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
 
     #===== reduce_dimensions tests =============================================
 
@@ -253,19 +253,6 @@ class ConformTests(unittest.TestCase):
         print_test_message('reduce_dimensions()',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-   
-    #===== map_dimensions tests ================================================
-
-    def test_map_dimensions(self):
-        indata = {'X': 'lon', 'Y': 'lat', 'T': 'time',
-                  'V1': (operator.mul, 0.5, (operator.add, 'u1', 'u2')),
-                  'V2': (operator.mul, 0.5, (operator.sub, 'u2', 'u1'))}
-        actual = conform.map_dimensions(indata, self.inpds, self.outds)
-        expected = {'t': 'time', 'x': 'lon', 'y': 'lat'}
-        print_test_message('map_dimensions({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'map_dimensions() incorrect')
 
     #===== build_opgraphs tests ================================================
     

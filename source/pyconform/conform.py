@@ -13,6 +13,9 @@ from opgraph import OperationGraph
 from parsing import DefitionParser
 from collections import OrderedDict
 from copy import deepcopy
+from random import choice
+
+from pyconform import operators
 
 
 #===============================================================================
@@ -36,7 +39,7 @@ def build_opgraphs(inp, out):
         err_msg = 'Output dataset must be of OutputDataset type'
         raise TypeError(err_msg)
     
-    # Parse variable definitions
+    # Parse variable definitions - definitions are tuples of strs/numbers/funcs
     dparser = DefitionParser()
     definitions = OrderedDict([(n, dparser.parse_definition(v.definition))
                                for n,v in out.variables.iteritems()])
@@ -50,18 +53,61 @@ def build_opgraphs(inp, out):
     
     # Check that all referenced variables are in the input dataset
     for vname, vdef in definitions.iteritems():
-        def_str = out.variables[vname].definition
-        check_references(vname, def_str, vdef, inp)
-    
+        invalid_ref = check_references(vdef, inp)
+        if invalid_ref:
+            def_str = out.variables[vname].definition
+            err_msg = ('Variable {!r} referenced in output variable {!r} '
+               'definition {!r} but not found in input '
+               'dataset').format(invalid_ref, vname, def_str)
+            raise KeyError(err_msg)
+
+    # Gather the dimensions at each operation in the definition
+    def_dims_maps = {}
+    for vname, vdef in definitions.iteritems():
+        def_dims_maps[vname] = gather_dimensions(vdef, inp)
+
+    print def_dims_maps
+        
     # Compute the dimension mapping from input to output dimensions    
-    dim_map = map_dimensions(definitions, inp, out)
+    dim_map = {}
+    for vname, def_dims in def_dims_maps.iteritems():
+        odims = out.variables[vname].dimensions
+        idims = reduce_dimensions(def_dims)
+        if len(odims) != len(idims):
+            defstr = name_definition(definitions[vname])
+            err_msg = ('Output variable {!r} has {} dimensions while its '
+                       'definition {!r} has {} '
+                       'dimensions').format(vname, len(odims),
+                                            defstr, len(idims))
+            raise ValueError(err_msg)
+        if set(odims) != set(idims):
+            defstr = name_definition(definitions[vname])
+            err_msg = ('Output variable {!r} has dimensions while its '
+                       'definition {!r} has {} '
+                       'dimensions').format(vname, len(odims),
+                                            defstr, len(idims))
+            raise ValueError(err_msg)
+        for odim, idim in zip(odims, idims):
+            if odim not in dim_map:
+                dim_map[odim] = str(idim)
+            elif idim != dim_map[odim]:
+                err_msg = ('Output dimension {!r} in output variable {!r} '
+                           'appears to map to both input dimensions {!r} and '
+                           '{!r}').format(odim, vname, idim, dim_map[odim])
+                raise ValueError(err_msg)
+            
+    # Compute the dimensional slices needed for each variable
+    # Not implemented (reads entire variable at the moment)
     
     # Loop over output variables and create opgraphs
     opgraphs = OrderedDict()
     for vname, vdef in definitions.iteritems():
         opG = OperationGraph()
+        rootOp = fill_opgraph(vdef, inp, opG)
         
         odims = out.variables[vname].dimensions
+        idims
+        
         
         opgraphs[vname] = opG
     
@@ -69,49 +115,75 @@ def build_opgraphs(inp, out):
 
 
 #===============================================================================
-# check_references
+# check_references recursively for a single definition
 #===============================================================================
-def check_references(vname, def_str, deftuple, inpdataset):
-    if isinstance(deftuple, (str, unicode)):
-        if deftuple not in inpdataset.variables:
-            err_msg = ('Variable {!r} referenced in {!r} output variable '
-                       'definition {!r} but not found in input '
-                       'dataset').format(deftuple, vname, def_str)
-            raise KeyError(err_msg)
-    elif isinstance(deftuple, tuple):
-        for arg in deftuple:
-            check_references(vname, def_str, arg, inpdataset)
+def check_references(definition, inpdataset):
+    """
+    Check a definition's references to input variables
+    
+    Parameters:
+        definition (tuple): A parsed definition tuple
+        inpdataset (InputDataset): The input dataset
+        
+    Returns:
+        str: Name of referenced variable, if not found in input dataset
+        None: If all references are valid
+    """
+    if isinstance(definition, (str, unicode)):
+        if definition not in inpdataset.variables:
+            return definition        
+    elif isinstance(definition, tuple):
+        for arg in definition:
+            check_references(arg, inpdataset)
     
     
 #===============================================================================
-# get_dimensions
+# gather_dimensions recursively for a single definition
 #===============================================================================
-def get_dimensions(deftuple, inpdataset):
+def gather_dimensions(definition, inpdataset):
+    """
+    Gather the dimension tuples for each level in a definition's operation
+    
+    Parameters:
+        definition (tuple): A parsed definition tuple
+        inpdataset (InputDataset): The input dataset
+    
+    Returns:
+        dict: Nested dictionary of definition names (keys) mapped to dimension
+            tuples (values)
+    """
     dims = {}
-    key = name_deftuple(deftuple)
-    if isinstance(deftuple, (str, unicode)):
-        dims[key] = inpdataset.variables[deftuple].dimensions 
-    elif isinstance(deftuple, tuple):
+    key = name_definition(definition)
+    if isinstance(definition, (str, unicode)):
+        dims[key] = inpdataset.variables[definition].dimensions 
+    elif isinstance(definition, tuple):
         dims[key] = {}
-        for arg in deftuple[1:]:
-            for argname, argdim in get_dimensions(arg, inpdataset).iteritems():
+        for arg in definition[1:]:
+            argdims = gather_dimensions(arg, inpdataset)
+            for argname, argdim in argdims.iteritems():
                 dims[key][argname] = argdim
     else:
         dims[key] = None
     return dims
 
 #===============================================================================
-# reduce_dimensions
+# reduce_dimensions recursively for a definition dimension dict
 #===============================================================================
-def reduce_dimensions(argdims):
-    if isinstance(argdims, tuple):
-        return argdims
-    elif isinstance(argdims, dict):
-        argscopy = deepcopy(argdims)
+def reduce_dimensions(def_dims):
+    """
+    Reduces a dictionary of definition dimensions to one dimension tuple
+    
+    Parameters:
+        def_dims (dict): A definition dimension dictionary
+    """
+    if isinstance(def_dims, tuple):
+        return def_dims
+    elif isinstance(def_dims, dict):
+        dimscopy = deepcopy(def_dims)
         key1 = None
         dims1 = None
-        while argscopy:
-            key2, val2 = argscopy.popitem()
+        while dimscopy:
+            key2, val2 = dimscopy.popitem()
             dims2 = reduce_dimensions(val2)
             if dims1 and dims2:
                 if dims1 != dims2:
@@ -126,58 +198,60 @@ def reduce_dimensions(argdims):
             
 
 #===============================================================================
-# name_deftuple
+# name_definition
 #===============================================================================
-def name_deftuple(deftuple):
+def name_definition(definition):
     """
     Compute a string from a definition tuple
     
     Parameters:
-        deftuple (tuple): An definition tuple
+        definition (tuple): An definition tuple
     """
     strval = ''
-    if isinstance(deftuple, tuple):
-        strval += deftuple[0].__name__ + '('
-        strval += ','.join(name_deftuple(dt) for dt in deftuple[1:])
+    if isinstance(definition, tuple):
+        strval += definition[0].__name__ + '('
+        strval += ','.join(name_definition(dt) for dt in definition[1:])
         strval += ')'
     else:
-        strval += str(deftuple)
+        strval += str(definition)
     return strval
 
 
 #===============================================================================
-# map_dimensions
+# fill_opgraph
 #===============================================================================
-def map_dimensions(deftuples, inpdataset, outdataset):
+def fill_opgraph(definition, inp, G):
     """
-    Compute the mapping from input dataset dimensions to output dimensions
+    Fill an operation graph from a parsed definition
     
     Parameters:
-        deftuples (dict): Dictionary of parsed definitions
-        inpdataset (InputDataset): The dataset referenced by the definitions
-        outdataset (OutputDataset): The output dataset with variable definitions
+        definition (tuple): The parsed definition tuple
+        inp (InputDataset): InputDataset
+        G (OperationGraph): The operation graph to fill
     """
-    
-    dim_map = {}
-    for ovar, deftuple in deftuples.iteritems():
-        odims = outdataset.variables[ovar].dimensions
-        idims = reduce_dimensions(get_dimensions(deftuple, inpdataset))
-        if len(odims) != len(idims):
-            defstr = name_deftuple(deftuple)
-            err_msg = ('Output variable {!r} has {} dimensions while its '
-                       'definition {!r} has {} '
-                       'dimensions').format(ovar, len(odims), defstr, 
-                                            len(idims))
-            raise ValueError(err_msg)
-        for odim, idim in zip(odims, idims):
-            if odim not in dim_map:
-                dim_map[odim] = str(idim)
-            elif idim != dim_map[odim]:
-                err_msg = ('Output dimension {!r} in output variable {!r} '
-                           'appears to map to both {!r} and {!r} input '
-                           'dimensions').format(odim, ovar, idim, 
-                                                dim_map[odim])
-                raise ValueError(err_msg)
-
-    return dim_map
-
+    if isinstance(definition, (str, unicode)):
+        if inp.variables[definition].filename:
+            fname = inp.variables[definition].filename
+        else:
+            fname = choice(filter(None, [v.filename for v in inp.variables.values()]))
+        op = operators.VariableSliceReader(fname, definition)
+        G.add(op)
+        return op
+    elif isinstance(definition, (int, float)):
+        return definition
+    elif isinstance(definition, tuple):
+        fname = name_definition(definition)
+        func = definition[0]
+        fargs = []
+        argops = []
+        for arg in definition[1:]:
+            argop = fill_opgraph(arg, inp, G)
+            if isinstance(argop, operators.Operator):
+                argops.append(argop)
+                fargs.append(None)
+            else:
+                fargs.append(argop)
+        rootOp = operators.FunctionEvaluator(fname, func, *fargs)
+        for argop in argops:
+            G.connect(argop, rootOp)
+        return rootOp
