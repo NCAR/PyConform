@@ -223,7 +223,7 @@ class Dataset(object):
         Parameters:
             name (str): name of the variable
         """
-        return sum(self.get_size(name))
+        return sum(self.get_shape(name))
     
     def get_bytesize(self, name):
         """
