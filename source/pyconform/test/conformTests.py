@@ -195,7 +195,24 @@ class ConformTests(unittest.TestCase):
         expected = {'mul(0.5,add(u1,u2))':
                     {'add(u1,u2)':
                      {'u1': self.inpds.variables['u1'].dimensions, 
-                      'u2': self.inpds.variables['u2'].dimensions}}}
+                      'u2': self.inpds.variables['u2'].dimensions},
+                     '0.5': None}}
+        print_test_message('get_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+
+    def test_get_dimensions_var_only(self):
+        indata = 'u1'
+        actual = conform.get_dimensions(indata, self.inpds)
+        expected = {'u1': self.inpds.variables['u1'].dimensions}
+        print_test_message('get_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'get_dimensions() incorrect')
+
+    def test_get_dimensions_number_only(self):
+        indata = 1
+        actual = conform.get_dimensions(indata, self.inpds)
+        expected = {str(indata): None}
         print_test_message('get_dimensions()',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected, 'get_dimensions() incorrect')
@@ -208,11 +225,35 @@ class ConformTests(unittest.TestCase):
                    {'u1': self.inpds.variables['u1'].dimensions, 
                     'u2': self.inpds.variables['u2'].dimensions}}}
         actual = conform.reduce_dimensions(indata)
+        expected = self.inpds.variables['u1'].dimensions
+        print_test_message('reduce_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
+
+    def test_reduce_dimensions_number_only(self):
+        indata = {'1': None}
+        actual = conform.reduce_dimensions(indata)
         expected = None
         print_test_message('reduce_dimensions()',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-        
+
+    def test_reduce_dimensions_dims_only(self):
+        indata = ('x', 'y', 't')
+        actual = conform.reduce_dimensions(indata)
+        expected = indata
+        print_test_message('reduce_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
+                
+    def test_reduce_dimensions_var_only(self):
+        indata = {'u': ('x', 'y')}
+        actual = conform.reduce_dimensions(indata)
+        expected = indata['u']
+        print_test_message('reduce_dimensions()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
+   
     #===== map_dimensions tests ================================================
 
     def test_map_dimensions(self):
@@ -220,13 +261,22 @@ class ConformTests(unittest.TestCase):
                   'V1': (operator.mul, 0.5, (operator.add, 'u1', 'u2')),
                   'V2': (operator.mul, 0.5, (operator.sub, 'u2', 'u1'))}
         actual = conform.map_dimensions(indata, self.inpds, self.outds)
-        expected = None
+        expected = {'t': 'time', 'x': 'lon', 'y': 'lat'}
         print_test_message('map_dimensions({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'map_dimensions() incorrect')
-        
-        
+
+    #===== build_opgraphs tests ================================================
+    
+    def test_build_opgraphs(self):
+        actual = conform.build_opgraphs(self.inpds, self.outds)
+        expected = None
+        print_test_message('build_opgraphs()',
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'build_opgraphs() incorrect')
+
 
 #===============================================================================
 # Command-Line Execution
