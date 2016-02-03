@@ -31,8 +31,8 @@ def print_test_message(testname, actual, expected):
 # OperatorTests
 #===============================================================================
 class MockOp(ops.Operator):
-    def __init__(self):
-        super(MockOp, self).__init__()
+    def __init__(self, name):
+        super(MockOp, self).__init__(name)
     def __call__(self):
         super(MockOp, self).__call__()
 
@@ -44,27 +44,39 @@ class OperatorTests(unittest.TestCase):
         ops.Operator._id_ = 0
     
     def test_abc(self):
+        opname = 'xop'
         testname = 'Operator.__init__()'
-        self.assertRaises(TypeError, ops.Operator)
+        self.assertRaises(TypeError, ops.Operator, opname)
         print_test_message(testname, TypeError, TypeError)
 
     def test_init(self):
+        opname = 'xop'
         testname = 'Mock Operator.__init__()'
-        O = MockOp()
+        O = MockOp(opname)
         actual = isinstance(O, ops.Operator)
         expected = True
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Could not create mock Operator object')
-        
+
+    def test_name(self):
+        opname = 'xop'
+        testname = 'Mock Operator.__init__({!r})'.format(opname)
+        O = MockOp(opname)
+        actual = O.name()
+        expected = opname
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator name incorrect')
+
     def test_id(self):
-        O0 = MockOp()
+        O0 = MockOp('x')
         print_test_message('First Operator.id() == 0', O0.id(), 0)
         self.assertEqual(O0.id(), 0, 'First Operator.id() != 0')
-        O1 = MockOp()
+        O1 = MockOp('y')
         print_test_message('Second Operator.id() == 1', O1.id(), 1)
         self.assertEqual(O1.id(), 1, 'Second Operator.id() != 1')
-        O2 = MockOp()
+        O2 = MockOp('x')
         print_test_message('Third Operator.id() == 2', O2.id(), 2)
         self.assertEqual(O2.id(), 2, 'Third Operator.id() != 2')
 
@@ -166,55 +178,62 @@ class FunctionEvaluatorTests(unittest.TestCase):
         pass
 
     def test_init(self):
+        opname = '1'
         testname = 'FunctionEvaluator.__init__(function)'
-        FE = ops.FunctionEvaluator(lambda: 1)
+        FE = ops.FunctionEvaluator(opname, lambda: 1)
         actual = type(FE)
         expected = ops.FunctionEvaluator
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_fail(self):
+        opname = 'int(1)'
         testname = 'FunctionEvaluator.__init__(non-function)'
-        self.assertRaises(TypeError, ops.FunctionEvaluator, 1)
+        self.assertRaises(TypeError, ops.FunctionEvaluator, opname, 1)
         actual = TypeError
         expected = TypeError
         print_test_message(testname, actual, expected)
 
     def test_unity(self):
+        opname = 'identity'
         testname = 'FunctionEvaluator(lambda x: x).__call__(x)'
-        FE = ops.FunctionEvaluator(lambda x: x)
+        FE = ops.FunctionEvaluator(opname, lambda x: x)
         actual = FE(self.params[0])
         expected = self.params[0]
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
         
     def test_add(self):
+        opname = 'add(a,b)'
         testname = 'FunctionEvaluator(add).__call__(a, b)'
-        FE = ops.FunctionEvaluator(operator.add)
+        FE = ops.FunctionEvaluator(opname, operator.add)
         actual = FE(*self.params)
         expected = operator.add(*self.params)
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
     def test_add_constant_1st(self):
+        opname = 'add(1,a)'
         testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = ops.FunctionEvaluator(operator.add, 1)
+        FE = ops.FunctionEvaluator(opname, operator.add, 1)
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
     def test_add_constant_2nd(self):
+        opname = 'add(a,2)'
         testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = ops.FunctionEvaluator(operator.add, None, 2)
+        FE = ops.FunctionEvaluator(opname, operator.add, None, 2)
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
     def test_sub(self):
+        opname = 'sub(a,b)'
         testname = 'FunctionEvaluator(sub).__call__(a, b)'
-        FE = ops.FunctionEvaluator(operator.sub)
+        FE = ops.FunctionEvaluator(opname, operator.sub)
         actual = FE(*self.params)
         expected = operator.sub(*self.params)
         print_test_message(testname, actual, expected)
