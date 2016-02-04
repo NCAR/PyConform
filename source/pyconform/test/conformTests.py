@@ -258,14 +258,14 @@ class ConformTests(unittest.TestCase):
 
     #===== build_opgraphs tests ================================================
     
-    def test_build_opgraphs(self):
-        defs = conform.parse_definitions(self.inpds, self.outds)
-        actual = conform.build_opgraphs(self.inpds, defs)
-        expected = None
-        print_test_message('build_opgraphs()',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'build_opgraphs() incorrect')
+#     def test_build_opgraphs(self):
+#         defs = conform.parse_definitions(self.inpds, self.outds)
+#         actual = conform.build_opgraphs(self.inpds, defs)
+#         expected = None
+#         print_test_message('build_opgraphs()',
+#                            actual=actual, expected=expected)
+#         self.assertEqual(actual, expected,
+#                          'build_opgraphs() incorrect')
         
     #===== conform tests ================================================
 
