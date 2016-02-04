@@ -8,7 +8,6 @@ COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import netCDF4
 import climIO
 from dateutil import parser
 import os

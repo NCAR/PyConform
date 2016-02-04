@@ -80,8 +80,7 @@ class DataMaker(object):
                     vdat = np.ones(tuple(vshape), dtype=dt)
                 filevars[varname] = vdat
         
-    def write(self,
-              ncformat='NETCDF4'):
+    def write(self, ncformat='NETCDF4'):
         
         for filenum, filename in enumerate(self.filenames):
             ncfile = netCDF4.Dataset(filename, 'w', format=ncformat)

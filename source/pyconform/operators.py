@@ -27,18 +27,28 @@ class Operator(object):
     _id_ = 0
     
     @abstractmethod
-    def __init__(self):
+    def __init__(self, name):
         """
         Initializer
+        
+        Parameters:
+            name (str): A string name/identifier for the operator
         """
         self._id = Operator._id_
         Operator._id_ += 1
+        self._name = str(name)
     
     def id(self):
         """
         Return the internal ID of the Operator
         """
         return self._id
+
+    def name(self):
+        """
+        Return the internal name of the Operator
+        """
+        return self._name
 
     @abstractmethod
     def __call__(self):
@@ -66,9 +76,6 @@ class VariableSliceReader(Operator):
             slicetuple (tuple): A tuple of slice objects specifying the
                 range of data to read from the file (in file-local indices)
         """
-        # Call base class initializer
-        super(VariableSliceReader, self).__init__()
-        
         # Parse File Path
         if not isinstance(filepath, (str, unicode)):
             raise TypeError('Unrecognized file path object of type '
@@ -91,8 +98,9 @@ class VariableSliceReader(Operator):
         if variable not in ncfile.variables:
             raise OSError('Variable {!r} not found in NetCDF file: '
                           '{!r}'.format(variable, self._filepath))            
-        self._variable = str(variable)
-        
+        # Call base class initializer - sets self._name
+        super(VariableSliceReader, self).__init__(variable)
+                
         # Parse slice tuple
         if isinstance(slicetuple, (list, tuple)):
             if not all([isinstance(s, (int, slice)) for s in slicetuple]):
@@ -113,7 +121,7 @@ class VariableSliceReader(Operator):
         Make callable like a function
         """
         ncfile = Dataset(self._filepath, 'r')
-        data = ncfile.variables[self._variable][self._slice]
+        data = ncfile.variables[self._name][self._slice]
         ncfile.close()
         return data
 
@@ -126,17 +134,18 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, func, *args):
+    def __init__(self, name, func, *args):
         """
         Initializer
         
         Parameters:
+            name (str): A string name/identifier for the operator
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
         """
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__()
+        super(FunctionEvaluator, self).__init__(name)
         
         # Check if the function is callable
         if not hasattr(func, '__call__'):
@@ -182,9 +191,6 @@ class SendOperator(Operator):
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
         """
-        # Call base class initializer
-        super(SendOperator, self).__init__()
-        
         # Check if the function is callable
         if not isinstance(dest, int):
             raise TypeError('Destination rank must be an integer')
@@ -192,6 +198,10 @@ class SendOperator(Operator):
         if dest < 0 or dest >= size:
             raise ValueError(('Destination rank must be between 0 and '
                               '{}').format(size))
+        
+        # Call base class initializer
+        opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
+        super(SendOperator, self).__init__(opname)
         
         # Store the destination rank
         self._dest = dest
@@ -248,9 +258,6 @@ class RecvOperator(Operator):
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
         """
-        # Call base class initializer
-        super(RecvOperator, self).__init__()
-        
         # Check if the function is callable
         if not isinstance(source, int):
             raise TypeError('Source rank must be an integer')
@@ -258,6 +265,10 @@ class RecvOperator(Operator):
         if source < 0 or source >= size:
             raise ValueError(('Source rank must be between 0 and '
                               '{}').format(size))
+        
+        # Call base class initializer
+        opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
+        super(RecvOperator, self).__init__(opname)
         
         # Store the source rank
         self._source = source

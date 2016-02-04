@@ -65,6 +65,42 @@ class DiGraph(object):
             bool: True if vertex in graph, False otherwise
         """
         return vertex in self._vertices
+    
+    def __len__(self):
+        """
+        Returns the number of vertices in the graph
+        
+        Returns:
+            int: The number of vertices in the graph
+        """
+        return len(self._vertices)
+
+    def leaves(self):
+        """
+        Returns the set of vertices in the graph with only incoming edges
+        
+        Returns:
+            set: The set of vertices in the graph with only incoming edges
+        """
+        w_outgoing, w_incoming = zip(*self._edges)
+        return set(w_incoming) - set(w_outgoing)
+
+    def roots(self):
+        """
+        Returns the set of vertices in the graph with only outgoing edges
+        
+        Returns:
+            set: The set of vertices in the graph with only outgoing edges
+        """
+        w_outgoing, w_incoming = zip(*self._edges)
+        return set(w_outgoing) - set(w_incoming)
+                
+    def clear(self):
+        """
+        Remove all vertices and edges from the graph
+        """
+        self._vertices.clear()
+        self._edges = list()
 
     def copy(self):
         """
@@ -77,7 +113,7 @@ class DiGraph(object):
         new_graph._vertices = set(self._vertices) 
         new_graph._edges = list(self._edges)
         return new_graph
-    
+
     def vertices(self):
         """
         Return the list of vertices in the graph
