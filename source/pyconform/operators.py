@@ -12,6 +12,7 @@ from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
 from mpi4py import MPI
+from cf_units import Unit
 
 import numpy
 
@@ -27,16 +28,20 @@ class Operator(object):
     _id_ = 0
     
     @abstractmethod
-    def __init__(self, name):
+    def __init__(self, name, units=Unit(None)):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
+            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         self._id = Operator._id_
         Operator._id_ += 1
         self._name = str(name)
+        if not isinstance(units, Unit):
+            raise TypeError('Units must be specified with cf_units.Unit type')
+        self._units = units
     
     def id(self):
         """
@@ -49,6 +54,12 @@ class Operator(object):
         Return the internal name of the Operator
         """
         return self._name
+    
+    def units(self):
+        """
+        Return the cf_units object for the data returned by the Operator
+        """
+        return self._units
 
     @abstractmethod
     def __call__(self):
@@ -97,10 +108,8 @@ class VariableSliceReader(Operator):
                             '{!r}: {!r}'.format(type(variable), variable))
         if variable not in ncfile.variables:
             raise OSError('Variable {!r} not found in NetCDF file: '
-                          '{!r}'.format(variable, self._filepath))            
-        # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable)
-                
+                          '{!r}'.format(variable, self._filepath))
+
         # Parse slice tuple
         if isinstance(slicetuple, (list, tuple)):
             if not all([isinstance(s, (int, slice)) for s in slicetuple]):
@@ -113,8 +122,20 @@ class VariableSliceReader(Operator):
                             '{!r}: {!r}'.format(type(slicetuple), slicetuple))
         self._slice = slicetuple
         
+        # Determine units
+        uname = None
+        if hasattr(ncfile.variables[variable], 'units'):
+            uname = ncfile.variables[variable].units
+        ucal = None
+        if hasattr(ncfile.variables[variable], 'calendar'):
+            ucal = ncfile.variables[variable].calendar
+        units = Unit(uname, calendar=ucal)
+
         # Close the NetCDF file
         ncfile.close()
+
+        # Call base class initializer - sets self._name
+        super(VariableSliceReader, self).__init__(variable, units)
 
     def __call__(self):
         """
@@ -134,7 +155,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, *args):
+    def __init__(self, name, func, args=[], units=Unit(None)):
         """
         Initializer
         
@@ -143,22 +164,24 @@ class FunctionEvaluator(Operator):
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
+            units (Unit): A cf_units.Unit object declaring units of data returned
         """
-        # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name)
-        
-        # Check if the function is callable
-        if not hasattr(func, '__call__'):
+        # Check function
+        if not callable(func):
             raise TypeError('Function object not callable: {!r}'.format(func))
-        
-        # Store the function pointer
         self._function = func
         
-        # Store the arguments
+        # Check arguments
+        if not isinstance(args, (tuple, list)):
+            raise TypeError('Arguments not contained in list')
         self._arguments = args
         
         # Count the number of runtime arguments needed
         self._nargs = sum(arg is None for arg in args)
+
+        # Call base class initializer
+        super(FunctionEvaluator, self).__init__(name, units)
+        
         
     def __call__(self, *args):
         """
@@ -184,12 +207,13 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest):
+    def __init__(self, dest, units=Unit(None)):
         """
         Initializer
         
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
+            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         # Check if the function is callable
         if not isinstance(dest, int):
@@ -201,7 +225,7 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname)
+        super(SendOperator, self).__init__(opname, units)
         
         # Store the destination rank
         self._dest = dest
@@ -251,12 +275,13 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source):
+    def __init__(self, source, units=Unit(None)):
         """
         Initializer
         
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
+            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         # Check if the function is callable
         if not isinstance(source, int):
@@ -268,7 +293,7 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname)
+        super(RecvOperator, self).__init__(opname, units)
         
         # Store the source rank
         self._source = source

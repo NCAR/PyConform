@@ -90,3 +90,19 @@ class DefitionParser(object):
             definition (str): The string definition of the variable
         """
         return self._expr.parseString(definition)[0]
+    
+    def name_definition(self, deftree):
+        """
+        Compute a string from a definition tuple
+        
+        Parameters:
+            definition (tuple): An definition tuple
+        """
+        strval = ''
+        if isinstance(deftree, tuple):
+            strval += deftree[0].__name__ + '('
+            strval += ','.join(self.name_definition(dt) for dt in deftree[1:])
+            strval += ')'
+        else:
+            strval += str(deftree)
+        return strval
