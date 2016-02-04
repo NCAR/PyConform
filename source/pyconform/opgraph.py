@@ -106,8 +106,13 @@ class OperationGraph(DiGraph):
                     continue
                 elif argunit.is_convertible(units):
                     argop = argops[opidx]
-                    
-                    argops[opidx] = operators.FunctionEvaluator()
+                    aname = 'convert({},to={})'.format(argop.name(), units.format())
+                    afunc = argunit.convert
+                    afargs = [None, units]
+                    argops[opidx] = operators.FunctionEvaluator(aname, afunc, afargs, units)
+                    self.connect(argop, argops[opidx])
+                else:
+                    raise TypeError('Cannot convert units')
             rootOp = operators.FunctionEvaluator(fname, func, fargs, units)
             for argop in argops:
                 self.connect(argop, rootOp)
