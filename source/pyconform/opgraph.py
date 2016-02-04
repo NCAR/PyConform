@@ -31,6 +31,7 @@ class OperationGraph(DiGraph):
         Initialize
         """
         self._root = None
+        super(OperationGraph, self).__init__()
     
     def add(self, vertex):
         """
@@ -50,6 +51,10 @@ class OperationGraph(DiGraph):
         def evaluate_from(op):
             return op(*map(evaluate_from, self.neighbors_to(op)))
         return evaluate_from(self._root)
+    
+    def set_root(self, op):
+        if op in self:
+            self._root = op
     
     def iter_bfs(self):
         super(OperationGraph, self).iter_bfs(self._root, reverse=True)

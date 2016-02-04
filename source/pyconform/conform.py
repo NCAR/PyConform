@@ -14,16 +14,146 @@ from parsing import DefitionParser
 from collections import OrderedDict
 from copy import deepcopy
 from random import choice
+from mpi4py import MPI
+from netCDF4 import Dataset as NCDataset
 
 from pyconform import operators
 
 
 #===============================================================================
+# conform
+#===============================================================================
+def conform(inp, out):
+    """
+    Perform the conform operation
+
+    Parameters:
+        inp (InputDataset): The input Dataset
+        out (OutputDataset): The output Dataset
+    """
+    # MPI rank and size
+    mpirank = MPI.COMM_WORLD.Get_rank()
+    mpisize = MPI.COMM_WORLD.Get_size()
+    
+    # Get time-series names and metadata names
+    tservars = [vname for vname, vinfo in out.variables.iteritems()
+                if vinfo.filename is not None]
+    metavars = [vname for vname in out.variables if vname not in tservars]
+
+    # Get the set of necessary dimensions for the metavars
+    req_dims = set()
+    for mvar in metavars:
+        for d in out.variables[mvar].dimensions:
+            req_dims.add(d)
+    
+    # Get the local list of tseries variable names
+    loc_vars = tservars[mpirank::mpisize]
+    
+    # Parse the output variable definitions
+    vdefs = parse_definitions(inp, out)
+    
+    # Map the input/output dimension names
+    dim_map = map_dimensions(inp, out, vdefs)
+     
+    # Build all operation graphs (might only need to build local)
+    opgraphs = build_opgraphs(inp, vdefs)
+    
+    # Write each local time-series file
+    for tsvar in loc_vars:
+        
+        # Get the time-series variable info object
+        tsinfo = out.variables[tsvar]
+        
+        # Create the output file
+        ncf = NCDataset(tsinfo.filename, 'w')
+        
+        # Write the file attributes
+        ncf.setncatts(out.attributes)
+
+        # Create the required dimensions
+        tsdims = req_dims.union(set(tsinfo.dimensions))
+        for dname in tsdims:
+            idim = inp.dimensions[dim_map[dname]]
+            if idim.unlimited:
+                ncf.createDimension(dname)
+            else:
+                ncf.createDimension(dname, idim.size)
+        
+        # Create the variables and write their attributes
+        ncvars = {}
+        for mvar in metavars:
+            mvinfo = out.variables[mvar]
+            ncvar = ncf.createVariable(mvar, mvinfo.datatype, mvinfo.dimensions)
+            for aname, avalue in mvinfo.attributes.iteritems():
+                setattr(ncvar, aname, avalue)
+            ncvars[mvar] = ncvar
+
+        ncvar = ncf.createVariable(tsvar, tsinfo.datatype, tsinfo.dimensions)
+        for aname, avalue in tsinfo.attributes.iteritems():
+            setattr(ncvar, aname, avalue)
+        ncvars[tsvar] = ncvar
+        
+        # Now perform the operation graphs and write data to variables
+        for vname, vobj in ncvars.iteritems():
+            vobj[:] = opgraphs[vname]()
+            
+#===============================================================================
 # build_opgraphs
 #===============================================================================
-def build_opgraphs(inp, out):
+def build_opgraphs(inp, definitions):
+    # Compute the dimensional slices needed for each variable
+    # Not implemented (reads entire variable at the moment)
+    
+    # Loop over output variables and create opgraphs
+    opgraphs = OrderedDict()
+    for vname, vdef in definitions.iteritems():
+        opG = OperationGraph()
+        rootOp = fill_opgraph(vdef, inp, opG)
+        opG.set_root(rootOp)
+        opgraphs[vname] = opG
+    
+    return opgraphs
+
+
+#===============================================================================
+# map_dimensions
+#===============================================================================
+def map_dimensions(inp, out, definitions):
+
+    # Gather the dimensions at each operation in the definition
+    def_dims_maps = {}
+    for vname, vdef in definitions.iteritems():
+        def_dims_maps[vname] = gather_dimensions(vdef, inp)
+
+    # Compute the dimension mapping from input to output dimensions    
+    dim_map = {}
+    for vname, def_dims in def_dims_maps.iteritems():
+        odims = out.variables[vname].dimensions
+        idims = reduce_dimensions(def_dims)
+        if len(odims) != len(idims):
+            defstr = name_definition(definitions[vname])
+            err_msg = ('Output variable {!r} has dimensions {} while its '
+                       'definition {!r} has dimensions '
+                       '{}').format(vname, len(odims), defstr, len(idims))
+            raise ValueError(err_msg)
+        for odim, idim in zip(odims, idims):
+            if odim not in dim_map:
+                dim_map[odim] = str(idim)
+            elif idim != dim_map[odim]:
+                err_msg = ('Output dimension {!r} in output variable {!r} '
+                           'appears to map to both input dimensions {!r} and '
+                           '{!r}').format(odim, vname, idim, dim_map[odim])
+                raise ValueError(err_msg)
+    
+    return dim_map
+            
+
+#===============================================================================
+# parse_definitions
+#===============================================================================
+def parse_definitions(inp, out):
     """
-    Build all of the OpGraphs for given input and output Datasets
+    Parse the output dataset definitions
     
     Parameters:
         inp (InputDataset): The input Dataset
@@ -61,58 +191,7 @@ def build_opgraphs(inp, out):
                'dataset').format(invalid_ref, vname, def_str)
             raise KeyError(err_msg)
 
-    # Gather the dimensions at each operation in the definition
-    def_dims_maps = {}
-    for vname, vdef in definitions.iteritems():
-        def_dims_maps[vname] = gather_dimensions(vdef, inp)
-
-    print def_dims_maps
-        
-    # Compute the dimension mapping from input to output dimensions    
-    dim_map = {}
-    for vname, def_dims in def_dims_maps.iteritems():
-        odims = out.variables[vname].dimensions
-        idims = reduce_dimensions(def_dims)
-        if len(odims) != len(idims):
-            defstr = name_definition(definitions[vname])
-            err_msg = ('Output variable {!r} has {} dimensions while its '
-                       'definition {!r} has {} '
-                       'dimensions').format(vname, len(odims),
-                                            defstr, len(idims))
-            raise ValueError(err_msg)
-        if set(odims) != set(idims):
-            defstr = name_definition(definitions[vname])
-            err_msg = ('Output variable {!r} has dimensions while its '
-                       'definition {!r} has {} '
-                       'dimensions').format(vname, len(odims),
-                                            defstr, len(idims))
-            raise ValueError(err_msg)
-        for odim, idim in zip(odims, idims):
-            if odim not in dim_map:
-                dim_map[odim] = str(idim)
-            elif idim != dim_map[odim]:
-                err_msg = ('Output dimension {!r} in output variable {!r} '
-                           'appears to map to both input dimensions {!r} and '
-                           '{!r}').format(odim, vname, idim, dim_map[odim])
-                raise ValueError(err_msg)
-            
-    # Compute the dimensional slices needed for each variable
-    # Not implemented (reads entire variable at the moment)
-    
-    # Loop over output variables and create opgraphs
-    opgraphs = OrderedDict()
-    for vname, vdef in definitions.iteritems():
-        opG = OperationGraph()
-        rootOp = fill_opgraph(vdef, inp, opG)
-        
-        odims = out.variables[vname].dimensions
-        idims
-        
-        
-        opgraphs[vname] = opG
-    
-    return dim_map
-
+    return definitions
 
 #===============================================================================
 # check_references recursively for a single definition

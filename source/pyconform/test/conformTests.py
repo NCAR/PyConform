@@ -11,6 +11,7 @@ from pyconform import conform, dataset
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 
+import json
 import numpy
 import operator
 import unittest
@@ -163,6 +164,7 @@ class ConformTests(unittest.TestCase):
         self._clear_()
         
     def _clear_(self):
+        return
         for fname in self.filenames.itervalues():
             if exists(fname):
                 remove(fname)
@@ -257,12 +259,25 @@ class ConformTests(unittest.TestCase):
     #===== build_opgraphs tests ================================================
     
     def test_build_opgraphs(self):
-        actual = conform.build_opgraphs(self.inpds, self.outds)
+        defs = conform.parse_definitions(self.inpds, self.outds)
+        actual = conform.build_opgraphs(self.inpds, defs)
         expected = None
         print_test_message('build_opgraphs()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'build_opgraphs() incorrect')
+        
+    #===== conform tests ================================================
+
+    def test_conform(self):
+        with open('conform.spec', 'w') as fp:
+            json.dump(self.outds.get_dict(), fp, indent=4)
+        actual = conform.conform(self.inpds, self.outds)
+        expected = None
+        print_test_message('conform()',
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'conform() incorrect')
 
 
 #===============================================================================
