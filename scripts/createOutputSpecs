@@ -40,7 +40,6 @@ def parseArgs(argv = None):
 def main(argv=None):
    
     outSpec = {}
-    a_key = '__ALL__'
     args = parseArgs(argv)
     
     print "\n" 
@@ -97,37 +96,36 @@ def main(argv=None):
 
     # Create Output Spec
     # First add global attributes that are common to all files
-    all = {"attributes":attributes}
-    outSpec[a_key] = all
-        
+    outSpec["attributes"] = attributes
+
+    var_list = {}        
     # For each variable in the definition file, create a file entry in the spec and define it
     for v,d in definitions.iteritems():
-        try:   
-            f_id = ("{0}_{1}_{2}_{3}".format(v,table,model,experiment))
-            file_info = {}
-            file_info["attributes"] = {}
-            dimensions = variables[v]['dimensions'].split(' ')
-            if len(dimensions) == 1:
-                dimensions = variables[v]['dimensions'].split('|')
-            file_info["dimensions"] = dimensions
-            file_info["variables"] = {}
-            for dim in dimensions:
-                var = {}
-                if dim in axes.keys():
-                    var["attributes"] = axes[dim]
-                if 'type' in axes[dim].keys():
-                    var["dtype"] = data_types[axes[dim]['type']]
-                file_info["variables"][dim] = var        
-            var = {"attributes":variables[v], "definition":d}
-            if 'type' in variables[v].keys():
-                var["dtype"] = data_types[variables[v]['type']]
-            if 'dimensions' in variables[v].keys():
-                var["dimensions"] = variables[v]['dimensions'].split('|')
-            file_info["variables"][v] = var
-            outSpec[f_id] = file_info   
-        except KeyError as e:
-            pass
-            print "Variable not found in MIP table: ",e.args[0]
+        f_name = ("{0}_{1}_{2}_{3}.nc".format(v,table,model,experiment))
+        f_id = v
+        var = {}
+        for k1,v1 in variables[v].iteritems():
+            if not isinstance(v1,(list,str,float)):
+                variables[v][k1] = "None"    
+        var["attributes"] = variables[v]
+        var["definition"] = d
+        var["filename"] = f_name
+        if 'type' in variables[v].keys():
+          var["datatype"]  = data_types[variables[v]['type']]
+        if 'dimensions' in variables[v].keys():
+            var["dimensions"] = variables[v]['dimensions'].split('|')
+        var_list[f_id] = var  
+
+    # Add axes into the variable list
+    for v,d in axes.iteritems():
+        f_id = v
+        var = {}
+        var["attributes"] = axes[v]
+        if 'type' in axes[v].keys():
+            var["datatype"]  = data_types[axes[v]['type']]
+        var_list[f_id] = var
+
+    outSpec["variables"] = var_list
 
 #    for k,v in outSpec.iteritems():
 #       print '\n',k
