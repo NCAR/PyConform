@@ -33,6 +33,8 @@ def print_test_message(testname, actual, expected):
 class MockOp(ops.Operator):
     def __init__(self, name):
         super(MockOp, self).__init__(name)
+    def units(self):
+        super(MockOp, self).units()
     def __call__(self):
         super(MockOp, self).__call__()
 
