@@ -4,6 +4,14 @@ Fundamental Operators for the Operation Graphs
 This module contains the Operator objects to be used in the DiGraph-based
 Operation Graphs that implement the data transformation operations.
 
+Some functions of the Operator objects are specifically designed to work
+on the output from other Operators, from within a OperationGraph object.
+This is precisely what the Operators are designed to do.  Some data of
+the Operators pertain to the instance of the Operator itself, and this data
+is stored with the instance.  Some data is determined entirely by the input
+into the Operator at runtime, which occurs within the OperationGraph data
+structure.
+
 COPYRIGHT: 2015, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
@@ -28,20 +36,16 @@ class Operator(object):
     _id_ = 0
     
     @abstractmethod
-    def __init__(self, name, units=Unit(None)):
+    def __init__(self, name):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
-            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         self._id = Operator._id_
         Operator._id_ += 1
         self._name = str(name)
-        if not isinstance(units, Unit):
-            raise TypeError('Units must be specified with cf_units.Unit type')
-        self._units = units
     
     def id(self):
         """
@@ -55,11 +59,12 @@ class Operator(object):
         """
         return self._name
     
+    @abstractmethod
     def units(self):
         """
-        Return the cf_units object for the data returned by the Operator
+        Return the Unit object for the data returned by the Operator
         """
-        return self._units
+        pass
 
     @abstractmethod
     def __call__(self):
