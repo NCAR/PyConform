@@ -166,7 +166,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, args=[]):
+    def __init__(self, name, func, *args):
         """
         Initializer
         
