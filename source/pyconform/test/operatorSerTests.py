@@ -82,6 +82,17 @@ class OperatorTests(unittest.TestCase):
         print_test_message('Third Operator.id() == 2', O2.id(), 2)
         self.assertEqual(O2.id(), 2, 'Third Operator.id() != 2')
 
+    def test_units(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units({!r})'.format(opname)
+        O = MockOp(opname)
+        actual = O.units()
+        expected = None
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator name incorrect')
+
+
 
 #===============================================================================
 # VariableSliceReaderTests
