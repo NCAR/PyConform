@@ -29,7 +29,7 @@ import numpy
 #===============================================================================
 class Operator(object):
     """
-    The abstract base class for the Operator objects used in Operation Graphs
+    The abstract base class for the Operator objects used in OperationGraphs
     """
     
     __metaclass__ = ABCMeta
@@ -134,14 +134,20 @@ class VariableSliceReader(Operator):
         ucal = None
         if hasattr(ncfile.variables[variable], 'calendar'):
             ucal = ncfile.variables[variable].calendar
-        units = Unit(uname, calendar=ucal)
+        self._units = Unit(uname, calendar=ucal)
 
         # Close the NetCDF file
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable, units)
+        super(VariableSliceReader, self).__init__(variable)
 
+    def units(self):
+        """
+        Return the Unit object for the data returned by the Operator
+        """
+        return self._units
+    
     def __call__(self):
         """
         Make callable like a function
@@ -160,7 +166,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, args=[], units=Unit(None)):
+    def __init__(self, name, func, args=[]):
         """
         Initializer
         
@@ -169,7 +175,6 @@ class FunctionEvaluator(Operator):
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
-            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         # Check function
         if not callable(func):
@@ -185,9 +190,22 @@ class FunctionEvaluator(Operator):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name, units)
+        super(FunctionEvaluator, self).__init__(name)
         
-        
+    def units(self, *argunits):
+        """
+        Return the Unit object for the data returned by the Operator
+        """
+        if len(argunits) == 0:
+            return Unit('1')
+        elif len(argunits) < self._nargs:
+            raise RuntimeError('Received {} argument units, expected '
+                               '{}'.format(len(argunits), self._nargs))
+        if not all(isinstance(u, Unit) for u in argunits):
+            raise RuntimeError('Operator units function takes Unit objects '
+                               'as input only')
+        return argunits[0]
+    
     def __call__(self, *args):
         """
         Make callable like a function
@@ -212,13 +230,12 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest, units=Unit(None)):
+    def __init__(self, dest):
         """
         Initializer
         
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
-            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         # Check if the function is callable
         if not isinstance(dest, int):
@@ -230,11 +247,22 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname, units)
+        super(SendOperator, self).__init__(opname)
         
         # Store the destination rank
         self._dest = dest
-        
+
+    def units(self, dataunits):
+        """
+        Return the Unit object for the data returned by the Operator
+        """
+        if not isinstance(dataunits, Unit):
+            raise RuntimeError('Operator units function takes Unit objects '
+                               'as input only')
+        tag = MPI.COMM_WORLD.Get_rank() + 10*MPI.COMM_WORLD.Get_size()
+        MPI.COMM_WORLD.send(dataunits, dest=self._dest, tag=tag)
+        return None
+
     def __call__(self, data):
         """
         Make callable like a function
@@ -280,13 +308,12 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source, units=Unit(None)):
+    def __init__(self, source):
         """
         Initializer
         
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
-            units (Unit): A cf_units.Unit object declaring units of data returned
         """
         # Check if the function is callable
         if not isinstance(source, int):
@@ -298,11 +325,18 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname, units)
+        super(RecvOperator, self).__init__(opname)
         
         # Store the source rank
         self._source = source
-        
+
+    def units(self):
+        """
+        Return the Unit object for the data returned by the Operator
+        """
+        tag = MPI.COMM_WORLD.Get_rank() + 10*MPI.COMM_WORLD.Get_size()
+        return MPI.COMM_WORLD.recv(source=self._source, tag=tag)
+    
     def __call__(self):
         """
         Make callable like a function
