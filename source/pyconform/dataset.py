@@ -4,7 +4,7 @@ Dataset Interface Class
 This file contains the interface classes to the input and output multi-file
 datasets.
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

@@ -12,7 +12,7 @@ is stored with the instance.  Some data is determined entirely by the input
 into the Operator at runtime, which occurs within the OperationGraph data
 structure.
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
