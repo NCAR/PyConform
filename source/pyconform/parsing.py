@@ -92,7 +92,7 @@ class DefitionParser(object):
             fname = self._ids.variables[varname].filename
         else:
             fname = self._ifncycle.next()
-        op = VariableSliceReader(fname, varname)
+        op = VariableSliceReader.register(fname, varname)
         self._opgraph.add(op)
         return op
     
@@ -261,6 +261,9 @@ class DefitionParser(object):
         
         Parameters:
             definition (str): The string definition of the variable
+            
+        Returns:
+            Operator: The root of the definition's OperationGraph
         """
         return self._expr.parseString(definition)[0]
     
