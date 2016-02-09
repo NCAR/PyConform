@@ -36,16 +36,18 @@ class Operator(object):
     _id_ = 0
     
     @abstractmethod
-    def __init__(self, name):
+    def __init__(self, name, units=Unit(1)):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
+            units (Unit): The units of the data returned by the function
         """
         self._id = Operator._id_
         Operator._id_ += 1
         self._name = str(name)
+        self._units = Unit(units)
     
     def id(self):
         """
@@ -59,12 +61,17 @@ class Operator(object):
         """
         return self._name
     
-    @abstractmethod
+    def __str__(self):
+        """
+        String representation of the operator (its name)
+        """
+        return str(self._name)
+    
     def units(self):
         """
         Return the Unit object for the data returned by the Operator
         """
-        pass
+        return self._units
 
     @abstractmethod
     def __call__(self):
@@ -128,26 +135,16 @@ class VariableSliceReader(Operator):
         self._slice = slicetuple
         
         # Determine units
-        uname = None
-        if hasattr(ncfile.variables[variable], 'units'):
-            uname = ncfile.variables[variable].units
-        ucal = None
-        if hasattr(ncfile.variables[variable], 'calendar'):
-            ucal = ncfile.variables[variable].calendar
-        self._units = Unit(uname, calendar=ucal)
+        uname = getattr(ncfile.variables[variable], 'units', '1')
+        ucal = getattr(ncfile.variables[variable], 'calendar', None)
+        units = Unit(uname, calendar=ucal)
 
         # Close the NetCDF file
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable)
+        super(VariableSliceReader, self).__init__(variable, units)
 
-    def units(self):
-        """
-        Return the Unit object for the data returned by the Operator
-        """
-        return self._units
-    
     def __call__(self):
         """
         Make callable like a function
@@ -166,7 +163,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, *args):
+    def __init__(self, name, func, args=[], units=Unit(1)):
         """
         Initializer
         
@@ -175,6 +172,7 @@ class FunctionEvaluator(Operator):
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
+            units (Unit): The units of the data returned by the function
         """
         # Check function
         if not callable(func):
@@ -190,21 +188,7 @@ class FunctionEvaluator(Operator):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name)
-        
-    def units(self, *argunits):
-        """
-        Return the Unit object for the data returned by the Operator
-        """
-        if len(argunits) == 0:
-            return Unit('1')
-        elif len(argunits) < self._nargs:
-            raise RuntimeError('Received {} argument units, expected '
-                               '{}'.format(len(argunits), self._nargs))
-        if not all(isinstance(u, Unit) for u in argunits):
-            raise RuntimeError('Operator units function takes Unit objects '
-                               'as input only')
-        return argunits[0]
+        super(FunctionEvaluator, self).__init__(name, units)
     
     def __call__(self, *args):
         """
@@ -230,12 +214,13 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest):
+    def __init__(self, dest, units=Unit(1)):
         """
         Initializer
         
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
+            units (Unit): The units of the data returned by the function
         """
         # Check if the function is callable
         if not isinstance(dest, int):
@@ -247,21 +232,10 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname)
+        super(SendOperator, self).__init__(opname, units)
         
         # Store the destination rank
         self._dest = dest
-
-    def units(self, dataunits):
-        """
-        Return the Unit object for the data returned by the Operator
-        """
-        if not isinstance(dataunits, Unit):
-            raise RuntimeError('Operator units function takes Unit objects '
-                               'as input only')
-        tag = MPI.COMM_WORLD.Get_rank() + 10*MPI.COMM_WORLD.Get_size()
-        MPI.COMM_WORLD.send(dataunits, dest=self._dest, tag=tag)
-        return None
 
     def __call__(self, data):
         """
@@ -308,12 +282,13 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source):
+    def __init__(self, source, units=Unit(1)):
         """
         Initializer
         
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
+            units (Unit): The units of the data returned by the function
         """
         # Check if the function is callable
         if not isinstance(source, int):
@@ -325,18 +300,11 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname)
+        super(RecvOperator, self).__init__(opname, units)
         
         # Store the source rank
         self._source = source
 
-    def units(self):
-        """
-        Return the Unit object for the data returned by the Operator
-        """
-        tag = MPI.COMM_WORLD.Get_rank() + 10*MPI.COMM_WORLD.Get_size()
-        return MPI.COMM_WORLD.recv(source=self._source, tag=tag)
-    
     def __call__(self):
         """
         Make callable like a function
