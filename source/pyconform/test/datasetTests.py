@@ -352,7 +352,7 @@ class DatasetTests(unittest.TestCase):
     Unit Tests for the pyconform.dataset module
     """
 
-    def setUp(self):        
+    def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
         self._clear_()
         
