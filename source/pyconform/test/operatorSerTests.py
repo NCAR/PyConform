@@ -9,6 +9,7 @@ from os import remove
 from os.path import exists
 from pyconform import operators as ops
 from os import linesep
+from cf_units import Unit
 
 import operator
 import numpy as np
@@ -31,7 +32,7 @@ def print_test_message(testname, actual, expected):
 # OperatorTests
 #===============================================================================
 class MockOp(ops.Operator):
-    def __init__(self, name):
+    def __init__(self, name, units=Unit(1)):
         super(MockOp, self).__init__(name)
     def units(self):
         super(MockOp, self).units()
@@ -71,17 +72,34 @@ class OperatorTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Operator name incorrect')
 
-    def test_id(self):
-        O0 = MockOp('x')
-        print_test_message('First Operator.id() == 0', O0.id(), 0)
-        self.assertEqual(O0.id(), 0, 'First Operator.id() != 0')
-        O1 = MockOp('y')
-        print_test_message('Second Operator.id() == 1', O1.id(), 1)
-        self.assertEqual(O1.id(), 1, 'Second Operator.id() != 1')
-        O2 = MockOp('x')
-        print_test_message('Third Operator.id() == 2', O2.id(), 2)
-        self.assertEqual(O2.id(), 2, 'Third Operator.id() != 2')
+    def test_str(self):
+        opname = 'xop'
+        testname = 'Mock Operator.__str__()'.format(opname)
+        O = MockOp(opname)
+        actual = str(O)
+        expected = opname
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator string conversion incorrect')
+    
+    def test_register_same(self):
+        opname = 'abc'
+        testname = 'Mock Operator.register({!r})'.format(opname)
+        O1 = MockOp.register(opname)
+        O2 = MockOp.register(opname)
+        print_test_message(testname, id(O1), id(O2))
+        self.assertEqual(id(O1), id(O2),
+                         'Identical operators not registered properly')
 
+    def test_register_different(self):
+        opname = 'abc'
+        testname = 'Mock Operator.register({!r}, units)'.format(opname)
+        O1 = MockOp.register(opname, units=Unit('m'))
+        O2 = MockOp.register(opname)
+        print_test_message(testname, id(O1), id(O2))
+        self.assertNotEqual(id(O1), id(O2),
+                            'Operators not registered properly')
+        
     def test_units(self):
         opname = 'xop'
         testname = 'Mock Operator.units({!r})'.format(opname)
@@ -228,7 +246,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
         testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, 1)
+        FE = ops.FunctionEvaluator(opname, operator.add, args=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -237,7 +255,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
         testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, None, 2)
+        FE = ops.FunctionEvaluator(opname, operator.add, args=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)

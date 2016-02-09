@@ -33,7 +33,7 @@ class Operator(object):
     """
     
     __metaclass__ = ABCMeta
-    _id_ = 0
+    _registry_ = {}
     
     @abstractmethod
     def __init__(self, name, units=Unit(1)):
@@ -44,16 +44,21 @@ class Operator(object):
             name (str): A string name/identifier for the operator
             units (Unit): The units of the data returned by the function
         """
-        self._id = Operator._id_
-        Operator._id_ += 1
         self._name = str(name)
         self._units = Unit(units)
     
-    def id(self):
+    @classmethod
+    def register(cls, *args, **kwargs):
         """
-        Return the internal ID of the Operator
+        Initialize a new instantiation only if it hasn't already been registered
         """
-        return self._id
+        hash_id = hash((args, tuple(sorted(kwargs.items()))))
+        if hash_id in Operator._registry_:
+            return Operator._registry_[hash_id]
+        else:
+            newobj = cls(*args)
+            Operator._registry_[hash_id] = newobj
+            return newobj
 
     def name(self):
         """
