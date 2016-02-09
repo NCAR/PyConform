@@ -1,0 +1,321 @@
+abs550aer: AODABS
+agessc: IAGE
+albisccp: MEANCLDALB_ISCCP
+areacella: AREA
+areacello: TAREA
+basin: REGION_MASK
+bmelt: meltb, (divide by 86400 s day-1, divide by 100 cm m-1, times 1000 kg m-3)/8640
+burntArea: ANN_FAREA_BURNED
+cCwd: CWDC
+cLeaf: LEAFC
+cLitter: TOTLITC
+cMisc: STORVEGC
+cProduct: TOTPRODC
+cRoot: FROOTC+LIVE_ROOTC+DEAD_ROOTC
+cSoil: TOTSOMC
+cSoilFast: SOIL1C+SOIL2C
+cSoilMedium: SOIL3C
+cSoilSlow: SOIL4C
+cVeg: TOTVEGC
+cWood: WOODC
+ccb: PCLDBOT
+cct: PCLDTOP
+cdnc: CDNUMC
+cfadDbze94: CFAD_DBZE94_CS
+cfadLidarsr532: CFAD_SR532_CAL
+cfc11: CFC11
+cfc11global: f11vmr
+cfc12global: f12vmr
+ch4: vinterp(CH4, plevs)
+ch4global: ch4vmr
+chl: diatChl+spChl+diazChl
+chlcalc: spChl*(spCaCO3/spC)
+chldiat: diatChl
+chldiaz: diazChl
+chlpico: spChl
+ci: FREQZM
+cl: CLOUD
+clcalipso: CLD_CAL
+clhcalipso: CLDHGH_CAL
+cli: CLDICE
+clic: CLDICECON
+clis: CLDICESTR
+clisccp: FISCCP1_COSP
+clivi: TGCLDIWP
+cllcalipso: CLDLOW_CAL
+clmcalipso: CLDMED_CAL
+clt: CLDTOT
+cltc: CONCLD
+cltcalipso: CLDTOT_CAL
+cltisccp: CLDTOT_ISCCP
+clw: CLDLIQ
+clwc: CLDLIQCON
+clws: CLDLIQSTR
+clwvi: TGCLDLWP
+co2: vinterp(CO2,plevs)
+co2mass: co2vmr
+co3: CO3
+co3satarag: co3_sat_arag
+co3satcalc: co3_sat_calc
+concaerh2o: wat_a1+wat_a2+wat_a3
+concbc: bc_a1
+conccmcn: num_a3
+conccn: num_a1+num_a2+num_a3
+concdms: DMS
+concdust: dst_a1+dst_a3
+concoa: soa_a1+soa_a2+pom_a1
+concso2: SO2
+concso4: so4_a1+so4_a2+so4_a3
+concsoa: soa_a1+soa_a2
+concss: ncl_a1+ncl_a2+ncl_a3
+demc: EMIS
+dems: EMIS
+deptho: HT
+dfe: Fe
+dissic: DIC
+dissoc: DOC
+divice: divu
+dpco2: DpCO2
+drybc: bc_a1DDF
+drydust: DSTSFDRY
+dryoa: pomff_a1DDF+soa_a1DDF+soa_a2DDF
+drypoa: pom_a1DDF
+dryso2: DF_SO2
+dryso4: so4_a1DDF+so4_a2DDF+so4_a3DDF
+dryss: ncl_a1DDF+ncl_a2DDF+ncl_a3DDF
+dtauc: TOT_ICLD_VISTAU
+dtaus: TOT_ICLD_VISTAU
+emibc: SFbc_a1+bc_a1_CLXF
+emidms: SFDMS
+emidust: SFdst_a1+SFdst_a3
+emiso2: SFSO2+SO2_CLXF
+emiso4: so4_a1_CLXF
+emiss: SFncl_a1+SFncl_a2+SFncl_a3
+epc100: POC_FLUX_IN[only depth100m meters]
+epcalc100: CaCO3_FLUX_IN[only depth100m meters]
+epfe100: P_iron_FLUX_IN[only depth100m meters]
+epsi100: SiO2_FLUX_IN[only depth100m meters]
+evap: (evap_ai/86400)
+evspsbl: QFLX
+evspsblsoi: QSOIL
+evspsblveg: QVEGE
+expc: POC_FLUX_IN
+expcalc: CaCO3_FLUX_IN
+expcfe: P_iron_FLUX_IN
+expsi: SiO2_FLUX_IN
+fFire: COL_FIRE_CLOSS
+fLitterSoil: LITR1C_TO_SOIL1C+LITR2C_TO_SOIL2C+LITR3C_TO_SOIL3C
+fLuc: DWT_CLOSS+PRODUCT_CLOSS
+fVegLitter: LITFALL
+fbddtalk: Jint_100m_ALK
+fbddtdic: Jint_100m_DIC
+fbddtdife: Jint_100m_Fe
+fbddtdin: Jint_100m_NO3+Jint_100m_NH4
+fbddtdip: Jint_100m_PO4
+fbddtdisi: Jint_100m_SiO3
+fddtalk: tend_zint_100m_ALK
+fddtdic: tend_zint_100m_DIC
+fddtdife: tend_zint_100m_Fe
+fddtdin: tend_zint_100m_NO3+tend_zint_100m_NH4
+fddtdip: tend_zint_100m_PO4
+fddtdisi: tend_zint_100m_SiO3
+fgco2: FG_CO2
+fgo2: STF_O2
+frn: Integrate -DENITRIF over z_t (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((-1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+fsn: NOx_FLUX+NHy_FLUX+(integrate diaz_Nfix over z_t) (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((indat3a(i,j,k)*ocn_t_dz(k))*1.e-5))
+gpp: GPP
+grCongel: congel/8640
+grFrazil: frazil
+h2o: Q+CLDICE+CLDLIQ
+hfdsn: FGR
+hfls: LHFLX
+hflssi: flat_ai
+hfss: SENH_F
+hfssi: fsens_ai
+hur: vinterp(RELHUM,plevs)
+hurs: RHREFHT
+hus: vinterp(Q,plevs)
+huss: QREFHT
+intdic: Integrate DIC over z_t (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((indat3a(i,j,k)*12.0e-8)*ocn_t_dz(k)))
+intpbsi: Integrate (-bSi_form) over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((-1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpcalc: Integrate CaCO3_form over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpcalcite: Integrate -1*CaCO3_form over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((-1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpdiat: Integrate photoC_diat over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpdiaz: Integrate photoC_diaz over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpn2: Integrate diaz_Nfix over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+intpnitrate: photoC_NO3_diat_zint+photoC_NO3_sp_zint+photoC_NO3_diaz_zint
+intpp: Integrate (photoC_diat+photoC_sp+photoC_diaz) over z_t_150m (cmordat2d(i,j):cmordat2d(i,j) + ((((indat3a(i,j,k)*ocn_t_dz(k))+ (indat3b(i,j,k)*ocn_t_dz(k))+ (indat3c(i,j,k)*ocn_t_dz(k))))*1.e-5))
+intppico: Integrate photoC_sp over z_t_150m (if (kmt(i,j).ge.k) then cmordat2d(i,j):cmordat2d(i,j) + ((1.0e-5*indat3a(i,j,k))*ocn_t_dz(k)))
+lai: TLAI
+loadbc: bc_a1
+loaddust: dst_a1+dst_a3
+loadpoa: pom_a1
+loadso4: so4_a1+so4_a2+so4_a3
+loadsoa: soa_a1+soa_a2
+loadss: ncl_a1+ncl_a2+ncl_a3
+lwsnl: SNOWLIQ
+masso: Integrate PD over ocean volume (total mass (kg) if (indat3a(i,j,k).lt.1.e30) indat1a(it):indat1a(it) + (indat3a(i,j,k)*volume(i,j,k)))
+mc: CMFMC + CMFMCDZM
+mrfso: SOILICE 
+mrlsl: SOILLIQ + SOILICE
+mrro: QRUNOFF
+mrros: QOVER
+mrso: mask over ice-covered regions at 5000 kg m-2(SOILICE+SOILLIQ)
+mrsofc: WATSAT
+mrsos: SOILWATER_10CM
+msftbarot: BSF
+msftmyz: MOC
+msftmyzba: MOC
+n2o: vinterp(N2O,plevs)
+n2oglobal: n2ovmr
+nbp: NBP
+nh4: NH4
+no3: NO3
+npp: NPP
+nppLeaf: LEAFC_ALLOC
+nppRoot: FROOTC_ALLOC
+nppWood: WOODC_ALLOC
+o2: O2
+o2min: O2_ZMIN
+od550aer: AODVIS
+omlmax: XMXL
+orog: PHIS/g
+parasolRefl: RFL_PARASOL
+pctisccp: MEANPTOP_ISCCP
+ph: pH_3D
+phyc: spC+diatC+diazC
+phycalc: spC
+phydiat: diatC
+phydiaz: diazC
+phyfe: spFe
+phymisc: diatFe+spFe+diazFe
+phyn: (diatC+spC+diazC)*.137
+phyp: (diatC+spC)*.00855+diazC*.002735
+phypico: spC
+physi: diatSi
+po4: PO4
+pr: PREC_F
+prc: PRECC
+prcprof: ZMFLXPRC-ZMFLXSNW + RKFLXPRC-RKFLXSNW
+prlsns: LS_FLXSNW
+prlsprof: LS_FLXPRC-LS_FLXSNW
+prsn: SNOW_F
+prsnc: ZMFLXSNW+HKFLXSNW
+prveg: QINTR
+prw: TMQ
+ps: PS
+psl: PSL
+rGrowth: GR
+rMaint: MR
+ra: AR
+reffclis: REI
+reffclws: REL
+reffclwtop: AREL
+rh: HR
+rhopoto: PD
+rhs: RHREFHT
+rlds: LWDN_F + LWUP_F
+rldscs: FLDSC
+rldssi: flwdn
+rlus: FLDS + FLNS
+rlussi: flwup
+rlut: FSNTOA-FSNT+FLNT
+rlutcs: FLUTC
+rsds: FSDS
+rsdscs: FSDSC
+rsdssi: fswdn
+rsdt: SOLIN
+rsntds: QSW_HTP
+rsus: FSDS - FSNS
+rsuscs: FSDSC - FSNSC
+rsut: SOLIN - FSNTOA
+rsutcs: SOLIN - FSNTOAC
+rtmt: FSNT - FLNT
+sbl: QFLX_SUB_SNOW
+sci: FREQSH
+sfcWind: U10
+sftgif: PCT_GLACIER
+sftlf: LANDFRAC
+sftof: 0 where KMT:0, 100 elsewhere
+si: SiO3
+sic: aice
+sit: hi
+snc: FSNO
+snd: hs
+snm: QMELT
+snoToIce: snoice/8640
+snomelt: melts/8640
+snw: H2OSNO
+so: SALT
+soga: weighted_global_average(SALT)
+sootsn: SNOBCMSL + SNODSTMSL + SNOOCMSL
+sos: SALT[at topmost level * 1000]
+spco2: pCO2SURF
+strairx: strairx
+strairy: strairy
+streng: strength
+strocnx: strocnx
+strocny: strocny
+ta: vinterp(T,plevs)
+ta700: T700
+talk: ALK
+tas: TREFHT
+tasmax: TREFHTMX
+tasmin: TREFHTMN
+tauu: TAUX
+tauuo: TAUX
+tauv: TAUY
+tauvo: TAUY
+thetao: TEMP
+thetaoga: weighted_global_average(TEMP)
+thkcello: dz
+tmelt: meltt/8640
+tnhus: TAQ+PTEQ
+tnhusa: TAQ 
+tnhusc: ZMDQ+EVAPQZM+CMFDQ
+tnhusd: VD01
+tnhusmp: PTEQ
+tnhusscpbl: EVAPPREC+DQSED-CME
+tnt: TTEND_TOT
+tntc: ZMDT+EVAPTZM+ZMMTT+CMFDT
+tntmp: PTTEND
+tntr: QRL+QRS
+tntscpbl: HPROGCLD/CPAIR+HSED/1004.64
+tos: TEMP[at topmost level]
+tossq: TEMP2
+tran: QSOIL + QVEGT
+tro3: vinterp(O3,plevs)
+ts: TS
+tsice: Tsfc
+tsl: TSOI
+tsn: SNOTTOPL
+ua: vinterp(U,plevs)
+umo: (0.5*(UVEL(i,j)+UVEL(i,j-1))*HTE*dz*rho_0)
+uo: UVEL
+usi: uvel_d
+va: vinterp(V,plevs)
+vmo: (0.5*(VVEL(i,j)+VVEL(i-1,j))*HTN*dz*rho_0)
+vo: VVEL
+volcello: TAREA*dz
+volo: PD
+vsi: vvel_d
+wap: vinterp(OMEGA,plevs)
+wap500: OMEGA500
+wetbc: bc_a1SFWET+bc_c1SFWET
+wetdust: dst_a1SFWET+dst_a3SFWET+dst_c1SFWET+dst_c3SFWET
+wetoa: pom_a1SFWET+pom_c1SFWET+soa_a1SFWET+soa_a2SFWET+soa_c1SFWET+soa_c2SFWET
+wetso2: WD_SO2
+wetso4: so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
+wetss: ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
+wmo: (0.5*(WVEL(i,j,k)+WVEL(i,j,k+1))*TAREA*rho_0)
+wmosq: (0.5*(WVEL2(i,j,k)+WVEL2(i,j,k+1))*TAREA*rho_0)
+zg: vinterp(Z3,plevs)
+zo2min: O2_ZMIN_DEPTH
+zooc: zooC
+zos: SSH
+zosga: ave_slc from Aixue's SLC code; derived from SSH PD TEMP SALT
+zossga: ave_delta_steric from Aixue's SLC code; derived from SSH PD TEMP SALT
+zossq: SSH2
+zostoga: ave_slc_t from Aixue's SLC code; derived from SSH PD TEMP SALT
+zsatarag: zsatarag
+zsatcalc: zsatcalc

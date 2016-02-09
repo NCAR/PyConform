@@ -23,7 +23,7 @@ def parseArgs(argv = None):
     parser = argparse.ArgumentParser(prog='createOutputSpecs',
                                      description=desc)
     parser.add_argument('-d', '--defFile', default=None, type=str,
-                        help='A file listing the variable definitions.')
+                        help='A file listing the variable definitions.', required=True)
     parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
                         help='A file listing the global attributes that ' 
                              'are common to all files.')
@@ -32,6 +32,8 @@ def parseArgs(argv = None):
                              'an Excel SS saved as a tab deliminated file.')
     parser.add_argument('-tt', '--mipTableType', default=None, type=str,
                         help='MIP table file type.  Can be xml, cmor, or excel.')
+    parser.add_argument('-u', '--userList', default=None, type=str,
+                        help='A file containing cf-compliant names to derive.')
     parser.add_argument('outputfile', default='out.json', type=str,
                         help='Filename for the output specification file.')
 
@@ -49,50 +51,78 @@ def main(argv=None):
     print 'Global Attributes to be added to each file: ', args.globalAttrFile
     print 'MIP Table to be used: ', args.mipTable
     print 'MIP Table Type: ',args.mipTableType
+    print 'User supplied variable list: ',args.userList
     print 'Will create this spec file to use with PyConform:', args.outputfile
     print "------------------------------------------"
 
     # Open/Read the definition file
-    with open(args.defFile) as y_definitions:
-        definitions = yaml.load(y_definitions, Loader=yaml.BaseLoader)
-        #print 'DEFINITIONS: ',definitions
+    if os.path.isfile(args.defFile):
+        with open(args.defFile) as y_definitions:
+            definitions = yaml.load(y_definitions, Loader=yaml.BaseLoader)
+            #print 'DEFINITIONS: ',definitions
+    else:
+        print 'Definition file does not exist: ',args.defFile
+        os.sys.exit(1)
 
     # Open/Read the global attributes file
-    with open(args.globalAttrFile) as y_attributes:
-        attributes = yaml.load(y_attributes, Loader=yaml.BaseLoader)
-        #print 'GLOBAL ATTRIBUTES: ',attributes
-     
+    attributes = {}
+    if args.globalAttrFile and os.path.isfile(args.globalAttrFile):
+        with open(args.globalAttrFile) as y_attributes:
+            attributes = yaml.load(y_attributes, Loader=yaml.BaseLoader)
+            #print 'GLOBAL ATTRIBUTES: ',attributes
+    else:
+        if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
+            print 'Global Attributes file does not exist: ',args.globalAttrFile
+            os.sys.exit(1)
+
+    table_dict = {}
+    variables = {}
+    axes = {}
+    table_info = {}     
     # Open/Read the MIP table
-    table_dict = mip_table_parser.mip_table_parser(args.mipTable,type=args.mipTableType)
-    variables = table_dict['variables']
-    axes = table_dict['axes']
-    table_info = table_dict['table_info']
-    attributes.update(table_info)
-    if 'generic_levels' in table_info.keys():
-        g_levels = table_info['generic_levels']
-        g_split = g_levels.split(' ')
-        for l in g_split:
-            axes[l] = {}
-    #print variables,'\n',axes,'\n',table_info
+    if args.mipTable != None and args.mipTableType != None:
+        table_dict = mip_table_parser.mip_table_parser(args.mipTable,type=args.mipTableType)
+        variables = table_dict['variables']
+        axes = table_dict['axes']
+        table_info = table_dict['table_info']
+        attributes.update(table_info)
+        if 'generic_levels' in table_info.keys():
+            g_levels = table_info['generic_levels']
+            g_split = g_levels.split(' ')
+            for l in g_split:
+                axes[l] = {}
+    #print '\n\n',variables.keys(),'\n\n'#,axes,'\n',table_info
 
     # Get variables needed to piece together the filename
-    temp = os.path.split(args.mipTable)
-    table = temp[len(temp)-1]
-    model = attributes['model_id']
-    experiment = ("r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'], 
-                                                attributes['initialization_index'],
-                                                attributes['physics_index'],
-                                                attributes['forcing_index'],
-                                                attributes['grid_index']))
-    attributes['experiment_id'] = table 
-    attributes['experiment'] = table
-    # Do we need to add anything to further_info_url?
-    if 'further_info_url' in attributes.keys():
-        fiu_split = str(attributes['further_info_url']).split('/')
-        if table not in fiu_split:
-            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
-        if experiment not in fiu_split:
-            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
+    if args.mipTable != None:
+        temp = os.path.split(args.mipTable)
+        table = temp[len(temp)-1]
+        if ('model_id') in attributes.keys():
+            model = '_'+attributes['model_id']
+        else:
+            model = ''
+        ripgf_list = ['realization_index','initialization_index','physics_index','forcing_index','grid_index']
+        if all (ripgf in attributes for ripgf in ripgf_list):
+            experiment = ("_r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'], 
+                                                         attributes['initialization_index'],
+                                                         attributes['physics_index'],
+                                                         attributes['forcing_index'],
+                                                         attributes['grid_index']))
+        else:
+            experiment = ''
+        fn_suffix = f_name = ("{0}{1}{2}.nc".format(table,model,experiment))
+        attributes['experiment_id'] = table
+        attributes['experiment'] = table
+
+        # Do we need to add anything to further_info_url?
+        if 'further_info_url' in attributes.keys():
+            fiu_split = str(attributes['further_info_url']).split('/')
+            if table not in fiu_split:
+                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
+            if experiment not in fiu_split:
+                attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
+    else:
+        fn_suffix = ".nc"
 
     # Create Output Spec
     # First add global attributes that are common to all files
@@ -100,21 +130,24 @@ def main(argv=None):
 
     var_list = {}        
     # For each variable in the definition file, create a file entry in the spec and define it
-    for v,d in definitions.iteritems():
-        f_name = ("{0}_{1}_{2}_{3}.nc".format(v,table,model,experiment))
-        f_id = v
-        var = {}
-        for k1,v1 in variables[v].iteritems():
-            if not isinstance(v1,(list,str,float)):
-                variables[v][k1] = "None"    
-        var["attributes"] = variables[v]
-        var["definition"] = d
-        var["filename"] = f_name
-        if 'type' in variables[v].keys():
-          var["datatype"]  = data_types[variables[v]['type']]
-        if 'dimensions' in variables[v].keys():
-            var["dimensions"] = variables[v]['dimensions'].split('|')
-        var_list[f_id] = var  
+    for v,d in variables.iteritems():
+        if v in definitions.keys():
+            f_name = ("{0}_{1}".format(v,fn_suffix))
+            f_id = v
+            var = {}
+            for k1,v1 in variables[v].iteritems():
+                if not isinstance(v1,(list,str,float)):
+                    variables[v][k1] = "None"    
+            var["attributes"] = variables[v]
+            var["definition"] = definitions[v]
+            var["filename"] = f_name
+            if 'type' in variables[v].keys():
+                var["datatype"]  = data_types[variables[v]['type']]
+            if 'dimensions' in variables[v].keys():
+                var["dimensions"] = variables[v]['dimensions'].split('|')
+            var_list[f_id] = var
+        else:
+            print v, ' is being requested by the experiment, but a definition has not been supplied.'  
 
     # Add axes into the variable list
     for v,d in axes.iteritems():
@@ -124,6 +157,29 @@ def main(argv=None):
         if 'type' in axes[v].keys():
             var["datatype"]  = data_types[axes[v]['type']]
         var_list[f_id] = var
+
+    # Go through a user supplied list if specified
+    if args.userList and os.path.isfile(args.userList):
+        with open(args.userList) as f:
+            for vr in f:
+                vr = vr.strip()
+                if vr != "":
+                    var = {}
+                    f_id = vr
+                    if vr in definitions.keys():
+                        var["attributes"] = {}
+                        var["definition"] = definitions[vr]
+                        f_name = ("{0}{1}".format(vr,fn_suffix))
+                        var["filename"] = f_name
+                        var["datatype"]  = "None"
+                        var["dimensions"] = "None"
+                        var_list[f_id] = var
+                    else:
+                        print vr, ' is being requested by the experiment, but a definition has not been supplied.'
+    else:
+        if args.userList and not os.path.isfile(args.userList):
+            print 'The User Variable List file does not exist: ',args.userList
+            os.sys.exit(1)
 
     outSpec["variables"] = var_list
 
