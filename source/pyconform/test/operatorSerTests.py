@@ -35,7 +35,7 @@ class MockOp(ops.Operator):
     def __init__(self, name, units=Unit(1)):
         super(MockOp, self).__init__(name, units=units)
     def __eq__(self, other):
-        super(MockOp, self).__eq__(other)
+        return super(MockOp, self).__eq__(other)
     def __call__(self):
         super(MockOp, self).__call__()
 
@@ -95,13 +95,56 @@ class OperatorTests(unittest.TestCase):
     def test_units_set(self):
         opname = 'xop'
         units = 'm'
-        testname = 'Mock Operator.units({!r})'.format(opname)
+        testname = 'Mock Operator.units({!r}, units={!r})'.format(opname, units)
         O = MockOp(opname, units=units)
         actual = O.units()
         expected = Unit(units)
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Operator name incorrect')
+    
+    def test_equal_same(self):
+        nm = 'xop'
+        un = 'm'
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm, un, nm, un)
+        O1 = MockOp(nm, units=un)
+        O2 = MockOp(nm, units=un)
+        actual = (O1 == O2)
+        expected = True
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')
+
+    def test_equal_diff_units(self):
+        nm1 = 'xop'
+        nm2 = nm1
+        un1 = 'm'
+        un2 = Unit('km')
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm1, un1, nm2, un2)
+        O1 = MockOp(nm1, units=un1)
+        O2 = MockOp(nm2, units=un2)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')
+
+    def test_equal_diff_names(self):
+        nm1 = 'xop'
+        nm2 = 'yop'
+        un1 = 'm'
+        un2 = un1
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm1, un1, nm2, un2)
+        O1 = MockOp(nm1, units=un1)
+        O2 = MockOp(nm2, units=un2)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')    
 
 
 
