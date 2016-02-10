@@ -35,16 +35,18 @@ class Operator(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def __init__(self, name, units=Unit(1)):
+    def __init__(self, name, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
             units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         self._name = str(name)
         self._units = Unit(units)
+        self._dimensions = tuple(dimensions)
     
     def name(self):
         """
@@ -63,7 +65,13 @@ class Operator(object):
         Return the Unit object for the data returned by the Operator
         """
         return self._units
-    
+
+    def dimensions(self):
+        """
+        Return the dimensions of the data returned by the Operator
+        """
+        return self._dimensions
+        
     @abstractmethod
     def __eq__(self, other):
         """
@@ -74,6 +82,8 @@ class Operator(object):
         elif self._name != other._name:
             return False
         elif self._units != other._units:
+            return False
+        elif self._dimensions != other._dimensions:
             return False
         else:
             return True
@@ -143,12 +153,16 @@ class VariableSliceReader(Operator):
         uname = getattr(ncfile.variables[variable], 'units', '1')
         ucal = getattr(ncfile.variables[variable], 'calendar', None)
         units = Unit(uname, calendar=ucal)
+        
+        # Determine dimensions
+        dims = ncfile.variables[variable].dimensions
 
         # Close the NetCDF file
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable, units=units)
+        super(VariableSliceReader, self).__init__(variable, units=units,
+                                                  dimensions=dims)
 
     def __eq__(self, other):
         """
@@ -181,7 +195,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, args=[], units=Unit(1)):
+    def __init__(self, name, func, args=[], units=Unit(1), dimensions=()):
         """
         Initializer
         
@@ -191,6 +205,7 @@ class FunctionEvaluator(Operator):
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
             units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         # Check function
         if not callable(func):
@@ -206,7 +221,8 @@ class FunctionEvaluator(Operator):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name, units=units)
+        super(FunctionEvaluator, self).__init__(name, units=units,
+                                                dimensions=dimensions)
 
     def __eq__(self, other):
         """
@@ -247,13 +263,14 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest, units=Unit(1)):
+    def __init__(self, dest, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
             units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         # Check if the function is callable
         if not isinstance(dest, int):
@@ -265,7 +282,8 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname, units=units)
+        super(SendOperator, self).__init__(opname, units=units,
+                                           dimensions=dimensions)
         
         # Store the destination rank
         self._dest = dest
@@ -326,13 +344,14 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source, units=Unit(1)):
+    def __init__(self, source, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
             units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         # Check if the function is callable
         if not isinstance(source, int):
@@ -344,7 +363,8 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname, units=units)
+        super(RecvOperator, self).__init__(opname, units=units,
+                                           dimensions=dimensions)
         
         # Store the source rank
         self._source = source
