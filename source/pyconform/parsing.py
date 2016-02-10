@@ -18,6 +18,7 @@ from operator import pow, neg, add, sub, mul, div
 from cf_units import Unit
 from operators import Operator, VariableSliceReader, FunctionEvaluator
 from copy import deepcopy
+from numpy import transpose
 
 
 #===============================================================================
@@ -132,6 +133,7 @@ class DefitionParser(object):
             fargs = [base, None]
             fops = [exp]
             funits = Unit(1)
+            fdims = exp.dimensions()
         
         # If the base is an Operator, then the exponent can be anything
         elif isinstance(base, Operator):
@@ -141,6 +143,7 @@ class DefitionParser(object):
             if isinstance(exp, int):
                 fargs = [None, exp]
                 funits = base.units() ** exp
+                fdims = base.dimensions()
             
             # If the exponent is a float, then base must be dimensionless
             elif isinstance(exp, float):
@@ -149,6 +152,7 @@ class DefitionParser(object):
                                      'applied to dimensionless bases')
                 fargs = [None, exp]
                 funits = Unit(1)   
+                fdims = base.dimensions()
             
             # If exponent is an operator, then base must be dimensionless
             elif isinstance(exp, Operator):
@@ -156,16 +160,33 @@ class DefitionParser(object):
                     raise UnitsError('Element-wise power operations can only '
                                      'be applied to dimensionless bases')
                 fargs = []
-                fops.append(exp)
-                funits = Unit(1)    
-            
+                funits = Unit(1)
+                fdims = base.dimensions()
+                
+                # Check if the same dimensions exist (i.e., can be matched)
+                if set(base.dimensions()) != set(exp.dimensions()):
+                    raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
+                                           'matched').format(base.name(), exp.name()))
+                
+                # Otherwise, only the order is off, so just reorder/transpose
+                elif base.dimensions() != exp.dimensions():
+                    xdims = exp.dimensions()
+                    neworder = [xdims.index(d) for d in base.dimensions()]
+                    tname = 'transpose({},order={})'.format(exp.name(), neworder)
+                    texp = FunctionEvaluator(tname, transpose, args=[None, neworder], 
+                                             units=exp.units(), 
+                                             dimensions=fdims)
+                    self._opgraph.connect(exp, texp)
+                    fops.append(texp)
+                else:
+                    fops.append(exp)
             else:
                 raise TypeError('Unrecognized exponent datatype')                
         else:
             raise TypeError('Unrecognized base datatype')                
 
         fname = '({!s}^{!s})'.format(base, exp)
-        op = FunctionEvaluator(fname, pow, args=fargs, units=funits)
+        op = FunctionEvaluator(fname, pow, args=fargs, units=funits, dimensions=fdims)
         for op1 in fops:
             self._opgraph.connect(op1, op)
         return op
@@ -181,7 +202,8 @@ class DefitionParser(object):
         
         elif isinstance(val, Operator):
             fname = '(-{!s})'.format(val)
-            op = FunctionEvaluator(fname, neg, units=val.units())
+            op = FunctionEvaluator(fname, neg, units=val.units(),
+                                   dimensions=val.dimensions())
             self._opgraph.connect(val, op)
             return op
         else:
@@ -202,22 +224,44 @@ class DefitionParser(object):
             funits = right.units()
             fargs = [left, None]
             fops = [right]
+            fdims = right.dimensions()
         
         elif isinstance(left, Operator) and isinstance(right, (int, float)):
             funits = left.units()
             fargs = [None, right]
             fops = [left]
+            fdims = left.dimensions()
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
             funits = left.units() * right.units()
             fargs = [None, None]
-            fops = [left, right]
+            fops = [left]
+            fdims = left.dimensions()
+
+            # Check if the same dimensions exist (i.e., can be matched)
+            if set(left.dimensions()) != set(right.dimensions()):
+                raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
+                                       'matched').format(left.name(), right.name()))
+            
+            # Otherwise, only the order is off, so just reorder/transpose
+            elif left.dimensions() != right.dimensions():
+                rdims = right.dimensions()
+                neworder = [rdims.index(d) for d in left.dimensions()]
+                tname = 'transpose({},order={})'.format(right.name(), neworder)
+                tright = FunctionEvaluator(tname, transpose, args=[None, neworder], 
+                                           units=right.units(),
+                                           dimensions=fdims)
+                self._opgraph.connect(right, tright)
+                fops.append(tright)
+            else:
+                fops.append(right)
         
         else:
             raise TypeError('Unrecognized operand datatype')
         
         fname = '({!s}{!s}{!s})'.format(left, opstr, right)
-        op = FunctionEvaluator(fname, fptr, args=fargs, units=funits)
+        op = FunctionEvaluator(fname, fptr, args=fargs, units=funits,
+                               dimensions=fdims)
         for op1 in fops:
             self._opgraph.connect(op1, op)
         return op
@@ -239,6 +283,7 @@ class DefitionParser(object):
             funits = Unit(1)
             fargs = [left, None]
             fops = [right]
+            fdims = right.dimensions()
         
         elif isinstance(left, Operator) and isinstance(right, (int, float)):
             if not left.units().is_dimensionless():
@@ -246,8 +291,15 @@ class DefitionParser(object):
             funits = Unit(1)
             fargs = [None, right]
             fops = [left]
+            fdims = left.dimensions()
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
+            funits = left.units()
+            fargs = [None, None]
+            fops = [left]
+            fdims = left.dimensions()
+
+            # Check units
             if not right.units().is_convertible(left.units()):
                 raise UnitsError('Cannot add/subtract with incompatible units')
             elif right.units() != left.units():
@@ -256,21 +308,38 @@ class DefitionParser(object):
                 cname = 'convert({!s},to={!s})'.format(right, cunits1)
                 cfunc = cunits2.convert
                 cargs = [None, cunits1]
-                cright = FunctionEvaluator(cname, cfunc, args=cargs, units=cunits1)
+                cright = FunctionEvaluator(cname, cfunc, args=cargs, units=cunits1,
+                                           dimensions=right.dimensions())
                 self._opgraph.connect(right, cright)
-                funits = cunits1
-                fargs = [None, None]
-                fops = [left, cright]
+                newr = cright
             else:
-                funits = left.units()
-                fargs = [None, None]
-                fops = [left, right]
+                newr = right
 
+            # Check if the same dimensions exist (i.e., can be matched)
+            if set(left.dimensions()) != set(newr.dimensions()):
+                print left.dimensions(), newr.di
+                raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
+                                       'matched').format(left.name(), newr.name()))
+            
+            # Otherwise, only the order is off, so just reorder/transpose
+            elif left.dimensions() != newr.dimensions():
+                rdims = newr.dimensions()
+                neworder = [rdims.index(d) for d in left.dimensions()]
+                tname = 'transpose({},order={})'.format(right.name(), neworder)
+                tright = FunctionEvaluator(tname, transpose, args=[None, neworder], 
+                                           units=newr.units(),
+                                           dimensions=fdims)
+                self._opgraph.connect(newr, tright)
+                fops.append(tright)
+            else:
+                fops.append(newr)
+        
         else:
             raise TypeError('Unrecognized operand datatype')
         
         fname = '({!s}{!s}{!s})'.format(left, opstr, right)
-        op = FunctionEvaluator(fname, fptr, args=fargs, units=funits)
+        op = FunctionEvaluator(fname, fptr, args=fargs, units=funits,
+                               dimensions=fdims)
         for op1 in fops:
             self._opgraph.connect(op1, op)
         return op

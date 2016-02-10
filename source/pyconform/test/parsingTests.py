@@ -228,7 +228,8 @@ class ParsingTests(unittest.TestCase):
         dparser = parsing.DefitionParser(self.inpds)
         indata = 'u1 + u2'
         actual = dparser.parse_definition(indata)
-        expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None], units=Unit('m'))
+        expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None],
+                                     units=Unit('m'), dimensions=self.vdims['u1'])
         print_test_message(('DefinitionParser.'
                             'parse_definition({!r})').format(indata),
                            actual, expected)
@@ -265,7 +266,8 @@ class ParsingTests(unittest.TestCase):
         U1 = VariableSliceReader(self.filenames[n1], n1)
         U2 = VariableSliceReader(self.filenames[n2], n2)
         FE = FunctionEvaluator('({}+{})'.format(n1,n2), operator.add,
-                               args=[None, None], units=U1.units())
+                               args=[None, None], units=U1.units(),
+                               dimensions=U1.dimensions())
         expected = opgraph.OperationGraph()
         expected.connect(U1, FE)
         expected.connect(U2, FE)
@@ -292,9 +294,10 @@ class ParsingTests(unittest.TestCase):
         cfunc = U3.units().convert
         cn3 = 'convert(u3,to=m)'
         C3 = FunctionEvaluator(cn3, cfunc, args=[None, U1.units()],
-                               units=U1.units())
+                               units=U1.units(), dimensions=U3.dimensions())
         FE = FunctionEvaluator('({}+{})'.format(n1,n3), operator.add,
-                               args=[None, None], units=U1.units())
+                               args=[None, None], units=U1.units(),
+                               dimensions=U1.dimensions())
         expected = opgraph.OperationGraph()
         expected.connect(U3, C3) # Unit convertion is added first
         expected.connect(U1, FE)
