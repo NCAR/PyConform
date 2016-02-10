@@ -238,7 +238,7 @@ class ParsingTests(unittest.TestCase):
     def test_get_graph_var_only(self):
         dparser = parsing.DefitionParser(self.inpds)
         indata = 'u1'
-        root = dparser.parse_definition(indata)
+        _ = dparser.parse_definition(indata)
         actual = dparser.get_graph()
         
         U1 = VariableSliceReader(self.filenames[indata], indata)
@@ -257,7 +257,7 @@ class ParsingTests(unittest.TestCase):
     def test_get_graph_var_plus_var(self):
         dparser = parsing.DefitionParser(self.inpds)
         indata = 'u1 + u2'
-        root = dparser.parse_definition(indata)
+        _ = dparser.parse_definition(indata)
         actual = dparser.get_graph()
         
         n1 = 'u1'
@@ -282,7 +282,7 @@ class ParsingTests(unittest.TestCase):
     def test_get_graph_var_plus_var_diff_units(self):
         dparser = parsing.DefitionParser(self.inpds)
         indata = 'u1 + u3'
-        root = dparser.parse_definition(indata)
+        _ = dparser.parse_definition(indata)
         actual = dparser.get_graph()
         
         n1 = 'u1'
