@@ -33,9 +33,9 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 class MockOp(ops.Operator):
     def __init__(self, name, units=Unit(1)):
-        super(MockOp, self).__init__(name)
-    def units(self):
-        super(MockOp, self).units()
+        super(MockOp, self).__init__(name, units=units)
+    def __eq__(self, other):
+        super(MockOp, self).__eq__(other)
     def __call__(self):
         super(MockOp, self).__call__()
 
@@ -82,12 +82,23 @@ class OperatorTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Operator string conversion incorrect')
 
-    def test_units(self):
+    def test_units_default(self):
         opname = 'xop'
         testname = 'Mock Operator.units({!r})'.format(opname)
         O = MockOp(opname)
         actual = O.units()
-        expected = None
+        expected = Unit(1)
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator name incorrect')
+
+    def test_units_set(self):
+        opname = 'xop'
+        units = 'm'
+        testname = 'Mock Operator.units({!r})'.format(opname)
+        O = MockOp(opname, units=units)
+        actual = O.units()
+        expected = Unit(units)
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Operator name incorrect')

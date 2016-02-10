@@ -63,6 +63,20 @@ class Operator(object):
         Return the Unit object for the data returned by the Operator
         """
         return self._units
+    
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, Operator):
+            return False
+        elif self._name != other._name:
+            return False
+        elif self._units != other._units:
+            return False
+        else:
+            return True
 
     @abstractmethod
     def __call__(self):
@@ -134,8 +148,21 @@ class VariableSliceReader(Operator):
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable, units)
+        super(VariableSliceReader, self).__init__(variable, units=units)
 
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, VariableSliceReader):
+            return False
+        elif self._filepath != other._filepath:
+            return False
+        elif self._slice != other._slice:
+            return False
+        else:
+            return super(VariableSliceReader, self).__eq__(other)
+    
     def __call__(self):
         """
         Make callable like a function
@@ -179,8 +206,23 @@ class FunctionEvaluator(Operator):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name, units)
-    
+        super(FunctionEvaluator, self).__init__(name, units=units)
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, FunctionEvaluator):
+            return False
+        elif self._function != other._function:
+            return False
+        elif self._arguments != other._arguments:
+            return False
+        elif self._nargs != other._nargs:
+            return False
+        else:
+            return super(FunctionEvaluator, self).__eq__(other)
+        
     def __call__(self, *args):
         """
         Make callable like a function
@@ -223,11 +265,22 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname, units)
+        super(SendOperator, self).__init__(opname, units=units)
         
         # Store the destination rank
         self._dest = dest
 
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, SendOperator):
+            return False
+        elif self._dest != other._dest:
+            return False
+        else:
+            return super(SendOperator, self).__eq__(other)
+        
     def __call__(self, data):
         """
         Make callable like a function
@@ -291,11 +344,22 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname, units)
+        super(RecvOperator, self).__init__(opname, units=units)
         
         # Store the source rank
         self._source = source
 
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, RecvOperator):
+            return False
+        elif self._source != other._source:
+            return False
+        else:
+            return super(RecvOperator, self).__eq__(other)
+        
     def __call__(self):
         """
         Make callable like a function
