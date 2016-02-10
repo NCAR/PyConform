@@ -9,6 +9,7 @@ from os import linesep, remove
 from os.path import exists
 from pyconform import parsing
 from pyconform import dataset
+from pyconform import opgraph
 from pyconform.operators import VariableSliceReader, FunctionEvaluator
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
@@ -226,6 +227,50 @@ class ParsingTests(unittest.TestCase):
                            actual, expected)
         self.assertEqual(actual, expected,
                          'Definition parser returned wrong name')
+
+    def test_get_graph_var_only(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1'
+        root = dparser.parse_definition(indata)
+        actual = dparser.get_graph()
+        
+        U1 = VariableSliceReader(self.filenames[indata], indata)
+        expected = opgraph.OperationGraph()
+        expected.add(U1)
+        
+        for v in actual.vertices():
+            print_test_message('vertex in get_graph()', v)
+            self.assertTrue(any(v==u for u in expected.vertices()),
+                            'get_graph() returned unexpected graph')
+        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
+            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
+            self.assertTrue(v1==u1 and v2==u2,
+                            'get_graph() returned unexpected graph')
+
+    def test_get_graph_var_plus_var(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1 + u2'
+        root = dparser.parse_definition(indata)
+        actual = dparser.get_graph()
+        
+        v1 = 'u1'
+        v2 = 'u2'
+        U1 = VariableSliceReader(self.filenames[v1], v1)
+        U2 = VariableSliceReader(self.filenames[v2], v2)
+        FE = FunctionEvaluator('({}+{})'.format(v1,v2), operator.add,
+                               args=[None, None], units=U1.units())
+        expected = opgraph.OperationGraph()
+        expected.connect(U1, FE)
+        expected.connect(U2, FE)
+
+        for v in actual.vertices():
+            print_test_message('vertex in get_graph()', v)
+            self.assertTrue(any(v==u for u in expected.vertices()),
+                            'get_graph() returned unexpected graph')
+        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
+            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
+            self.assertTrue(v1==u1 and v2==u2,
+                            'get_graph() returned unexpected graph')
         
         
 #===============================================================================
