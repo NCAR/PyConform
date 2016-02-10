@@ -228,6 +228,16 @@ class VariableSliceReaderTests(unittest.TestCase):
         npt.assert_array_equal(actual, expected,
                                '{} failed'.format(testname))
 
+    def test_equal(self):
+        testname = 'VariableSliceReader() == VariableSliceReader()'
+        VSR1 = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        VSR2 = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        actual = VSR1 == VSR2
+        expected = True
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected,
+                               '{} failed'.format(testname))
+
 
 #===============================================================================
 # FunctionEvaluatorTests
@@ -306,6 +316,16 @@ class FunctionEvaluatorTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
+    def test_equal(self):
+        opname = 'sub(a,b)'
+        testname = 'FunctionEvaluator() == FunctionEvaluator()'
+        FE1 = ops.FunctionEvaluator(opname, operator.sub)
+        FE2 = ops.FunctionEvaluator(opname, operator.sub)
+        actual = FE1 == FE2
+        expected = True
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected,
+                               '{} failed'.format(testname))
 
 #===============================================================================
 # Command-Line Operation
