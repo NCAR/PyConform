@@ -33,7 +33,6 @@ class Operator(object):
     """
     
     __metaclass__ = ABCMeta
-    _registry_ = {}
     
     @abstractmethod
     def __init__(self, name, units=Unit(1)):
@@ -47,19 +46,6 @@ class Operator(object):
         self._name = str(name)
         self._units = Unit(units)
     
-    @classmethod
-    def register(cls, *args, **kwargs):
-        """
-        Initialize a new instantiation only if it hasn't already been registered
-        """
-        hash_id = hash((args, tuple(sorted(kwargs.items()))))
-        if hash_id in Operator._registry_:
-            return Operator._registry_[hash_id]
-        else:
-            newobj = cls(*args)
-            Operator._registry_[hash_id] = newobj
-            return newobj
-
     def name(self):
         """
         Return the internal name of the Operator

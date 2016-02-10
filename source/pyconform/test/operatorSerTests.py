@@ -81,25 +81,7 @@ class OperatorTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Operator string conversion incorrect')
-    
-    def test_register_same(self):
-        opname = 'abc'
-        testname = 'Mock Operator.register({!r})'.format(opname)
-        O1 = MockOp.register(opname)
-        O2 = MockOp.register(opname)
-        print_test_message(testname, id(O1), id(O2))
-        self.assertEqual(id(O1), id(O2),
-                         'Identical operators not registered properly')
 
-    def test_register_different(self):
-        opname = 'abc'
-        testname = 'Mock Operator.register({!r}, units)'.format(opname)
-        O1 = MockOp.register(opname, units=Unit('m'))
-        O2 = MockOp.register(opname)
-        print_test_message(testname, id(O1), id(O2))
-        self.assertNotEqual(id(O1), id(O2),
-                            'Operators not registered properly')
-        
     def test_units(self):
         opname = 'xop'
         testname = 'Mock Operator.units({!r})'.format(opname)
