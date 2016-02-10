@@ -56,14 +56,17 @@ class ParsingTests(unittest.TestCase):
     """
 
     def setUp(self):        
-        self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
+        self.filenames = OrderedDict([('u1', 'u1.nc'),
+                                      ('u2', 'u2.nc'),
+                                      ('u3', 'u3.nc')])
         self._clear_()
         
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
         self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
-                                  ('u2', ('time', 'lat', 'lon'))])
+                                  ('u2', ('time', 'lat', 'lon')),
+                                  ('u3', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
                                             'standard_name': 'latitude'}),
                                    ('lon', {'units': 'degrees_east',
@@ -74,8 +77,10 @@ class ParsingTests(unittest.TestCase):
                                    ('u1', {'units': 'm',
                                            'standard_name': 'u variable 1'}),
                                    ('u2', {'units': 'm',
-                                           'standard_name': 'u variable 2'})])
-        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd'}
+                                           'standard_name': 'u variable 2'}),
+                                   ('u3', {'units': 'km',
+                                           'standard_name': 'u variable 3'})])
+        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd', 'u3': 'd'}
         ydat = numpy.linspace(-90, 90, num=self.dims['lat'],
                               endpoint=True, dtype=self.dtypes['lat'])
         xdat = numpy.linspace(-180, 180, num=self.dims['lon'],
@@ -88,8 +93,10 @@ class ParsingTests(unittest.TestCase):
                                dtype=self.dtypes['u1']).reshape(ushape)
         u2dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
                                dtype=self.dtypes['u2']).reshape(ushape)
+        u3dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
+                               dtype=self.dtypes['u3']).reshape(ushape)
         self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
-                     'u1': u1dat, 'u2': u2dat}
+                     'u1': u1dat, 'u2': u2dat, 'u3': u3dat}
 
         for vname, fname in self.filenames.iteritems():
             ncf = NCDataset(fname, 'w')
@@ -253,11 +260,11 @@ class ParsingTests(unittest.TestCase):
         root = dparser.parse_definition(indata)
         actual = dparser.get_graph()
         
-        v1 = 'u1'
-        v2 = 'u2'
-        U1 = VariableSliceReader(self.filenames[v1], v1)
-        U2 = VariableSliceReader(self.filenames[v2], v2)
-        FE = FunctionEvaluator('({}+{})'.format(v1,v2), operator.add,
+        n1 = 'u1'
+        n2 = 'u2'
+        U1 = VariableSliceReader(self.filenames[n1], n1)
+        U2 = VariableSliceReader(self.filenames[n2], n2)
+        FE = FunctionEvaluator('({}+{})'.format(n1,n2), operator.add,
                                args=[None, None], units=U1.units())
         expected = opgraph.OperationGraph()
         expected.connect(U1, FE)
@@ -271,7 +278,36 @@ class ParsingTests(unittest.TestCase):
             print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
             self.assertTrue(v1==u1 and v2==u2,
                             'get_graph() returned unexpected graph')
+
+    def test_get_graph_var_plus_var_diff_units(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1 + u3'
+        root = dparser.parse_definition(indata)
+        actual = dparser.get_graph()
         
+        n1 = 'u1'
+        n3 = 'u3'
+        U1 = VariableSliceReader(self.filenames[n1], n1)
+        U3 = VariableSliceReader(self.filenames[n3], n3)
+        cfunc = U3.units().convert
+        cn3 = 'convert(u3,to=m)'
+        C3 = FunctionEvaluator(cn3, cfunc, args=[None, U1.units()],
+                               units=U1.units())
+        FE = FunctionEvaluator('({}+{})'.format(n1,n3), operator.add,
+                               args=[None, None], units=U1.units())
+        expected = opgraph.OperationGraph()
+        expected.connect(U3, C3) # Unit convertion is added first
+        expected.connect(U1, FE)
+        expected.connect(C3, FE)
+
+        for v in actual.vertices():
+            print_test_message('vertex in get_graph()', v)
+            self.assertTrue(any(v==u for u in expected.vertices()),
+                            'get_graph() returned unexpected graph vertices')
+        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
+            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
+            self.assertTrue(v1==u1 and v2==u2,
+                            'get_graph() returned unexpected graph edges')        
         
 #===============================================================================
 # Command-Line Execution
