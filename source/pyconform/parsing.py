@@ -21,6 +21,26 @@ from copy import deepcopy
 
 
 #===============================================================================
+# UnitsError
+#===============================================================================
+class UnitsError(ValueError):
+    """
+    Exception raised when units do not match
+    """
+    pass
+
+
+#===============================================================================
+# DimensionsError
+#===============================================================================
+class DimensionsError(ValueError):
+    """
+    Exception raised when dimensions do not match
+    """
+    pass
+
+
+#===============================================================================
 # DefitionParser
 #===============================================================================
 class DefitionParser(object):
@@ -28,21 +48,21 @@ class DefitionParser(object):
     Variable Definition Parser
     """
     
-    def __init__(self, inpdataset=InputDataset()):
+    def __init__(self, refs=InputDataset()):
         """
         Initializer
         
         Parameters:
-            inpdataset (InputDataset): The input dataset containing the variable
+            refs (InputDataset): The input dataset containing the variable
                 information referenced by the output dataset definitions
         """
         # Type Checking
-        if not isinstance(inpdataset, InputDataset):
+        if not isinstance(refs, InputDataset):
             raise TypeError('Input dataset must be of InputDataset type')
-        self._ids = inpdataset
+        self._refs = refs
                 
         # Cyclic iterator over available input filenames
-        fnames = [v.filename for v in self._ids.variables.itervalues()]
+        fnames = [v.filename for v in self._refs.variables.itervalues()]
         self._ifncycle = cycle(filter(None, fnames))
         
         # Initialize the internal operation graph for parser storage
@@ -83,16 +103,16 @@ class DefitionParser(object):
 
     def _variable_operand_parser_(self, s, l, t):
         varname = str(t[0])
-        if varname not in self._ids.variables:
+        if varname not in self._refs.variables:
             err_msg = ('Definition {!r} references variable {!r} that is not '
                        'is not found in the reference dataset '
-                       '{!r}').format(s, varname, self._ids.name)
+                       '{!r}').format(s, varname, self._refs.name)
             raise KeyError(err_msg)
-        if self._ids.variables[varname].filename:
-            fname = self._ids.variables[varname].filename
+        if self._refs.variables[varname].filename:
+            fname = self._refs.variables[varname].filename
         else:
             fname = self._ifncycle.next()
-        op = VariableSliceReader.register(fname, varname)
+        op = VariableSliceReader(fname, varname)
         self._opgraph.add(op)
         return op
     
@@ -105,7 +125,7 @@ class DefitionParser(object):
 
         # If the exponent is an Operator, then it must be dimensionless
         if isinstance(exp, Operator) and not exp.units().is_dimensionless():
-            raise ValueError('Power exponents must be dimensionless')
+            raise UnitsError('Power exponents must be dimensionless')
         
         # If the base is int/float, then exponent must be an Operator
         if isinstance(base, (int, float)) and isinstance(exp, Operator):
@@ -125,7 +145,7 @@ class DefitionParser(object):
             # If the exponent is a float, then base must be dimensionless
             elif isinstance(exp, float):
                 if not base.units().is_dimensionless():
-                    raise ValueError('Floating-point exponents can only be '
+                    raise UnitsError('Floating-point exponents can only be '
                                      'applied to dimensionless bases')
                 fargs = [None, exp]
                 funits = Unit(1)   
@@ -133,16 +153,16 @@ class DefitionParser(object):
             # If exponent is an operator, then base must be dimensionless
             elif isinstance(exp, Operator):
                 if not base.units().is_dimensionless():
-                    raise ValueError('Element-wise power operations can only '
+                    raise UnitsError('Element-wise power operations can only '
                                      'be applied to dimensionless bases')
                 fargs = []
                 fops.append(exp)
                 funits = Unit(1)    
             
             else:
-                raise ValueError('Unrecognized exponent datatype')                
+                raise TypeError('Unrecognized exponent datatype')                
         else:
-            raise ValueError('Unrecognized base datatype')                
+            raise TypeError('Unrecognized base datatype')                
 
         fname = '({!s}^{!s})'.format(base, exp)
         op = FunctionEvaluator(fname, pow, args=fargs, units=funits)
@@ -165,7 +185,7 @@ class DefitionParser(object):
             self._opgraph.connect(val, op)
             return op
         else:
-            raise ValueError('Unrecognized operand datatype')                
+            raise TypeError('Unrecognized operand datatype')                
 
     def _mul_operator_parser_(self, tokens):
         left, opstr, right = tokens[0]
@@ -194,7 +214,7 @@ class DefitionParser(object):
             fops = [left, right]
         
         else:
-            raise ValueError('Unrecognized operand datatype')
+            raise TypeError('Unrecognized operand datatype')
         
         fname = '({!s}{!s}{!s})'.format(left, opstr, right)
         op = FunctionEvaluator(fname, fptr, args=fargs, units=funits)
@@ -215,21 +235,21 @@ class DefitionParser(object):
                     
         elif isinstance(left, (int, float)) and isinstance(right, Operator):
             if not right.units().is_dimensionless():
-                raise ValueError('Cannot add/subtract with incompatible units')
+                raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
             fargs = [left, None]
             fops = [right]
         
         elif isinstance(left, Operator) and isinstance(right, (int, float)):
             if not left.units().is_dimensionless():
-                raise ValueError('Cannot add/subtract with incompatible units')
+                raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
             fargs = [None, right]
             fops = [left]
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
             if not right.units().is_convertible(left.units()):
-                raise ValueError('Cannot add/subtract with incompatible units')
+                raise UnitsError('Cannot add/subtract with incompatible units')
             elif right.units() != left.units():
                 cunits1 = left.units()
                 cunits2 = right.units()
@@ -247,7 +267,7 @@ class DefitionParser(object):
                 fops = [left, right]
 
         else:
-            raise ValueError('Unrecognized operand datatype')
+            raise TypeError('Unrecognized operand datatype')
         
         fname = '({!s}{!s}{!s})'.format(left, opstr, right)
         op = FunctionEvaluator(fname, fptr, args=fargs, units=funits)

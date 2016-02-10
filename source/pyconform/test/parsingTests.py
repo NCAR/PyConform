@@ -12,6 +12,7 @@ from pyconform import dataset
 from pyconform.operators import VariableSliceReader, FunctionEvaluator
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
+from cf_units import Unit
 
 import operator
 import numpy
@@ -110,41 +111,123 @@ class ParsingTests(unittest.TestCase):
         self._clear_()
         
     def _clear_(self):
-        return
         for fname in self.filenames.itervalues():
             if exists(fname):
                 remove(fname)
 
     def test_type(self):
-        dparser = parsing.DefitionParser(self.inpds)
+        dparser = parsing.DefitionParser()
         actual = type(dparser)
         expected = parsing.DefitionParser
         print_test_message('type(DefinitionParser)', actual, expected)
         self.assertEqual(actual, expected,
                          'DefinitionParser type not correct')
-        
-    def test_parse_definition_var_only(self):
+
+    def test_parse_definition_pow_numbers(self):
         dparser = parsing.DefitionParser(self.inpds)
-        indata = 'u1'
+        indata = '2^2.0'
         actual = dparser.parse_definition(indata)
-        expected = VariableSliceReader.register(self.filenames[indata], indata)
-        print_test_message(('DefinitionParser.'
-                            'parse_definition({})').format(indata),
+        expected = eval(indata.replace('^','**'))
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
                            actual, expected)
         self.assertEqual(actual, expected,
-                         'Definition parser returned wrong type')
+                         'Definition parsed incorrectly')
 
     def test_parse_definition_add_numbers(self):
         dparser = parsing.DefitionParser(self.inpds)
         indata = '2 + 1.0'
         actual = dparser.parse_definition(indata)
-        expected = 2 + 1.0
-        print_test_message('DefinitionParser.parse_definition({})'.format(indata),
+        expected = eval(indata)
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
                            actual, expected)
         self.assertEqual(actual, expected,
                          'Definition parsed incorrectly')
 
+    def test_parse_definition_sub_numbers(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = '2 - 1.0'
+        actual = dparser.parse_definition(indata)
+        expected = eval(indata)
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parsed incorrectly')
 
+    def test_parse_definition_mul_numbers(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = '7 * 2.0'
+        actual = dparser.parse_definition(indata)
+        expected = eval(indata)
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parsed incorrectly')
+
+    def test_parse_definition_div_numbers(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = '7 / 2.0'
+        actual = dparser.parse_definition(indata)
+        expected = eval(indata)
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parsed incorrectly')
+
+    def test_parse_definition_neg_numbers(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = '- +2.0'
+        actual = dparser.parse_definition(indata)
+        expected = eval(indata)
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parsed incorrectly')
+
+    def test_parse_definition_all_numbers(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = '((- +2.0)^4 * 3 / 8.2 + 8) * 3 - 7'
+        actual = dparser.parse_definition(indata)
+        expected = eval(indata.replace('^', '**'))
+        print_test_message('DefinitionParser.parse_definition({!r})'.format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parsed incorrectly')
+
+    def test_parse_definition_var_only(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1'
+        actual = dparser.parse_definition(indata)
+        expected = VariableSliceReader(self.filenames[indata], indata)
+        print_test_message(('DefinitionParser.'
+                            'parse_definition({!r})').format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                      'Definition parser returned wrong type')
+
+    def test_parse_definition_var_plus_1(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1 + 1'
+        self.assertRaises(parsing.UnitsError, dparser.parse_definition, indata)
+        actual = parsing.UnitsError
+        expected = parsing.UnitsError
+        print_test_message(('DefinitionParser.'
+                            'parse_definition({!r})').format(indata),
+                           actual, expected)
+        self.assertIs(actual, expected,
+                      'Definition parser returned wrong type')
+
+    def test_parse_definition_var_plus_var(self):
+        dparser = parsing.DefitionParser(self.inpds)
+        indata = 'u1 + u2'
+        actual = dparser.parse_definition(indata)
+        expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None], units=Unit('m'))
+        print_test_message(('DefinitionParser.'
+                            'parse_definition({!r})').format(indata),
+                           actual, expected)
+        self.assertEqual(actual, expected,
+                         'Definition parser returned wrong name')
+        
+        
 #===============================================================================
 # Command-Line Execution
 #===============================================================================
