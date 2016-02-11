@@ -12,6 +12,7 @@ from os import linesep
 from collections import OrderedDict
 from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
+from cf_units import Unit
 
 
 #===============================================================================
@@ -59,6 +60,7 @@ class DimensionInfo(object):
     def __str__(self):
         unlim_str = ', unlimited' if self.unlimited else ''
         return '{!r} [{}{}]'.format(self.name, self.size, unlim_str)
+        
         
 #=========================================================================
 # VariableInfo
@@ -145,11 +147,17 @@ class VariableInfo(object):
                 strval += '      {}: {!r}'.format(aname, avalue) + linesep
         return strval
 
+    def standard_name(self):
+        return self.attributes.get('standard_name')
+
     def units(self):
         return self.attributes.get('units')
 
-    def standard_name(self):
-        return self.attributes.get('standard_name')
+    def calendar(self):
+        return self.attributes.get('calendar')
+    
+    def cfunits(self):
+        return Unit(self.units(), calendar=self.calendar())
 
 
 #=========================================================================
