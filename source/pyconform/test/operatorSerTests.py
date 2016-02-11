@@ -66,7 +66,7 @@ class OperatorTests(unittest.TestCase):
         opname = 'xop'
         testname = 'Mock Operator.__init__({!r})'.format(opname)
         O = MockOp(opname)
-        actual = O.name()
+        actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -86,7 +86,7 @@ class OperatorTests(unittest.TestCase):
         opname = 'xop'
         testname = 'Mock Operator.units({!r})'.format(opname)
         O = MockOp(opname)
-        actual = O.units()
+        actual = O.units
         expected = Unit(1)
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -97,7 +97,7 @@ class OperatorTests(unittest.TestCase):
         units = 'm'
         testname = 'Mock Operator.units({!r}, units={!r})'.format(opname, units)
         O = MockOp(opname, units=units)
-        actual = O.units()
+        actual = O.units
         expected = Unit(units)
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,

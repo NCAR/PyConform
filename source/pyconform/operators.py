@@ -48,30 +48,33 @@ class Operator(object):
         self._units = Unit(units)
         self._dimensions = tuple(dimensions)
     
+    @property
     def name(self):
         """
         Return the internal name of the Operator
         """
         return self._name
-    
-    def __str__(self):
-        """
-        String representation of the operator (its name)
-        """
-        return str(self._name)
-    
+
+    @property
     def units(self):
         """
         Return the Unit object for the data returned by the Operator
         """
         return self._units
 
+    @property
     def dimensions(self):
         """
         Return the dimensions of the data returned by the Operator
         """
         return self._dimensions
-        
+            
+    def __str__(self):
+        """
+        String representation of the operator (its name)
+        """
+        return str(self._name)
+    
     @abstractmethod
     def __eq__(self, other):
         """
