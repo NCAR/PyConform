@@ -174,7 +174,7 @@ class GraphFiller(object):
             return base ** exp
 
         # If the exponent is an Operator, then it must be dimensionless
-        if isinstance(exp, Operator) and not exp.units().is_dimensionless():
+        if isinstance(exp, Operator) and not exp.units.is_dimensionless():
             raise UnitsError('Power exponents must be dimensionless')
         
         # If the base is int/float, then exponent must be an Operator
@@ -182,7 +182,7 @@ class GraphFiller(object):
             fargs = [base, None]
             fops = [exp]
             funits = Unit(1)
-            fdims = exp.dimensions()
+            fdims = exp.dimensions
         
         # If the base is an Operator, then the exponent can be anything
         elif isinstance(base, Operator):
@@ -191,39 +191,39 @@ class GraphFiller(object):
             # If the exponent is an int, then base units can be anything
             if isinstance(exp, int):
                 fargs = [None, exp]
-                funits = base.units() ** exp
-                fdims = base.dimensions()
+                funits = base.units ** exp
+                fdims = base.dimensions
             
             # If the exponent is a float, then base must be dimensionless
             elif isinstance(exp, float):
-                if not base.units().is_dimensionless():
+                if not base.units.is_dimensionless():
                     raise UnitsError('Floating-point exponents can only be '
                                      'applied to dimensionless bases')
                 fargs = [None, exp]
                 funits = Unit(1)   
-                fdims = base.dimensions()
+                fdims = base.dimensions
             
             # If exponent is an operator, then base must be dimensionless
             elif isinstance(exp, Operator):
-                if not base.units().is_dimensionless():
+                if not base.units.is_dimensionless():
                     raise UnitsError('Element-wise power operations can only '
                                      'be applied to dimensionless bases')
                 fargs = []
                 funits = Unit(1)
-                fdims = base.dimensions()
+                fdims = base.dimensions
                 
                 # Check if the same dimensions exist (i.e., can be matched)
-                if set(base.dimensions()) != set(exp.dimensions()):
+                if set(base.dimensions) != set(exp.dimensions):
                     raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
-                                           'matched').format(base.name(), exp.name()))
+                                           'matched').format(base.name, exp.name))
                 
                 # Otherwise, only the order is off, so just reorder/transpose
-                elif base.dimensions() != exp.dimensions():
-                    xdims = exp.dimensions()
-                    neworder = [xdims.index(d) for d in base.dimensions()]
-                    tname = 'transpose({},order={})'.format(exp.name(), neworder)
+                elif base.dimensions != exp.dimensions:
+                    xdims = exp.dimensions
+                    neworder = [xdims.index(d) for d in base.dimensions]
+                    tname = 'transpose({},order={})'.format(exp.name, neworder)
                     texp = FunctionEvaluator(tname, transpose, args=[None, neworder], 
-                                             units=exp.units(), 
+                                             units=exp.units, 
                                              dimensions=fdims)
                     self._opgraph.connect(exp, texp)
                     fops.append(texp)
@@ -251,8 +251,8 @@ class GraphFiller(object):
         
         elif isinstance(val, Operator):
             fname = '(-{!s})'.format(val)
-            op = FunctionEvaluator(fname, neg, units=val.units(),
-                                   dimensions=val.dimensions())
+            op = FunctionEvaluator(fname, neg, units=val.units,
+                                   dimensions=val.dimensions)
             self._opgraph.connect(val, op)
             return op
         else:
@@ -270,35 +270,35 @@ class GraphFiller(object):
             return fptr(left, right)
                     
         elif isinstance(left, (int, float)) and isinstance(right, Operator):
-            funits = right.units()
+            funits = right.units
             fargs = [left, None]
             fops = [right]
-            fdims = right.dimensions()
+            fdims = right.dimensions
         
         elif isinstance(left, Operator) and isinstance(right, (int, float)):
-            funits = left.units()
+            funits = left.units
             fargs = [None, right]
             fops = [left]
-            fdims = left.dimensions()
+            fdims = left.dimensions
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
-            funits = left.units() * right.units()
+            funits = left.units * right.units
             fargs = [None, None]
             fops = [left]
-            fdims = left.dimensions()
+            fdims = left.dimensions
 
             # Check if the same dimensions exist (i.e., can be matched)
-            if set(left.dimensions()) != set(right.dimensions()):
+            if set(left.dimensions) != set(right.dimensions):
                 raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
-                                       'matched').format(left.name(), right.name()))
+                                       'matched').format(left.name, right.name))
             
             # Otherwise, only the order is off, so just reorder/transpose
-            elif left.dimensions() != right.dimensions():
-                rdims = right.dimensions()
-                neworder = [rdims.index(d) for d in left.dimensions()]
-                tname = 'transpose({},order={})'.format(right.name(), neworder)
+            elif left.dimensions != right.dimensions:
+                rdims = right.dimensions
+                neworder = [rdims.index(d) for d in left.dimensions]
+                tname = 'transpose({},order={})'.format(right.name, neworder)
                 tright = FunctionEvaluator(tname, transpose, args=[None, neworder], 
-                                           units=right.units(),
+                                           units=right.units,
                                            dimensions=fdims)
                 self._opgraph.connect(right, tright)
                 fops.append(tright)
@@ -327,56 +327,55 @@ class GraphFiller(object):
             return fptr(left, right)
                     
         elif isinstance(left, (int, float)) and isinstance(right, Operator):
-            if not right.units().is_dimensionless():
+            if not right.units.is_dimensionless():
                 raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
             fargs = [left, None]
             fops = [right]
-            fdims = right.dimensions()
+            fdims = right.dimensions
         
         elif isinstance(left, Operator) and isinstance(right, (int, float)):
-            if not left.units().is_dimensionless():
+            if not left.units.is_dimensionless():
                 raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
             fargs = [None, right]
             fops = [left]
-            fdims = left.dimensions()
+            fdims = left.dimensions
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
-            funits = left.units()
+            funits = left.units
             fargs = [None, None]
             fops = [left]
-            fdims = left.dimensions()
+            fdims = left.dimensions
 
             # Check units
-            if not right.units().is_convertible(left.units()):
+            if not right.units.is_convertible(left.units):
                 raise UnitsError('Cannot add/subtract with incompatible units')
-            elif right.units() != left.units():
-                cunits1 = left.units()
-                cunits2 = right.units()
-                cname = 'convert({!s},to={!s})'.format(right, cunits1)
-                cfunc = cunits2.convert
-                cargs = [None, cunits1]
-                cright = FunctionEvaluator(cname, cfunc, args=cargs, units=cunits1,
-                                           dimensions=right.dimensions())
+            elif right.units != left.units:
+                cname = 'convert({!s},to={!s})'.format(right, left.units)
+                cfunc = right.units.convert
+                cargs = [None, left.units]
+                cright = FunctionEvaluator(cname, cfunc, args=cargs,
+                                           units=left.units,
+                                           dimensions=right.dimensions)
                 self._opgraph.connect(right, cright)
                 newr = cright
             else:
                 newr = right
 
             # Check if the same dimensions exist (i.e., can be matched)
-            if set(left.dimensions()) != set(newr.dimensions()):
-                print left.dimensions(), newr.di
+            if set(left.dimensions) != set(newr.dimensions):
+                print left.dimensions, newr.dimensions
                 raise DimensionsError(('Dimensions of {!r} and {!r} cannot be '
-                                       'matched').format(left.name(), newr.name()))
+                                       'matched').format(left.name, newr.name))
             
             # Otherwise, only the order is off, so just reorder/transpose
-            elif left.dimensions() != newr.dimensions():
-                rdims = newr.dimensions()
-                neworder = [rdims.index(d) for d in left.dimensions()]
-                tname = 'transpose({},order={})'.format(right.name(), neworder)
+            elif left.dimensions != newr.dimensions:
+                rdims = newr.dimensions
+                neworder = [rdims.index(d) for d in left.dimensions]
+                tname = 'transpose({},order={})'.format(right.name, neworder)
                 tright = FunctionEvaluator(tname, transpose, args=[None, neworder], 
-                                           units=newr.units(),
+                                           units=newr.units,
                                            dimensions=fdims)
                 self._opgraph.connect(newr, tright)
                 fops.append(tright)

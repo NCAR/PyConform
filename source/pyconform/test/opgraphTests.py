@@ -13,6 +13,7 @@ from pyconform.operators import VariableSliceReader, FunctionEvaluator
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
 from cf_units import Unit
+from numpy import testing as nptst
 
 import operator
 import numpy
@@ -34,17 +35,17 @@ def print_test_message(testname, indata=None, actual=None, expected=None):
     """
     indent = linesep + ' ' * 14
     print '{}:'.format(testname)
-    if indata:
+    if indata is not None:
         s_indata = str(indata).replace(linesep, indent)
         print '    input:    {}'.format(s_indata)
-    if actual:
+    if actual is not None:
         s_actual = str(actual).replace(linesep, indent)
         print '    actual:   {}'.format(s_actual)
-    if expected:
+    if expected is not None:
         s_expected = str(expected).replace(linesep, indent)
         print '    expected: {}'.format(s_expected)
     print
-
+    
 
 #=========================================================================
 # OperationGraphTests - Tests for the opgraph.OperationGraph class
@@ -123,12 +124,49 @@ class OperationGraphTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
     
-    def test_type(self):
+    def test_init(self):
+        g = opgraph.OperationGraph()
+        actual = type(g)
+        expected = opgraph.OperationGraph
+        print_test_message('type(OperationGraph)', 
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'OperationGraph type not correct')
+
+    def test_add_op(self):
+        g = opgraph.OperationGraph()
+        u1Op = VariableSliceReader(self.filenames['u1'], 'u1')
+        g.add(u1Op)
+        actual = g.vertices
+        expected = set([u1Op])
+        print_test_message('OperationGraph.add(Operator)',
+                           actual=actual, expected=expected)
+        self.assertSetEqual(actual, expected,
+                            'OperationGraph did not add Operators')
+
+    def test_add_int(self):
+        g = opgraph.OperationGraph()
+        expected = TypeError
+        print_test_message('OperationGraph.add(int) TypeError',
+                           expected=expected)
+        self.assertRaises(expected, g.add, 1)
+
+    def test_call(self):
         g = opgraph.OperationGraph()
         u1Op = VariableSliceReader(self.filenames['u1'], 'u1')
         u2Op = VariableSliceReader(self.filenames['u2'], 'u2')
-        g.add(u1Op)
-        g.add(u2Op)
+        u1plusu2 = FunctionEvaluator('(u1+u2)', operator.add,
+                                     args=[None, None],
+                                     units=u1Op.units,
+                                     dimensions=u1Op.dimensions)
+        g.connect(u1Op, u1plusu2)
+        g.connect(u2Op, u1plusu2)
+        actual = g(u1plusu2)
+        expected = self.vdat['u1'] + self.vdat['u2']
+        print_test_message('OperationGraph.__call__()', 
+                           actual=actual, expected=expected)
+        nptst.assert_array_equal(actual, expected,
+                                 'OperationGraph() failed')
 
 
 #===============================================================================
@@ -208,195 +246,129 @@ class GraphFillerTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
 
-    def test_type(self):
-        dparser = opgraph.GraphFiller()
-        actual = type(dparser)
+    def test_init(self):
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g)
+        actual = type(gfiller)
         expected = opgraph.GraphFiller
-        print_test_message('type(DefinitionParser)', actual, expected)
+        print_test_message('type(GraphFiller)',
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'DefinitionParser type not correct')
+                         'GraphFiller type not correct')
 
     def test_from_definition_pow_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '2^2.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata.replace('^','**'))
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_add_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '2 + 1.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata)
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_sub_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '2 - 1.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata)
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_mul_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '7 * 2.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata)
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_div_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '7 / 2.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata)
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_neg_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '- +2.0'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata)
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_all_numbers(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = '((- +2.0)^4 * 3 / 8.2 + 8) * 3 - 7'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = eval(indata.replace('^', '**'))
-        print_test_message('DefinitionParser.from_definition({!r})'.format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parsed incorrectly')
+                         'Graph filled incorrectly')
 
     def test_from_definition_var_only(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = 'u1'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = VariableSliceReader(self.filenames[indata], indata)
-        print_test_message(('DefinitionParser.'
-                            'from_definition({!r})').format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                      'Definition parser returned wrong type')
+                         'Graph filled incorrectly')
 
     def test_from_definition_var_plus_1(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = 'u1 + 1'
-        self.assertRaises(opgraph.UnitsError, dparser.from_definition, indata)
+        self.assertRaises(opgraph.UnitsError, gfiller.from_definition, indata)
         actual = opgraph.UnitsError
         expected = opgraph.UnitsError
-        print_test_message(('DefinitionParser.'
-                            'from_definition({!r})').format(indata),
-                           actual, expected)
-        self.assertIs(actual, expected,
-                      'Definition parser returned wrong type')
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Graph filled incorrectly')
 
     def test_from_definition_var_plus_var(self):
-        dparser = opgraph.GraphFiller(self.inpds)
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller(g, self.inpds)
         indata = 'u1 + u2'
-        actual = dparser.from_definition(indata)
+        actual = gfiller.from_definition(indata)
         expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None],
                                      units=Unit('m'), dimensions=self.vdims['u1'])
-        print_test_message(('DefinitionParser.'
-                            'from_definition({!r})').format(indata),
-                           actual, expected)
+        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Definition parser returned wrong name')
+                         'Graph filled incorrectly')
 
-    def test_get_graph_var_only(self):
-        dparser = opgraph.GraphFiller(self.inpds)
-        indata = 'u1'
-        _ = dparser.from_definition(indata)
-        actual = dparser.get_graph()
-        
-        U1 = VariableSliceReader(self.filenames[indata], indata)
-        expected = opgraph.OperationGraph()
-        expected.add(U1)
-        
-        for v in actual.vertices():
-            print_test_message('vertex in get_graph()', v)
-            self.assertTrue(any(v==u for u in expected.vertices()),
-                            'get_graph() returned unexpected graph')
-        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
-            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
-            self.assertTrue(v1==u1 and v2==u2,
-                            'get_graph() returned unexpected graph')
 
-    def test_get_graph_var_plus_var(self):
-        dparser = opgraph.GraphFiller(self.inpds)
-        indata = 'u1 + u2'
-        _ = dparser.from_definition(indata)
-        actual = dparser.get_graph()
-        
-        n1 = 'u1'
-        n2 = 'u2'
-        U1 = VariableSliceReader(self.filenames[n1], n1)
-        U2 = VariableSliceReader(self.filenames[n2], n2)
-        FE = FunctionEvaluator('({}+{})'.format(n1,n2), operator.add,
-                               args=[None, None], units=U1.units(),
-                               dimensions=U1.dimensions())
-        expected = opgraph.OperationGraph()
-        expected.connect(U1, FE)
-        expected.connect(U2, FE)
-
-        for v in actual.vertices():
-            print_test_message('vertex in get_graph()', v)
-            self.assertTrue(any(v==u for u in expected.vertices()),
-                            'get_graph() returned unexpected graph')
-        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
-            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
-            self.assertTrue(v1==u1 and v2==u2,
-                            'get_graph() returned unexpected graph')
-
-    def test_get_graph_var_plus_var_diff_units(self):
-        dparser = opgraph.GraphFiller(self.inpds)
-        indata = 'u1 + u3'
-        _ = dparser.from_definition(indata)
-        actual = dparser.get_graph()
-        
-        n1 = 'u1'
-        n3 = 'u3'
-        U1 = VariableSliceReader(self.filenames[n1], n1)
-        U3 = VariableSliceReader(self.filenames[n3], n3)
-        cfunc = U3.units().convert
-        cn3 = 'convert(u3,to=m)'
-        C3 = FunctionEvaluator(cn3, cfunc, args=[None, U1.units()],
-                               units=U1.units(), dimensions=U3.dimensions())
-        FE = FunctionEvaluator('({}+{})'.format(n1,n3), operator.add,
-                               args=[None, None], units=U1.units(),
-                               dimensions=U1.dimensions())
-        expected = opgraph.OperationGraph()
-        expected.connect(U3, C3) # Unit convertion is added first
-        expected.connect(U1, FE)
-        expected.connect(C3, FE)
-
-        for v in actual.vertices():
-            print_test_message('vertex in get_graph()', v)
-            self.assertTrue(any(v==u for u in expected.vertices()),
-                            'get_graph() returned unexpected graph vertices')
-        for (v1,v2),(u1,u2) in zip(actual.edges(), expected.edges()):
-            print_test_message('edges in get_graph()', (v1,v2), (u1,u2))
-            self.assertTrue(v1==u1 and v2==u2,
-                            'get_graph() returned unexpected graph edges')        
-        
 #===============================================================================
 # Command-Line Execution
 #===============================================================================
