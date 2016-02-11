@@ -315,6 +315,12 @@ class DiGraph(object):
             return None
         else:
             return sorted_list
+        
+    def is_cyclic(self):
+        """
+        Returns whether the graph is cyclic or not
+        """
+        return self.toposort() is None
                 
     def components(self):
         """

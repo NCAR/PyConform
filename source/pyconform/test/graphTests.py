@@ -401,6 +401,37 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
+
+    def test_is_not_cyclic(self):
+        testname = 'DiGraph.is_cyclic(acyclic)'
+        G = graph.DiGraph()
+        G.add(0)
+        G.connect(1, 2)
+        G.connect(2, 3)
+        G.connect(2, 4)
+        G.connect(3, 5)
+        G.connect(4, 5)
+        actual = G.is_cyclic()
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+ 
+    def test_is_cyclic(self):
+        testname = 'DiGraph.is_cyclic(cyclic)'
+        G = graph.DiGraph()
+        G.add(0)
+        G.connect(1, 2)
+        G.connect(2, 3)
+        G.connect(2, 4)
+        G.connect(3, 5)
+        G.connect(4, 5)
+        G.connect(5, 1)
+        actual = G.is_cyclic()
+        expected = True
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
         
     def test_components(self):
         testname = 'DiGraph.components()'
