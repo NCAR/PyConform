@@ -7,6 +7,8 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from copy import deepcopy
+
 
 #===============================================================================
 # DiGraph - A directed Graph data structure
@@ -110,10 +112,11 @@ class DiGraph(object):
             DiGraph: A copy of this graph
         """
         new_graph = DiGraph()
-        new_graph._vertices = set(self._vertices) 
-        new_graph._edges = list(self._edges)
+        new_graph._vertices = deepcopy(self._vertices) 
+        new_graph._edges = deepcopy(self._edges)
         return new_graph
 
+    @property
     def vertices(self):
         """
         Return the list of vertices in the graph
@@ -121,8 +124,9 @@ class DiGraph(object):
         Returns:
             list: The list of vertices contained in this graph
         """
-        return list(self._vertices)
+        return self._vertices
 
+    @property
     def edges(self):
         """
         Return the list of edges (vertex 2-tuples) in the graph
@@ -130,7 +134,7 @@ class DiGraph(object):
         Returns:
             list: The list of edges contained in this graph
         """
-        return list(self._edges)
+        return self._edges
     
     def add(self, vertex):
         """
@@ -220,7 +224,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with incoming edges from vertex
         """
-        return [v2 for (v1, v2) in self._edges if v1 == vertex]
+        return set(v2 for (v1, v2) in self._edges if v1 == vertex)
 
     def neighbors_to(self, vertex):
         """
