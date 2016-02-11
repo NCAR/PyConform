@@ -327,6 +327,46 @@ class FunctionEvaluatorTests(unittest.TestCase):
         npt.assert_array_equal(actual, expected,
                                '{} failed'.format(testname))
 
+
+#===============================================================================
+# DataSliceMapperTests
+#===============================================================================
+class DataSliceMapperTests(unittest.TestCase):
+    """
+    Unit tests for the operators.DataSliceMapper class
+    """
+    
+    def setUp(self):
+        self.ncfile = 'vslicetest.nc'
+        self.shape = (2,4)
+        self.size = reduce(lambda x,y: x*y, self.shape, 1)
+        dataset = nc.Dataset(self.ncfile, 'w')
+        dataset.createDimension('x', self.shape[0])
+        dataset.createDimension('t')
+        dataset.createVariable('x', 'd', ('x',))
+        dataset.variables['x'][:] = np.arange(self.shape[0])
+        dataset.createVariable('t', 'd', ('t',))
+        dataset.variables['t'][:] = np.arange(self.shape[1])
+        self.var = 'v'
+        dataset.createVariable(self.var, 'd', ('x', 't'))
+        self.vardata = np.arange(self.size, dtype=np.float64).reshape(self.shape)
+        dataset.variables[self.var][:] = self.vardata
+        dataset.close()
+        self.slice = (slice(0, 1), slice(1, 3))
+        
+    def tearDown(self):
+        if exists(self.ncfile):
+            remove(self.ncfile)
+
+    def test_init(self):
+        testname = 'DataSliceMapper.__init__()'
+        DSM = ops.DataSliceMapper('x')
+        actual = type(DSM)
+        expected = ops.DataSliceMapper
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+
 #===============================================================================
 # Command-Line Operation
 #===============================================================================

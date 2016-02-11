@@ -21,6 +21,7 @@ from netCDF4 import Dataset
 from os.path import exists
 from mpi4py import MPI
 from cf_units import Unit
+from collections import OrderedDict
 
 import numpy
 
@@ -104,7 +105,7 @@ class Operator(object):
 #===============================================================================
 class VariableSliceReader(Operator):
     """
-    Operator that reads a variable slice upon calling
+    Operator that reads an input variable slice upon calling
     """
     
     def __init__(self, filepath, variable, slicetuple=(slice(None),)):
@@ -257,6 +258,107 @@ class FunctionEvaluator(Operator):
         rtargs.extend(tmp_args)
         return self._function(*rtargs)
 
+
+#===============================================================================
+# DataSliceMapper
+#===============================================================================
+class DataSliceMapper(Operator):
+    """
+    Operator that maps incoming data to an output variable slice
+    """
+    
+    def __init__(self, name, dimensionmap={}, indims=(), outdims=(),
+                 inunits=Unit(1), outunits=Unit(1), slicetuple=(slice(None),)):
+        """
+        Initializer
+        
+        Parameters:
+            name (str): A string name/identifier for the operator
+            dimensionmap (dict): Map of input dimensions (values) to 
+                output dimensions (keys)
+            indims (tuple): Input data dimensions
+            outdims (tuple): Output data dimensions
+            inunits (Unit): The units of the input data
+            outunits (Unit): The units returns by this Operator
+            slicetuple (tuple): The slice of the output variable into which
+                the data is to be written
+        """
+        # Call base class initializer
+        super(DataSliceMapper, self).__init__(name, units=outunits,
+                                              dimensions=outdims)
+
+        # Check the input units
+        if not isinstance(inunits, Unit):
+            raise TypeError('Input units is not of Unit type')
+        self._input_units = inunits
+
+        # Check input dimensions
+        if not isinstance(indims, tuple):
+            raise TypeError('Input dimensions must be a tuple')
+        if len(indims) != len(outdims):
+            raise ValueError('Cannot map dimensions with different sizes')
+        
+        # Check dimension map
+        if not isinstance(dimensionmap, dict):
+            raise TypeError('Dimension map must be a dict')
+        if not set(outdims).issubset(set(dimensionmap.keys())):
+            raise KeyError('All output dimensions must be in dimension map')
+        if not set(indims).issubset(set(dimensionmap.values())):
+            raise KeyError('All input dimensions must be in dimension map')
+
+        # Compute the new axes order
+        self._new_order = [indims.index(dimensionmap[d]) for d in outdims]
+
+        # Parse slice tuple
+        if isinstance(slicetuple, (list, tuple)):
+            if not all([isinstance(s, (int, slice)) for s in slicetuple]):
+                raise TypeError('Slice-tuple object {!r} must contain int '
+                                'indices or slices only, not objects of type '
+                                '{!r}'.format(slicetuple,
+                                              [type(s) for s in slicetuple]))
+        elif not isinstance(slicetuple, (int, slice)):
+            raise TypeError('Unrecognized slice-tuple object of type '
+                            '{!r}: {!r}'.format(type(slicetuple), slicetuple))
+        self._slice = slicetuple
+        
+    @property
+    def slicetuple(self):
+        return self._slice
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, DataSliceMapper):
+            return False
+        elif self._dim_map != other._dim_map:
+            return False
+        elif self._input_units != other._input_units:
+            return False
+        elif self._slice != other._slice:
+            return False
+        else:
+            return super(DataSliceMapper, self).__eq__(other)
+        
+    def __call__(self, data):
+        """
+        Make callable like a function
+        
+        Parameters:
+            data: The data passed to the mapper
+        """
+        outdata = data
+        
+        # Convert units, if necessary
+        if self.units != self._input_units:
+            outdata = self._input_units(outdata, self.units)
+        
+        # Reorder dimensions, if necessary
+        if self._new_order != range(len(self.dimensions)):
+            outdata = numpy.transpose(outdata, self._new_order)
+
+        return outdata
+    
 
 #===============================================================================
 # SendOperator
