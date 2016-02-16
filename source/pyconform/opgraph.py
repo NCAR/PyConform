@@ -13,11 +13,12 @@ LICENSE: See the LICENSE.rst file for details
 from graph import DiGraph
 from pyparsing import nums, alphas, alphanums, operatorPrecedence, oneOf
 from pyparsing import Word, Literal, Optional, Combine, opAssoc
-from dataset import InputDataset
+from dataset import InputDataset, OutputDataset
 from itertools import cycle
+from collections import OrderedDict
 from operator import pow, neg, add, sub, mul, div
 from cf_units import Unit
-from operators import Operator, VariableSliceReader, FunctionEvaluator
+from operators import Operator, InputSliceReader, FunctionEvaluator, OutputSliceHandle
 from numpy import transpose
 
 
@@ -92,31 +93,37 @@ class GraphFiller(object):
     Object that fills an OperationGraph
     """
     
-    def __init__(self, opgraph, refs=InputDataset()):
+    def __init__(self, opgraph):
         """
         Initializer
         
         Parameters:
-            refs (InputDataset): The input dataset containing the variable
+            opgraph (OperationGraph): The graph to be filled
+            inp (InputDataset): The input dataset containing the variable
                 information referenced by the output dataset definitions
         """
         # Input operation graph
-        if not isinstance(opgraph, OperationGraph):
-            raise TypeError('OpGraph must be of OperationGraph type')
-        self._opgraph = opgraph
-        
-        # Input/reference dataset
-        if not isinstance(refs, InputDataset):
-            raise TypeError('Input dataset must be of InputDataset type')
-        self._refs = refs
-                
-        # Cyclic iterator over available input filenames
-        fnames = [v.filename for v in self._refs.variables.itervalues()]
-        self._ifncycle = cycle(filter(None, fnames))
+        self.set_graph(opgraph)
 
         # Get the internal definition string parser
         self._defparser = self._build_parser_()
+        
+        # Place-holders for future operations
+        self._ids = InputDataset()
+        self._ods = OutputDataset()
+        self._ifncycle = None
     
+    def set_graph(self, opgraph):
+        """
+        Set the operation graph to be filled
+
+        Parameters:
+            opgraph (OperationGraph): The graph to be filled
+        """
+        if not isinstance(opgraph, OperationGraph):
+            raise TypeError('OpGraph must be of OperationGraph type')
+        self._opgraph = opgraph
+
     def _build_parser_(self):
         # Integer operands
         integers = Word(nums)
@@ -153,16 +160,16 @@ class GraphFiller(object):
 
     def _variable_operand_parser_(self, s, l, t):
         varname = str(t[0])
-        if varname not in self._refs.variables:
+        if varname not in self._ids.variables:
             err_msg = ('Definition {!r} references variable {!r} that is not '
                        'is not found in the reference dataset '
-                       '{!r}').format(s, varname, self._refs.name)
+                       '{!r}').format(s, varname, self._ids.name)
             raise KeyError(err_msg)
-        if self._refs.variables[varname].filename:
-            fname = self._refs.variables[varname].filename
+        if self._ids.variables[varname].filename:
+            fname = self._ids.variables[varname].filename
         else:
             fname = self._ifncycle.next()
-        op = VariableSliceReader(fname, varname)
+        op = InputSliceReader(fname, varname)
         self._opgraph.add(op)
         return op
     
@@ -392,14 +399,117 @@ class GraphFiller(object):
             self._opgraph.connect(op1, op)
         return op
     
-    def from_definition(self, definition):
+    def from_definitions(self, inp=InputDataset(), out=OutputDataset()):
         """
-        Fill the OperationGraph with Operators from a variable definition
+        Fill the OperationGraph with Operators from variable definitions
         
         Parameters:
-            definition (str): The string definition of the variable
+            inp (InputDataset): The input dataset with variables referenced
+                in the output variable definitions
+            out (OutputDataset): The output dataset with variables defined
+                in terms of input variable names
             
         Returns:
-            Operator: The root of the definition's OperationGraph
+            OrderedDict: ordered dictionary mapping output variable names to
+                root Operators in the OperationGraph
         """
-        return self._defparser.parseString(definition)[0]
+        
+        # Input/reference dataset
+        if not isinstance(inp, InputDataset):
+            raise TypeError('Input dataset must be of InputDataset type')
+        self._ids = inp
+
+        # Input/reference dataset
+        if not isinstance(out, OutputDataset):
+            raise TypeError('Output dataset must be of OutputDataset type')
+        self._ods = out
+
+        # Cyclic iterator over available input filenames
+        fnames = [v.filename for v in self._ids.variables.itervalues()]
+        self._ifncycle = cycle(filter(None, fnames))
+
+        # Parse the output variable definitions
+        groots = OrderedDict()
+        for vname, vinfo in self._ods.variables.iteritems():
+            
+            # Retrieve the definition string
+            definition = self._ods.variables[vname].definition
+        
+            # Parse the definition string and fill the graph
+            defroot = self._defparser.parseString(definition)[0]
+            
+            # Check if units match
+            vunits = vinfo.cfunits()
+            if defroot.units != vunits:
+                if defroot.units.is_convertible(vunits):
+                    cname = 'convert({!s},to={!s})'.format(defroot.name, vunits)
+                    cargs = [None, vunits]
+                    cop = FunctionEvaluator(cname, defroot.units.convert,
+                                            args=cargs, units=vunits,
+                                            dimensions=defroot.dimensions)
+                    self._opgraph.connect(defroot, cop)
+                    defroot = cop
+                else:
+                    raise UnitsError(('Cannot convert units {!s} to '
+                                      'output variable {!r} units '
+                                      '{!s}').format(defroot.units, 
+                                                     vname, vunits))
+
+            # Save the root operator
+            groots[vname] = defroot
+            
+        # Create the dimension name map
+        dim_map = self._map_dimensions_(groots)
+
+        # Map the dimensions
+        for vname, defroot in groots.iteritems():
+        
+            # Check if dimensions match
+            vdims = [dim_map[d] for d in vinfo.dimensions]
+            if defroot.dimensions != vdims:
+                if set(defroot.dimensions) == set(vdims):
+                    neworder = [vdims.index(d) for d in defroot.dimensions]
+                    tname = 'transpose({},order={})'.format(defroot.name, neworder)
+                    top = FunctionEvaluator(tname, transpose,
+                                            args=[None, neworder],
+                                            units=defroot.units,
+                                            dimensions=vdims)
+                    self._opgraph.connect(defroot, top)
+                    defroot = top
+                else:
+                    raise DimensionsError(('Cannot transpose dimensions {!s} '
+                                           'to output variable {!r} dimensions '
+                                           '{!s}').format(defroot.dimensions,
+                                                          vname, vdims))
+            
+            # Create the final output variable handle
+            vmin = vinfo.attributes.get('min')
+            vmax = vinfo.attributes.get('max')
+            outop = OutputSliceHandle(vname, units=vinfo.cfunits(),
+                                      dimensions=vinfo.dimensions,
+                                      minimum=vmin, maximum=vmax)
+            self._opgraph.connect(defroot, outop)
+            groots[vname] = outop
+        
+        return groots
+ 
+    def _map_dimensions_(self, groots):
+        dim_map = {}
+        for vname, defroot in groots.iteritems():
+            odims = self._ods.variables[vname].dimensions
+            idims = defroot.dimensions
+            if len(odims) != len(idims):
+                defstr = defroot.name
+                err_msg = ('Output variable {!r} has dimensions {} while its '
+                           'definition {!r} has dimensions '
+                           '{}').format(vname, len(odims), defstr, len(idims))
+                raise ValueError(err_msg)
+            for odim, idim in zip(odims, idims):
+                if odim not in dim_map:
+                    dim_map[odim] = str(idim)
+                elif idim != dim_map[odim]:
+                    err_msg = ('Output dimension {!r} in output variable {!r} '
+                               'appears to map to both input dimensions {!r} and '
+                               '{!r}').format(odim, vname, idim, dim_map[odim])
+                    raise ValueError(err_msg)
+        return dim_map

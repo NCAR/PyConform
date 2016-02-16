@@ -9,7 +9,7 @@ from os import linesep, remove
 from os.path import exists
 from pyconform import dataset
 from pyconform import opgraph
-from pyconform.operators import VariableSliceReader, FunctionEvaluator
+from pyconform.operators import InputSliceReader, FunctionEvaluator
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
 from cf_units import Unit
@@ -135,7 +135,7 @@ class OperationGraphTests(unittest.TestCase):
 
     def test_add_op(self):
         g = opgraph.OperationGraph()
-        u1Op = VariableSliceReader(self.filenames['u1'], 'u1')
+        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
         g.add(u1Op)
         actual = g.vertices
         expected = set([u1Op])
@@ -153,8 +153,8 @@ class OperationGraphTests(unittest.TestCase):
 
     def test_call(self):
         g = opgraph.OperationGraph()
-        u1Op = VariableSliceReader(self.filenames['u1'], 'u1')
-        u2Op = VariableSliceReader(self.filenames['u2'], 'u2')
+        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
+        u2Op = InputSliceReader(self.filenames['u2'], 'u2')
         u1plusu2 = FunctionEvaluator('(u1+u2)', operator.add,
                                      args=[None, None],
                                      units=u1Op.units,
@@ -238,6 +238,61 @@ class GraphFillerTests(unittest.TestCase):
             
         self.inpds = dataset.InputDataset('inpds', self.filenames.values())
 
+        self.dsdict = OrderedDict()
+        self.dsdict['attributes'] = self.fattribs
+        self.dsdict['variables'] = OrderedDict()
+        vdicts = self.dsdict['variables']
+        
+        vdicts['X'] = OrderedDict()
+        vdicts['X']['datatype'] = 'float64'
+        vdicts['X']['dimensions'] = ('x',)
+        vdicts['X']['definition'] = 'lon'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'longitude'
+        vattribs['units'] = 'degrees_east'
+        vdicts['X']['attributes'] = vattribs
+
+        vdicts['Y'] = OrderedDict()
+        vdicts['Y']['datatype'] = 'float64'
+        vdicts['Y']['dimensions'] = ('y',)
+        vdicts['Y']['definition'] = 'lat'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'latitude'
+        vattribs['units'] = 'degrees_north'
+        vdicts['Y']['attributes'] = vattribs
+
+        vdicts['T'] = OrderedDict()
+        vdicts['T']['datatype'] = 'float64'
+        vdicts['T']['dimensions'] = ('t',)
+        vdicts['T']['definition'] = 'time'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'time'
+        vattribs['units'] = 'days since 01-01-0001 00:00:00'
+        vattribs['calendar'] = 'noleap'
+        vdicts['T']['attributes'] = vattribs
+
+        vdicts['V1'] = OrderedDict()
+        vdicts['V1']['datatype'] = 'float64'
+        vdicts['V1']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V1']['definition'] = 'u1 + u2'
+        vdicts['V1']['filename'] = 'var1.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 1'
+        vattribs['units'] = 'm'
+        vdicts['V1']['attributes'] = vattribs
+
+        vdicts['V2'] = OrderedDict()
+        vdicts['V2']['datatype'] = 'float64'
+        vdicts['V2']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V2']['definition'] = 'u2 - u1'
+        vdicts['V2']['filename'] = 'var2.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 2'
+        vattribs['units'] = 'm'
+        vdicts['V2']['attributes'] = vattribs
+        
+        self.outds = dataset.OutputDataset('outds', self.dsdict)
+        
     def tearDown(self):
         self._clear_()
         
@@ -258,7 +313,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_pow_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '2^2.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata.replace('^','**'))
@@ -269,7 +324,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_add_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '2 + 1.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata)
@@ -280,7 +335,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_sub_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '2 - 1.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata)
@@ -291,7 +346,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_mul_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '7 * 2.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata)
@@ -302,7 +357,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_div_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '7 / 2.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata)
@@ -313,7 +368,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_neg_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '- +2.0'
         actual = gfiller.from_definition(indata)
         expected = eval(indata)
@@ -324,7 +379,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_all_numbers(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = '((- +2.0)^4 * 3 / 8.2 + 8) * 3 - 7'
         actual = gfiller.from_definition(indata)
         expected = eval(indata.replace('^', '**'))
@@ -335,10 +390,10 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_var_only(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = 'u1'
         actual = gfiller.from_definition(indata)
-        expected = VariableSliceReader(self.filenames[indata], indata)
+        expected = InputSliceReader(self.filenames[indata], indata)
         print_test_message('GraphFiller.from_definition({!r})'.format(indata),
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -346,7 +401,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_var_plus_1(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = 'u1 + 1'
         self.assertRaises(opgraph.UnitsError, gfiller.from_definition, indata)
         actual = opgraph.UnitsError
@@ -358,7 +413,7 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definition_var_plus_var(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, self.inpds)
+        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
         indata = 'u1 + u2'
         actual = gfiller.from_definition(indata)
         expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None],
