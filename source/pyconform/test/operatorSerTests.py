@@ -153,7 +153,7 @@ class OperatorTests(unittest.TestCase):
 #===============================================================================
 class VariableSliceReaderTests(unittest.TestCase):
     """
-    Unit tests for the operators.VariableSliceReader class
+    Unit tests for the operators.InputSliceReader class
     """
     
     def setUp(self):
@@ -179,40 +179,40 @@ class VariableSliceReaderTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'VariableSliceReader.__init__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var)
+        testname = 'InputSliceReader.__init__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var)
         actual = type(VSR)
-        expected = ops.VariableSliceReader
+        expected = ops.InputSliceReader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_filename_failure(self):
-        testname = 'VariableSliceReader.__init__(bad filename)'
+        testname = 'InputSliceReader.__init__(bad filename)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.VariableSliceReader, 'badname.nc', self.var)
+                          ops.InputSliceReader, 'badname.nc', self.var)
         print_test_message(testname, actual, expected)
 
     def test_init_varname_failure(self):
-        testname = 'VariableSliceReader.__init__(bad variable name)'
+        testname = 'InputSliceReader.__init__(bad variable name)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.VariableSliceReader, self.ncfile, 'badvar')
+                          ops.InputSliceReader, self.ncfile, 'badvar')
         print_test_message(testname, actual, expected)
 
     def test_init_with_slice(self):
-        testname = 'VariableSliceReader.__init__(slice)'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'InputSliceReader.__init__(slice)'
+        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
         actual = type(VSR)
-        expected = ops.VariableSliceReader
+        expected = ops.InputSliceReader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call(self):
-        testname = 'VariableSliceReader().__call__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var)
+        testname = 'InputSliceReader().__call__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var)
         actual = VSR()
         expected = self.vardata
         print_test_message(testname, actual, expected)
@@ -220,8 +220,8 @@ class VariableSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_call_slice(self):
-        testname = 'VariableSliceReader(slice).__call__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'InputSliceReader(slice).__call__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
         actual = VSR()
         expected = self.vardata[self.slice]
         print_test_message(testname, actual, expected)
@@ -229,9 +229,9 @@ class VariableSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_equal(self):
-        testname = 'VariableSliceReader() == VariableSliceReader()'
-        VSR1 = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
-        VSR2 = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'InputSliceReader() == InputSliceReader()'
+        VSR1 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        VSR2 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
         actual = VSR1 == VSR2
         expected = True
         print_test_message(testname, actual, expected)
@@ -329,11 +329,11 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
 
 #===============================================================================
-# DataSliceMapperTests
+# OutputSliceHandleTests
 #===============================================================================
-class DataSliceMapperTests(unittest.TestCase):
+class OutputSliceHandleTests(unittest.TestCase):
     """
-    Unit tests for the operators.DataSliceMapper class
+    Unit tests for the operators.OutputSliceHandle class
     """
     
     def setUp(self):
@@ -359,10 +359,10 @@ class DataSliceMapperTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'DataSliceMapper.__init__()'
-        DSM = ops.DataSliceMapper('x')
+        testname = 'OutputSliceHandle.__init__()'
+        DSM = ops.OutputSliceHandle('x')
         actual = type(DSM)
-        expected = ops.DataSliceMapper
+        expected = ops.OutputSliceHandle
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 

@@ -101,9 +101,9 @@ class Operator(object):
     
 
 #===============================================================================
-# VariableSliceReader
+# InputSliceReader
 #===============================================================================
-class VariableSliceReader(Operator):
+class InputSliceReader(Operator):
     """
     Operator that reads an input variable slice upon calling
     """
@@ -165,21 +165,21 @@ class VariableSliceReader(Operator):
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable, units=units,
+        super(InputSliceReader, self).__init__(variable, units=units,
                                                   dimensions=dims)
 
     def __eq__(self, other):
         """
         Check if two Operators are equal
         """
-        if not isinstance(other, VariableSliceReader):
+        if not isinstance(other, InputSliceReader):
             return False
         elif self._filepath != other._filepath:
             return False
         elif self._slice != other._slice:
             return False
         else:
-            return super(VariableSliceReader, self).__eq__(other)
+            return super(InputSliceReader, self).__eq__(other)
     
     def __call__(self):
         """
@@ -260,54 +260,30 @@ class FunctionEvaluator(Operator):
 
 
 #===============================================================================
-# DataSliceMapper
+# OutputSliceHandle
 #===============================================================================
-class DataSliceMapper(Operator):
+class OutputSliceHandle(Operator):
     """
-    Operator that maps incoming data to an output variable slice
+    Operator that acts as a "handle" for output data streams
     """
     
-    def __init__(self, name, dimensionmap={}, indims=(), outdims=(),
-                 inunits=Unit(1), outunits=Unit(1), slicetuple=(slice(None),)):
+    def __init__(self, name, slicetuple=(slice(None),),
+                 units=Unit(1), dimensions=(), minimum=None, maximum=None):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
-            dimensionmap (dict): Map of input dimensions (values) to 
-                output dimensions (keys)
-            indims (tuple): Input data dimensions
-            outdims (tuple): Output data dimensions
-            inunits (Unit): The units of the input data
-            outunits (Unit): The units returns by this Operator
             slicetuple (tuple): The slice of the output variable into which
                 the data is to be written
+            units (Unit): The units returns by this Operator
+            dimensions (tuple): Output data dimensions
+            minimum: The minimum value the data should have, if valid
+            maximum: The maximum value the data should have, if valid
         """
         # Call base class initializer
-        super(DataSliceMapper, self).__init__(name, units=outunits,
-                                              dimensions=outdims)
-
-        # Check the input units
-        if not isinstance(inunits, Unit):
-            raise TypeError('Input units is not of Unit type')
-        self._input_units = inunits
-
-        # Check input dimensions
-        if not isinstance(indims, tuple):
-            raise TypeError('Input dimensions must be a tuple')
-        if len(indims) != len(outdims):
-            raise ValueError('Cannot map dimensions with different sizes')
-        
-        # Check dimension map
-        if not isinstance(dimensionmap, dict):
-            raise TypeError('Dimension map must be a dict')
-        if not set(outdims).issubset(set(dimensionmap.keys())):
-            raise KeyError('All output dimensions must be in dimension map')
-        if not set(indims).issubset(set(dimensionmap.values())):
-            raise KeyError('All input dimensions must be in dimension map')
-
-        # Compute the new axes order
-        self._new_order = [indims.index(dimensionmap[d]) for d in outdims]
+        super(OutputSliceHandle, self).__init__(name, units=units,
+                                                dimensions=dimensions)
 
         # Parse slice tuple
         if isinstance(slicetuple, (list, tuple)):
@@ -321,6 +297,10 @@ class DataSliceMapper(Operator):
                             '{!r}: {!r}'.format(type(slicetuple), slicetuple))
         self._slice = slicetuple
         
+        # Store min/max
+        self._min = minimum
+        self._max = maximum
+        
     @property
     def slicetuple(self):
         return self._slice
@@ -329,16 +309,12 @@ class DataSliceMapper(Operator):
         """
         Check if two Operators are equal
         """
-        if not isinstance(other, DataSliceMapper):
-            return False
-        elif self._dim_map != other._dim_map:
-            return False
-        elif self._input_units != other._input_units:
+        if not isinstance(other, OutputSliceHandle):
             return False
         elif self._slice != other._slice:
             return False
         else:
-            return super(DataSliceMapper, self).__eq__(other)
+            return super(OutputSliceHandle, self).__eq__(other)
         
     def __call__(self, data):
         """
@@ -347,17 +323,23 @@ class DataSliceMapper(Operator):
         Parameters:
             data: The data passed to the mapper
         """
-        outdata = data
-        
-        # Convert units, if necessary
-        if self.units != self._input_units:
-            outdata = self._input_units(outdata, self.units)
-        
-        # Reorder dimensions, if necessary
-        if self._new_order != range(len(self.dimensions)):
-            outdata = numpy.transpose(outdata, self._new_order)
+        if self._min:
+            dmin = numpy.min(data)
+            if dmin < self._min:
+                wrn_msg = ('Data from operator {!r} has minimum value {} '
+                           'but requires data greater than or equal to '
+                           '{}').format(self.name, dmin, self._min)
+                raise RuntimeWarning(wrn_msg)
 
-        return outdata
+        if self._max:
+            dmax= numpy.max(data)
+            if dmax > self._max:
+                wrn_msg = ('Data from operator {!r} has maximum value {} '
+                           'but requires data less than or equal to '
+                           '{}').format(self.name, dmax, self._max)
+                raise RuntimeWarning(wrn_msg)
+            
+        return data
     
 
 #===============================================================================
