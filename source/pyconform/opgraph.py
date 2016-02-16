@@ -483,8 +483,8 @@ class GraphFiller(object):
                                                           vname, vdims))
             
             # Create the final output variable handle
-            vmin = vinfo.attributes.get('min')
-            vmax = vinfo.attributes.get('max')
+            vmin = vinfo.attributes.get('valid_min')
+            vmax = vinfo.attributes.get('valid_max')
             outop = OutputSliceHandle(vname, units=vinfo.cfunits(),
                                       dimensions=vinfo.dimensions,
                                       minimum=vmin, maximum=vmax)
