@@ -16,14 +16,23 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
 from mpi4py import MPI
 from cf_units import Unit
-from collections import OrderedDict
+from sys import stderr
 
 import numpy
+
+
+#===============================================================================
+# warning - Helper function
+#===============================================================================
+def warning(*objs):
+    print("WARNING: ", *objs, file=stderr)
+
 
 #===============================================================================
 # Operator
@@ -166,7 +175,7 @@ class InputSliceReader(Operator):
 
         # Call base class initializer - sets self._name
         super(InputSliceReader, self).__init__(variable, units=units,
-                                                  dimensions=dims)
+                                               dimensions=dims)
 
     def __eq__(self, other):
         """
@@ -323,21 +332,19 @@ class OutputSliceHandle(Operator):
         Parameters:
             data: The data passed to the mapper
         """
-        if self._min:
+        if self._min is not None:
             dmin = numpy.min(data)
             if dmin < self._min:
-                wrn_msg = ('Data from operator {!r} has minimum value {} '
-                           'but requires data greater than or equal to '
-                           '{}').format(self.name, dmin, self._min)
-                raise RuntimeWarning(wrn_msg)
+                warning(('Data from operator {!r} has minimum value '
+                         '{} but requires data greater than or equal to '
+                         '{}').format(self.name, dmin, self._min))
 
-        if self._max:
+        if self._max is not None:
             dmax= numpy.max(data)
             if dmax > self._max:
-                wrn_msg = ('Data from operator {!r} has maximum value {} '
-                           'but requires data less than or equal to '
-                           '{}').format(self.name, dmax, self._max)
-                raise RuntimeWarning(wrn_msg)
+                warning(('Data from operator {!r} has maximum value '
+                         '{} but requires data less than or equal to '
+                         '{}').format(self.name, dmax, self._max))
             
         return data
     

@@ -10,6 +10,7 @@ from os.path import exists
 from pyconform import operators as ops
 from os import linesep
 from cf_units import Unit
+from StringIO import StringIO
 
 import operator
 import numpy as np
@@ -26,7 +27,7 @@ def print_test_message(testname, actual, expected):
     print ' - actual   = {}'.format(actual).replace(linesep, ' ')
     print ' - expected = {}'.format(expected).replace(linesep, ' ')
     print
-
+    
 
 #===============================================================================
 # OperatorTests
@@ -38,6 +39,7 @@ class MockOp(ops.Operator):
         return super(MockOp, self).__eq__(other)
     def __call__(self):
         super(MockOp, self).__call__()
+
 
 class OperatorTests(unittest.TestCase):
     """
@@ -360,9 +362,45 @@ class OutputSliceHandleTests(unittest.TestCase):
 
     def test_init(self):
         testname = 'OutputSliceHandle.__init__()'
-        DSM = ops.OutputSliceHandle('x')
-        actual = type(DSM)
+        OSH = ops.OutputSliceHandle('x')
+        actual = type(OSH)
         expected = ops.OutputSliceHandle
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_min_ok(self):
+        indata = 1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
+    def test_min_warn(self):
+        indata = -1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_max_ok(self):
+        indata = 1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
+    def test_max_warn(self):
+        indata = 11.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        actual = OSH(indata)
+        expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
