@@ -401,9 +401,10 @@ class OutputDataset(Dataset):
             name (str): String name to optionally give to a dataset
             dsdict (dict): Dictionary describing the dataset variables
         """
-        attributes = dsdict['attributes']
+        attributes = dsdict.get('attributes', OrderedDict())
         variables = OrderedDict()
-        for vname, vdict in dsdict['variables'].iteritems():
+        invars = dsdict.get('variables', OrderedDict())
+        for vname, vdict in invars.iteritems():
             kwargs = {}
             if 'dimensions' not in vdict:
                 err_msg = ('Dimensions are required for variable '
