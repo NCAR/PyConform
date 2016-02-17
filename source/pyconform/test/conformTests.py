@@ -13,7 +13,6 @@ from netCDF4 import Dataset as NCDataset
 
 import json
 import numpy
-import operator
 import unittest
 
 
