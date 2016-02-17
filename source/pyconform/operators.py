@@ -31,7 +31,7 @@ import numpy
 # warning - Helper function
 #===============================================================================
 def warning(*objs):
-    print("WARNING: ", *objs, file=stderr)
+    print("WARNING:", *objs, file=stderr)
 
 
 #===============================================================================
