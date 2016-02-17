@@ -4,51 +4,110 @@ Fundamental Operators for the Operation Graphs
 This module contains the Operator objects to be used in the DiGraph-based
 Operation Graphs that implement the data transformation operations.
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+Some functions of the Operator objects are specifically designed to work
+on the output from other Operators, from within a OperationGraph object.
+This is precisely what the Operators are designed to do.  Some data of
+the Operators pertain to the instance of the Operator itself, and this data
+is stored with the instance.  Some data is determined entirely by the input
+into the Operator at runtime, which occurs within the OperationGraph data
+structure.
+
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
 from mpi4py import MPI
+from cf_units import Unit
+from sys import stderr
 
 import numpy
+
+
+#===============================================================================
+# warning - Helper function
+#===============================================================================
+def warning(*objs):
+    print("WARNING: ", *objs, file=stderr)
+
 
 #===============================================================================
 # Operator
 #===============================================================================
 class Operator(object):
     """
-    The abstract base class for the Operator objects used in Operation Graphs
+    The abstract base class for the Operator objects used in OperationGraphs
     """
     
     __metaclass__ = ABCMeta
-    _id_ = 0
     
     @abstractmethod
-    def __init__(self, name):
+    def __init__(self, name, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             name (str): A string name/identifier for the operator
+            units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
-        self._id = Operator._id_
-        Operator._id_ += 1
-        self._name = str(name)
-    
-    def id(self):
-        """
-        Return the internal ID of the Operator
-        """
-        return self._id
+        if not isinstance(name, (str, unicode)):
+            raise TypeError('Operator names must be strings')
+        self._name = name
 
+        if not isinstance(units, Unit):
+            raise TypeError('Operator units must be of Unit type')
+        self._units = units
+        
+        if not isinstance(dimensions, tuple):
+            raise TypeError('Operator dimensions must be tuples')
+        self._dimensions = dimensions
+    
+    @property
     def name(self):
         """
         Return the internal name of the Operator
         """
         return self._name
+
+    @property
+    def units(self):
+        """
+        Return the Unit object for the data returned by the Operator
+        """
+        return self._units
+
+    @property
+    def dimensions(self):
+        """
+        Return the dimensions of the data returned by the Operator
+        """
+        return self._dimensions
+            
+    def __str__(self):
+        """
+        String representation of the operator (its name)
+        """
+        return str(self._name)
+    
+    @abstractmethod
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, Operator):
+            return False
+        elif self._name != other._name:
+            return False
+        elif self._units != other._units:
+            return False
+        elif self._dimensions != other._dimensions:
+            return False
+        else:
+            return True
 
     @abstractmethod
     def __call__(self):
@@ -59,11 +118,11 @@ class Operator(object):
     
 
 #===============================================================================
-# VariableSliceReader
+# InputSliceReader
 #===============================================================================
-class VariableSliceReader(Operator):
+class InputSliceReader(Operator):
     """
-    Operator that reads a variable slice upon calling
+    Operator that reads an input variable slice upon calling
     """
     
     def __init__(self, filepath, variable, slicetuple=(slice(None),)):
@@ -97,10 +156,8 @@ class VariableSliceReader(Operator):
                             '{!r}: {!r}'.format(type(variable), variable))
         if variable not in ncfile.variables:
             raise OSError('Variable {!r} not found in NetCDF file: '
-                          '{!r}'.format(variable, self._filepath))            
-        # Call base class initializer - sets self._name
-        super(VariableSliceReader, self).__init__(variable)
-                
+                          '{!r}'.format(variable, self._filepath))
+
         # Parse slice tuple
         if isinstance(slicetuple, (list, tuple)):
             if not all([isinstance(s, (int, slice)) for s in slicetuple]):
@@ -113,9 +170,34 @@ class VariableSliceReader(Operator):
                             '{!r}: {!r}'.format(type(slicetuple), slicetuple))
         self._slice = slicetuple
         
+        # Determine units
+        uname = getattr(ncfile.variables[variable], 'units', '1')
+        ucal = getattr(ncfile.variables[variable], 'calendar', None)
+        units = Unit(uname, calendar=ucal)
+        
+        # Determine dimensions
+        dims = ncfile.variables[variable].dimensions
+
         # Close the NetCDF file
         ncfile.close()
 
+        # Call base class initializer - sets self._name
+        super(InputSliceReader, self).__init__(variable, units=units,
+                                               dimensions=dims)
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, InputSliceReader):
+            return False
+        elif self._filepath != other._filepath:
+            return False
+        elif self._slice != other._slice:
+            return False
+        else:
+            return super(InputSliceReader, self).__eq__(other)
+    
     def __call__(self):
         """
         Make callable like a function
@@ -134,7 +216,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, *args):
+    def __init__(self, name, func, args=[], units=Unit(1), dimensions=()):
         """
         Initializer
         
@@ -143,22 +225,40 @@ class FunctionEvaluator(Operator):
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
+            units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
-        # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name)
-        
-        # Check if the function is callable
-        if not hasattr(func, '__call__'):
+        # Check function
+        if not callable(func):
             raise TypeError('Function object not callable: {!r}'.format(func))
-        
-        # Store the function pointer
         self._function = func
         
-        # Store the arguments
+        # Check arguments
+        if not isinstance(args, (tuple, list)):
+            raise TypeError('Arguments not contained in list')
         self._arguments = args
         
         # Count the number of runtime arguments needed
         self._nargs = sum(arg is None for arg in args)
+
+        # Call base class initializer
+        super(FunctionEvaluator, self).__init__(name, units=units,
+                                                dimensions=dimensions)
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, FunctionEvaluator):
+            return False
+        elif self._function != other._function:
+            return False
+        elif self._arguments != other._arguments:
+            return False
+        elif self._nargs != other._nargs:
+            return False
+        else:
+            return super(FunctionEvaluator, self).__eq__(other)
         
     def __call__(self, *args):
         """
@@ -177,6 +277,87 @@ class FunctionEvaluator(Operator):
 
 
 #===============================================================================
+# OutputSliceHandle
+#===============================================================================
+class OutputSliceHandle(Operator):
+    """
+    Operator that acts as a "handle" for output data streams
+    """
+    
+    def __init__(self, name, slicetuple=(slice(None),),
+                 units=Unit(1), dimensions=(), minimum=None, maximum=None):
+        """
+        Initializer
+        
+        Parameters:
+            name (str): A string name/identifier for the operator
+            slicetuple (tuple): The slice of the output variable into which
+                the data is to be written
+            units (Unit): The units returns by this Operator
+            dimensions (tuple): Output data dimensions
+            minimum: The minimum value the data should have, if valid
+            maximum: The maximum value the data should have, if valid
+        """
+        # Call base class initializer
+        super(OutputSliceHandle, self).__init__(name, units=units,
+                                                dimensions=dimensions)
+
+        # Parse slice tuple
+        if isinstance(slicetuple, (list, tuple)):
+            if not all([isinstance(s, (int, slice)) for s in slicetuple]):
+                raise TypeError('Slice-tuple object {!r} must contain int '
+                                'indices or slices only, not objects of type '
+                                '{!r}'.format(slicetuple,
+                                              [type(s) for s in slicetuple]))
+        elif not isinstance(slicetuple, (int, slice)):
+            raise TypeError('Unrecognized slice-tuple object of type '
+                            '{!r}: {!r}'.format(type(slicetuple), slicetuple))
+        self._slice = slicetuple
+        
+        # Store min/max
+        self._min = minimum
+        self._max = maximum
+        
+    @property
+    def slicetuple(self):
+        return self._slice
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, OutputSliceHandle):
+            return False
+        elif self._slice != other._slice:
+            return False
+        else:
+            return super(OutputSliceHandle, self).__eq__(other)
+        
+    def __call__(self, data):
+        """
+        Make callable like a function
+        
+        Parameters:
+            data: The data passed to the mapper
+        """
+        if self._min is not None:
+            dmin = numpy.min(data)
+            if dmin < self._min:
+                warning(('Data from operator {!r} has minimum value '
+                         '{} but requires data greater than or equal to '
+                         '{}').format(self.name, dmin, self._min))
+
+        if self._max is not None:
+            dmax= numpy.max(data)
+            if dmax > self._max:
+                warning(('Data from operator {!r} has maximum value '
+                         '{} but requires data less than or equal to '
+                         '{}').format(self.name, dmax, self._max))
+            
+        return data
+    
+
+#===============================================================================
 # SendOperator
 #===============================================================================
 class SendOperator(Operator):
@@ -184,12 +365,14 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest):
+    def __init__(self, dest, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             dest (int): The destination rank in COMM_WORLD to send the data
+            units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         # Check if the function is callable
         if not isinstance(dest, int):
@@ -201,10 +384,22 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname)
+        super(SendOperator, self).__init__(opname, units=units,
+                                           dimensions=dimensions)
         
         # Store the destination rank
         self._dest = dest
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, SendOperator):
+            return False
+        elif self._dest != other._dest:
+            return False
+        else:
+            return super(SendOperator, self).__eq__(other)
         
     def __call__(self, data):
         """
@@ -251,12 +446,14 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source):
+    def __init__(self, source, units=Unit(1), dimensions=()):
         """
         Initializer
         
         Parameters:
             source (int): The source rank in COMM_WORLD to send the data
+            units (Unit): The units of the data returned by the function
+            dimensions (tuple): Dimensions of the returned data
         """
         # Check if the function is callable
         if not isinstance(source, int):
@@ -268,10 +465,22 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname)
+        super(RecvOperator, self).__init__(opname, units=units,
+                                           dimensions=dimensions)
         
         # Store the source rank
         self._source = source
+
+    def __eq__(self, other):
+        """
+        Check if two Operators are equal
+        """
+        if not isinstance(other, RecvOperator):
+            return False
+        elif self._source != other._source:
+            return False
+        else:
+            return super(RecvOperator, self).__eq__(other)
         
     def __call__(self):
         """

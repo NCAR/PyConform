@@ -1,7 +1,7 @@
 """
 Fundamental Operators for the Operation Graph Unit Tests
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -9,6 +9,7 @@ from os import remove
 from os.path import exists
 from pyconform import operators as ops
 from os import linesep
+from cf_units import Unit
 
 import operator
 import numpy as np
@@ -25,16 +26,19 @@ def print_test_message(testname, actual, expected):
     print ' - actual   = {}'.format(actual).replace(linesep, ' ')
     print ' - expected = {}'.format(expected).replace(linesep, ' ')
     print
-
+    
 
 #===============================================================================
 # OperatorTests
 #===============================================================================
 class MockOp(ops.Operator):
-    def __init__(self, name):
-        super(MockOp, self).__init__(name)
+    def __init__(self, name, units=Unit(1)):
+        super(MockOp, self).__init__(name, units=units)
+    def __eq__(self, other):
+        return super(MockOp, self).__eq__(other)
     def __call__(self):
         super(MockOp, self).__call__()
+
 
 class OperatorTests(unittest.TestCase):
     """
@@ -63,30 +67,93 @@ class OperatorTests(unittest.TestCase):
         opname = 'xop'
         testname = 'Mock Operator.__init__({!r})'.format(opname)
         O = MockOp(opname)
-        actual = O.name()
+        actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Operator name incorrect')
 
-    def test_id(self):
-        O0 = MockOp('x')
-        print_test_message('First Operator.id() == 0', O0.id(), 0)
-        self.assertEqual(O0.id(), 0, 'First Operator.id() != 0')
-        O1 = MockOp('y')
-        print_test_message('Second Operator.id() == 1', O1.id(), 1)
-        self.assertEqual(O1.id(), 1, 'Second Operator.id() != 1')
-        O2 = MockOp('x')
-        print_test_message('Third Operator.id() == 2', O2.id(), 2)
-        self.assertEqual(O2.id(), 2, 'Third Operator.id() != 2')
+    def test_str(self):
+        opname = 'xop'
+        testname = 'Mock Operator.__str__()'.format(opname)
+        O = MockOp(opname)
+        actual = str(O)
+        expected = opname
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator string conversion incorrect')
+
+    def test_units_default(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units({!r})'.format(opname)
+        O = MockOp(opname)
+        actual = O.units
+        expected = Unit(1)
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator name incorrect')
+
+    def test_units_set(self):
+        opname = 'xop'
+        units = 'm'
+        testname = 'Mock Operator.units({!r}, units={!r})'.format(opname, units)
+        O = MockOp(opname, units=units)
+        actual = O.units
+        expected = Unit(units)
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator name incorrect')
+    
+    def test_equal_same(self):
+        nm = 'xop'
+        un = 'm'
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm, un, nm, un)
+        O1 = MockOp(nm, units=un)
+        O2 = MockOp(nm, units=un)
+        actual = (O1 == O2)
+        expected = True
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')
+
+    def test_equal_diff_units(self):
+        nm1 = 'xop'
+        nm2 = nm1
+        un1 = 'm'
+        un2 = Unit('km')
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm1, un1, nm2, un2)
+        O1 = MockOp(nm1, units=un1)
+        O2 = MockOp(nm2, units=un2)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')
+
+    def test_equal_diff_names(self):
+        nm1 = 'xop'
+        nm2 = 'yop'
+        un1 = 'm'
+        un2 = un1
+        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
+                    '{!r})').format(nm1, un1, nm2, un2)
+        O1 = MockOp(nm1, units=un1)
+        O2 = MockOp(nm2, units=un2)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator equality not correct')    
 
 
 #===============================================================================
-# VariableSliceReaderTests
+# InputSliceReaderTests
 #===============================================================================
-class VariableSliceReaderTests(unittest.TestCase):
+class InputSliceReaderTests(unittest.TestCase):
     """
-    Unit tests for the operators.VariableSliceReader class
+    Unit tests for the operators.InputSliceReader class
     """
     
     def setUp(self):
@@ -112,40 +179,40 @@ class VariableSliceReaderTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'VariableSliceReader.__init__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var)
+        testname = 'InputSliceReader.__init__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var)
         actual = type(VSR)
-        expected = ops.VariableSliceReader
+        expected = ops.InputSliceReader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_filename_failure(self):
-        testname = 'VariableSliceReader.__init__(bad filename)'
+        testname = 'InputSliceReader.__init__(bad filename)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.VariableSliceReader, 'badname.nc', self.var)
+                          ops.InputSliceReader, 'badname.nc', self.var)
         print_test_message(testname, actual, expected)
 
     def test_init_varname_failure(self):
-        testname = 'VariableSliceReader.__init__(bad variable name)'
+        testname = 'InputSliceReader.__init__(bad variable name)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.VariableSliceReader, self.ncfile, 'badvar')
+                          ops.InputSliceReader, self.ncfile, 'badvar')
         print_test_message(testname, actual, expected)
 
     def test_init_with_slice(self):
-        testname = 'VariableSliceReader.__init__(slice)'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'InputSliceReader.__init__(slice)'
+        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
         actual = type(VSR)
-        expected = ops.VariableSliceReader
+        expected = ops.InputSliceReader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call(self):
-        testname = 'VariableSliceReader().__call__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var)
+        testname = 'InputSliceReader().__call__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var)
         actual = VSR()
         expected = self.vardata
         print_test_message(testname, actual, expected)
@@ -153,10 +220,20 @@ class VariableSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_call_slice(self):
-        testname = 'VariableSliceReader(slice).__call__()'
-        VSR = ops.VariableSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'InputSliceReader(slice).__call__()'
+        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
         actual = VSR()
         expected = self.vardata[self.slice]
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected,
+                               '{} failed'.format(testname))
+
+    def test_equal(self):
+        testname = 'InputSliceReader() == InputSliceReader()'
+        VSR1 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        VSR2 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        actual = VSR1 == VSR2
+        expected = True
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected,
                                '{} failed'.format(testname))
@@ -215,7 +292,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
         testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, 1)
+        FE = ops.FunctionEvaluator(opname, operator.add, args=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -224,7 +301,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
         testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, None, 2)
+        FE = ops.FunctionEvaluator(opname, operator.add, args=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)
@@ -238,6 +315,92 @@ class FunctionEvaluatorTests(unittest.TestCase):
         expected = operator.sub(*self.params)
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
+
+    def test_equal(self):
+        opname = 'sub(a,b)'
+        testname = 'FunctionEvaluator() == FunctionEvaluator()'
+        FE1 = ops.FunctionEvaluator(opname, operator.sub)
+        FE2 = ops.FunctionEvaluator(opname, operator.sub)
+        actual = FE1 == FE2
+        expected = True
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected,
+                               '{} failed'.format(testname))
+
+
+#===============================================================================
+# OutputSliceHandleTests
+#===============================================================================
+class OutputSliceHandleTests(unittest.TestCase):
+    """
+    Unit tests for the operators.OutputSliceHandle class
+    """
+    
+    def setUp(self):
+        self.ncfile = 'vslicetest.nc'
+        self.shape = (2,4)
+        self.size = reduce(lambda x,y: x*y, self.shape, 1)
+        dataset = nc.Dataset(self.ncfile, 'w')
+        dataset.createDimension('x', self.shape[0])
+        dataset.createDimension('t')
+        dataset.createVariable('x', 'd', ('x',))
+        dataset.variables['x'][:] = np.arange(self.shape[0])
+        dataset.createVariable('t', 'd', ('t',))
+        dataset.variables['t'][:] = np.arange(self.shape[1])
+        self.var = 'v'
+        dataset.createVariable(self.var, 'd', ('x', 't'))
+        self.vardata = np.arange(self.size, dtype=np.float64).reshape(self.shape)
+        dataset.variables[self.var][:] = self.vardata
+        dataset.close()
+        self.slice = (slice(0, 1), slice(1, 3))
+        
+    def tearDown(self):
+        if exists(self.ncfile):
+            remove(self.ncfile)
+
+    def test_init(self):
+        testname = 'OutputSliceHandle.__init__()'
+        OSH = ops.OutputSliceHandle('x')
+        actual = type(OSH)
+        expected = ops.OutputSliceHandle
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_min_ok(self):
+        indata = 1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
+    def test_min_warn(self):
+        indata = -1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_max_ok(self):
+        indata = 1.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
+    def test_max_warn(self):
+        indata = 11.0
+        testname = 'OutputSliceHandle({})'.format(indata)
+        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        actual = OSH(indata)
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
 #===============================================================================

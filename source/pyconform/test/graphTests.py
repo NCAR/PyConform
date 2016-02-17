@@ -1,7 +1,7 @@
 """
 DiGraph Unit Tests
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -109,13 +109,13 @@ class GraphTests(unittest.TestCase):
         G.connect(2, 4)
         G.clear()
         testname = 'DiGraph.clear() vertices'
-        actual = G.vertices()
-        expected = list()
+        actual = G.vertices
+        expected = set()
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
         testname = 'DiGraph.clear() - edges'
-        actual = G.edges()
+        actual = G.edges
         expected = list()
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -137,7 +137,7 @@ class GraphTests(unittest.TestCase):
         G = graph.DiGraph()
         indata = 1
         G.add(indata)
-        actual = G.vertices()
+        actual = G.vertices
         expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -148,7 +148,7 @@ class GraphTests(unittest.TestCase):
         testname = 'DiGraph.edges()'
         G = graph.DiGraph()
         G.connect(*indata)
-        actual = G.edges()
+        actual = G.edges
         expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -250,7 +250,7 @@ class GraphTests(unittest.TestCase):
         G.connect(*indata)
         G.connect(3,5)
         G.disconnect(*indata)
-        actual = G.edges()
+        actual = G.edges
         expected = [(3,5)]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -398,6 +398,37 @@ class GraphTests(unittest.TestCase):
         G.connect(5, 1)
         actual = G.toposort()
         expected = None
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+
+    def test_is_not_cyclic(self):
+        testname = 'DiGraph.is_cyclic(acyclic)'
+        G = graph.DiGraph()
+        G.add(0)
+        G.connect(1, 2)
+        G.connect(2, 3)
+        G.connect(2, 4)
+        G.connect(3, 5)
+        G.connect(4, 5)
+        actual = G.is_cyclic()
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         '{} returned unexpected result'.format(testname))
+ 
+    def test_is_cyclic(self):
+        testname = 'DiGraph.is_cyclic(cyclic)'
+        G = graph.DiGraph()
+        G.add(0)
+        G.connect(1, 2)
+        G.connect(2, 3)
+        G.connect(2, 4)
+        G.connect(3, 5)
+        G.connect(4, 5)
+        G.connect(5, 1)
+        actual = G.is_cyclic()
+        expected = True
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))

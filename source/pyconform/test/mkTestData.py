@@ -1,7 +1,7 @@
 """
 Make Testing Data
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

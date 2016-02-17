@@ -4,7 +4,7 @@ Dataset Interface Class
 This file contains the interface classes to the input and output multi-file
 datasets.
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -12,6 +12,7 @@ from os import linesep
 from collections import OrderedDict
 from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
+from cf_units import Unit
 
 
 #===============================================================================
@@ -28,9 +29,21 @@ class DimensionInfo(object):
             size (int): Dimension size
             unlimited (bool): Whether the dimension is unlimited or not
         """
-        self.name = str(name)
-        self.size = int(size) if size else None        
-        self.unlimited = bool(unlimited)
+        self._name = str(name)
+        self._size = int(size) if size else None        
+        self._unlimited = bool(unlimited)
+    
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def size(self):
+        return self._size
+
+    @property
+    def unlimited(self):
+        return self._unlimited
 
     def __eq__(self, other):
         if self.name != other.name:
@@ -47,6 +60,7 @@ class DimensionInfo(object):
     def __str__(self):
         unlim_str = ', unlimited' if self.unlimited else ''
         return '{!r} [{}{}]'.format(self.name, self.size, unlim_str)
+        
         
 #=========================================================================
 # VariableInfo
@@ -70,12 +84,36 @@ class VariableInfo(object):
             definition (str): Optional string definition of variable
             filename (str): Filename for read/write of variable
         """
-        self.name = str(name)
-        self.datatype = '{!s}'.format(dtype(datatype))
-        self.dimensions = dimensions
-        self.attributes = attributes
-        self.definition = definition
-        self.filename = filename
+        self._name = str(name)
+        self._datatype = '{!s}'.format(dtype(datatype))
+        self._dimensions = dimensions
+        self._attributes = attributes
+        self._definition = definition
+        self._filename = filename
+    
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def datatype(self):
+        return self._datatype
+
+    @property
+    def dimensions(self):
+        return self._dimensions
+
+    @property
+    def attributes(self):
+        return self._attributes
+
+    @property
+    def definition(self):
+        return self._definition
+
+    @property
+    def filename(self):
+        return self._filename
 
     def __eq__(self, other):
         if self.name != other.name:
@@ -109,11 +147,17 @@ class VariableInfo(object):
                 strval += '      {}: {!r}'.format(aname, avalue) + linesep
         return strval
 
+    def standard_name(self):
+        return self.attributes.get('standard_name')
+
     def units(self):
         return self.attributes.get('units')
 
-    def standard_name(self):
-        return self.attributes.get('standard_name')
+    def calendar(self):
+        return self.attributes.get('calendar')
+    
+    def cfunits(self):
+        return Unit(self.units(), calendar=self.calendar())
 
 
 #=========================================================================
@@ -136,7 +180,7 @@ class Dataset(object):
             gattribs (dict): Dictionary of attributes common to all files
                 in the dataset
         """
-        self.name = str(name)
+        self._name = str(name)
         
         if not isinstance(variables, dict):
             err_msg = ('Dataset {!r} variables must be given in a '
@@ -155,7 +199,7 @@ class Dataset(object):
                 err_msg = ('Variable {!r} has no standard_name in Dataset '
                            '{!r}').format(vinfo.name, self.name)
                 raise ValueError(err_msg)
-        self.variables = variables
+        self._variables = variables
 
         if not isinstance(dimensions, dict):
             err_msg = ('Dataset {!r} dimensions must be given in a '
@@ -166,14 +210,30 @@ class Dataset(object):
                 err_msg = ('Dataset {!r} dimensions must be DimensionInfo '
                            'type').format(self.name)
                 raise TypeError(err_msg)
-        self.dimensions = dimensions
+        self._dimensions = dimensions
 
         if not isinstance(gattribs, dict):
             err_msg = ('Dataset {!r} global attributes must be given in a '
                        'dict').format(self.name)
             raise TypeError(err_msg)
-        self.attributes = gattribs
-                
+        self._attributes = gattribs
+        
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def variables(self):
+        return self._variables
+    
+    @property
+    def dimensions(self):
+        return self._dimensions
+    
+    @property
+    def attributes(self):
+        return self._attributes
+                    
     def get_dict(self):
         """
         Return the dictionary form of the Dataset definition
@@ -316,7 +376,7 @@ class InputDataset(Dataset):
         # Check variable file occurrences
         for vname, vfiles in varfiles.iteritems():
             if len(vfiles) == 1:
-                variables[vname].filename = vfiles[0]
+                variables[vname]._filename = vfiles[0]
             elif len(vfiles) < len(filenames):
                 missing_files = set(filenames) - set(vfiles)
                 wrn_msg = ('Variable {!r} appears to be metadata but does '
@@ -341,9 +401,10 @@ class OutputDataset(Dataset):
             name (str): String name to optionally give to a dataset
             dsdict (dict): Dictionary describing the dataset variables
         """
-        attributes = dsdict['attributes']
+        attributes = dsdict.get('attributes', OrderedDict())
         variables = OrderedDict()
-        for vname, vdict in dsdict['variables'].iteritems():
+        invars = dsdict.get('variables', OrderedDict())
+        for vname, vdict in invars.iteritems():
             kwargs = {}
             if 'dimensions' not in vdict:
                 err_msg = ('Dimensions are required for variable '

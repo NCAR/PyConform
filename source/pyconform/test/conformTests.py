@@ -1,7 +1,7 @@
 """
 Dataset Unit Tests
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -53,12 +53,13 @@ class ConformTests(unittest.TestCase):
     """
 
     def setUp(self):        
-        self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
+        self.filenames = OrderedDict([('u1', 'u1.nc'),
+                                      ('u2', 'u2.nc')])
         self._clear_()
         
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
+        self.dims = OrderedDict([('time', 8), ('lat', 7), ('lon', 6)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
@@ -68,7 +69,7 @@ class ConformTests(unittest.TestCase):
                                    ('time', {'units': 'days since 1979-01-01 0:0:0',
                                              'calendar': 'noleap',
                                              'standard_name': 'time'}),
-                                   ('u1', {'units': 'm',
+                                   ('u1', {'units': 'km',
                                            'standard_name': 'u variable 1'}),
                                    ('u2', {'units': 'm',
                                            'standard_name': 'u variable 2'})])
@@ -77,6 +78,7 @@ class ConformTests(unittest.TestCase):
                               endpoint=True, dtype=self.dtypes['lat'])
         xdat = numpy.linspace(-180, 180, num=self.dims['lon'],
                               endpoint=False, dtype=self.dtypes['lon'])
+        xdat = -xdat[::-1]
         tdat = numpy.linspace(0, self.dims['time'], num=self.dims['time'],
                               endpoint=False, dtype=self.dtypes['time'])
         ulen = reduce(lambda x,y: x*y, self.dims.itervalues(), 1)
@@ -134,7 +136,7 @@ class ConformTests(unittest.TestCase):
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
-        vattribs['units'] = 'days since 01-01-0001 00:00:00'
+        vattribs['units'] = 'days since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
         vdicts['T']['attributes'] = vattribs
 
@@ -145,7 +147,7 @@ class ConformTests(unittest.TestCase):
         vdicts['V1']['filename'] = 'var1.nc'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
-        vattribs['units'] = 'm'
+        vattribs['units'] = 'cm'
         vdicts['V1']['attributes'] = vattribs
 
         vdicts['V2'] = OrderedDict()
@@ -155,9 +157,29 @@ class ConformTests(unittest.TestCase):
         vdicts['V2']['filename'] = 'var2.nc'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 2'
-        vattribs['units'] = 'm'
+        vattribs['units'] = 'cm'
         vdicts['V2']['attributes'] = vattribs
-        
+
+        vdicts['V3'] = OrderedDict()
+        vdicts['V3']['datatype'] = 'float64'
+        vdicts['V3']['dimensions'] = ('x', 'y', 't')
+        vdicts['V3']['definition'] = 'u2'
+        vdicts['V3']['filename'] = 'var3.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 3'
+        vattribs['units'] = 'cm'
+        vdicts['V3']['attributes'] = vattribs
+
+        vdicts['V4'] = OrderedDict()
+        vdicts['V4']['datatype'] = 'float64'
+        vdicts['V4']['dimensions'] = ('t', 'x', 'y')
+        vdicts['V4']['definition'] = 'u1'
+        vdicts['V4']['filename'] = 'var4.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 4'
+        vattribs['units'] = 'km'
+        vdicts['V4']['attributes'] = vattribs
+                
         self.outds = dataset.OutputDataset('outds', self.dsdict)
 
     def tearDown(self):
@@ -168,106 +190,6 @@ class ConformTests(unittest.TestCase):
         for fname in self.filenames.itervalues():
             if exists(fname):
                 remove(fname)
-
-    #===== name_definition tests =================================================
-
-    def test_name_definition(self):
-        indata = (operator.add, (operator.div, 'y', 3), 'x')
-        actual = conform.name_definition(indata)
-        expected = 'add(div(y,3),x)'
-        print_test_message('name_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'name_definition() incorrect')
-
-    def test_name_definition_var_only(self):
-        indata = 'xyz'
-        actual = conform.name_definition(indata)
-        expected = indata
-        print_test_message('name_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'name_definition() incorrect')
-
-    #===== gather_dimensions tests =============================================
-    
-    def test_gather_dimensions(self):
-        indata = (operator.mul, 0.5, (operator.add, 'u1', 'u2'))
-        actual = conform.gather_dimensions(indata, self.inpds)
-        expected = {'mul(0.5,add(u1,u2))':
-                    {'add(u1,u2)':
-                     {'u1': self.inpds.variables['u1'].dimensions, 
-                      'u2': self.inpds.variables['u2'].dimensions},
-                     '0.5': None}}
-        print_test_message('gather_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
-
-    def test_gather_dimensions_var_only(self):
-        indata = 'u1'
-        actual = conform.gather_dimensions(indata, self.inpds)
-        expected = {'u1': self.inpds.variables['u1'].dimensions}
-        print_test_message('gather_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
-
-    def test_gather_dimensions_number_only(self):
-        indata = 1
-        actual = conform.gather_dimensions(indata, self.inpds)
-        expected = {str(indata): None}
-        print_test_message('gather_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'gather_dimensions() incorrect')
-
-    #===== reduce_dimensions tests =============================================
-
-    def test_reduce_dimensions(self):
-        indata = {'mul(0.5,add(u1,u2))':
-                  {'add(u1,u2)':
-                   {'u1': self.inpds.variables['u1'].dimensions, 
-                    'u2': self.inpds.variables['u2'].dimensions}}}
-        actual = conform.reduce_dimensions(indata)
-        expected = self.inpds.variables['u1'].dimensions
-        print_test_message('reduce_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-
-    def test_reduce_dimensions_number_only(self):
-        indata = {'1': None}
-        actual = conform.reduce_dimensions(indata)
-        expected = None
-        print_test_message('reduce_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-
-    def test_reduce_dimensions_dims_only(self):
-        indata = ('x', 'y', 't')
-        actual = conform.reduce_dimensions(indata)
-        expected = indata
-        print_test_message('reduce_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-                
-    def test_reduce_dimensions_var_only(self):
-        indata = {'u': ('x', 'y')}
-        actual = conform.reduce_dimensions(indata)
-        expected = indata['u']
-        print_test_message('reduce_dimensions()',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'reduce_dimensions() incorrect')
-
-    #===== build_opgraphs tests ================================================
-    
-#     def test_build_opgraphs(self):
-#         defs = conform.parse_definitions(self.inpds, self.outds)
-#         actual = conform.build_opgraphs(self.inpds, defs)
-#         expected = None
-#         print_test_message('build_opgraphs()',
-#                            actual=actual, expected=expected)
-#         self.assertEqual(actual, expected,
-#                          'build_opgraphs() incorrect')
-        
-    #===== conform tests ================================================
 
     def test_conform(self):
         with open('conform.spec', 'w') as fp:

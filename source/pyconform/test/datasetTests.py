@@ -1,7 +1,7 @@
 """
 Dataset Unit Tests
 
-COPYRIGHT: 2015, University Corporation for Atmospheric Research
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -10,6 +10,7 @@ from os.path import exists
 from pyconform import dataset
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
+from cf_units import Unit
 
 import numpy as np
 import unittest
@@ -324,6 +325,47 @@ class InfoObjTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Default VariableInfo.units() not {}'.format(indata))
 
+    def test_vinfo_calendar_default(self):
+        vinfo = dataset.VariableInfo('x')
+        actual = vinfo.calendar()
+        expected = None
+        print_test_message('VariableInfo.calendar()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected,
+                         'Default VariableInfo.calendar() not None')
+
+    def test_vinfo_calendar(self):
+        indata = 'noleap'
+        vinfo = dataset.VariableInfo('x', attributes={'units': 'days',
+                                                      'calendar': indata})
+        actual = vinfo.calendar()
+        expected = indata
+        print_test_message('VariableInfo.calendar()', indata=indata,
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected,
+                         'VariableInfo.calendar() not {}'.format(indata))
+
+    def test_vinfo_cfunits_default(self):
+        vinfo = dataset.VariableInfo('time')
+        actual = vinfo.cfunits()
+        expected = Unit(None)
+        print_test_message('VariableInfo.cfunits() == None',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected,
+                         'Default VariableInfo.cfunits() not None')
+
+    def test_vinfo_cfunits(self):
+        units = 'days'
+        calendar = 'noleap'
+        vinfo = dataset.VariableInfo('x', attributes={'units': units,
+                                                      'calendar': calendar})
+        actual = vinfo.cfunits()
+        expected = Unit(units, calendar=calendar)
+        print_test_message('VariableInfo.cfunits()',
+                           actual=str(actual), expected=str(expected))
+        self.assertEqual(actual, expected,
+                         'Default VariableInfo.cfunits() not {}'.format(expected))
+        
     def test_vinfo_standard_name(self):
         indata = 'X var'
         vinfo = dataset.VariableInfo('x', attributes={'standard_name': indata})
@@ -352,7 +394,7 @@ class DatasetTests(unittest.TestCase):
     Unit Tests for the pyconform.dataset module
     """
 
-    def setUp(self):        
+    def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
         self._clear_()
         
