@@ -313,8 +313,18 @@ class GraphFillerTests(unittest.TestCase):
     def test_from_definitions(self):
         g = opgraph.OperationGraph()
         gfiller = opgraph.GraphFiller()
-        groots = gfiller.from_definitions(g, self.inpds, self.outds)
+        gfiller.from_definitions(g, self.inpds, self.outds)
         print_test_message('GraphFiller.from_definitions()')
+
+    def test_dimension_map(self):
+        g = opgraph.OperationGraph()
+        gfiller = opgraph.GraphFiller()
+        gfiller.from_definitions(g, self.inpds, self.outds)
+        actual = gfiller.dimension_map
+        expected = {'x': 'lon', 'y': 'lat', 't': 'time'}
+        print_test_message('GraphFiller.from_definitions()')
+        self.assertDictEqual(actual, expected,
+                             'Dimension map incorrect')
 
 
 #===============================================================================

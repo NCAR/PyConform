@@ -136,6 +136,11 @@ class GraphFiller(object):
         self._ids = None
         self._ods = None
         self._ifncycle = None
+        self._dimmap = None
+    
+    @property
+    def dimension_map(self):
+        return self._dimmap
     
     def _int_operand_parser_(self, s, l, t):
         return int(t[0])
@@ -446,14 +451,14 @@ class GraphFiller(object):
             groots[vname] = groot
             
         # Create the dimension name map
-        dim_map = self._map_dimensions_(groots)
+        self._dimmap = self._map_dimensions_(groots)
 
         # Map the dimensions
         for vname, vinfo in self._ods.variables.iteritems():
             groot = groots[vname]
 
             # Check if dimensions match
-            vdims = tuple(dim_map[d] for d in vinfo.dimensions)
+            vdims = tuple(self._dimmap[d] for d in vinfo.dimensions)
             if groot.dimensions != vdims:
                 if set(groot.dimensions) == set(vdims):
                     neworder = [vdims.index(d) for d in groot.dimensions]
