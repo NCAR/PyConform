@@ -178,6 +178,8 @@ class ConformTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 4'
         vattribs['units'] = 'km'
+        vattribs['valid_min'] = 1.0
+        vattribs['valid_max'] = 100.0
         vdicts['V4']['attributes'] = vattribs
                 
         self.outds = dataset.OutputDataset('outds', self.dsdict)
