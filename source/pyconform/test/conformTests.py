@@ -169,7 +169,17 @@ class ConformTests(unittest.TestCase):
         vattribs['standard_name'] = 'variable 3'
         vattribs['units'] = 'cm'
         vdicts['V3']['attributes'] = vattribs
-        
+
+        vdicts['V4'] = OrderedDict()
+        vdicts['V4']['datatype'] = 'float64'
+        vdicts['V4']['dimensions'] = ('t', 'x', 'y')
+        vdicts['V4']['definition'] = 'u1'
+        vdicts['V4']['filename'] = 'var4.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 4'
+        vattribs['units'] = 'km'
+        vdicts['V4']['attributes'] = vattribs
+                
         self.outds = dataset.OutputDataset('outds', self.dsdict)
 
     def tearDown(self):
