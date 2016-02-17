@@ -54,9 +54,17 @@ class Operator(object):
             units (Unit): The units of the data returned by the function
             dimensions (tuple): Dimensions of the returned data
         """
-        self._name = str(name)
-        self._units = Unit(units)
-        self._dimensions = tuple(dimensions)
+        if not isinstance(name, (str, unicode)):
+            raise TypeError('Operator names must be strings')
+        self._name = name
+
+        if not isinstance(units, Unit):
+            raise TypeError('Operator units must be of Unit type')
+        self._units = units
+        
+        if not isinstance(dimensions, tuple):
+            raise TypeError('Operator dimensions must be tuples')
+        self._dimensions = dimensions
     
     @property
     def name(self):

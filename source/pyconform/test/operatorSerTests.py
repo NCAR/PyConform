@@ -149,11 +149,10 @@ class OperatorTests(unittest.TestCase):
                          'Operator equality not correct')    
 
 
-
 #===============================================================================
-# VariableSliceReaderTests
+# InputSliceReaderTests
 #===============================================================================
-class VariableSliceReaderTests(unittest.TestCase):
+class InputSliceReaderTests(unittest.TestCase):
     """
     Unit tests for the operators.InputSliceReader class
     """
