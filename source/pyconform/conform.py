@@ -92,4 +92,5 @@ def conform(inp, out):
         
         # Now perform the operation graphs and write data to variables
         for vname, vobj in ncvars.iteritems():
-            vobj[:] = opgraph(groots[vname])
+            groot = groots[vname]
+            vobj[:] = opgraph(groot)
