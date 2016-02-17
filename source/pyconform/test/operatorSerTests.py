@@ -10,7 +10,6 @@ from os.path import exists
 from pyconform import operators as ops
 from os import linesep
 from cf_units import Unit
-from StringIO import StringIO
 
 import operator
 import numpy as np
