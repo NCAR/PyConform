@@ -83,6 +83,13 @@ class OperationGraph(DiGraph):
         def evaluate_from(op):
             return op(*map(evaluate_from, self.neighbors_to(op)))
         return evaluate_from(root)
+    
+    def handles(self):
+        """
+        Return a dictionary of output variable handles in the graph
+        """
+        return dict((op.name, op) for op in self.vertices
+                    if isinstance(op, OutputSliceHandle))
 
 
 #===============================================================================
@@ -93,38 +100,10 @@ class GraphFiller(object):
     Object that fills an OperationGraph
     """
     
-    def __init__(self, opgraph):
+    def __init__(self):
         """
         Initializer
-        
-        Parameters:
-            opgraph (OperationGraph): The graph to be filled
-            inp (InputDataset): The input dataset containing the variable
-                information referenced by the output dataset definitions
         """
-        # Input operation graph
-        self.set_graph(opgraph)
-
-        # Get the internal definition string parser
-        self._defparser = self._build_parser_()
-        
-        # Place-holders for future operations
-        self._ids = InputDataset()
-        self._ods = OutputDataset()
-        self._ifncycle = None
-    
-    def set_graph(self, opgraph):
-        """
-        Set the operation graph to be filled
-
-        Parameters:
-            opgraph (OperationGraph): The graph to be filled
-        """
-        if not isinstance(opgraph, OperationGraph):
-            raise TypeError('OpGraph must be of OperationGraph type')
-        self._opgraph = opgraph
-
-    def _build_parser_(self):
         # Integer operands
         integers = Word(nums)
         integers.setParseAction(self._int_operand_parser_)
@@ -150,7 +129,13 @@ class GraphFiller(object):
         op_order = [pow_op, sgn_op, mul_op, add_op]
     
         # Define the expression parser using operator precedence
-        return operatorPrecedence(operand, op_order)
+        self._defparser = operatorPrecedence(operand, op_order)
+        
+        # Place-holders for future operations
+        self._opgraph = None
+        self._ids = None
+        self._ods = None
+        self._ifncycle = None
     
     def _int_operand_parser_(self, s, l, t):
         return int(t[0])
@@ -399,11 +384,13 @@ class GraphFiller(object):
             self._opgraph.connect(op1, op)
         return op
     
-    def from_definitions(self, inp=InputDataset(), out=OutputDataset()):
+    def from_definitions(self, opgraph, inp, out):
         """
         Fill the OperationGraph with Operators from variable definitions
         
         Parameters:
+            opgraph (OperationGraph): The operation graph to fill from the
+                output variable definitions
             inp (InputDataset): The input dataset with variables referenced
                 in the output variable definitions
             out (OutputDataset): The output dataset with variables defined
@@ -413,6 +400,10 @@ class GraphFiller(object):
             OrderedDict: ordered dictionary mapping output variable names to
                 root Operators in the OperationGraph
         """
+        # OperationGraph
+        if not isinstance(opgraph, OperationGraph):
+            raise TypeError('Operation graph must be of OperationGraph type')
+        self._opgraph = opgraph
         
         # Input/reference dataset
         if not isinstance(inp, InputDataset):
@@ -431,55 +422,52 @@ class GraphFiller(object):
         # Parse the output variable definitions
         groots = OrderedDict()
         for vname, vinfo in self._ods.variables.iteritems():
-            
-            # Retrieve the definition string
             definition = self._ods.variables[vname].definition
-        
-            # Parse the definition string and fill the graph
-            defroot = self._defparser.parseString(definition)[0]
+            groot = self._defparser.parseString(definition)[0]
             
             # Check if units match
             vunits = vinfo.cfunits()
-            if defroot.units != vunits:
-                if defroot.units.is_convertible(vunits):
-                    cname = 'convert({!s},to={!s})'.format(defroot.name, vunits)
+            if groot.units != vunits:
+                if groot.units.is_convertible(vunits):
+                    cname = 'convert({!s},to={!s})'.format(groot.name, vunits)
                     cargs = [None, vunits]
-                    cop = FunctionEvaluator(cname, defroot.units.convert,
+                    cop = FunctionEvaluator(cname, groot.units.convert,
                                             args=cargs, units=vunits,
-                                            dimensions=defroot.dimensions)
-                    self._opgraph.connect(defroot, cop)
-                    defroot = cop
+                                            dimensions=groot.dimensions)
+                    self._opgraph.connect(groot, cop)
+                    groot = cop
                 else:
-                    raise UnitsError(('Cannot convert units {!s} to '
+                    raise UnitsError(('Cannot convert units {!r} to '
                                       'output variable {!r} units '
-                                      '{!s}').format(defroot.units, 
+                                      '{!r}').format(groot.units, 
                                                      vname, vunits))
 
             # Save the root operator
-            groots[vname] = defroot
+            groots[vname] = groot
             
         # Create the dimension name map
         dim_map = self._map_dimensions_(groots)
 
         # Map the dimensions
-        for vname, defroot in groots.iteritems():
-        
+        for vname, vinfo in self._ods.variables.iteritems():
+            groot = groots[vname]
+
             # Check if dimensions match
-            vdims = [dim_map[d] for d in vinfo.dimensions]
-            if defroot.dimensions != vdims:
-                if set(defroot.dimensions) == set(vdims):
-                    neworder = [vdims.index(d) for d in defroot.dimensions]
-                    tname = 'transpose({},order={})'.format(defroot.name, neworder)
+            vdims = tuple(dim_map[d] for d in vinfo.dimensions)
+            if groot.dimensions != vdims:
+                if set(groot.dimensions) == set(vdims):
+                    neworder = [vdims.index(d) for d in groot.dimensions]
+                    tname = 'transpose({},order={})'.format(groot.name, neworder)
                     top = FunctionEvaluator(tname, transpose,
                                             args=[None, neworder],
-                                            units=defroot.units,
+                                            units=groot.units,
                                             dimensions=vdims)
-                    self._opgraph.connect(defroot, top)
-                    defroot = top
+                    self._opgraph.connect(groot, top)
+                    groot = top
                 else:
                     raise DimensionsError(('Cannot transpose dimensions {!s} '
                                            'to output variable {!r} dimensions '
-                                           '{!s}').format(defroot.dimensions,
+                                           '{!s}').format(groot.dimensions,
                                                           vname, vdims))
             
             # Create the final output variable handle
@@ -488,28 +476,64 @@ class GraphFiller(object):
             outop = OutputSliceHandle(vname, units=vinfo.cfunits(),
                                       dimensions=vinfo.dimensions,
                                       minimum=vmin, maximum=vmax)
-            self._opgraph.connect(defroot, outop)
+            self._opgraph.connect(groot, outop)
             groots[vname] = outop
         
         return groots
  
     def _map_dimensions_(self, groots):
         dim_map = {}
-        for vname, defroot in groots.iteritems():
-            odims = self._ods.variables[vname].dimensions
-            idims = defroot.dimensions
+        
+        # Sort output variables by dimension size
+        vordered = OrderedDict(sorted(self._ods.variables.iteritems(),
+                                      key=lambda item: len(item[1].dimensions)))
+
+        # In dimension-length order, attempt to map input to ouput dimensions
+        for vname, vinfo in vordered.iteritems():
+            groot = groots[vname]
+            odims = vinfo.dimensions
+            idims = groot.dimensions
             if len(odims) != len(idims):
-                defstr = defroot.name
-                err_msg = ('Output variable {!r} has dimensions {} while its '
-                           'definition {!r} has dimensions '
-                           '{}').format(vname, len(odims), defstr, len(idims))
+                err_msg = ('Output variable {!r} has dimensions {} that cannot '
+                           'be mapped to its definition {!r} with dimensions '
+                           '{}').format(vname, odims, groot.name, idims)
                 raise ValueError(err_msg)
-            for odim, idim in zip(odims, idims):
-                if odim not in dim_map:
-                    dim_map[odim] = str(idim)
-                elif idim != dim_map[odim]:
-                    err_msg = ('Output dimension {!r} in output variable {!r} '
-                               'appears to map to both input dimensions {!r} and '
-                               '{!r}').format(odim, vname, idim, dim_map[odim])
-                    raise ValueError(err_msg)
+
+            # Find the unmapped dimensions
+            xodims = []
+            xidims = [idim for idim in idims]
+            for odim in odims:
+                if odim in dim_map:
+                    idim = dim_map[odim]
+                    if idim not in idims:
+                        err_msg = ('Output variable {!r} has an output '
+                                   'dimension {!r} that appears to map to '
+                                   'input dimension {!r} which is not found '
+                                   'in its definition '
+                                   '{!r}').format(vname, odim, idim, groot.name)
+                        raise ValueError(err_msg)
+                    if idim in xidims:
+                        xidims.remove(idim)
+                else:
+                    xodims.append(odim)
+
+            if len(xodims) != len(xidims):
+                err_msg = ('Unmapped output dimensions {!r} cannot be mapped '
+                           'to input dimensions {!r} for output variable {!r} '
+                           'with definition '
+                           '{!r}').format(odim, idim, vname, groot.name)
+                raise ValueError(err_msg)
+            
+            if len(xodims) == 1:
+                xodim = xodims[0]
+                xidim = xidims[0]
+                dim_map[xodim] = xidim
+                
+            elif len(xodims) > 1:
+                err_msg = ('Unmapped output dimensions {!r} cannot be mapped '
+                           'safely to input dimensions {!r} for output '
+                           'variable {!r} with definition '
+                           '{!r}').format(xodims, xidims, vname, groot.name)
+                raise ValueError(err_msg)
+
         return dim_map

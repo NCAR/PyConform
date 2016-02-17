@@ -178,9 +178,9 @@ class GraphFillerTests(unittest.TestCase):
     """
 
     def setUp(self):        
-        self.filenames = OrderedDict([('u1', 'u1.nc'),
-                                      ('u2', 'u2.nc'),
-                                      ('u3', 'u3.nc')])
+        self.filenames = OrderedDict([('u1', 'w1.nc'),
+                                      ('u2', 'w2.nc'),
+                                      ('u3', 'w3.nc')])
         self._clear_()
         
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
@@ -267,7 +267,7 @@ class GraphFillerTests(unittest.TestCase):
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
-        vattribs['units'] = 'days since 01-01-0001 00:00:00'
+        vattribs['units'] = 'days since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
         vdicts['T']['attributes'] = vattribs
 
@@ -302,8 +302,7 @@ class GraphFillerTests(unittest.TestCase):
                 remove(fname)
 
     def test_init(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g)
+        gfiller = opgraph.GraphFiller()
         actual = type(gfiller)
         expected = opgraph.GraphFiller
         print_test_message('type(GraphFiller)',
@@ -311,117 +310,11 @@ class GraphFillerTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'GraphFiller type not correct')
 
-    def test_from_definition_pow_numbers(self):
+    def test_from_definitions(self):
         g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '2^2.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata.replace('^','**'))
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_add_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '2 + 1.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_sub_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '2 - 1.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_mul_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '7 * 2.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_div_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '7 / 2.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_neg_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '- +2.0'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_all_numbers(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = '((- +2.0)^4 * 3 / 8.2 + 8) * 3 - 7'
-        actual = gfiller.from_definition(indata)
-        expected = eval(indata.replace('^', '**'))
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_var_only(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = 'u1'
-        actual = gfiller.from_definition(indata)
-        expected = InputSliceReader(self.filenames[indata], indata)
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_var_plus_1(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = 'u1 + 1'
-        self.assertRaises(opgraph.UnitsError, gfiller.from_definition, indata)
-        actual = opgraph.UnitsError
-        expected = opgraph.UnitsError
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
-
-    def test_from_definition_var_plus_var(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller(g, inp=self.inpds)
-        indata = 'u1 + u2'
-        actual = gfiller.from_definition(indata)
-        expected = FunctionEvaluator('(u1+u2)', operator.add, args=[None, None],
-                                     units=Unit('m'), dimensions=self.vdims['u1'])
-        print_test_message('GraphFiller.from_definition({!r})'.format(indata),
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Graph filled incorrectly')
+        gfiller = opgraph.GraphFiller()
+        groots = gfiller.from_definitions(g, self.inpds, self.outds)
+        print_test_message('GraphFiller.from_definitions()')
 
 
 #===============================================================================
