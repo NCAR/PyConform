@@ -12,7 +12,6 @@ from pyconform import opgraph
 from pyconform.operators import InputSliceReader, FunctionEvaluator
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
-from cf_units import Unit
 from numpy import testing as nptst
 
 import operator
