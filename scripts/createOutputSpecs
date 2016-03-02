@@ -9,7 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import argparse, os
-import yaml, json
+import json
 import mip_table_parser
 from dateutil.parser import parse
 
@@ -39,6 +39,18 @@ def parseArgs(argv = None):
 
     return parser.parse_args(argv)
 
+def load(defs):
+
+    def_dict = {}
+    for line in defs:
+        split = line.split('=')
+        if (len(split) == 2):
+            def_dict[split[0].strip()] = split[1].strip()
+        else:
+            if line != '\n':
+                print 'Could not parse this line: ',line
+    return def_dict
+
 def main(argv=None):
    
     outSpec = {}
@@ -58,7 +70,7 @@ def main(argv=None):
     # Open/Read the definition file
     if os.path.isfile(args.defFile):
         with open(args.defFile) as y_definitions:
-            definitions = yaml.load(y_definitions, Loader=yaml.BaseLoader)
+            definitions = load(y_definitions)
             #print 'DEFINITIONS: ',definitions
     else:
         print 'Definition file does not exist: ',args.defFile
@@ -68,7 +80,7 @@ def main(argv=None):
     attributes = {}
     if args.globalAttrFile and os.path.isfile(args.globalAttrFile):
         with open(args.globalAttrFile) as y_attributes:
-            attributes = yaml.load(y_attributes, Loader=yaml.BaseLoader)
+            attributes = load(y_attributes)
             #print 'GLOBAL ATTRIBUTES: ',attributes
     else:
         if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
