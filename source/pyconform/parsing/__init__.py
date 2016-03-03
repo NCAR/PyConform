@@ -9,6 +9,3 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from operands import *
-from operators import *
-from definitions import *

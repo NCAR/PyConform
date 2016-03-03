@@ -20,32 +20,33 @@ class OperandParser(object):
     Class to parse operands in string variable definitions
     """
     
-    def __init__(self, pattern, action=None):
+    def __init__(self, identifier, action=None):
         """
         Initializer
         
         Parameters:
-            pattern (str): A regular expression pattern identifying the
-                operand type
+            identifier (Token): A PyParsing token identifier object
             action (callable): The function to call to transform the
                 operand from string to final form
         """
-        self._token = pp.Regex(pattern)
-        self._token.setParseAction(self)
+        if not isinstance(identifier, pp.Token):
+            raise TypeError('Identifiers must be PyParsing Tokens')
+        self._ident = identifier
+        self._ident.setParseAction(self)
         self._action = action
 
     @property
-    def token(self):
-        return self._token
+    def ident(self):
+        return self._ident
     
-    def action(self, token):
+    def _action_(self, token):
         if callable(self._action):
             return self._action(token)
         else:
             return token
     
     def __call__(self, string, location, tokens):
-        self.action(tokens[0])
+        self._action_(tokens[0])
 
 
 #===============================================================================
@@ -74,7 +75,7 @@ class VariableOperandParser(OperandParser):
         super(VariableOperandParser, self).__init__(r'[a-zA-Z_][a-zA-Z0-9_]*')
     
     def action(self, token):
-        varname = str(token)
+        varname = str(token[0])
         if varname not in self._ids.variables:
             err_msg = ('Found reference to variable {!r} that is not '
                        'is not found in the reference dataset '
