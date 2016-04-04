@@ -111,7 +111,7 @@ class DefinitionParserTests(unittest.TestCase):
 
 #===== INTEGERS ================================================================
 
-    def test_parse_integer_1(self):
+    def test_parse_integer(self):
         defp = parsing.DefinitionParser()
         indata = '1'
         actual = defp.parse(indata)
