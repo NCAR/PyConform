@@ -72,11 +72,11 @@ class DefinitionParser(object):
         dec_flt = ( Combine( Word(nums) + '.' + Word(nums) ) |
                     Combine( Word(nums) + '.' ) |
                     Combine( '.' + Word(nums) ) )
-        flt_exp = ( Combine( CaselessLiteral('e') +
+        exp_flt = ( Combine( CaselessLiteral('e') +
                              Optional( oneOf('+ -') ) +
                              Word(nums) ) )
-        floats = ( Combine( Word(nums) + flt_exp ) |
-                   Combine( dec_flt + Optional(flt_exp) ) )
+        floats = ( Combine( Word(nums) + exp_flt ) |
+                   Combine( dec_flt + Optional(exp_flt) ) )
         floats.setParseAction(lambda t: float(t[0]))
     
         # String names ...identifiers for function or variable names

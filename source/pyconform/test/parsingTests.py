@@ -490,6 +490,286 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Positive operator parsing failed')
 
+#===== POWER ===================================================================
+
+    def test_parse_int_pow_int(self):
+        defp = parsing.DefinitionParser()
+        indata = '2^1'
+        actual = defp.parse(indata)
+        expected = (op.pow, 2, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Power operator parsing failed')
+
+    def test_parse_float_pow_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '2.4 ^ 1e7'
+        actual = defp.parse(indata)
+        expected = (op.pow, 2.4, 1e7)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Power operator parsing failed')
+
+    def test_parse_func_pow_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f() ^ g(1)'
+        actual = defp.parse(indata)
+        expected = (op.pow,
+                    parsing.FunctionPST((['f'], {})),
+                    parsing.FunctionPST((['g', 1], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Power operator parsing failed')
+
+    def test_parse_var_pow_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1] ^ y'
+        actual = defp.parse(indata)
+        expected = (op.pow,
+                    parsing.VariablePST((['x', 1], {})),
+                    parsing.VariablePST((['y'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Power operator parsing failed')
+
+#===== DIV =====================================================================
+
+    def test_parse_int_div_int(self):
+        defp = parsing.DefinitionParser()
+        indata = '2/1'
+        actual = defp.parse(indata)
+        expected = (op.truediv, 2, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Division operator parsing failed')
+
+    def test_parse_float_div_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '2.4/1e7'
+        actual = defp.parse(indata)
+        expected = (op.truediv, 2.4, 1e7)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Division operator parsing failed')
+
+    def test_parse_func_div_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f() / g(1)'
+        actual = defp.parse(indata)
+        expected = (op.truediv,
+                    parsing.FunctionPST((['f'], {})),
+                    parsing.FunctionPST((['g', 1], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Division operator parsing failed')
+
+    def test_parse_var_div_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1] / y'
+        actual = defp.parse(indata)
+        expected = (op.truediv,
+                    parsing.VariablePST((['x', 1], {})),
+                    parsing.VariablePST((['y'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Division operator parsing failed')
+
+#===== MUL =====================================================================
+
+    def test_parse_int_mul_int(self):
+        defp = parsing.DefinitionParser()
+        indata = '2*1'
+        actual = defp.parse(indata)
+        expected = (op.mul, 2, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Multiplication operator parsing failed')
+
+    def test_parse_float_mul_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '2.4*1e7'
+        actual = defp.parse(indata)
+        expected = (op.mul, 2.4, 1e7)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Multiplication operator parsing failed')
+
+    def test_parse_func_mul_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f() * g(1)'
+        actual = defp.parse(indata)
+        expected = (op.mul,
+                    parsing.FunctionPST((['f'], {})),
+                    parsing.FunctionPST((['g', 1], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Multiplication operator parsing failed')
+
+    def test_parse_var_mul_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1] * y'
+        actual = defp.parse(indata)
+        expected = (op.mul,
+                    parsing.VariablePST((['x', 1], {})),
+                    parsing.VariablePST((['y'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Multiplication operator parsing failed')
+
+#===== ADD =====================================================================
+
+    def test_parse_int_add_int(self):
+        defp = parsing.DefinitionParser()
+        indata = '2+1'
+        actual = defp.parse(indata)
+        expected = (op.add, 2, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Addition operator parsing failed')
+
+    def test_parse_float_add_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '2.4+1e7'
+        actual = defp.parse(indata)
+        expected = (op.add, 2.4, 1e7)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Addition operator parsing failed')
+
+    def test_parse_func_add_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f() + g(1)'
+        actual = defp.parse(indata)
+        expected = (op.add,
+                    parsing.FunctionPST((['f'], {})),
+                    parsing.FunctionPST((['g', 1], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Addition operator parsing failed')
+
+    def test_parse_var_add_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1] + y'
+        actual = defp.parse(indata)
+        expected = (op.add,
+                    parsing.VariablePST((['x', 1], {})),
+                    parsing.VariablePST((['y'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Addition operator parsing failed')
+
+#===== SUB =====================================================================
+
+    def test_parse_int_sub_int(self):
+        defp = parsing.DefinitionParser()
+        indata = '2-1'
+        actual = defp.parse(indata)
+        expected = (op.sub, 2, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Subtraction operator parsing failed')
+
+    def test_parse_float_sub_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '2.4-1e7'
+        actual = defp.parse(indata)
+        expected = (op.sub, 2.4, 1e7)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Subtraction operator parsing failed')
+
+    def test_parse_func_sub_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f() - g(1)'
+        actual = defp.parse(indata)
+        expected = (op.sub,
+                    parsing.FunctionPST((['f'], {})),
+                    parsing.FunctionPST((['g', 1], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Subtraction operator parsing failed')
+
+    def test_parse_var_sub_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1] - y'
+        actual = defp.parse(indata)
+        expected = (op.sub,
+                    parsing.VariablePST((['x', 1], {})),
+                    parsing.VariablePST((['y'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Subtraction operator parsing failed')
+
+#===== Integration =============================================================
+
+    def test_parse_integrated_1(self):
+        defp = parsing.DefinitionParser()
+        indata = '2-17.3*x^2'
+        actual = defp.parse(indata)
+        expected = (op.sub, 2, (op.mul, 17.3, 
+                                (op.pow,
+                                 parsing.VariablePST([['x']]),
+                                 2)))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Integrated operator parsing failed')
+        
+    def test_parse_integrated_2(self):
+        defp = parsing.DefinitionParser()
+        indata = '2-17.3*x / f(2.3, x[2:5])'
+        actual = defp.parse(indata)
+        expected = (op.sub, 2, (op.mul, 17.3, 
+                                (op.truediv, parsing.VariablePST([['x']]),
+                                 parsing.FunctionPST([['f', 2.3,
+                                                       parsing.VariablePST([['x', slice(2,5)]])]]))))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Integrated operator parsing failed')
+
 
 #===============================================================================
 # Command-Line Operation
