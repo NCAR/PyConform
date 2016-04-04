@@ -109,6 +109,192 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Types do not match')
 
+    def test_parse_integer_1(self):
+        defp = parsing.DefinitionParser()
+        indata = '1'
+        actual = defp.parse(indata)
+        expected = int(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Integer parsing failed')
+
+    def test_parse_integer_large(self):
+        defp = parsing.DefinitionParser()
+        indata = '98734786423867234'
+        actual = defp.parse(indata)
+        expected = int(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Integer parsing failed')
+
+    def test_parse_float_dec(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_long(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.8374755'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_nofirst(self):
+        defp = parsing.DefinitionParser()
+        indata = '.35457'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1e7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_pos_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1e+7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_neg_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1e-7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.e7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_pos_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.e+7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_neg_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.e-7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_long_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.324523e7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_long_pos_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.324523e+7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_long_neg_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '1.324523e-7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_nofirst_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '.324523e7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_nofirst_pos_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '.324523e+7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
+
+    def test_parse_float_dec_nofirst_neg_exp(self):
+        defp = parsing.DefinitionParser()
+        indata = '.324523e-7'
+        actual = defp.parse(indata)
+        expected = float(indata)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Float parsing failed')
 
 
 #===============================================================================
