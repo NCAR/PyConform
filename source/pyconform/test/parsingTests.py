@@ -337,6 +337,43 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Function parsing failed')
 
+#===== VARIABLES ===============================================================
+
+    def test_parse_var(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST(('x', {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Variable parsing failed')
+
+    def test_parse_var_index(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1]'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST((['x', 1], {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Variable parsing failed')
+
+    def test_parse_var_index_nested(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1, y[0]]'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST((['x', 1,
+                                         parsing.VariablePST((['y', 0], {}))],
+                                        {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Variable parsing failed')
+
 
 #===============================================================================
 # Command-Line Operation
