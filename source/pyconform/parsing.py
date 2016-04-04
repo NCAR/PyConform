@@ -30,6 +30,8 @@ class ParsedStringType(object):
                                               self.name,
                                               self.args,
                                               hex(id(self)))
+    def __eq__(self, other):
+        return (type(self) == type(other)) and (self.name == other.name) and (self.args == other.args)
 
 
 #===============================================================================
@@ -95,7 +97,8 @@ class DefinitionParser(object):
         #            ints, floats, variables, and even other functions.  Hence,
         #            we need a Forward place-holder to start...
         expr = Forward()
-        func = Group(name + Suppress('(') + delimitedList(expr) + Suppress(')'))
+        func = Group(name + Suppress('(') + 
+                     Optional(delimitedList(expr)) + Suppress(')'))
         func.setParseAction(FunctionPST)
     
         # Binary Operators

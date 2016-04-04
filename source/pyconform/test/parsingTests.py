@@ -109,6 +109,8 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Types do not match')
 
+#===== INTEGERS ================================================================
+
     def test_parse_integer_1(self):
         defp = parsing.DefinitionParser()
         indata = '1'
@@ -130,6 +132,8 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Integer parsing failed')
+
+#===== FLOATS ==================================================================
 
     def test_parse_float_dec(self):
         defp = parsing.DefinitionParser()
@@ -295,6 +299,43 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Float parsing failed')
+
+#===== FUNCTIONS ===============================================================
+
+    def test_parse_func(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f()'
+        actual = defp.parse(indata)
+        expected = parsing.FunctionPST(('f', {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Function parsing failed')
+
+    def test_parse_func_arg(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f(1)'
+        actual = defp.parse(indata)
+        expected = parsing.FunctionPST((['f', 1], {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Function parsing failed')
+
+    def test_parse_func_nested(self):
+        defp = parsing.DefinitionParser()
+        indata = 'f(1, g(2))'
+        actual = defp.parse(indata)
+        expected = parsing.FunctionPST((['f', 1,
+                                         parsing.FunctionPST((['g', 2], {}))],
+                                        {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Function parsing failed')
 
 
 #===============================================================================
