@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from os import linesep
-from pyconform.parsing import operands
+from pyconform.parsingdir import operands
 from pyparsing import Word, ParseException
 
 import unittest
