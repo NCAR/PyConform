@@ -385,6 +385,111 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Variable parsing failed')
 
+    def test_parse_var_slice_nested(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1:4, y[0:3]]'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST((['x', slice(1,4),
+                                         parsing.VariablePST((['y', slice(0,3)], {}))],
+                                        {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Variable parsing failed')
+
+#===== NEGATION ================================================================
+
+    def test_parse_neg_integer(self):
+        defp = parsing.DefinitionParser()
+        indata = '-1'
+        actual = defp.parse(indata)
+        expected = (op.neg, 1)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Negation parsing failed')
+
+    def test_parse_neg_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '-1.4'
+        actual = defp.parse(indata)
+        expected = (op.neg, 1.4)
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Negation parsing failed')
+
+    def test_parse_neg_var(self):
+        defp = parsing.DefinitionParser()
+        indata = '-x'
+        actual = defp.parse(indata)
+        expected = (op.neg, parsing.VariablePST((['x'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Negation parsing failed')
+
+    def test_parse_neg_func(self):
+        defp = parsing.DefinitionParser()
+        indata = '-f()'
+        actual = defp.parse(indata)
+        expected = (op.neg, parsing.FunctionPST((['f'], {})))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Negation parsing failed')
+
+#===== POSITIVE ================================================================
+
+    def test_parse_pos_integer(self):
+        defp = parsing.DefinitionParser()
+        indata = '+1'
+        actual = defp.parse(indata)
+        expected = 1
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Positive operator parsing failed')
+
+    def test_parse_pos_float(self):
+        defp = parsing.DefinitionParser()
+        indata = '+1e7'
+        actual = defp.parse(indata)
+        expected = 1e7
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Positive operator parsing failed')
+
+    def test_parse_pos_func(self):
+        defp = parsing.DefinitionParser()
+        indata = '+f()'
+        actual = defp.parse(indata)
+        expected = parsing.FunctionPST((['f'], {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Positive operator parsing failed')
+
+    def test_parse_pos_var(self):
+        defp = parsing.DefinitionParser()
+        indata = '+x[1]'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST((['x', 1], {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Positive operator parsing failed')
+
 
 #===============================================================================
 # Command-Line Operation
