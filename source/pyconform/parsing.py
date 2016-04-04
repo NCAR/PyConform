@@ -64,7 +64,7 @@ class DefinitionParser(object):
 
     def __init__(self):
         # INTEGERS: Just any word consisting only of numbers
-        integer = Word( nums )
+        integer = Word(nums)
         integer.setParseAction(lambda t: int(t[0]))
         
         # FLOATS: More complicated... can be decimal format or exponential
@@ -76,30 +76,32 @@ class DefinitionParser(object):
                              Optional( oneOf('+ -') ) +
                              Word(nums) ) )
         floats = ( Combine( Word(nums) + flt_exp ) |
-                   Combine( dec_flt + Optional( flt_exp ) ) )
+                   Combine( dec_flt + Optional(flt_exp) ) )
         floats.setParseAction(lambda t: float(t[0]))
     
         # String names ...identifiers for function or variable names
         name = Word( alphas+"_", alphanums+"_" )
         
-        # VARIABLE NAMES: Can be just string names or names with indices blocks
-        #                 (e.g., [1,2,-4])    
-        index = Combine( Optional('-') + Word( nums ) )
-        index.setParseAction(lambda t: int(t[0]))
-        islice = delimitedList(index, delim=':')
-        islice.setParseAction(lambda t: slice(*t[0]))
-        variable = Group(name + Optional(Suppress('[') +
-                                         delimitedList(index, islice) +
-                                         Suppress(']')))
-        variable.setParseAction(VariablePST)
-    
         # FUNCTIONS: Function arguments can be empty or any combination of
         #            ints, floats, variables, and even other functions.  Hence,
         #            we need a Forward place-holder to start...
         expr = Forward()
-        func = Group(name + Suppress('(') + 
-                     Optional(delimitedList(expr)) + Suppress(')'))
+        func = Group(name + (Suppress('(') + 
+                             Optional(delimitedList(expr)) +
+                             Suppress(')')))
         func.setParseAction(FunctionPST)
+    
+        # VARIABLE NAMES: Can be just string names or names with blocks
+        #                 of indices (e.g., [1,2,-4])    
+        index = Combine( Optional('-') + Word(nums) )
+        index.setParseAction(lambda t: int(t[0]))
+        islice = index + Optional(Suppress(':') + index +
+                                  Optional(Suppress(':') + index))
+        islice.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
+        variable = Group(name + Optional(Suppress('[') +
+                                         delimitedList(islice | expr) +
+                                         Suppress(']')))
+        variable.setParseAction(VariablePST)
     
         # Binary Operators
         self._binops = {'^': pow, '*': mul, '/': truediv, '+': add, '-': sub}

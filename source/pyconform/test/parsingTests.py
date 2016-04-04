@@ -361,6 +361,17 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Variable parsing failed')
 
+    def test_parse_var_slice(self):
+        defp = parsing.DefinitionParser()
+        indata = 'x[1:2:3]'
+        actual = defp.parse(indata)
+        expected = parsing.VariablePST((['x', slice(1,2,3)], {}))
+        testname = 'DefinitionParser.parse({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Variable parsing failed')
+
     def test_parse_var_index_nested(self):
         defp = parsing.DefinitionParser()
         indata = 'x[1, y[0]]'
