@@ -60,7 +60,18 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Types do not match')
-
+    
+    def test_operpst_init(self):
+        indata = (['x'], {})
+        pst = parsing.OperatorPST(indata)
+        actual = type(pst)
+        expected = parsing.OperatorPST
+        testname = 'OperatorPST.__init__({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Types do not match')
+        
     def test_pst_init_args(self):
         indata = (['x', 1, -3.2], {})
         pst = parsing.ParsedStringType(indata)
@@ -72,10 +83,10 @@ class ParsedStringTypeTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Types do not match')
 
-    def test_pst_name(self):
+    def test_pst_obj(self):
         indata = (['x', 1, -3.2], {})
         pst = parsing.ParsedStringType(indata)
-        actual = pst.name
+        actual = pst.obj
         expected = indata[0][0]
         testname = 'ParsedStringType.__init__({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
@@ -317,7 +328,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f(1)'
         actual = defp.parse(indata)
-        expected = parsing.FunctionPST((['f', 1], {}))
+        expected = parsing.FunctionPST([['f', 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -326,11 +337,11 @@ class DefinitionParserTests(unittest.TestCase):
 
     def test_parse_func_nested(self):
         defp = parsing.DefinitionParser()
+        g2 = parsing.FunctionPST([['g', 2]])
+        f1g = parsing.FunctionPST([['f', 1, g2]])
         indata = 'f(1, g(2))'
         actual = defp.parse(indata)
-        expected = parsing.FunctionPST((['f', 1,
-                                         parsing.FunctionPST((['g', 2], {}))],
-                                        {}))
+        expected = f1g
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -343,7 +354,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST(('x', {}))
+        expected = parsing.VariablePST([['x']])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -354,7 +365,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1]'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST((['x', 1], {}))
+        expected = parsing.VariablePST([['x', 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -365,7 +376,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1:2:3]'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST((['x', slice(1,2,3)], {}))
+        expected = parsing.VariablePST([['x', slice(1,2,3)]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -374,11 +385,11 @@ class DefinitionParserTests(unittest.TestCase):
 
     def test_parse_var_index_nested(self):
         defp = parsing.DefinitionParser()
+        y0 = parsing.VariablePST([['y', 0]])
+        x1y = parsing.VariablePST([['x', 1, y0]])
         indata = 'x[1, y[0]]'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST((['x', 1,
-                                         parsing.VariablePST((['y', 0], {}))],
-                                        {}))
+        expected = x1y
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -387,11 +398,11 @@ class DefinitionParserTests(unittest.TestCase):
 
     def test_parse_var_slice_nested(self):
         defp = parsing.DefinitionParser()
+        y03 = parsing.VariablePST([['y', slice(0,3)]])
+        x14y = parsing.VariablePST([['x', slice(1,4), y03]])
         indata = 'x[1:4, y[0:3]]'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST((['x', slice(1,4),
-                                         parsing.VariablePST((['y', slice(0,3)], {}))],
-                                        {}))
+        expected = x14y
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -404,7 +415,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '-1'
         actual = defp.parse(indata)
-        expected = (op.neg, 1)
+        expected = parsing.OperatorPST([[op.neg, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -415,7 +426,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '-1.4'
         actual = defp.parse(indata)
-        expected = (op.neg, 1.4)
+        expected = parsing.OperatorPST([[op.neg, 1.4]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -426,7 +437,8 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '-x'
         actual = defp.parse(indata)
-        expected = (op.neg, parsing.VariablePST((['x'], {})))
+        x = parsing.VariablePST([['x']])
+        expected = parsing.OperatorPST([[op.neg, x]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -437,7 +449,8 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '-f()'
         actual = defp.parse(indata)
-        expected = (op.neg, parsing.FunctionPST((['f'], {})))
+        f = parsing.FunctionPST([['f']])
+        expected = parsing.OperatorPST([[op.neg, f]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -472,7 +485,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '+f()'
         actual = defp.parse(indata)
-        expected = parsing.FunctionPST((['f'], {}))
+        expected = parsing.FunctionPST([['f']])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -483,7 +496,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '+x[1]'
         actual = defp.parse(indata)
-        expected = parsing.VariablePST((['x', 1], {}))
+        expected = parsing.VariablePST([['x', 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -496,7 +509,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2^1'
         actual = defp.parse(indata)
-        expected = (op.pow, 2, 1)
+        expected = parsing.OperatorPST([[op.pow, 2, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -507,7 +520,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2.4 ^ 1e7'
         actual = defp.parse(indata)
-        expected = (op.pow, 2.4, 1e7)
+        expected = parsing.OperatorPST([[op.pow, 2.4, 1e7]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -518,9 +531,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f() ^ g(1)'
         actual = defp.parse(indata)
-        expected = (op.pow,
-                    parsing.FunctionPST((['f'], {})),
-                    parsing.FunctionPST((['g', 1], {})))
+        f = parsing.FunctionPST([['f']])
+        g1 = parsing.FunctionPST([['g', 1]])
+        expected = parsing.OperatorPST([[op.pow, f, g1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -531,9 +544,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1] ^ y'
         actual = defp.parse(indata)
-        expected = (op.pow,
-                    parsing.VariablePST((['x', 1], {})),
-                    parsing.VariablePST((['y'], {})))
+        x1 = parsing.VariablePST([['x', 1]])
+        y = parsing.VariablePST([['y']])
+        expected = parsing.OperatorPST([[op.pow, x1, y]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -546,7 +559,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2/1'
         actual = defp.parse(indata)
-        expected = (op.truediv, 2, 1)
+        expected = parsing.OperatorPST([[op.truediv, 2, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -557,7 +570,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2.4/1e7'
         actual = defp.parse(indata)
-        expected = (op.truediv, 2.4, 1e7)
+        expected = parsing.OperatorPST([[op.truediv, 2.4, 1e7]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -568,9 +581,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f() / g(1)'
         actual = defp.parse(indata)
-        expected = (op.truediv,
-                    parsing.FunctionPST((['f'], {})),
-                    parsing.FunctionPST((['g', 1], {})))
+        f = parsing.FunctionPST([['f']])
+        g1 = parsing.FunctionPST([['g', 1]])
+        expected = parsing.OperatorPST([[op.truediv, f, g1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -581,9 +594,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1] / y'
         actual = defp.parse(indata)
-        expected = (op.truediv,
-                    parsing.VariablePST((['x', 1], {})),
-                    parsing.VariablePST((['y'], {})))
+        x1 = parsing.VariablePST([['x', 1]])
+        y = parsing.VariablePST([['y']])
+        expected = parsing.OperatorPST([[op.truediv, x1, y]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -596,7 +609,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2*1'
         actual = defp.parse(indata)
-        expected = (op.mul, 2, 1)
+        expected = parsing.OperatorPST([[op.mul, 2, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -607,7 +620,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2.4*1e7'
         actual = defp.parse(indata)
-        expected = (op.mul, 2.4, 1e7)
+        expected = parsing.OperatorPST([[op.mul, 2.4, 1e7]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -618,9 +631,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f() * g(1)'
         actual = defp.parse(indata)
-        expected = (op.mul,
-                    parsing.FunctionPST((['f'], {})),
-                    parsing.FunctionPST((['g', 1], {})))
+        f = parsing.FunctionPST([['f']])
+        g1 = parsing.FunctionPST([['g', 1]])
+        expected = parsing.OperatorPST([[op.mul, f, g1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -631,9 +644,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1] * y'
         actual = defp.parse(indata)
-        expected = (op.mul,
-                    parsing.VariablePST((['x', 1], {})),
-                    parsing.VariablePST((['y'], {})))
+        x1 = parsing.VariablePST([['x', 1]])
+        y = parsing.VariablePST([['y']])
+        expected = parsing.OperatorPST([[op.mul, x1, y]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -646,7 +659,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2+1'
         actual = defp.parse(indata)
-        expected = (op.add, 2, 1)
+        expected = parsing.OperatorPST([[op.add, 2, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -657,7 +670,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2.4+1e7'
         actual = defp.parse(indata)
-        expected = (op.add, 2.4, 1e7)
+        expected = parsing.OperatorPST([[op.add, 2.4, 1e7]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -668,9 +681,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f() + g(1)'
         actual = defp.parse(indata)
-        expected = (op.add,
-                    parsing.FunctionPST((['f'], {})),
-                    parsing.FunctionPST((['g', 1], {})))
+        f = parsing.FunctionPST([['f']])
+        g1 = parsing.FunctionPST([['g', 1]])
+        expected = parsing.OperatorPST([[op.add, f, g1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -681,9 +694,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1] + y'
         actual = defp.parse(indata)
-        expected = (op.add,
-                    parsing.VariablePST((['x', 1], {})),
-                    parsing.VariablePST((['y'], {})))
+        x1 = parsing.VariablePST([['x', 1]])
+        y = parsing.VariablePST([['y']])
+        expected = parsing.OperatorPST([[op.add, x1, y]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -696,7 +709,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2-1'
         actual = defp.parse(indata)
-        expected = (op.sub, 2, 1)
+        expected = parsing.OperatorPST([[op.sub, 2, 1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -707,7 +720,7 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2.4-1e7'
         actual = defp.parse(indata)
-        expected = (op.sub, 2.4, 1e7)
+        expected = parsing.OperatorPST([[op.sub, 2.4, 1e7]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -718,9 +731,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'f() - g(1)'
         actual = defp.parse(indata)
-        expected = (op.sub,
-                    parsing.FunctionPST((['f'], {})),
-                    parsing.FunctionPST((['g', 1], {})))
+        f = parsing.FunctionPST([['f']])
+        g1 = parsing.FunctionPST([['g', 1]])
+        expected = parsing.OperatorPST([[op.sub, f, g1]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -731,9 +744,9 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = 'x[1] - y'
         actual = defp.parse(indata)
-        expected = (op.sub,
-                    parsing.VariablePST((['x', 1], {})),
-                    parsing.VariablePST((['y'], {})))
+        x1 = parsing.VariablePST([['x', 1]])
+        y = parsing.VariablePST([['y']])
+        expected = parsing.OperatorPST([[op.sub, x1, y]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -746,10 +759,10 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2-17.3*x^2'
         actual = defp.parse(indata)
-        expected = (op.sub, 2, (op.mul, 17.3, 
-                                (op.pow,
-                                 parsing.VariablePST([['x']]),
-                                 2)))
+        x = parsing.VariablePST([['x']])
+        x2 = parsing.OperatorPST([[op.pow, x, 2]])
+        m17p3x2 = parsing.OperatorPST([[op.mul, 17.3, x2]])
+        expected = parsing.OperatorPST([[op.sub, 2, m17p3x2]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -760,10 +773,12 @@ class DefinitionParserTests(unittest.TestCase):
         defp = parsing.DefinitionParser()
         indata = '2-17.3*x / f(2.3, x[2:5])'
         actual = defp.parse(indata)
-        expected = (op.sub, 2, (op.mul, 17.3, 
-                                (op.truediv, parsing.VariablePST([['x']]),
-                                 parsing.FunctionPST([['f', 2.3,
-                                                       parsing.VariablePST([['x', slice(2,5)]])]]))))
+        x = parsing.VariablePST([['x']])
+        x25 = parsing.VariablePST([['x', slice(2,5)]])
+        f = parsing.FunctionPST([['f', 2.3, x25]])
+        dxf = parsing.OperatorPST([[op.truediv, x, f]])
+        m17p3dxf = parsing.OperatorPST([[op.mul, 17.3, dxf]])
+        expected = parsing.OperatorPST([[op.sub, 2, m17p3dxf]])
         testname = 'DefinitionParser.parse({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)

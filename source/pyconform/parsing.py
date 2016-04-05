@@ -23,15 +23,15 @@ class ParsedStringType(object):
 
     def __init__(self, tokens):
         token = tokens[0]
-        self.name = token[0]
+        self.obj = token[0]
         self.args = tuple(token[1:])
     def __repr__(self):
         return "<{0} {1}{2} at {3!s}>".format(self.__class__.__name__,
-                                              self.name,
+                                              self.obj,
                                               self.args,
                                               hex(id(self)))
     def __eq__(self, other):
-        return (type(self) == type(other)) and (self.name == other.name) and (self.args == other.args)
+        return (type(self) == type(other)) and (self.obj == other.obj) and (self.args == other.args)
 
 
 #===============================================================================
@@ -48,6 +48,16 @@ class VariablePST(ParsedStringType):
 # FunctionPST - Function ParsedStringType
 #===============================================================================
 class FunctionPST(ParsedStringType):
+    """
+    A parsed function string-type
+    """
+    pass
+
+
+#===============================================================================
+# OperatorPST - Operator ParsedStringType
+#===============================================================================
+class OperatorPST(ParsedStringType):
     """
     A parsed function string-type
     """
@@ -120,11 +130,11 @@ class DefinitionParser(object):
         if op == '+':
             return val
         else:
-            return neg, val
+            return OperatorPST([[neg, val]])
         
     def _binop_(self, tokens):
         left, op, right = tokens[0]
-        return self._binops[op], left, right
+        return OperatorPST([[self._binops[op], left, right]])
     
     def parse(self, strexpr):
         return self._expr.parseString(strexpr)[0]
