@@ -31,7 +31,9 @@ class ParsedStringType(object):
                                               self.args,
                                               hex(id(self)))
     def __eq__(self, other):
-        return (type(self) == type(other)) and (self.obj == other.obj) and (self.args == other.args)
+        return ((type(self) == type(other)) and
+                (self.obj == other.obj) and
+                (self.args == other.args))
 
 
 #===============================================================================
