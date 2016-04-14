@@ -108,8 +108,11 @@ class DefinitionParser(object):
         islice = index + Optional(Suppress(':') + index +
                                   Optional(Suppress(':') + index))
         islice.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
+#         variable = Group(name + Optional(Suppress('[') +
+#                                          delimitedList(islice | expr) +
+#                                          Suppress(']')))
         variable = Group(name + Optional(Suppress('[') +
-                                         delimitedList(islice | expr) +
+                                         delimitedList(islice) +
                                          Suppress(']')))
         variable.setParseAction(VariablePST)
     

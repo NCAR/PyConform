@@ -383,31 +383,31 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Variable parsing failed')
 
-    def test_parse_var_index_nested(self):
-        defp = parsing.DefinitionParser()
-        y0 = parsing.VariablePST([['y', 0]])
-        x1y = parsing.VariablePST([['x', 1, y0]])
-        indata = 'x[1, y[0]]'
-        actual = defp.parse(indata)
-        expected = x1y
-        testname = 'DefinitionParser.parse({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Variable parsing failed')
+#     def test_parse_var_index_nested(self):
+#         defp = parsing.DefinitionParser()
+#         y0 = parsing.VariablePST([['y', 0]])
+#         x1y = parsing.VariablePST([['x', 1, y0]])
+#         indata = 'x[1, y[0]]'
+#         actual = defp.parse(indata)
+#         expected = x1y
+#         testname = 'DefinitionParser.parse({0!r})'.format(indata)
+#         print_test_message(testname, indata=indata,
+#                            actual=actual, expected=expected)
+#         self.assertEqual(actual, expected,
+#                          'Variable parsing failed')
 
-    def test_parse_var_slice_nested(self):
-        defp = parsing.DefinitionParser()
-        y03 = parsing.VariablePST([['y', slice(0,3)]])
-        x14y = parsing.VariablePST([['x', slice(1,4), y03]])
-        indata = 'x[1:4, y[0:3]]'
-        actual = defp.parse(indata)
-        expected = x14y
-        testname = 'DefinitionParser.parse({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Variable parsing failed')
+#     def test_parse_var_slice_nested(self):
+#         defp = parsing.DefinitionParser()
+#         y03 = parsing.VariablePST([['y', slice(0,3)]])
+#         x14y = parsing.VariablePST([['x', slice(1,4), y03]])
+#         indata = 'x[1:4, y[0:3]]'
+#         actual = defp.parse(indata)
+#         expected = x14y
+#         testname = 'DefinitionParser.parse({0!r})'.format(indata)
+#         print_test_message(testname, indata=indata,
+#                            actual=actual, expected=expected)
+#         self.assertEqual(actual, expected,
+#                          'Variable parsing failed')
 
 #===== NEGATION ================================================================
 
