@@ -11,14 +11,15 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from graph import DiGraph
-from pyparsing import nums, alphas, alphanums, operatorPrecedence, oneOf
-from pyparsing import Word, Literal, Optional, Combine, opAssoc
+from parsing import (ParsedStringType, VariablePST, FunctionPST, OperatorPST,
+                     parse_definition)
 from dataset import InputDataset, OutputDataset
 from itertools import cycle
 from collections import OrderedDict
-from operator import pow, neg, add, sub, mul, div
+from operator import pow, neg, add, sub, mul, truediv
 from cf_units import Unit
-from operators import Operator, InputSliceReader, FunctionEvaluator, OutputSliceHandle
+from operators import (Operator, InputSliceReader, FunctionEvaluator,
+                       OutputSliceHandle)
 from numpy import transpose
 
 
@@ -96,6 +97,80 @@ class OperationGraph(DiGraph):
 # GraphFiller
 #===============================================================================
 class GraphFiller(object):
+    """
+    Object that fills an OperationGraph
+    """
+    
+    def __init__(self, inp):
+        """
+        Initializer
+        
+        Parameters:
+            inp (InputDataset): The input dataset to use as reference when
+                parsing variable definitions
+        """
+        # Input dataset
+        if not isinstance(inp, InputDataset):
+            raise TypeError('Input dataset must be of InputDataset type')
+        self._inputds = inp
+
+        # Maintain a database of slice readers
+        self._readers = {}
+        
+        # Cyclic iterator over available input filenames
+        fnames = [v.filename for v in self._ids.variables.itervalues()]
+        self._infile_cycle = cycle(filter(None, fnames))
+
+    @staticmethod
+    def _unitsof_(obj):
+        return getattr(obj, 'units', Unit(1))
+
+    @staticmethod
+    def _dimensionsof_(obj):
+        return getattr(obj, 'dimensions', tuple())
+
+    def _convert_obj_(self, obj):
+        if isinstance(obj, VariablePST):
+            if obj in self._readers:
+                return self._readers[obj]
+            else:
+                return self._convert_variable_(obj)
+        elif isinstance(obj, OperatorPST):
+            return self._convert_operator_(obj)
+        elif isinstance(obj, FunctionPST):
+            return self._convert_function_(obj)
+        else:
+            return obj
+            
+    def _convert_variable_(self, pst):
+        vname = pst.obj
+        if vname not in self._inputds.variables:
+            raise KeyError('Variable not found')
+        if self._inputds.variables[vname].filename:
+            fname = self._inputds.variables[vname].filename
+        else:
+            fname = self._infile_cycle.next()
+        vslice = pst.args
+        if len(vslice) == 0:
+            vslice = None
+        return InputSliceReader(fname, vname, slicetuple=vslice)
+
+    def _convert_operator_(self, pst):
+        func = pst.obj
+        opargs = [self._convert_obj_(o) for o in pst.args]
+        if all(isinstance(o, (int, float)) for o in opargs):
+            return func(*opargs)
+        arg_units = [self._unitsof_(o) for o in opargs]
+        if func == pow:
+
+        args = [o if not isinstance(o, Operator) else None for o in opargs]
+        ops = [o for o in opargs if isinstance(o, Operator)]
+
+        
+#===============================================================================
+# GraphFiller - OLD VERSION
+#===============================================================================
+class GraphFillerOLD(object):
     """
     Object that fills an OperationGraph
     """
@@ -279,7 +354,7 @@ class GraphFiller(object):
             fdims = left.dimensions
 
         elif isinstance(left, Operator) and isinstance(right, Operator):
-            funits = left.units * right.units
+            funits = fptr(left.units, right.units)
             fargs = [None, None]
             fops = [left]
             fdims = left.dimensions
