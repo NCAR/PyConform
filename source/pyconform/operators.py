@@ -21,7 +21,6 @@ from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
 from mpi4py import MPI
-from cf_units import Unit
 from sys import stderr
 
 import numpy
@@ -45,7 +44,7 @@ class Operator(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def __init__(self, name, units=Unit(1), dimensions=()):
+    def __init__(self, name):
         """
         Initializer
         
@@ -58,34 +57,12 @@ class Operator(object):
             raise TypeError('Operator names must be strings')
         self._name = name
 
-        if not isinstance(units, Unit):
-            raise TypeError('Operator units must be of Unit type')
-        self._units = units
-        
-        if not isinstance(dimensions, tuple):
-            raise TypeError('Operator dimensions must be tuples')
-        self._dimensions = dimensions
-    
     @property
     def name(self):
         """
         Return the internal name of the Operator
         """
-        return self._name
-
-    @property
-    def units(self):
-        """
-        Return the Unit object for the data returned by the Operator
-        """
-        return self._units
-
-    @property
-    def dimensions(self):
-        """
-        Return the dimensions of the data returned by the Operator
-        """
-        return self._dimensions
+        return self._name     
             
     def __str__(self):
         """
@@ -101,10 +78,6 @@ class Operator(object):
         if not isinstance(other, Operator):
             return False
         elif self._name != other._name:
-            return False
-        elif self._units != other._units:
-            return False
-        elif self._dimensions != other._dimensions:
             return False
         else:
             return True
@@ -170,20 +143,11 @@ class InputSliceReader(Operator):
                             '{!r}: {!r}'.format(type(slicetuple), slicetuple))
         self._slice = slicetuple
         
-        # Determine units
-        uname = getattr(ncfile.variables[variable], 'units', '1')
-        ucal = getattr(ncfile.variables[variable], 'calendar', None)
-        units = Unit(uname, calendar=ucal)
-        
-        # Determine dimensions
-        dims = ncfile.variables[variable].dimensions
-
         # Close the NetCDF file
         ncfile.close()
 
         # Call base class initializer - sets self._name
-        super(InputSliceReader, self).__init__(variable, units=units,
-                                               dimensions=dims)
+        super(InputSliceReader, self).__init__(variable)
 
     def __eq__(self, other):
         """
@@ -216,7 +180,7 @@ class FunctionEvaluator(Operator):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, args=[], units=Unit(1), dimensions=()):
+    def __init__(self, name, func, args=[]):
         """
         Initializer
         
@@ -225,8 +189,6 @@ class FunctionEvaluator(Operator):
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
-            units (Unit): The units of the data returned by the function
-            dimensions (tuple): Dimensions of the returned data
         """
         # Check function
         if not callable(func):
@@ -242,8 +204,7 @@ class FunctionEvaluator(Operator):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name, units=units,
-                                                dimensions=dimensions)
+        super(FunctionEvaluator, self).__init__(name)
 
     def __eq__(self, other):
         """
@@ -285,7 +246,7 @@ class OutputSliceHandle(Operator):
     """
     
     def __init__(self, name, slicetuple=(slice(None),),
-                 units=Unit(1), dimensions=(), minimum=None, maximum=None):
+                 minimum=None, maximum=None):
         """
         Initializer
         
@@ -293,14 +254,11 @@ class OutputSliceHandle(Operator):
             name (str): A string name/identifier for the operator
             slicetuple (tuple): The slice of the output variable into which
                 the data is to be written
-            units (Unit): The units returns by this Operator
-            dimensions (tuple): Output data dimensions
             minimum: The minimum value the data should have, if valid
             maximum: The maximum value the data should have, if valid
         """
         # Call base class initializer
-        super(OutputSliceHandle, self).__init__(name, units=units,
-                                                dimensions=dimensions)
+        super(OutputSliceHandle, self).__init__(name)
 
         # Parse slice tuple
         if isinstance(slicetuple, (list, tuple)):
@@ -365,7 +323,7 @@ class SendOperator(Operator):
     Send data to a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, dest, units=Unit(1), dimensions=()):
+    def __init__(self, dest):
         """
         Initializer
         
@@ -384,8 +342,7 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname, units=units,
-                                           dimensions=dimensions)
+        super(SendOperator, self).__init__(opname)
         
         # Store the destination rank
         self._dest = dest
@@ -446,7 +403,7 @@ class RecvOperator(Operator):
     Receive data from a specified remote rank in COMM_WORLD
     """
     
-    def __init__(self, source, units=Unit(1), dimensions=()):
+    def __init__(self, source):
         """
         Initializer
         
@@ -465,8 +422,7 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname, units=units,
-                                           dimensions=dimensions)
+        super(RecvOperator, self).__init__(opname)
         
         # Store the source rank
         self._source = source
