@@ -83,6 +83,77 @@ class OperatorTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Operator string conversion incorrect')
     
+    def test_units_default(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units'.format(opname)
+        O = MockOp(opname)
+        actual = O.units
+        expected = Unit(1)
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator units incorrect')
+
+    def test_units_from_Unit(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units = Unit(m)'.format(opname)
+        O = MockOp(opname)
+        O.units = Unit('m')
+        actual = O.units
+        expected = Unit('m')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator units incorrect')
+
+    def test_units_from_str(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units = m'.format(opname)
+        O = MockOp(opname)
+        O.units = 'm'
+        actual = O.units
+        expected = Unit('m')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator units incorrect')
+    
+    def test_units_from_tuple(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units = (days, standard)'.format(opname)
+        O = MockOp(opname)
+        O.units = ('days from 0001-01-01 00:00:00', 'standard')
+        actual = O.units
+        expected = Unit('days from 0001-01-01 00:00:00', calendar='standard')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Operator units incorrect')
+    
+    def test_units_bad_unit(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units = ncxedajbec'.format(opname)
+        O = MockOp(opname)
+        expected = ValueError
+        try:
+            O.units = 'ncxedajbec'
+        except ValueError:
+            actual = ValueError
+        else:
+            actual = None
+            self.assertTrue(False, 'Operator units did not fail')
+        print_test_message(testname, actual, expected)
+
+    def test_units_bad_calendar(self):
+        opname = 'xop'
+        testname = 'Mock Operator.units = (days, ncxedajbec)'.format(opname)
+        O = MockOp(opname)
+        expected = ValueError
+        try:
+            O.units = ('days since 0001-01-01 00:00:00', 'ncxedajbec')
+        except ValueError:
+            actual = ValueError
+        else:
+            actual = None
+            self.assertTrue(False, 'Operator units did not fail')
+        print_test_message(testname, actual, expected)
+    
     def test_equal_same(self):
         nm = 'xop'
         testname = ('Mock Operator({!r}) == Operator('

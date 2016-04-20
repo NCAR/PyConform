@@ -20,6 +20,7 @@ from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from netCDF4 import Dataset
 from os.path import exists
+from cf_units import Unit
 from mpi4py import MPI
 from sys import stderr
 
@@ -56,6 +57,12 @@ class Operator(object):
         if not isinstance(name, (str, unicode)):
             raise TypeError('Operator names must be strings')
         self._name = name
+        
+        # Default units
+        self._units = Unit(1)
+        
+        # Default dimensions
+        self._dimensions = ()
 
     @property
     def name(self):
@@ -69,7 +76,28 @@ class Operator(object):
         String representation of the operator (its name)
         """
         return str(self._name)
+
+    @property
+    def units(self):
+        return self._units
     
+    @units.setter
+    def units(self, u):
+        if isinstance(u, Unit):
+            self._units = u
+        elif isinstance(u, tuple):
+            self._units = Unit(u[0], calendar=u[1])
+        else:
+            self._units = Unit(u)
+
+    @property
+    def dimensions(self):
+        return self._dimensions
+    
+    @dimensions.setter
+    def dimensions(self, d):
+        self._dimensions = tuple(d)
+
     @abstractmethod
     def __eq__(self, other):
         """
@@ -78,6 +106,10 @@ class Operator(object):
         if not isinstance(other, Operator):
             return False
         elif self._name != other._name:
+            return False
+        elif self._units != other._units:
+            return False
+        elif self._dimensions != other._dimensions:
             return False
         else:
             return True
@@ -143,11 +175,33 @@ class InputSliceReader(Operator):
                             '{!r}: {!r}'.format(type(slicetuple), slicetuple))
         self._slice = slicetuple
         
-        # Close the NetCDF file
-        ncfile.close()
-
         # Call base class initializer - sets self._name
         super(InputSliceReader, self).__init__(variable)
+
+        # Read/set the units
+        if 'units' in ncfile.variables[variable].ncattrs():
+            units = ncfile.variables[variable].getncattr('units')
+        else:
+            units = Unit(1)
+        if 'calendar' in ncfile.variables[variable].ncattrs():
+            calendar = ncfile.variables[variable].getncattr('calendar')
+        else:
+            calendar = None
+        self._units = Unit(units, calendar=calendar)
+        
+        # Read/set the dimensions
+        self._dimensions = ncfile.variables[variable].dimensions
+            
+        # Close the NetCDF file
+        ncfile.close()
+    
+    @Operator.units.setter
+    def units(self, u):
+        pass
+    
+    @Operator.dimensions.setter
+    def dimensions(self, d):
+        pass
 
     def __eq__(self, other):
         """
