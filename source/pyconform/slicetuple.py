@@ -61,7 +61,6 @@ class SliceTuple(object):
         """
         Check if two SliceTuples are equal
         """
-        print "##### Checking SliceTuple Equality"
         return self._idx == other._idx
 
     def __ne__(self, other):
