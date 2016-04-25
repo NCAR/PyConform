@@ -25,11 +25,10 @@ class FunctionStringType(object):
         self.key = token[0]
         self.args = tuple(token[1:])
     def __repr__(self):
-        return "<{0} {1}{2} ({3!s}) at {4!s}>".format(self.__class__.__name__,
-                                                      self.key,
-                                                      self.args,
-                                                      repr(str(self)),
-                                                      hex(id(self)))
+        return "<{0} {1}{2} at {3!s}>".format(self.__class__.__name__,
+                                              self.key,
+                                              self.args,
+                                              hex(id(self)))
     def __str__(self):
         return "{0}{1!s}".format(self.key, self.args)
     def __eq__(self, other):
@@ -46,7 +45,8 @@ class VariableStringType(FunctionStringType):
     A parsed variable string-type
     """
     def __str__(self):
-        return "{0}{1!s}".format(self.key, list(self.args))
+        strargs = [str(arg) for arg in self.args]
+        return "{0}{1!s}".format(self.key, strargs)
 
 
 #===============================================================================
