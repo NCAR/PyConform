@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import remove
 from os.path import exists
-from pyconform import operators as ops
+from pyconform import operations as ops
 from os import linesep
 from cf_units import Unit
 

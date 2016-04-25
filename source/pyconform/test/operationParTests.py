@@ -5,7 +5,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import operators as ops
+from pyconform import operations as ops
 from os import linesep
 from mpi4py import MPI
 
