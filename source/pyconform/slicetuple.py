@@ -54,8 +54,15 @@ class SliceTuple(object):
             return ':'.join('' if s is None else str(s) for s in
                             [self._idx.start, self._idx.stop, self._idx.step])
         elif isinstance(self._idx, tuple):
-            return '({0})'.format(','.join(str(SliceTuple(s)) for s in self._idx))
-    
+            return '({0})'.format(','.join(str(SliceTuple(s))
+                                           for s in self._idx))
+
+    def __eq__(self, other):
+        """
+        Check if two SliceTuples are equal
+        """
+        return self._idx == other._idx
+
     @property
     def index(self):
         """
