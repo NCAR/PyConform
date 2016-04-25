@@ -31,7 +31,7 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 # OperatorTests
 #===============================================================================
-class MockOp(ops.Operator):
+class MockOp(ops.Operation):
     def __init__(self, name):
         super(MockOp, self).__init__(name)
     def __eq__(self, other):
@@ -42,93 +42,93 @@ class MockOp(ops.Operator):
 
 class OperatorTests(unittest.TestCase):
     """
-    Unit tests for the operators.Operator class
+    Unit tests for the operators.Operation class
     """
     def setUp(self):
-        ops.Operator._id_ = 0
+        ops.Operation._id_ = 0
     
     def test_abc(self):
         opname = 'xop'
-        testname = 'Operator.__init__()'
-        self.assertRaises(TypeError, ops.Operator, opname)
+        testname = 'Operation.__init__()'
+        self.assertRaises(TypeError, ops.Operation, opname)
         print_test_message(testname, TypeError, TypeError)
 
     def test_init(self):
         opname = 'xop'
-        testname = 'Mock Operator.__init__()'
+        testname = 'Mock Operation.__init__()'
         O = MockOp(opname)
-        actual = isinstance(O, ops.Operator)
+        actual = isinstance(O, ops.Operation)
         expected = True
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Could not create mock Operator object')
+                         'Could not create mock Operation object')
 
     def test_name(self):
         opname = 'xop'
-        testname = 'Mock Operator.__init__({!r})'.format(opname)
+        testname = 'Mock Operation.__init__({!r})'.format(opname)
         O = MockOp(opname)
         actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator name incorrect')
+                         'Operation name incorrect')
 
     def test_str(self):
         opname = 'xop'
-        testname = 'Mock Operator.__str__()'.format(opname)
+        testname = 'Mock Operation.__str__()'.format(opname)
         O = MockOp(opname)
         actual = str(O)
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator string conversion incorrect')
+                         'Operation string conversion incorrect')
     
     def test_units_default(self):
         opname = 'xop'
-        testname = 'Mock Operator.units'.format(opname)
+        testname = 'Mock Operation.units'.format(opname)
         O = MockOp(opname)
         actual = O.units
         expected = Unit(1)
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator units incorrect')
+                         'Operation units incorrect')
 
     def test_units_from_Unit(self):
         opname = 'xop'
-        testname = 'Mock Operator.units = Unit(m)'.format(opname)
+        testname = 'Mock Operation.units = Unit(m)'.format(opname)
         O = MockOp(opname)
         O.units = Unit('m')
         actual = O.units
         expected = Unit('m')
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator units incorrect')
+                         'Operation units incorrect')
 
     def test_units_from_str(self):
         opname = 'xop'
-        testname = 'Mock Operator.units = m'.format(opname)
+        testname = 'Mock Operation.units = m'.format(opname)
         O = MockOp(opname)
         O.units = 'm'
         actual = O.units
         expected = Unit('m')
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator units incorrect')
+                         'Operation units incorrect')
     
     def test_units_from_tuple(self):
         opname = 'xop'
-        testname = 'Mock Operator.units = (days, standard)'.format(opname)
+        testname = 'Mock Operation.units = (days, standard)'.format(opname)
         O = MockOp(opname)
         O.units = ('days from 0001-01-01 00:00:00', 'standard')
         actual = O.units
         expected = Unit('days from 0001-01-01 00:00:00', calendar='standard')
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator units incorrect')
+                         'Operation units incorrect')
     
     def test_units_bad_unit(self):
         opname = 'xop'
-        testname = 'Mock Operator.units = ncxedajbec'.format(opname)
+        testname = 'Mock Operation.units = ncxedajbec'.format(opname)
         O = MockOp(opname)
         expected = ValueError
         try:
@@ -137,12 +137,12 @@ class OperatorTests(unittest.TestCase):
             actual = ValueError
         else:
             actual = None
-            self.assertTrue(False, 'Operator units did not fail')
+            self.assertTrue(False, 'Operation units did not fail')
         print_test_message(testname, actual, expected)
 
     def test_units_bad_calendar(self):
         opname = 'xop'
-        testname = 'Mock Operator.units = (days, ncxedajbec)'.format(opname)
+        testname = 'Mock Operation.units = (days, ncxedajbec)'.format(opname)
         O = MockOp(opname)
         expected = ValueError
         try:
@@ -151,12 +151,12 @@ class OperatorTests(unittest.TestCase):
             actual = ValueError
         else:
             actual = None
-            self.assertTrue(False, 'Operator units did not fail')
+            self.assertTrue(False, 'Operation units did not fail')
         print_test_message(testname, actual, expected)
     
     def test_equal_same(self):
         nm = 'xop'
-        testname = ('Mock Operator({!r}) == Operator('
+        testname = ('Mock Operation({!r}) == Operation('
                     '{!r})').format(nm, nm)
         O1 = MockOp(nm)
         O2 = MockOp(nm)
@@ -164,12 +164,12 @@ class OperatorTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator equality not correct')
+                         'Operation equality not correct')
 
     def test_equal_diff_names(self):
         nm1 = 'xop'
         nm2 = 'yop'
-        testname = ('Mock Operator({!r}) == Operator('
+        testname = ('Mock Operation({!r}) == Operation('
                     '{!r})').format(nm1, nm2)
         O1 = MockOp(nm1)
         O2 = MockOp(nm2)
@@ -177,7 +177,7 @@ class OperatorTests(unittest.TestCase):
         expected = False
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator equality not correct')    
+                         'Operation equality not correct')    
 
 
 #===============================================================================

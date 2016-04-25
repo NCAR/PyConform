@@ -1,15 +1,15 @@
 """
-Fundamental Operators for the Operation Graphs
+Fundamental Operations for the Operation Graphs
 
-This module contains the Operator objects to be used in the DiGraph-based
+This module contains the Operation objects to be used in the DiGraph-based
 Operation Graphs that implement the data transformation operations.
 
-Some functions of the Operator objects are specifically designed to work
+Some functions of the Operation objects are specifically designed to work
 on the output from other Operators, from within a OperationGraph object.
 This is precisely what the Operators are designed to do.  Some data of
-the Operators pertain to the instance of the Operator itself, and this data
+the Operators pertain to the instance of the Operation itself, and this data
 is stored with the instance.  Some data is determined entirely by the input
-into the Operator at runtime, which occurs within the OperationGraph data
+into the Operation at runtime, which occurs within the OperationGraph data
 structure.
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
@@ -35,11 +35,11 @@ def warning(*objs):
 
 
 #===============================================================================
-# Operator
+# Operation
 #===============================================================================
-class Operator(object):
+class Operation(object):
     """
-    The abstract base class for the Operator objects used in OperationGraphs
+    The abstract base class for the Operation objects used in OperationGraphs
     """
     
     __metaclass__ = ABCMeta
@@ -55,7 +55,7 @@ class Operator(object):
             dimensions (tuple): Dimensions of the returned data
         """
         if not isinstance(name, (str, unicode)):
-            raise TypeError('Operator names must be strings')
+            raise TypeError('Operation names must be strings')
         self._name = name
         
         # Default units
@@ -67,7 +67,7 @@ class Operator(object):
     @property
     def name(self):
         """
-        Return the internal name of the Operator
+        Return the internal name of the Operation
         """
         return self._name     
             
@@ -103,7 +103,7 @@ class Operator(object):
         """
         Check if two Operators are equal
         """
-        if not isinstance(other, Operator):
+        if not isinstance(other, Operation):
             return False
         elif self._name != other._name:
             return False
@@ -125,9 +125,9 @@ class Operator(object):
 #===============================================================================
 # InputSliceReader
 #===============================================================================
-class InputSliceReader(Operator):
+class InputSliceReader(Operation):
     """
-    Operator that reads an input variable slice upon calling
+    Operation that reads an input variable slice upon calling
     """
     
     def __init__(self, filepath, variable, slicetuple=(slice(None),)):
@@ -195,11 +195,11 @@ class InputSliceReader(Operator):
         # Close the NetCDF file
         ncfile.close()
     
-    @Operator.units.setter
+    @Operation.units.setter
     def units(self, u):
         pass
     
-    @Operator.dimensions.setter
+    @Operation.dimensions.setter
     def dimensions(self, d):
         pass
 
@@ -229,7 +229,7 @@ class InputSliceReader(Operator):
 #===============================================================================
 # FunctionEvaluator
 #===============================================================================
-class FunctionEvaluator(Operator):
+class FunctionEvaluator(Operation):
     """
     Generic function operator that acts on two operands
     """
@@ -294,9 +294,9 @@ class FunctionEvaluator(Operator):
 #===============================================================================
 # OutputSliceHandle
 #===============================================================================
-class OutputSliceHandle(Operator):
+class OutputSliceHandle(Operation):
     """
-    Operator that acts as a "handle" for output data streams
+    Operation that acts as a "handle" for output data streams
     """
     
     def __init__(self, name, slicetuple=(slice(None),),
@@ -370,9 +370,9 @@ class OutputSliceHandle(Operator):
     
 
 #===============================================================================
-# SendOperator
+# MPISender
 #===============================================================================
-class SendOperator(Operator):
+class MPISender(Operation):
     """
     Send data to a specified remote rank in COMM_WORLD
     """
@@ -396,7 +396,7 @@ class SendOperator(Operator):
         
         # Call base class initializer
         opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(SendOperator, self).__init__(opname)
+        super(MPISender, self).__init__(opname)
         
         # Store the destination rank
         self._dest = dest
@@ -405,12 +405,12 @@ class SendOperator(Operator):
         """
         Check if two Operators are equal
         """
-        if not isinstance(other, SendOperator):
+        if not isinstance(other, MPISender):
             return False
         elif self._dest != other._dest:
             return False
         else:
-            return super(SendOperator, self).__eq__(other)
+            return super(MPISender, self).__eq__(other)
         
     def __call__(self, data):
         """
@@ -421,38 +421,38 @@ class SendOperator(Operator):
         """
         # Check data type
         if not isinstance(data, numpy.ndarray):
-            raise TypeError('SendOperator only works with NDArrays')
+            raise TypeError('MPISender only works with NDArrays')
 
         # Create the handshake message - Assumes data is an NDArray
         msg = {}
         msg['shape'] = data.shape
         msg['dtype'] = data.dtype
 
-        # Send the handshake message to the RecvOperator
+        # Send the handshake message to the MPIReceiver
         tag = MPI.COMM_WORLD.Get_rank()
         MPI.COMM_WORLD.send(msg, dest=self._dest, tag=tag)
 
-        # Receive the acknowledgement from the RecvOperator
+        # Receive the acknowledgement from the MPIReceiver
         tag += MPI.COMM_WORLD.Get_size()
         ack = MPI.COMM_WORLD.recv(source=self._dest, tag=tag)
 
         # Check the acknowledgement, if not OK error
         if not ack:
-            raise RuntimeError(('SendOperator on rank {} failed to '
+            raise RuntimeError(('MPISender on rank {} failed to '
                                 'receive acknowledgement from rank '
                                 '{}').format(MPI.COMM_WORLD.Get_rank(),
                                              self._dest))
 
-        # If OK, send the data to the RecvOperator
+        # If OK, send the data to the MPIReceiver
         tag += MPI.COMM_WORLD.Get_size()
         MPI.COMM_WORLD.Send(data, dest=self._dest, tag=tag)
         return None
 
 
 #===============================================================================
-# RecvOperator
+# MPIReceiver
 #===============================================================================
-class RecvOperator(Operator):
+class MPIReceiver(Operation):
     """
     Receive data from a specified remote rank in COMM_WORLD
     """
@@ -476,7 +476,7 @@ class RecvOperator(Operator):
         
         # Call base class initializer
         opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(RecvOperator, self).__init__(opname)
+        super(MPIReceiver, self).__init__(opname)
         
         # Store the source rank
         self._source = source
@@ -485,19 +485,19 @@ class RecvOperator(Operator):
         """
         Check if two Operators are equal
         """
-        if not isinstance(other, RecvOperator):
+        if not isinstance(other, MPIReceiver):
             return False
         elif self._source != other._source:
             return False
         else:
-            return super(RecvOperator, self).__eq__(other)
+            return super(MPIReceiver, self).__eq__(other)
         
     def __call__(self):
         """
         Make callable like a function
         """
 
-        # Receive the handshake message from the SendOperator
+        # Receive the handshake message from the MPISender
         tag = self._source
         msg = MPI.COMM_WORLD.recv(source=self._source, tag=tag)
 
@@ -505,18 +505,18 @@ class RecvOperator(Operator):
         ack = (type(msg) is dict and
                all([key in msg for key in ['shape', 'dtype']]))
 
-        # Send acknowledgement back to the SendOperator
+        # Send acknowledgement back to the MPISender
         tag += MPI.COMM_WORLD.Get_size()
         MPI.COMM_WORLD.send(ack, dest=self._source, tag=tag)
 
         # If acknowledgement is bad, don't receive
         if not ack:
-            raise RuntimeError(('RecvOperator on rank {} failed to '
+            raise RuntimeError(('MPIReceiver on rank {} failed to '
                                 'receive acknowledgement from rank '
                                 '{}').format(MPI.COMM_WORLD.Get_rank(),
                                              self._dest))
 
-        # Receive the data from the SendOperator
+        # Receive the data from the MPISender
         tag += MPI.COMM_WORLD.Get_size()
         recvd = numpy.empty(msg['shape'], dtype=msg['dtype'])
         MPI.COMM_WORLD.Recv(recvd, source=self._source, tag=tag)        
