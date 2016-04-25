@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from os import remove
 from os.path import exists
 from pyconform import operations as ops
+from pyconform.slicetuple import SliceTuple
 from os import linesep
 from cf_units import Unit
 
@@ -267,8 +268,7 @@ class InputSliceReaderTests(unittest.TestCase):
         actual = VSR1 == VSR2
         expected = True
         print_test_message(testname, actual, expected)
-        npt.assert_array_equal(actual, expected,
-                               '{} failed'.format(testname))
+        self.assertTrue(actual, '{} failed'.format(testname))
 
 
 #===============================================================================

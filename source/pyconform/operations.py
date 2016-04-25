@@ -18,6 +18,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
+from slicetuple import SliceTuple
 from netCDF4 import Dataset
 from os.path import exists
 from cf_units import Unit
@@ -130,14 +131,14 @@ class InputSliceReader(Operation):
     Operation that reads an input variable slice upon calling
     """
     
-    def __init__(self, filepath, variable, slicetuple=(slice(None),)):
+    def __init__(self, filepath, variable, slicetuple=None):
         """
         Initializer
         
         Parameters:
             filepath (str): A string filepath to a NetCDF file 
             variable (str): A string variable name to read
-            slicetuple (tuple): A tuple of slice objects specifying the
+            slicetuple (SliceTuple): A tuple of slice objects specifying the
                 range of data to read from the file (in file-local indices)
         """
         # Parse File Path
@@ -164,19 +165,12 @@ class InputSliceReader(Operation):
                           '{!r}'.format(variable, self._filepath))
 
         # Parse slice tuple
-        if isinstance(slicetuple, (list, tuple)):
-            if not all([isinstance(s, (int, slice)) for s in slicetuple]):
-                raise TypeError('Slice-tuple object {!r} must contain int '
-                                'indices or slices only, not objects of type '
-                                '{!r}'.format(slicetuple,
-                                              [type(s) for s in slicetuple]))
-        elif not isinstance(slicetuple, (int, slice)):
-            raise TypeError('Unrecognized slice-tuple object of type '
-                            '{!r}: {!r}'.format(type(slicetuple), slicetuple))
-        self._slice = slicetuple
+        self._slice = SliceTuple(slicetuple)
         
         # Call base class initializer - sets self._name
-        super(InputSliceReader, self).__init__(variable)
+        self._key = variable
+        name = '{0}[{1}]'.format(variable, str(self._slice))
+        super(InputSliceReader, self).__init__(name)
 
         # Read/set the units
         if 'units' in ncfile.variables[variable].ncattrs():
@@ -209,9 +203,13 @@ class InputSliceReader(Operation):
         """
         if not isinstance(other, InputSliceReader):
             return False
+        elif self._key != other._key:
+            return False
         elif self._filepath != other._filepath:
             return False
         elif self._slice != other._slice:
+            print('*** self._slice._idx = {0!s}'.format(self._slice._idx))
+            print('*** other._slice._idx = {0!s}'.format(other._slice._idx))
             return False
         else:
             return super(InputSliceReader, self).__eq__(other)
@@ -221,7 +219,7 @@ class InputSliceReader(Operation):
         Make callable like a function
         """
         ncfile = Dataset(self._filepath, 'r')
-        data = ncfile.variables[self._name][self._slice]
+        data = ncfile.variables[self._key][self._slice.index]
         ncfile.close()
         return data
 
@@ -299,8 +297,7 @@ class OutputSliceHandle(Operation):
     Operation that acts as a "handle" for output data streams
     """
     
-    def __init__(self, name, slicetuple=(slice(None),),
-                 minimum=None, maximum=None):
+    def __init__(self, name, slicetuple=None, minimum=None, maximum=None):
         """
         Initializer
         
@@ -315,16 +312,7 @@ class OutputSliceHandle(Operation):
         super(OutputSliceHandle, self).__init__(name)
 
         # Parse slice tuple
-        if isinstance(slicetuple, (list, tuple)):
-            if not all([isinstance(s, (int, slice)) for s in slicetuple]):
-                raise TypeError('Slice-tuple object {!r} must contain int '
-                                'indices or slices only, not objects of type '
-                                '{!r}'.format(slicetuple,
-                                              [type(s) for s in slicetuple]))
-        elif not isinstance(slicetuple, (int, slice)):
-            raise TypeError('Unrecognized slice-tuple object of type '
-                            '{!r}: {!r}'.format(type(slicetuple), slicetuple))
-        self._slice = slicetuple
+        self._slice = SliceTuple(slicetuple)
         
         # Store min/max
         self._min = minimum
@@ -332,7 +320,7 @@ class OutputSliceHandle(Operation):
         
     @property
     def slicetuple(self):
-        return self._slice
+        return self._slice.index
 
     def __eq__(self, other):
         """
