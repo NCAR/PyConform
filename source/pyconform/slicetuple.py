@@ -29,6 +29,8 @@ class SliceTuple(object):
         """
         if obj is None:
             self._idx = slice(None)
+        elif isinstance(obj, SliceTuple):
+            self._idx = obj._idx.copy()
         elif isinstance(obj, (int, slice)):
             self._idx = obj
         elif isinstance(obj, tuple):
