@@ -208,8 +208,6 @@ class InputSliceReader(Operation):
         elif self._filepath != other._filepath:
             return False
         elif self._slice != other._slice:
-            print('*** self._slice._idx = {0!s}'.format(self._slice._idx))
-            print('*** other._slice._idx = {0!s}'.format(other._slice._idx))
             return False
         else:
             return super(InputSliceReader, self).__eq__(other)
