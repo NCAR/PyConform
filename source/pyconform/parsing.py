@@ -8,6 +8,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from slicetuple import SliceTuple
 from pyparsing import (nums, alphas, alphanums, oneOf, delimitedList,
                        operatorPrecedence, opAssoc, Word, Combine, Literal,
                        Forward, Suppress, Group, CaselessLiteral, Optional)
@@ -25,12 +26,14 @@ class FunctionStringType(object):
         self.key = token[0]
         self.args = tuple(token[1:])
     def __repr__(self):
-        return "<{0} {1}{2} at {3!s}>".format(self.__class__.__name__,
-                                              self.key,
-                                              self.args,
-                                              hex(id(self)))
+        return "<{0} {1}{2} ('{3}') at {4}>".format(self.__class__.__name__,
+                                                    self.key,
+                                                    self.args,
+                                                    str(self),
+                                                    hex(id(self)))
     def __str__(self):
-        return "{0}{1!s}".format(self.key, self.args)
+        strargs = '({0})'.format(','.join(str(arg) for arg in self.args))
+        return "{0}{1!s}".format(self.key, strargs)
     def __eq__(self, other):
         return ((type(self) == type(other)) and
                 (self.key == other.key) and
@@ -44,9 +47,15 @@ class VariableStringType(FunctionStringType):
     """
     A parsed variable string-type
     """
+    def __init__(self, tokens):
+        super(VariableStringType, self).__init__(tokens)
+        self.args = SliceTuple(self.args)
     def __str__(self):
-        strargs = [str(arg) for arg in self.args]
-        return "{0}{1!s}".format(self.key, strargs)
+        if str(self.args) == '()':
+            strargs = ''
+        else:
+            strargs = str(self.args).replace('(', '[').replace(')', ']')
+        return "{0}{1}".format(self.key, strargs)
 
 
 #===============================================================================
