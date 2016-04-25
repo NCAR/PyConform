@@ -30,6 +30,16 @@ class SliceTupleTests(unittest.TestCase):
     Unit tests for the slicetuple.SliceTuple class
     """
 
+    def test_init_default(self):
+        testname = 'SliceTuple.__init__()'
+        s = slicetuple.SliceTuple()
+        actual = type(s)
+        expected = slicetuple.SliceTuple
+        print_test_message(testname,
+                           actual=actual, expected=expected)
+        self.assertIsInstance(s, expected,
+                              '{0} returned unexpected result'.format(testname))
+
     def test_init_int(self):
         indata = 1
         testname = 'SliceTuple.__init__({0})'.format(indata)
@@ -63,6 +73,16 @@ class SliceTupleTests(unittest.TestCase):
         self.assertIsInstance(s, expected,
                               '{0} returned unexpected result'.format(testname))
 
+    def test_str_default(self):
+        testname = 'str(SliceTuple())'
+        s = slicetuple.SliceTuple()
+        actual = str(s)
+        expected = '::'
+        print_test_message(testname,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         '{0} returned unexpected result'.format(testname))
+        
     def test_str_int(self):
         indata = 1
         testname = 'str(SliceTuple({0}))'.format(indata)
@@ -125,6 +145,16 @@ class SliceTupleTests(unittest.TestCase):
         actual = str(s)
         expected = '(1,2:5:)'
         print_test_message(testname, indata=indata, 
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         '{0} returned unexpected result'.format(testname))
+
+    def test_index_default(self):
+        testname = 'SliceTuple().index'
+        s = slicetuple.SliceTuple()
+        actual = s.index
+        expected = slice(None)
+        print_test_message(testname,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          '{0} returned unexpected result'.format(testname))

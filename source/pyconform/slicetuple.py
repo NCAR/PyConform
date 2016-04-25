@@ -18,15 +18,18 @@ class SliceTuple(object):
     Container class that represents a tuple of array slices
     """
     
-    def __init__(self, obj):
+    def __init__(self, obj=None):
         """
         Initializer
         
         Parameters:
             obj (tuple, slice, int): Initializing object, can be a tuple of
-                slice or int objects, or a single slice or int object
+                slice or int objects, or a single slice or int object.  If None,
+                defaults to slice(None)
         """
-        if isinstance(obj, (int, slice)):
+        if obj is None:
+            self._idx = slice(None)
+        elif isinstance(obj, (int, slice)):
             self._idx = obj
         elif isinstance(obj, tuple):
             idx = []
