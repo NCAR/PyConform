@@ -228,6 +228,18 @@ class SliceTupleTests(unittest.TestCase):
         self.assertTrue(actual,
                         '{0} returned unexpected result'.format(testname))
 
+    def test_not_equal_slice(self):
+        indata1 = slice(None, 4, 2)
+        indata2 = slice(4)
+        testname = 'SliceTuple({0}) == SliceTuple({1})'.format(indata1, indata2)
+        s1 = slicetuple.SliceTuple(indata1)
+        s2 = slicetuple.SliceTuple(indata2)
+        actual = s1 != s2
+        expected = True
+        print_test_message(testname,
+                           actual=actual, expected=expected)
+        self.assertTrue(actual,
+                        '{0} returned unexpected result'.format(testname))
 
 #===============================================================================
 # Command-Line Operation
