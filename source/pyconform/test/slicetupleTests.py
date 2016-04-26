@@ -77,7 +77,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple())'
         s = slicetuple.SliceTuple()
         actual = str(s)
-        expected = '::'
+        expected = '(::)'
         print_test_message(testname,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -88,7 +88,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple({0}))'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = str(s)
-        expected = str(indata)
+        expected = '(1)'
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -99,7 +99,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple({0}))'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = str(s)
-        expected = ':1:'
+        expected = '(:1:)'
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -110,7 +110,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple({0}))'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = str(s)
-        expected = ':4:'
+        expected = '(:4:)'
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -121,7 +121,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple({0}))'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = str(s)
-        expected = '1:4:'
+        expected = '(1:4:)'
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -132,7 +132,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'str(SliceTuple.({0}))'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = str(s)
-        expected = '1:4:2'
+        expected = '(1:4:2)'
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -153,7 +153,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'SliceTuple().index'
         s = slicetuple.SliceTuple()
         actual = s.index
-        expected = slice(None)
+        expected = (slice(None),)
         print_test_message(testname,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -164,7 +164,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'SliceTuple({0}).index'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = s.index
-        expected = indata
+        expected = (indata,)
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -175,7 +175,7 @@ class SliceTupleTests(unittest.TestCase):
         testname = 'SliceTuple({0}).index'.format(indata)
         s = slicetuple.SliceTuple(indata)
         actual = s.index
-        expected = indata
+        expected = (indata,)
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,

@@ -28,12 +28,14 @@ class SliceTuple(object):
                 defaults to slice(None)
         """
         if obj is None:
-            self._idx = slice(None)
+            self._idx = (slice(None),)
         elif isinstance(obj, SliceTuple):
             self._idx = obj._idx.copy()
         elif isinstance(obj, (int, slice)):
-            self._idx = obj
+            self._idx = (obj,)
         elif isinstance(obj, tuple):
+            if len(obj) == 0:
+                raise TypeError('Empty tuple cannot be a SliceTuple')
             idx = []
             for i, o in enumerate(obj):
                 if isinstance(o, (int, slice)):
@@ -50,14 +52,15 @@ class SliceTuple(object):
         """
         Compact string representation of SliceTuple
         """
-        if isinstance(self._idx, int):
-            return str(self._idx)
-        elif isinstance(self._idx, slice):
-            return ':'.join('' if s is None else str(s) for s in
-                            [self._idx.start, self._idx.stop, self._idx.step])
-        elif isinstance(self._idx, tuple):
-            return '({0})'.format(','.join(str(SliceTuple(s))
-                                           for s in self._idx))
+        strreps = []
+        for idx in self._idx:
+            if isinstance(idx, int):
+                strreps.append(str(idx))
+            elif isinstance(idx, slice):
+                sss = idx.start, idx.stop, idx.step
+                strrep = ':'.join('' if s is None else str(s) for s in sss)
+                strreps.append(strrep)
+        return '({0})'.format(','.join(strreps))
 
     def __eq__(self, other):
         """
