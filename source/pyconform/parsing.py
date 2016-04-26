@@ -14,9 +14,9 @@ from pyparsing import (nums, alphas, alphanums, oneOf, delimitedList,
                        Forward, Suppress, Group, CaselessLiteral, Optional)
 
 #===============================================================================
-# FunctionStringType
+# ParsedFunction
 #===============================================================================
-class FunctionStringType(object):
+class ParsedFunction(object):
     """
     A parsed function string-type
     """
@@ -26,11 +26,11 @@ class FunctionStringType(object):
         self.key = token[0]
         self.args = tuple(token[1:])
     def __repr__(self):
-        return "<{0} {1}{2} ('{3}') at {4}>".format(self.__class__.__name__,
-                                                    self.key,
-                                                    self.args,
-                                                    str(self),
-                                                    hex(id(self)))
+        return "<{0} {1}{2!r} ('{3}') at {4}>".format(self.__class__.__name__,
+                                                      self.key,
+                                                      self.args,
+                                                      str(self),
+                                                      hex(id(self)))
     def __str__(self):
         strargs = '({0})'.format(','.join(str(arg) for arg in self.args))
         return "{0}{1!s}".format(self.key, strargs)
@@ -41,27 +41,9 @@ class FunctionStringType(object):
 
 
 #===============================================================================
-# VariableStringType - Variable FunctionStringType
+# ParsedUniOp - Unary Operator ParsedFunction
 #===============================================================================
-class VariableStringType(FunctionStringType):
-    """
-    A parsed variable string-type
-    """
-    def __init__(self, tokens):
-        super(VariableStringType, self).__init__(tokens)
-        self.args = SliceTuple(self.args)
-    def __str__(self):
-        if str(self.args) == '()':
-            strargs = ''
-        else:
-            strargs = str(self.args).replace('(', '[').replace(')', ']')
-        return "{0}{1}".format(self.key, strargs)
-
-
-#===============================================================================
-# UniOpStringType - Unary Operator FunctionStringType
-#===============================================================================
-class UniOpStringType(FunctionStringType):
+class ParsedUniOp(ParsedFunction):
     """
     A parsed unary-operator string-type
     """
@@ -70,14 +52,38 @@ class UniOpStringType(FunctionStringType):
 
 
 #===============================================================================
-# BinOpStringType - Binary Operator FunctionStringType
+# ParsedBinOp - Binary Operator ParsedFunction
 #===============================================================================
-class BinOpStringType(FunctionStringType):
+class ParsedBinOp(ParsedFunction):
     """
     A parsed binary-operator string-type
     """
     def __str__(self):
         return "({0!s}{1}{2!s})".format(self.args[0], self.key, self.args[1])
+
+
+#===============================================================================
+# ParsedVariable - Variable ParsedFunction
+#===============================================================================
+class ParsedVariable(ParsedFunction):
+    """
+    A parsed variable string-type
+    """
+    def __init__(self, tokens):
+        super(ParsedVariable, self).__init__(tokens)
+        self.args = SliceTuple(self.args) if len(self.args) > 0 else SliceTuple()
+    def __repr__(self):
+        return "<{0} {1}{2} ('{3}') at {4}>".format(self.__class__.__name__,
+                                                    self.key,
+                                                    self.args.index,
+                                                    str(self),
+                                                    hex(id(self)))
+    def __str__(self):
+        if str(self.args) == '(::)':
+            strargs = ''
+        else:
+            strargs = str(self.args).replace('(', '[').replace(')', ']')
+        return "{0}{1}".format(self.key, strargs)
 
 
 #===============================================================================
@@ -90,12 +96,12 @@ def _negop_(tokens):
     if op == '+':
         return val
     else:
-        return UniOpStringType([[op, val]])
+        return ParsedUniOp([[op, val]])
 
 # Binary Operators
 def _binop_(tokens):
     left, op, right = tokens[0]
-    return BinOpStringType([[op, left, right]])
+    return ParsedBinOp([[op, left, right]])
 
 # INTEGERS: Just any word consisting only of numbers
 _INT_ = Word(nums)
@@ -123,7 +129,7 @@ _EXPR_PARSER_ = Forward()
 _FUNC_ = Group(_NAME_ + (Suppress('(') + 
                          Optional(delimitedList(_EXPR_PARSER_)) +
                          Suppress(')')))
-_FUNC_.setParseAction(FunctionStringType)
+_FUNC_.setParseAction(ParsedFunction)
 
 # VARIABLE NAMES: Can be just string _NAME_s or _NAME_s with blocks
 #                 of indices (e.g., [1,2,-4])    
@@ -139,7 +145,7 @@ _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
 _VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') +
                                      delimitedList(_ISLICE_) +
                                      Suppress(']')))
-_VARIABLE_.setParseAction(VariableStringType)
+_VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
 _EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _FUNC_ | _VARIABLE_,
