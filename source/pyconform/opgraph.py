@@ -1,9 +1,9 @@
 """
 Operation Graph Class
 
-This module contains the OperationGraph class to be used with the Operator 
+This module contains the OperationGraph class to be used with the Operation 
 classes and the DiGraph class to build an "operator graph" or "operation graph."
-This graph walks through the graph performing the Operator functions connected
+This graph walks through the graph performing the Operation functions connected
 by the DiGraph object.
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
@@ -11,15 +11,15 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from graph import DiGraph
-from parsing import (ParsedStringType, VariablePST, FunctionPST, OperatorPST,
-                     parse_definition)
+from parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
+                     ParsedBinOp, parse_definition)
 from dataset import InputDataset, OutputDataset
 from itertools import cycle
 from collections import OrderedDict
 from operator import pow, neg, add, sub, mul, truediv
 from cf_units import Unit
-from operators import (Operator, InputSliceReader, FunctionEvaluator,
-                       OutputSliceHandle)
+from operations import (Operation, InputSliceReader, FunctionEvaluator,
+                        OutputSliceHandle)
 from numpy import transpose
 
 
@@ -65,9 +65,9 @@ class OperationGraph(DiGraph):
         Add a vertex to the graph
         
         Parameters:
-            vertex (Operator): An Operator vertex to be added to the graph
+            vertex (Operation): An Operation vertex to be added to the graph
         """
-        if not isinstance(vertex, Operator):
+        if not isinstance(vertex, Operation):
             raise TypeError('OperationGraph must consist only of Operators')
         super(OperationGraph, self).add(vertex)
 
@@ -76,11 +76,11 @@ class OperationGraph(DiGraph):
         Perform the OperationGraph operations
         
         Parameters:
-            root (Operator): The root of the operation, from which data is
+            root (Operation): The root of the operation, from which data is
                 requested from the operation graph
         """
         if root not in self:
-            raise KeyError('Operator {!r} not in OperationGraph'.format(root))
+            raise KeyError('Operation {!r} not in OperationGraph'.format(root))
         def evaluate_from(op):
             return op(*map(evaluate_from, self.neighbors_to(op)))
         return evaluate_from(root)
@@ -101,7 +101,7 @@ class GraphFiller(object):
     Object that fills an OperationGraph
     """
     
-    def __init__(self, inp):
+    def __init__(self, inp, cycle=True):
         """
         Initializer
         
@@ -119,7 +119,10 @@ class GraphFiller(object):
         
         # Cyclic iterator over available input filenames
         fnames = [v.filename for v in self._ids.variables.itervalues()]
-        self._infile_cycle = cycle(filter(None, fnames))
+        if cycle:
+            self._infile_cycle = cycle(filter(None, fnames))
+        else:
+            self._infile_cycle = cycle([filter(None, fnames)[0]])
 
     @staticmethod
     def _unitsof_(obj):
@@ -130,7 +133,7 @@ class GraphFiller(object):
         return getattr(obj, 'dimensions', tuple())
 
     def _convert_obj_(self, obj):
-        if isinstance(obj, VariablePST):
+        if isinstance(obj, ParsedVariable):
             if obj in self._readers:
                 return self._readers[obj]
             else:
@@ -143,7 +146,7 @@ class GraphFiller(object):
             return obj
             
     def _convert_variable_(self, pst):
-        vname = pst.obj
+        vname = pst.key
         if vname not in self._inputds.variables:
             raise KeyError('Variable not found')
         if self._inputds.variables[vname].filename:
@@ -156,15 +159,15 @@ class GraphFiller(object):
         return InputSliceReader(fname, vname, slicetuple=vslice)
 
     def _convert_operator_(self, pst):
-        func = pst.obj
+        func = pst.key
         opargs = [self._convert_obj_(o) for o in pst.args]
         if all(isinstance(o, (int, float)) for o in opargs):
             return func(*opargs)
         arg_units = [self._unitsof_(o) for o in opargs]
         if func == pow:
 
-        args = [o if not isinstance(o, Operator) else None for o in opargs]
-        ops = [o for o in opargs if isinstance(o, Operator)]
+        args = [o if not isinstance(o, Operation) else None for o in opargs]
+        ops = [o for o in opargs if isinstance(o, Operation)]
 
         
 #===============================================================================
@@ -245,19 +248,19 @@ class GraphFillerOLD(object):
         if isinstance(base, (int, float)) and isinstance(exp, (int, float)):
             return base ** exp
 
-        # If the exponent is an Operator, then it must be dimensionless
-        if isinstance(exp, Operator) and not exp.units.is_dimensionless():
+        # If the exponent is an Operation, then it must be dimensionless
+        if isinstance(exp, Operation) and not exp.units.is_dimensionless():
             raise UnitsError('Power exponents must be dimensionless')
         
-        # If the base is int/float, then exponent must be an Operator
-        if isinstance(base, (int, float)) and isinstance(exp, Operator):
+        # If the base is int/float, then exponent must be an Operation
+        if isinstance(base, (int, float)) and isinstance(exp, Operation):
             fargs = [base, None]
             fops = [exp]
             funits = Unit(1)
             fdims = exp.dimensions
         
-        # If the base is an Operator, then the exponent can be anything
-        elif isinstance(base, Operator):
+        # If the base is an Operation, then the exponent can be anything
+        elif isinstance(base, Operation):
             fops = [base]
             
             # If the exponent is an int, then base units can be anything
@@ -276,7 +279,7 @@ class GraphFillerOLD(object):
                 fdims = base.dimensions
             
             # If exponent is an operator, then base must be dimensionless
-            elif isinstance(exp, Operator):
+            elif isinstance(exp, Operation):
                 if not base.units.is_dimensionless():
                     raise UnitsError('Element-wise power operations can only '
                                      'be applied to dimensionless bases')
@@ -321,7 +324,7 @@ class GraphFillerOLD(object):
         elif isinstance(val, (int, float)):
             return neg(val)
         
-        elif isinstance(val, Operator):
+        elif isinstance(val, Operation):
             fname = '(-{!s})'.format(val)
             op = FunctionEvaluator(fname, neg, units=val.units,
                                    dimensions=val.dimensions)
@@ -341,19 +344,19 @@ class GraphFillerOLD(object):
         if isinstance(left, (int, float)) and isinstance(right, (int, float)):
             return fptr(left, right)
                     
-        elif isinstance(left, (int, float)) and isinstance(right, Operator):
+        elif isinstance(left, (int, float)) and isinstance(right, Operation):
             funits = right.units
             fargs = [left, None]
             fops = [right]
             fdims = right.dimensions
         
-        elif isinstance(left, Operator) and isinstance(right, (int, float)):
+        elif isinstance(left, Operation) and isinstance(right, (int, float)):
             funits = left.units
             fargs = [None, right]
             fops = [left]
             fdims = left.dimensions
 
-        elif isinstance(left, Operator) and isinstance(right, Operator):
+        elif isinstance(left, Operation) and isinstance(right, Operation):
             funits = fptr(left.units, right.units)
             fargs = [None, None]
             fops = [left]
@@ -398,7 +401,7 @@ class GraphFillerOLD(object):
         if isinstance(left, (int, float)) and isinstance(right, (int, float)):
             return fptr(left, right)
                     
-        elif isinstance(left, (int, float)) and isinstance(right, Operator):
+        elif isinstance(left, (int, float)) and isinstance(right, Operation):
             if not right.units.is_dimensionless():
                 raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
@@ -406,7 +409,7 @@ class GraphFillerOLD(object):
             fops = [right]
             fdims = right.dimensions
         
-        elif isinstance(left, Operator) and isinstance(right, (int, float)):
+        elif isinstance(left, Operation) and isinstance(right, (int, float)):
             if not left.units.is_dimensionless():
                 raise UnitsError('Cannot add/subtract with incompatible units')
             funits = Unit(1)
@@ -414,7 +417,7 @@ class GraphFillerOLD(object):
             fops = [left]
             fdims = left.dimensions
 
-        elif isinstance(left, Operator) and isinstance(right, Operator):
+        elif isinstance(left, Operation) and isinstance(right, Operation):
             funits = left.units
             fargs = [None, None]
             fops = [left]
