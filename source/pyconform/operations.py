@@ -64,6 +64,9 @@ class Operation(object):
         
         # Default dimensions
         self._dimensions = ()
+        
+        # Default shape of the data
+        self._shape = ()
 
     @property
     def name(self):
@@ -74,16 +77,22 @@ class Operation(object):
             
     def __str__(self):
         """
-        String representation of the operator (its name)
+        String representation of the operation (its name)
         """
         return str(self._name)
 
     @property
     def units(self):
+        """
+        The units of the data returned by the operation
+        """
         return self._units
     
     @units.setter
     def units(self, u):
+        """
+        Set the units of the data to be returned by the operation
+        """
         if isinstance(u, Unit):
             self._units = u
         elif isinstance(u, tuple):
@@ -93,12 +102,32 @@ class Operation(object):
 
     @property
     def dimensions(self):
+        """
+        The dimensions list of the data returned by the operation
+        """
         return self._dimensions
     
     @dimensions.setter
     def dimensions(self, d):
+        """
+        Set the dimensions list of the data returned by the operation
+        """
         self._dimensions = tuple(d)
 
+    @property
+    def shape(self):
+        """
+        The shape of the data returned by the operation
+        """
+        return self._shape
+    
+    @shape.setter
+    def shape(self, s):
+        """
+        Set the shape of the data returned by the operation
+        """
+        self._shape = tuple(s)
+        
     @abstractmethod
     def __eq__(self, other):
         """
@@ -118,7 +147,7 @@ class Operation(object):
     @abstractmethod
     def __call__(self):
         """
-        Make callable like a function
+        Perform the operation and return the resulting data 
         """
         pass
     
@@ -185,6 +214,9 @@ class InputSliceReader(Operation):
         
         # Read/set the dimensions
         self._dimensions = ncfile.variables[variable].dimensions
+        
+        # Set the shape of the data
+        self._shape = ncfile.variables[variable].shape
             
         # Close the NetCDF file
         ncfile.close()
@@ -195,6 +227,10 @@ class InputSliceReader(Operation):
     
     @Operation.dimensions.setter
     def dimensions(self, d):
+        pass
+
+    @Operation.shape.setter
+    def shape(self, s):
         pass
 
     def __eq__(self, other):
