@@ -115,20 +115,6 @@ class Action(object):
         """
         self._dimensions = tuple(d)
 
-    @property
-    def shape(self):
-        """
-        The shape of the data returned by the operation
-        """
-        return self._shape
-    
-    @shape.setter
-    def shape(self, s):
-        """
-        Set the shape of the data returned by the operation
-        """
-        self._shape = tuple(s)
-        
     @abstractmethod
     def __eq__(self, other):
         """
@@ -228,10 +214,6 @@ class InputSliceReader(Action):
     
     @Action.dimensions.setter
     def dimensions(self, d):
-        pass
-
-    @Action.shape.setter
-    def shape(self, s):
         pass
 
     def __eq__(self, other):
@@ -346,6 +328,7 @@ class OutputSliceHandle(Action):
         # Call base class initializer
         super(OutputSliceHandle, self).__init__(name)
 
+        # 
         # Parse slice tuple
         self._slice = SliceTuple(slicetuple)
         
