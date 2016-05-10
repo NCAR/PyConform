@@ -75,7 +75,7 @@ class ActionTests(unittest.TestCase):
 
     def test_str(self):
         opname = 'xop'
-        testname = 'Mock Action.__str__()'.format(opname)
+        testname = 'Mock Action.__str__()'
         O = MockAction(opname)
         actual = str(O)
         expected = opname
@@ -85,7 +85,7 @@ class ActionTests(unittest.TestCase):
     
     def test_units_default(self):
         opname = 'xop'
-        testname = 'Mock Action.units'.format(opname)
+        testname = 'Mock Action.units'
         O = MockAction(opname)
         actual = O.units
         expected = Unit(1)
@@ -95,7 +95,7 @@ class ActionTests(unittest.TestCase):
 
     def test_units_from_Unit(self):
         opname = 'xop'
-        testname = 'Mock Action.units = Unit(m)'.format(opname)
+        testname = 'Mock Action.units = Unit(m)'
         O = MockAction(opname)
         O.units = Unit('m')
         actual = O.units
@@ -106,7 +106,7 @@ class ActionTests(unittest.TestCase):
 
     def test_units_from_str(self):
         opname = 'xop'
-        testname = 'Mock Action.units = m'.format(opname)
+        testname = 'Mock Action.units = m'
         O = MockAction(opname)
         O.units = 'm'
         actual = O.units
@@ -117,7 +117,7 @@ class ActionTests(unittest.TestCase):
     
     def test_units_from_tuple(self):
         opname = 'xop'
-        testname = 'Mock Action.units = (days, standard)'.format(opname)
+        testname = 'Mock Action.units = (days, standard)'
         O = MockAction(opname)
         O.units = ('days from 0001-01-01 00:00:00', 'standard')
         actual = O.units
@@ -128,7 +128,7 @@ class ActionTests(unittest.TestCase):
     
     def test_units_bad_unit(self):
         opname = 'xop'
-        testname = 'Mock Action.units = ncxedajbec'.format(opname)
+        testname = 'Mock Action.units = ncxedajbec'
         O = MockAction(opname)
         expected = ValueError
         try:
@@ -142,7 +142,7 @@ class ActionTests(unittest.TestCase):
 
     def test_units_bad_calendar(self):
         opname = 'xop'
-        testname = 'Mock Action.units = (days, ncxedajbec)'.format(opname)
+        testname = 'Mock Action.units = (days, ncxedajbec)'
         O = MockAction(opname)
         expected = ValueError
         try:
@@ -153,7 +153,29 @@ class ActionTests(unittest.TestCase):
             actual = None
             self.assertTrue(False, 'Action units did not fail')
         print_test_message(testname, actual, expected)
-    
+
+    def test_dimensions_default(self):
+        opname = 'xop'
+        testname = 'Mock Action.dimensions'
+        O = MockAction(opname)
+        actual = O.dimensions
+        expected = ()
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action dimensions incorrect')
+
+    def test_dimensions_from_tuple(self):
+        opname = 'xop'
+        testname = 'Mock Action.dimensions = Unit(m)'.format(opname)
+        indata = ('t', 'x')
+        O = MockAction(opname)
+        O.dimensions = indata
+        actual = O.dimensions
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action dimensions incorrect')
+        
     def test_equal_same(self):
         nm = 'xop'
         testname = ('Mock Action({!r}) == Action('
