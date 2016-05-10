@@ -210,11 +210,11 @@ class InputSliceReader(Action):
     
     @Action.units.setter
     def units(self, u):
-        pass
+        pass # Prevent from changing units!
     
     @Action.dimensions.setter
     def dimensions(self, d):
-        pass
+        pass # Prevent from changing dimensions!
 
     def __eq__(self, other):
         """
