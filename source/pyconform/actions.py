@@ -19,7 +19,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
-from slicetuple import SliceTuple
+from pyconform.slicetuple import SliceTuple
 from netCDF4 import Dataset
 from os.path import exists
 from cf_units import Unit

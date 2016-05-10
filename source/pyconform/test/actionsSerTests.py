@@ -31,13 +31,13 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 # ActionTests
 #===============================================================================
-class MockOp(acts.Action):
+class MockAction(acts.Action):
     def __init__(self, name):
-        super(MockOp, self).__init__(name)
+        super(MockAction, self).__init__(name)
     def __eq__(self, other):
-        return super(MockOp, self).__eq__(other)
+        return super(MockAction, self).__eq__(other)
     def __call__(self):
-        super(MockOp, self).__call__()
+        super(MockAction, self).__call__()
 
 
 class ActionTests(unittest.TestCase):
@@ -56,7 +56,7 @@ class ActionTests(unittest.TestCase):
     def test_init(self):
         opname = 'xop'
         testname = 'Mock Action.__init__()'
-        O = MockOp(opname)
+        O = MockAction(opname)
         actual = isinstance(O, acts.Action)
         expected = True
         print_test_message(testname, actual, expected)
@@ -66,7 +66,7 @@ class ActionTests(unittest.TestCase):
     def test_name(self):
         opname = 'xop'
         testname = 'Mock Action.__init__({!r})'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
@@ -76,7 +76,7 @@ class ActionTests(unittest.TestCase):
     def test_str(self):
         opname = 'xop'
         testname = 'Mock Action.__str__()'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         actual = str(O)
         expected = opname
         print_test_message(testname, actual, expected)
@@ -86,7 +86,7 @@ class ActionTests(unittest.TestCase):
     def test_units_default(self):
         opname = 'xop'
         testname = 'Mock Action.units'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         actual = O.units
         expected = Unit(1)
         print_test_message(testname, actual, expected)
@@ -96,7 +96,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_Unit(self):
         opname = 'xop'
         testname = 'Mock Action.units = Unit(m)'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         O.units = Unit('m')
         actual = O.units
         expected = Unit('m')
@@ -107,7 +107,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_str(self):
         opname = 'xop'
         testname = 'Mock Action.units = m'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         O.units = 'm'
         actual = O.units
         expected = Unit('m')
@@ -118,7 +118,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_tuple(self):
         opname = 'xop'
         testname = 'Mock Action.units = (days, standard)'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         O.units = ('days from 0001-01-01 00:00:00', 'standard')
         actual = O.units
         expected = Unit('days from 0001-01-01 00:00:00', calendar='standard')
@@ -129,7 +129,7 @@ class ActionTests(unittest.TestCase):
     def test_units_bad_unit(self):
         opname = 'xop'
         testname = 'Mock Action.units = ncxedajbec'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         expected = ValueError
         try:
             O.units = 'ncxedajbec'
@@ -143,7 +143,7 @@ class ActionTests(unittest.TestCase):
     def test_units_bad_calendar(self):
         opname = 'xop'
         testname = 'Mock Action.units = (days, ncxedajbec)'.format(opname)
-        O = MockOp(opname)
+        O = MockAction(opname)
         expected = ValueError
         try:
             O.units = ('days since 0001-01-01 00:00:00', 'ncxedajbec')
@@ -158,8 +158,8 @@ class ActionTests(unittest.TestCase):
         nm = 'xop'
         testname = ('Mock Action({!r}) == Action('
                     '{!r})').format(nm, nm)
-        O1 = MockOp(nm)
-        O2 = MockOp(nm)
+        O1 = MockAction(nm)
+        O2 = MockAction(nm)
         actual = (O1 == O2)
         expected = True
         print_test_message(testname, actual, expected)
@@ -171,8 +171,8 @@ class ActionTests(unittest.TestCase):
         nm2 = 'yop'
         testname = ('Mock Action({!r}) == Action('
                     '{!r})').format(nm1, nm2)
-        O1 = MockOp(nm1)
-        O2 = MockOp(nm2)
+        O1 = MockAction(nm1)
+        O2 = MockAction(nm2)
         actual = (O1 == O2)
         expected = False
         print_test_message(testname, actual, expected)
