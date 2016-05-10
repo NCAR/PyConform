@@ -506,7 +506,7 @@ class DatasetTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
 
-    def test_datasets_type(self):
+    def test_dataset_type(self):
         ds = datasets.Dataset()
         actual = type(ds)
         expected = datasets.Dataset
@@ -515,7 +515,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Dataset has wrong type')
 
-    def test_input_datasets_type(self):
+    def test_input_dataset_type(self):
         inds = datasets.InputDataset('myinds', self.filenames.values())
         actual = type(inds)
         expected = datasets.InputDataset
@@ -524,7 +524,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'InputDataset has wrong type')
 
-    def test_output_datasets_type(self):
+    def test_output_dataset_type(self):
         outds = datasets.OutputDataset('myoutds', self.dsdict)
         actual = type(outds)
         expected = datasets.OutputDataset
@@ -533,7 +533,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'OutputDataset has wrong type')
 
-    def test_datasets_get_dict_from_output(self):
+    def test_dataset_get_dict_from_output(self):
         outds = datasets.OutputDataset('myoutds', self.dsdict)
         actual = outds.get_dict()
         expected = self.dsdict
@@ -542,7 +542,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'OutputDataset.get_dict() returns wrong data')
         
-    def test_datasets_get_dict_from_input(self):
+    def test_dataset_get_dict_from_input(self):
         inds = datasets.InputDataset('myinds', self.filenames.values())
         actual = inds.get_dict()
         print_test_message('InputDataset.get_dict()', actual=actual)
