@@ -1,15 +1,16 @@
 """
-Fundamental Operations for the Operation Graphs
+Fundamental actions for the Action Graphs
 
-This module contains the Operation objects to be used in the DiGraph-based
-Operation Graphs that implement the data transformation operations.
+This module contains the Action objects to be used in the DiGraph-based
+ActionGraphs that implement the data transformation operations.  Each vertex
+in an ActionGraph must be an Action.
 
-Some functions of the Operation objects are specifically designed to work
-on the output from other Operators, from within a OperationGraph object.
-This is precisely what the Operators are designed to do.  Some data of
-the Operators pertain to the instance of the Operation itself, and this data
+Some functions of the Action objects are specifically designed to work
+on the output from other Actions, from within an ActionGraph object.
+This is precisely what the Actions are designed to do.  Some data of
+the Actions pertain to the instance of the Action itself, and this data
 is stored with the instance.  Some data is determined entirely by the input
-into the Operation at runtime, which occurs within the OperationGraph data
+into the Action at runtime, which occurs within the ActionGraph data
 structure.
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
@@ -36,11 +37,11 @@ def warning(*objs):
 
 
 #===============================================================================
-# Operation
+# Action
 #===============================================================================
-class Operation(object):
+class Action(object):
     """
-    The abstract base class for the Operation objects used in OperationGraphs
+    The abstract base class for the Action objects used in OperationGraphs
     """
     
     __metaclass__ = ABCMeta
@@ -56,7 +57,7 @@ class Operation(object):
             dimensions (tuple): Dimensions of the returned data
         """
         if not isinstance(name, (str, unicode)):
-            raise TypeError('Operation names must be strings')
+            raise TypeError('Action names must be strings')
         self._name = name
         
         # Default units
@@ -71,7 +72,7 @@ class Operation(object):
     @property
     def name(self):
         """
-        Return the internal name of the Operation
+        Return the internal name of the Action
         """
         return self._name     
             
@@ -131,9 +132,9 @@ class Operation(object):
     @abstractmethod
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
-        if not isinstance(other, Operation):
+        if not isinstance(other, Action):
             return False
         elif self._name != other._name:
             return False
@@ -155,9 +156,9 @@ class Operation(object):
 #===============================================================================
 # InputSliceReader
 #===============================================================================
-class InputSliceReader(Operation):
+class InputSliceReader(Action):
     """
-    Operation that reads an input variable slice upon calling
+    Action that reads an input variable slice upon calling
     """
     
     def __init__(self, filepath, variable, slicetuple=None):
@@ -221,21 +222,21 @@ class InputSliceReader(Operation):
         # Close the NetCDF file
         ncfile.close()
     
-    @Operation.units.setter
+    @Action.units.setter
     def units(self, u):
         pass
     
-    @Operation.dimensions.setter
+    @Action.dimensions.setter
     def dimensions(self, d):
         pass
 
-    @Operation.shape.setter
+    @Action.shape.setter
     def shape(self, s):
         pass
 
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
         if not isinstance(other, InputSliceReader):
             return False
@@ -261,7 +262,7 @@ class InputSliceReader(Operation):
 #===============================================================================
 # FunctionEvaluator
 #===============================================================================
-class FunctionEvaluator(Operation):
+class FunctionEvaluator(Action):
     """
     Generic function operator that acts on two operands
     """
@@ -294,7 +295,7 @@ class FunctionEvaluator(Operation):
 
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
         if not isinstance(other, FunctionEvaluator):
             return False
@@ -326,9 +327,9 @@ class FunctionEvaluator(Operation):
 #===============================================================================
 # OutputSliceHandle
 #===============================================================================
-class OutputSliceHandle(Operation):
+class OutputSliceHandle(Action):
     """
-    Operation that acts as a "handle" for output data streams
+    Action that acts as a "handle" for output data streams
     """
     
     def __init__(self, name, slicetuple=None, minimum=None, maximum=None):
@@ -358,7 +359,7 @@ class OutputSliceHandle(Operation):
 
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
         if not isinstance(other, OutputSliceHandle):
             return False
@@ -394,7 +395,7 @@ class OutputSliceHandle(Operation):
 #===============================================================================
 # MPISender
 #===============================================================================
-class MPISender(Operation):
+class MPISender(Action):
     """
     Send data to a specified remote rank in COMM_WORLD
     """
@@ -425,7 +426,7 @@ class MPISender(Operation):
 
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
         if not isinstance(other, MPISender):
             return False
@@ -474,7 +475,7 @@ class MPISender(Operation):
 #===============================================================================
 # MPIReceiver
 #===============================================================================
-class MPIReceiver(Operation):
+class MPIReceiver(Action):
     """
     Receive data from a specified remote rank in COMM_WORLD
     """
@@ -505,7 +506,7 @@ class MPIReceiver(Operation):
 
     def __eq__(self, other):
         """
-        Check if two Operators are equal
+        Check if two Actions are equal
         """
         if not isinstance(other, MPIReceiver):
             return False

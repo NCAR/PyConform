@@ -1,11 +1,11 @@
 """
-Fundamental Operators for the Operation Graph Unit Tests - Parallel
+Fundamental Actions for the Operation Graph Unit Tests - Parallel
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import operations as ops
+from pyconform import actions as acts
 from os import linesep
 from mpi4py import MPI
 
@@ -42,17 +42,17 @@ class MPISendRecvTests(unittest.TestCase):
 
     def test_sendop_init(self):
         testname = 'MPISender.__init__(1)'
-        SO = ops.MPISender(1)
+        SO = acts.MPISender(1)
         actual = type(SO)
-        expected = ops.MPISender
+        expected = acts.MPISender
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_recvop_init(self):
         testname = 'MPIReceiver.__init__(1)'
-        RO = ops.MPIReceiver(1)
+        RO = acts.MPIReceiver(1)
         actual = type(RO)
-        expected = ops.MPIReceiver
+        expected = acts.MPIReceiver
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -60,13 +60,13 @@ class MPISendRecvTests(unittest.TestCase):
         testname = 'MPISender() -> MPIReceiver()'
         data = np.arange(0,10)
         if MPI.COMM_WORLD.Get_rank() == 0:
-            op = ops.MPISender(dest=1)
+            op = acts.MPISender(dest=1)
             actual = op(data)
             expected = None
             print_test_message(testname, actual, expected)
             self.assertEqual(actual, expected, '{} failed'.format(testname))
         elif MPI.COMM_WORLD.Get_rank() == 1:
-            op = ops.MPIReceiver(source=0)
+            op = acts.MPIReceiver(source=0)
             actual = op()
             expected = data
             print_test_message(testname, actual, expected)
