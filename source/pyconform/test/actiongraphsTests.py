@@ -132,14 +132,14 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_add_op(self):
         g = actiongraphs.ActionGraph()
-        u1Op = actions.InputSliceReader(self.filenames['u1'], 'u1')
-        g.add(u1Op)
+        u1r = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        g.add(u1r)
         actual = g.vertices
-        expected = set([u1Op])
-        print_test_message('ActionGraph.add(Operator)',
+        expected = set([u1r])
+        print_test_message('ActionGraph.add(Action)',
                            actual=actual, expected=expected)
         self.assertSetEqual(actual, expected,
-                            'ActionGraph did not add Operators')
+                            'ActionGraph did not add Action')
 
     def test_add_int(self):
         g = actiongraphs.ActionGraph()
@@ -150,14 +150,12 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_call(self):
         g = actiongraphs.ActionGraph()
-        u1Op = actions.InputSliceReader(self.filenames['u1'], 'u1')
-        u2Op = actions.InputSliceReader(self.filenames['u2'], 'u2')
+        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.FunctionEvaluator('(u1+u2)', operator.add,
-                                     args=[None, None],
-                                     units=u1Op.units,
-                                     dimensions=u1Op.dimensions)
-        g.connect(u1Op, u1plusu2)
-        g.connect(u2Op, u1plusu2)
+                                             args=[None, None])
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
         actual = g(u1plusu2)
         expected = self.vdat['u1'] + self.vdat['u2']
         print_test_message('ActionGraph.__call__()', 
@@ -299,7 +297,7 @@ class GraphFillerTests(unittest.TestCase):
                 remove(fname)
 
     def test_init(self):
-        gfiller = actiongraphs.GraphFiller()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
         actual = type(gfiller)
         expected = actiongraphs.GraphFiller
         print_test_message('type(GraphFiller)',
@@ -309,19 +307,9 @@ class GraphFillerTests(unittest.TestCase):
 
     def test_from_definitions(self):
         g = actiongraphs.ActionGraph()
-        gfiller = actiongraphs.GraphFiller()
-        gfiller.from_definitions(g, self.inpds, self.outds)
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
         print_test_message('GraphFiller.from_definitions()')
-
-    def test_dimension_map(self):
-        g = actiongraphs.ActionGraph()
-        gfiller = actiongraphs.GraphFiller()
-        gfiller.from_definitions(g, self.inpds, self.outds)
-        actual = gfiller.dimension_map
-        expected = {'x': 'lon', 'y': 'lat', 't': 'time'}
-        print_test_message('GraphFiller.from_definitions()')
-        self.assertDictEqual(actual, expected,
-                             'Dimension map incorrect')
 
 
 #===============================================================================

@@ -9,6 +9,8 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from copy import copy
+
 
 #===============================================================================
 # SliceTuple
@@ -30,7 +32,7 @@ class SliceTuple(object):
         if obj is None:
             self._idx = (slice(None),)
         elif isinstance(obj, SliceTuple):
-            self._idx = obj._idx.copy()
+            self._idx = copy(obj._idx)
         elif isinstance(obj, (int, slice)):
             self._idx = (obj,)
         elif isinstance(obj, tuple):

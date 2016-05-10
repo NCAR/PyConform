@@ -121,13 +121,16 @@ class GraphFiller(object):
             obj = parse_definition(vinfo.definition)
             vtx = self._add_to_graph_(graph, obj)
             handle = OutputSliceHandle(vname)
+            handle.units = vinfo.cfunits()
+            handle.dimensions = vinfo.dimensions
             graph.connect(vtx, handle)
             
     def _add_to_graph_(self, graph, obj):
         vtx = self._convert_obj_(obj)
         graph.add(vtx)
-        for arg in obj.args:
-            graph.connect(self._add_to_graph_(graph, arg), vtx)
+        if isinstance(obj.args, tuple):
+            for arg in obj.args:
+                graph.connect(self._add_to_graph_(graph, arg), vtx)
         return vtx
 
     def _convert_obj_(self, obj):
@@ -140,8 +143,7 @@ class GraphFiller(object):
                 fname = var.filename
             else:
                 fname = self._infile_cycle.next()
-            vslice = obj.args if len(obj.args) > 0 else None
-            return InputSliceReader(fname, vname, slicetuple=vslice)
+            return InputSliceReader(fname, vname, slicetuple=obj.args)
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             symbol = obj.key
@@ -165,3 +167,15 @@ class GraphFiller(object):
         
         else:
             return obj
+
+    def match_units(self, graph):
+        """
+        Match units of connected Actions in an ActionGraph
+        
+        This will add new Actions to the ActionGraph, as necessary, to convert
+        units to match the necessary units needed by each Action.
+        
+        Parameters:
+            graph (ActionGraph): The ActionGraph in which to match units 
+        """
+        pass
