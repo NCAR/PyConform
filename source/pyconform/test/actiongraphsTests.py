@@ -1,5 +1,5 @@
 """
-OperationGraph Unit Tests
+ActionGraph Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -7,9 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep, remove
 from os.path import exists
-from pyconform import dataset
-from pyconform import opgraph
-from pyconform.operators import InputSliceReader, FunctionEvaluator
+from pyconform import datasets, actiongraphs, actions
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
 from numpy import testing as nptst
@@ -47,11 +45,11 @@ def print_test_message(testname, indata=None, actual=None, expected=None):
     
 
 #=========================================================================
-# OperationGraphTests - Tests for the opgraph.OperationGraph class
+# ActionGraphTests - Tests for the actiongraphs.ActionGraph class
 #=========================================================================
-class OperationGraphTests(unittest.TestCase):
+class ActionGraphTests(unittest.TestCase):
     """
-    Unit Tests for the opgraph.OperationGraph class
+    Unit Tests for the actiongraphs.ActionGraph class
     """
 
     def setUp(self):        
@@ -113,7 +111,7 @@ class OperationGraphTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             
-        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
     def tearDown(self):
         self._clear_()
@@ -124,37 +122,37 @@ class OperationGraphTests(unittest.TestCase):
                 remove(fname)
     
     def test_init(self):
-        g = opgraph.OperationGraph()
+        g = actiongraphs.ActionGraph()
         actual = type(g)
-        expected = opgraph.OperationGraph
-        print_test_message('type(OperationGraph)', 
+        expected = actiongraphs.ActionGraph
+        print_test_message('type(ActionGraph)', 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'OperationGraph type not correct')
+                         'ActionGraph type not correct')
 
     def test_add_op(self):
-        g = opgraph.OperationGraph()
-        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
+        g = actiongraphs.ActionGraph()
+        u1Op = actions.InputSliceReader(self.filenames['u1'], 'u1')
         g.add(u1Op)
         actual = g.vertices
         expected = set([u1Op])
-        print_test_message('OperationGraph.add(Operator)',
+        print_test_message('ActionGraph.add(Operator)',
                            actual=actual, expected=expected)
         self.assertSetEqual(actual, expected,
-                            'OperationGraph did not add Operators')
+                            'ActionGraph did not add Operators')
 
     def test_add_int(self):
-        g = opgraph.OperationGraph()
+        g = actiongraphs.ActionGraph()
         expected = TypeError
-        print_test_message('OperationGraph.add(int) TypeError',
+        print_test_message('ActionGraph.add(int) TypeError',
                            expected=expected)
         self.assertRaises(expected, g.add, 1)
 
     def test_call(self):
-        g = opgraph.OperationGraph()
-        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
-        u2Op = InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = FunctionEvaluator('(u1+u2)', operator.add,
+        g = actiongraphs.ActionGraph()
+        u1Op = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        u2Op = actions.InputSliceReader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.FunctionEvaluator('(u1+u2)', operator.add,
                                      args=[None, None],
                                      units=u1Op.units,
                                      dimensions=u1Op.dimensions)
@@ -162,10 +160,10 @@ class OperationGraphTests(unittest.TestCase):
         g.connect(u2Op, u1plusu2)
         actual = g(u1plusu2)
         expected = self.vdat['u1'] + self.vdat['u2']
-        print_test_message('OperationGraph.__call__()', 
+        print_test_message('ActionGraph.__call__()', 
                            actual=actual, expected=expected)
         nptst.assert_array_equal(actual, expected,
-                                 'OperationGraph() failed')
+                                 'ActionGraph() failed')
 
 
 #===============================================================================
@@ -173,7 +171,7 @@ class OperationGraphTests(unittest.TestCase):
 #===============================================================================
 class GraphFillerTests(unittest.TestCase):
     """
-    Unit Tests for the opgraph.GraphFiller class
+    Unit Tests for the actiongraphs.GraphFiller class
     """
 
     def setUp(self):        
@@ -235,7 +233,7 @@ class GraphFillerTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             
-        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
         self.dsdict = OrderedDict()
         self.dsdict['attributes'] = self.fattribs
@@ -290,7 +288,7 @@ class GraphFillerTests(unittest.TestCase):
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
         
-        self.outds = dataset.OutputDataset('outds', self.dsdict)
+        self.outds = datasets.OutputDataset('outds', self.dsdict)
         
     def tearDown(self):
         self._clear_()
@@ -301,23 +299,23 @@ class GraphFillerTests(unittest.TestCase):
                 remove(fname)
 
     def test_init(self):
-        gfiller = opgraph.GraphFiller()
+        gfiller = actiongraphs.GraphFiller()
         actual = type(gfiller)
-        expected = opgraph.GraphFiller
+        expected = actiongraphs.GraphFiller
         print_test_message('type(GraphFiller)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'GraphFiller type not correct')
 
     def test_from_definitions(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller()
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller()
         gfiller.from_definitions(g, self.inpds, self.outds)
         print_test_message('GraphFiller.from_definitions()')
 
     def test_dimension_map(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller()
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller()
         gfiller.from_definitions(g, self.inpds, self.outds)
         actual = gfiller.dimension_map
         expected = {'x': 'lon', 'y': 'lat', 't': 'time'}
