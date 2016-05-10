@@ -88,7 +88,7 @@ class ActionTests(unittest.TestCase):
         testname = 'Mock Action.units'
         O = MockAction(opname)
         actual = O.units
-        expected = Unit(1)
+        expected = None
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Action units incorrect')
@@ -159,7 +159,7 @@ class ActionTests(unittest.TestCase):
         testname = 'Mock Action.dimensions'
         O = MockAction(opname)
         actual = O.dimensions
-        expected = ()
+        expected = None
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Action dimensions incorrect')

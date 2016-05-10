@@ -61,14 +61,11 @@ class Action(object):
         self._name = name
         
         # Default units
-        self._units = Unit(1)
+        self._units = None
         
         # Default dimensions
-        self._dimensions = ()
+        self._dimensions = None
         
-        # Default shape of the data
-        self._shape = ()
-
     @property
     def name(self):
         """
@@ -104,14 +101,14 @@ class Action(object):
     @property
     def dimensions(self):
         """
-        The dimensions list of the data returned by the operation
+        The dimensions tuple of the data returned by the operation
         """
         return self._dimensions
     
     @dimensions.setter
     def dimensions(self, d):
         """
-        Set the dimensions list of the data returned by the operation
+        Set the dimensions tuple of the data returned by the operation
         """
         self._dimensions = tuple(d)
 
