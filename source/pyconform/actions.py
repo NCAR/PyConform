@@ -47,18 +47,20 @@ class Action(object):
     __metaclass__ = ABCMeta
     
     @abstractmethod
-    def __init__(self, name):
+    def __init__(self, key, name):
         """
         Initializer
         
         Parameters:
+            key (hashable): A hashable key to associate with this Action
             name (str): A string name/identifier for the operator
-            units (Unit): The units of the data returned by the function
-            dimensions (tuple): Dimensions of the returned data
         """
         if not isinstance(name, (str, unicode)):
             raise TypeError('Action names must be strings')
         self._name = name
+        
+        # Key
+        self._key = key
         
         # Default units
         self._units = None
@@ -71,8 +73,15 @@ class Action(object):
         """
         Return the internal name of the Action
         """
-        return self._name     
-            
+        return self._name
+    
+    @property
+    def key(self):
+        """
+        The hashable key associated with this Action
+        """
+        return self._key
+
     def __str__(self):
         """
         String representation of the operation (its name)
@@ -118,6 +127,8 @@ class Action(object):
         Check if two Actions are equal
         """
         if not isinstance(other, Action):
+            return False
+        elif self._key != other._key:
             return False
         elif self._name != other._name:
             return False
@@ -181,9 +192,8 @@ class InputSliceReader(Action):
         self._slice = SliceTuple(slicetuple)
         
         # Call base class initializer - sets self._name
-        self._key = variable
         name = '{0}[{1}]'.format(variable, str(self._slice))
-        super(InputSliceReader, self).__init__(name)
+        super(InputSliceReader, self).__init__(variable, name)
 
         # Read/set the units
         if 'units' in ncfile.variables[variable].ncattrs():
@@ -199,9 +209,6 @@ class InputSliceReader(Action):
         # Read/set the dimensions
         self._dimensions = ncfile.variables[variable].dimensions
         
-        # Set the shape of the data
-        self._shape = ncfile.variables[variable].shape
-            
         # Close the NetCDF file
         ncfile.close()
     
@@ -218,8 +225,6 @@ class InputSliceReader(Action):
         Check if two Actions are equal
         """
         if not isinstance(other, InputSliceReader):
-            return False
-        elif self._key != other._key:
             return False
         elif self._filepath != other._filepath:
             return False
@@ -246,11 +251,12 @@ class FunctionEvaluator(Action):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, name, func, args=[]):
+    def __init__(self, key, name, func, args=[]):
         """
         Initializer
         
         Parameters:
+            key (hashable): Hashable key associated with the function
             name (str): A string name/identifier for the operator
             func (Function): A function with arguments taken from other operators
             args (list): Arguments to the function, in order, where 'None'
@@ -270,7 +276,7 @@ class FunctionEvaluator(Action):
         self._nargs = sum(arg is None for arg in args)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(name)
+        super(FunctionEvaluator, self).__init__(key, name)
 
     def __eq__(self, other):
         """
@@ -311,24 +317,24 @@ class OutputSliceHandle(Action):
     Action that acts as a "handle" for output data streams
     """
     
-    def __init__(self, name, slicetuple=None, minimum=None, maximum=None):
+    def __init__(self, variable, slicetuple=None, minimum=None, maximum=None):
         """
         Initializer
         
         Parameters:
-            name (str): A string name/identifier for the operator
+            variable (str): A string name/identifier for the variable
             slicetuple (tuple): The slice of the output variable into which
                 the data is to be written
             minimum: The minimum value the data should have, if valid
             maximum: The maximum value the data should have, if valid
         """
-        # Call base class initializer
-        super(OutputSliceHandle, self).__init__(name)
-
-        # 
         # Parse slice tuple
         self._slice = SliceTuple(slicetuple)
         
+        # Call base class initializer
+        name = '{0}[{1}]'.format(variable, str(self._slice))
+        super(OutputSliceHandle, self).__init__(variable, name)
+
         # Store min/max
         self._min = minimum
         self._max = maximum
@@ -344,6 +350,10 @@ class OutputSliceHandle(Action):
         if not isinstance(other, OutputSliceHandle):
             return False
         elif self._slice != other._slice:
+            return False
+        elif self._min != other._min:
+            return False
+        elif self._max != other._max:
             return False
         else:
             return super(OutputSliceHandle, self).__eq__(other)
@@ -398,8 +408,9 @@ class MPISender(Action):
                               '{}').format(size))
         
         # Call base class initializer
-        opname = 'send(to={},from={})'.format(dest, MPI.COMM_WORLD.Get_rank())
-        super(MPISender, self).__init__(opname)
+        source = MPI.COMM_WORLD.Get_rank()
+        opname = 'send(to={},from={})'.format(dest, source)
+        super(MPISender, self).__init__((source, dest), opname)
         
         # Store the destination rank
         self._dest = dest
@@ -478,8 +489,9 @@ class MPIReceiver(Action):
                               '{}').format(size))
         
         # Call base class initializer
-        opname = 'recv(to={},from={})'.format(MPI.COMM_WORLD.Get_rank(), source)
-        super(MPIReceiver, self).__init__(opname)
+        dest = MPI.COMM_WORLD.Get_rank()
+        opname = 'recv(to={},from={})'.format(dest, source)
+        super(MPIReceiver, self).__init__((source, dest), opname)
         
         # Store the source rank
         self._source = source

@@ -32,8 +32,8 @@ def print_test_message(testname, actual, expected):
 # ActionTests
 #===============================================================================
 class MockAction(acts.Action):
-    def __init__(self, name):
-        super(MockAction, self).__init__(name)
+    def __init__(self, key, name):
+        super(MockAction, self).__init__(key, name)
     def __eq__(self, other):
         return super(MockAction, self).__eq__(other)
     def __call__(self):
@@ -56,7 +56,7 @@ class ActionTests(unittest.TestCase):
     def test_init(self):
         opname = 'xop'
         testname = 'Mock Action.__init__()'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         actual = isinstance(O, acts.Action)
         expected = True
         print_test_message(testname, actual, expected)
@@ -66,7 +66,7 @@ class ActionTests(unittest.TestCase):
     def test_name(self):
         opname = 'xop'
         testname = 'Mock Action.__init__({!r})'.format(opname)
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
@@ -76,7 +76,7 @@ class ActionTests(unittest.TestCase):
     def test_str(self):
         opname = 'xop'
         testname = 'Mock Action.__str__()'
-        O = MockAction(opname)
+        O = MockAction('0', opname)
         actual = str(O)
         expected = opname
         print_test_message(testname, actual, expected)
@@ -86,7 +86,7 @@ class ActionTests(unittest.TestCase):
     def test_units_default(self):
         opname = 'xop'
         testname = 'Mock Action.units'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         actual = O.units
         expected = None
         print_test_message(testname, actual, expected)
@@ -96,7 +96,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_Unit(self):
         opname = 'xop'
         testname = 'Mock Action.units = Unit(m)'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         O.units = Unit('m')
         actual = O.units
         expected = Unit('m')
@@ -107,7 +107,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_str(self):
         opname = 'xop'
         testname = 'Mock Action.units = m'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         O.units = 'm'
         actual = O.units
         expected = Unit('m')
@@ -118,7 +118,7 @@ class ActionTests(unittest.TestCase):
     def test_units_from_tuple(self):
         opname = 'xop'
         testname = 'Mock Action.units = (days, standard)'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         O.units = ('days from 0001-01-01 00:00:00', 'standard')
         actual = O.units
         expected = Unit('days from 0001-01-01 00:00:00', calendar='standard')
@@ -129,7 +129,7 @@ class ActionTests(unittest.TestCase):
     def test_units_bad_unit(self):
         opname = 'xop'
         testname = 'Mock Action.units = ncxedajbec'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         expected = ValueError
         try:
             O.units = 'ncxedajbec'
@@ -143,7 +143,7 @@ class ActionTests(unittest.TestCase):
     def test_units_bad_calendar(self):
         opname = 'xop'
         testname = 'Mock Action.units = (days, ncxedajbec)'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         expected = ValueError
         try:
             O.units = ('days since 0001-01-01 00:00:00', 'ncxedajbec')
@@ -157,7 +157,7 @@ class ActionTests(unittest.TestCase):
     def test_dimensions_default(self):
         opname = 'xop'
         testname = 'Mock Action.dimensions'
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         actual = O.dimensions
         expected = None
         print_test_message(testname, actual, expected)
@@ -168,7 +168,7 @@ class ActionTests(unittest.TestCase):
         opname = 'xop'
         testname = 'Mock Action.dimensions = Unit(m)'.format(opname)
         indata = ('t', 'x')
-        O = MockAction(opname)
+        O = MockAction(0, opname)
         O.dimensions = indata
         actual = O.dimensions
         expected = indata
@@ -180,8 +180,8 @@ class ActionTests(unittest.TestCase):
         nm = 'xop'
         testname = ('Mock Action({!r}) == Action('
                     '{!r})').format(nm, nm)
-        O1 = MockAction(nm)
-        O2 = MockAction(nm)
+        O1 = MockAction(1, nm)
+        O2 = MockAction(1, nm)
         actual = (O1 == O2)
         expected = True
         print_test_message(testname, actual, expected)
@@ -193,8 +193,20 @@ class ActionTests(unittest.TestCase):
         nm2 = 'yop'
         testname = ('Mock Action({!r}) == Action('
                     '{!r})').format(nm1, nm2)
-        O1 = MockAction(nm1)
-        O2 = MockAction(nm2)
+        O1 = MockAction(1, nm1)
+        O2 = MockAction(1, nm2)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action equality not correct')    
+
+    def test_equal_diff_keys(self):
+        nm = 'xop'
+        testname = ('Mock Action(1, {!r}) == Action(2, '
+                    '{!r})').format(nm, nm)
+        O1 = MockAction(1, nm)
+        O2 = MockAction(2, nm)
         actual = (O1 == O2)
         expected = False
         print_test_message(testname, actual, expected)
@@ -310,7 +322,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_init(self):
         opname = '1'
         testname = 'FunctionEvaluator.__init__(function)'
-        FE = acts.FunctionEvaluator(opname, lambda: 1)
+        FE = acts.FunctionEvaluator('1', opname, lambda: 1)
         actual = type(FE)
         expected = acts.FunctionEvaluator
         print_test_message(testname, actual, expected)
@@ -319,7 +331,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_init_fail(self):
         opname = 'int(1)'
         testname = 'FunctionEvaluator.__init__(non-function)'
-        self.assertRaises(TypeError, acts.FunctionEvaluator, opname, 1)
+        self.assertRaises(TypeError, acts.FunctionEvaluator, 1, opname, 1)
         actual = TypeError
         expected = TypeError
         print_test_message(testname, actual, expected)
@@ -327,7 +339,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_unity(self):
         opname = 'identity'
         testname = 'FunctionEvaluator(lambda x: x).__call__(x)'
-        FE = acts.FunctionEvaluator(opname, lambda x: x)
+        FE = acts.FunctionEvaluator('I', opname, lambda x: x)
         actual = FE(self.params[0])
         expected = self.params[0]
         print_test_message(testname, actual, expected)
@@ -336,7 +348,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add(self):
         opname = 'add(a,b)'
         testname = 'FunctionEvaluator(add).__call__(a, b)'
-        FE = acts.FunctionEvaluator(opname, operator.add)
+        FE = acts.FunctionEvaluator('+', opname, operator.add)
         actual = FE(*self.params)
         expected = operator.add(*self.params)
         print_test_message(testname, actual, expected)
@@ -345,7 +357,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
         testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = acts.FunctionEvaluator(opname, operator.add, args=[1])
+        FE = acts.FunctionEvaluator('+', opname, operator.add, args=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -354,7 +366,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
         testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = acts.FunctionEvaluator(opname, operator.add, args=[None, 2])
+        FE = acts.FunctionEvaluator('+', opname, operator.add, args=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)
@@ -363,7 +375,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_sub(self):
         opname = 'sub(a,b)'
         testname = 'FunctionEvaluator(sub).__call__(a, b)'
-        FE = acts.FunctionEvaluator(opname, operator.sub)
+        FE = acts.FunctionEvaluator('-', opname, operator.sub)
         actual = FE(*self.params)
         expected = operator.sub(*self.params)
         print_test_message(testname, actual, expected)
@@ -372,8 +384,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_equal(self):
         opname = 'sub(a,b)'
         testname = 'FunctionEvaluator() == FunctionEvaluator()'
-        FE1 = acts.FunctionEvaluator(opname, operator.sub)
-        FE2 = acts.FunctionEvaluator(opname, operator.sub)
+        FE1 = acts.FunctionEvaluator('-', opname, operator.sub)
+        FE2 = acts.FunctionEvaluator('-', opname, operator.sub)
         actual = FE1 == FE2
         expected = True
         print_test_message(testname, actual, expected)
