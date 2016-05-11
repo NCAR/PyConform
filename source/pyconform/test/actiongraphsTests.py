@@ -162,6 +162,22 @@ class ActionGraphTests(unittest.TestCase):
                            actual=actual, expected=expected)
         nptst.assert_array_equal(actual, expected,
                                  'ActionGraph() failed')
+    
+    def test_handles(self):
+        g = actiongraphs.ActionGraph()
+        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.FunctionEvaluator('(u1+u2)', operator.add,
+                                             args=[None, None])
+        vhandle = actions.OutputSliceHandle('V')
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
+        g.connect(u1plusu2, vhandle)
+        actual = g.handles()[0]
+        expected = vhandle
+        print_test_message('ActionGraph.handles()', 
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'ActionGraph() failed')
 
 
 #===============================================================================
