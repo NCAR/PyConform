@@ -220,6 +220,10 @@ class InputSliceReader(Action):
     def dimensions(self, d):
         pass # Prevent from changing dimensions!
 
+    @property
+    def slicetuple(self):
+        return self._slice
+    
     def __eq__(self, other):
         """
         Check if two Actions are equal
@@ -278,6 +282,10 @@ class FunctionEvaluator(Action):
         # Call base class initializer
         super(FunctionEvaluator, self).__init__(key, name)
 
+    @property
+    def arguments(self):
+        return self._arguments
+    
     def __eq__(self, other):
         """
         Check if two Actions are equal
@@ -414,6 +422,10 @@ class MPISender(Action):
         
         # Store the destination rank
         self._dest = dest
+    
+    @property
+    def destination(self):
+        return self._dest
 
     def __eq__(self, other):
         """
@@ -496,6 +508,10 @@ class MPIReceiver(Action):
         # Store the source rank
         self._source = source
 
+    @property
+    def source(self):
+        return self._source
+    
     def __eq__(self, other):
         """
         Check if two Actions are equal
