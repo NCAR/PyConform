@@ -66,8 +66,7 @@ class ActionGraph(DiGraph):
         """
         Return a dictionary of output variable handles in the graph
         """
-        return dict((op.name, op) for op in self.vertices
-                    if isinstance(op, OutputSliceHandle))
+        return [op for op in self.vertices if isinstance(op, OutputSliceHandle)]
 
 
 #===============================================================================
@@ -110,7 +109,7 @@ class GraphFiller(object):
         """
         # Action Graph
         if not isinstance(graph, ActionGraph):
-            raise TypeError('OpGraph must be an ActionGraph object')
+            raise TypeError('Graph must be an ActionGraph object')
             
         # Output dataset
         if not isinstance(outds, OutputDataset):
@@ -124,6 +123,10 @@ class GraphFiller(object):
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
             graph.connect(vtx, handle)
+        
+        # Check to make sure the graph is not cyclic
+        if graph.is_cyclic():
+            raise ValueError('Graph is cyclic.  Cannot continue.')
             
     def _add_to_graph_(self, graph, obj):
         vtx = self._convert_obj_(obj)
@@ -178,4 +181,5 @@ class GraphFiller(object):
         Parameters:
             graph (ActionGraph): The ActionGraph in which to match units 
         """
-        pass
+        for handle in graph.handles():
+            pass
