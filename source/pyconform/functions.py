@@ -6,18 +6,55 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from os import linesep
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractmethod
 from operator import pow, neg, add, sub, mul, truediv
+from cf_units import Unit
 from numpy import sqrt
 
 
-#===============================================================================
-# Recursively return all subclasses of a given class
-#===============================================================================
-def _all_subclasses_(cls):
-    return cls.__subclasses__() + [c for s in cls.__subclasses__()
-                                   for c in _all_subclasses_(s)]
+class UnitsError(ValueError):
+    pass
 
+#===============================================================================
+# List all available functions or operators
+#===============================================================================
+def available():
+    return available_operators().union(available_functions())
+
+#===============================================================================
+# Find a function or operator based on key and number of arguments
+#===============================================================================
+def find(key, numargs=2):
+    if (key, numargs) in available_operators():
+        return find_operator(key, numargs)
+    elif (key, numargs) in available_functions():
+        return find_function(key, numargs)
+    else:
+        raise KeyError(('{0}-arg operator/function with key {1!r} not '
+                        'found').format(numargs, key))
+
+#===============================================================================
+# FunctionalAbstract - base class for Function and Operator Classes
+#===============================================================================
+class FunctionAbstract(object):
+    __metaclass__ = ABCMeta
+    @staticmethod
+    @abstractmethod
+    def key():
+        return 'function'
+    @staticmethod
+    @abstractmethod
+    def function():
+        return lambda x, y: 1
+    @staticmethod
+    def numargs():
+        return 2
+    @staticmethod
+    def units(*arg_units):
+        uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
+        uarg = (None,) * len(arg_units)
+        return uret, uarg
+    
 ################################################################################
 ##### OPERATORS ################################################################
 ################################################################################
@@ -26,100 +63,148 @@ def _all_subclasses_(cls):
 # Get a list of the available functions by function key and number of arguments
 #===============================================================================
 def available_operators():
-    return __OPERATORS__.items()
+    return set(__OPERATORS__.keys())
 
 #===============================================================================
 # Get the function associated with the given key-symbol
 #===============================================================================
-def get_operator(symbol, numargs=2):
-    if (symbol, numargs) not in __OPERATORS__:
-        raise KeyError(('{0}-arg operator with symbol {1!r} not '
-                        'found').format(numargs, symbol))
-    return __OPERATORS__[(symbol, numargs)]
+def find_operator(key, numargs=2):
+    if (key, numargs) not in __OPERATORS__:
+        raise KeyError(('{0}-arg operator with key {1!r} not '
+                        'found').format(numargs, key))
+    return __OPERATORS__[(key, numargs)]
 
 #===============================================================================
-# OperatorAbstract - From which all 'X op Y'-pattern operators derive
+# Operator - From which all 'X op Y'-pattern operators derive
 #===============================================================================
-class OperatorAbstract(object):
+class Operator(FunctionAbstract):
     __metaclass__ = ABCMeta
-    @abstractproperty
-    def symbol(self):
+    @staticmethod
+    @abstractmethod
+    def key():
         return 'function'
-    @abstractproperty
-    def function(self):
+    @staticmethod
+    @abstractmethod
+    def function():
         return lambda x, y: 1
-    @property
-    def numargs(self):
-        return 2
 
 #===============================================================================
 # NegationOperator
 #===============================================================================
-class NegationOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class NegationOperator(Operator):
+    @staticmethod
+    def key():
         return '-'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return neg
-    @property
-    def numargs(self):
+    @staticmethod
+    def numargs():
         return 1
 
 #===============================================================================
 # AdditionOperator
 #===============================================================================
-class AdditionOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class AdditionOperator(Operator):
+    @staticmethod
+    def key():
         return '+'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return add
+    @staticmethod
+    def units(*arg_units):
+        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+        if u[0] == u[1]:
+            return u[0], (None, None)
+        elif u[1].is_convertible(u[0]):
+            return u[0], (None, u[0])
+        else:
+            raise UnitsError(('Data with units {0[0]!s} and {0[1]!s} cannot be '
+                              'added').format(u))
 
 #===============================================================================
 # SubtractionOperator
 #===============================================================================
-class SubtractionOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class SubtractionOperator(Operator):
+    @staticmethod
+    def key():
         return '-'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return sub
+    @staticmethod
+    def units(*arg_units):
+        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+        if u[0] == u[1]:
+            return u[0], (None, None)
+        elif u[1].is_convertible(u[0]):
+            return u[0], (None, u[0])
+        else:
+            raise UnitsError(('Data with units {0[0]!s} and {0[1]!s} cannot be '
+                              'subtracted').format(u))
 
 #===============================================================================
 # PowerOperator
 #===============================================================================
-class PowerOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class PowerOperator(Operator):
+    @staticmethod
+    def key():
         return '^'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return pow
+    @staticmethod
+    def units(*arg_units):
+        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+        if not u[1].is_dimensionless():
+            raise UnitsError('Exponent in power function must be dimensionless')
+        try:
+            uret = pow(*u)
+        except:
+            raise UnitsError(('Cannot exponentiate units to power '
+                              '{0}').format(arg_units[1]))
+        return uret, (None, None)
 
 #===============================================================================
 # MultiplicationOperator
 #===============================================================================
-class MultiplicationOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class MultiplicationOperator(Operator):
+    @staticmethod
+    def key():
         return '*'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return mul
+    @staticmethod
+    def units(*arg_units):
+        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+        try:
+            uret = mul(*u)
+        except:
+            raise UnitsError(('Cannot multiply units {0[0]} and '
+                              '{0[1]}').format(u))
+        return uret, (None, None)
 
 #===============================================================================
 # DivisionOperator
 #===============================================================================
-class DivisionOperator(OperatorAbstract):
-    @property
-    def symbol(self):
+class DivisionOperator(Operator):
+    @staticmethod
+    def key():
         return '/'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return truediv
+    @staticmethod
+    def units(*arg_units):
+        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+        try:
+            uret = truediv(*u)
+        except:
+            raise UnitsError(('Cannot divide units {0[0]} and '
+                              '{0[1]}').format(u))
+        return uret, (None, None)
 
 #===============================================================================
 # Operator map - Fixed to prevent user-redefinition!
@@ -137,12 +222,19 @@ __OPERATORS__ = {('-', 1): NegationOperator,
 ################################################################################
 
 #===============================================================================
+# Recursively return all subclasses of a given class
+#===============================================================================
+def _all_subclasses_(cls):
+    return cls.__subclasses__() + [c for s in cls.__subclasses__()
+                                   for c in _all_subclasses_(s)]
+
+#===============================================================================
 # Check that all functions patterns are unique - Needed for User-Defined Funcs
 #===============================================================================
 def check_functions():
     func_dict = {}
-    func_map = [((c().name, c().numargs), c.__name__)
-                for c in _all_subclasses_(FunctionAbstract)]
+    func_map = [((c.key(), c.numargs()), c)
+                for c in _all_subclasses_(Function)]
     non_unique_patterns = []
     for func_pattern, class_name in func_map:
         if func_pattern in func_dict:
@@ -162,42 +254,52 @@ def check_functions():
 # Get a list of the available functions by function key and number of arguments
 #===============================================================================
 def available_functions():
-    return [(c().name, c().numargs)
-            for c in _all_subclasses_(FunctionAbstract)]
+    return set((c.key(), c.numargs())
+               for c in _all_subclasses_(Function))
 
 #===============================================================================
 # Get the function associated with the given key-symbol
 #===============================================================================
-def get_function(name, numargs=2):
-    func_map = dict(((c().name, c().numargs), c().function)
-                    for c in _all_subclasses_(FunctionAbstract))
-    if (name, numargs) not in func_map:
-        raise KeyError(('{0}-arg function with name {1!r} not '
-                        'found').format(numargs, name))
-    return func_map[(name, numargs)]
+def find_function(key, numargs=2):
+    func_map = dict(((c.key(), c.numargs()), c)
+                    for c in _all_subclasses_(Function))
+    if (key, numargs) not in func_map:
+        raise KeyError(('{0}-arg function with key {1!r} not '
+                        'found').format(numargs, key))
+    return func_map[(key, numargs)]
 
 #===============================================================================
-# FunctionAbstract - From which all 'func(...)'-pattern functions derive
+# Function - From which all 'func(...)'-pattern functions derive
 #===============================================================================
-class FunctionAbstract(object):
+class Function(FunctionAbstract):
     __metaclass__ = ABCMeta
-    @abstractproperty
-    def name(self):
+    @staticmethod
+    @abstractmethod
+    def key():
         return 'function'
-    @abstractproperty
-    def function(self):
-        return lambda: 1
-    @property
-    def numargs(self):
+    @staticmethod
+    @abstractmethod
+    def function():
+        return lambda x: x
+    @staticmethod
+    def numargs():
         return 1
 
 #===============================================================================
 # SquareRoot
 #===============================================================================
-class SquareRootFunction(FunctionAbstract):
-    @property
-    def name(self):
+class SquareRootFunction(Function):
+    @staticmethod
+    def key():
         return 'sqrt'
-    @property
-    def function(self):
+    @staticmethod
+    def function():
         return sqrt
+    @staticmethod
+    def units(arg_unit):
+        u = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
+        try:
+            uret = sqrt(u)
+        except:
+            raise UnitsError(('Cannot take square-root of units {0}').format(u))
+        return uret, (None,)

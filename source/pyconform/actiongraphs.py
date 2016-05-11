@@ -16,8 +16,9 @@ from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actions import (Action, InputSliceReader,
                                FunctionEvaluator, OutputSliceHandle)
-from pyconform.functions import get_function, get_operator
+from pyconform.functions import find_function, find_operator, UnitsError
 from itertools import cycle
+from cf_units import Unit
 
 
 #===============================================================================
@@ -151,7 +152,7 @@ class GraphFiller(object):
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             symbol = obj.key
             nargs = len(obj.args)
-            func = get_operator(symbol, numargs=nargs)
+            func = find_operator(symbol, numargs=nargs)
             args = [o if isinstance(o, (int, float)) else None
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
@@ -161,7 +162,7 @@ class GraphFiller(object):
         elif isinstance(obj, ParsedFunction):
             name = obj.key
             nargs = len(obj.args)
-            func = get_function(name, numargs=nargs)
+            func = find_function(name, numargs=nargs)
             args = [o if isinstance(o, (int, float)) else None
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
@@ -182,4 +183,34 @@ class GraphFiller(object):
             graph (ActionGraph): The ActionGraph in which to match units 
         """
         for handle in graph.handles():
-            pass
+            hunits = GraphFiller._compute_units_(graph, handle)
+
+    @staticmethod
+    def _compute_units_(graph, vtx):
+        nbrs = graph.neighbors_to(vtx)
+        to_units = [GraphFiller._compute_units_(graph, nbr) for nbr in nbrs]
+        if isinstance(vtx, FunctionEvaluator):
+            arg_units = [to_units.pop(0) if arg is None else arg
+                         for arg in vtx.signature]
+            func = find_function(vtx.key, numargs=len(arg_units))
+            ret_unit, new_units = func.units(arg_units)
+            for i, new_unit in enumerate(new_units):
+                if new_unit is not None:
+                    if vtx.signature[i] is not None:
+                        raise UnitsError(('Argument {0} in action {1} requires '
+                                          'units {2}').format(i, vtx, new_unit))
+                    else:
+                        old_unit = arg_units[i]
+                        name = 'convert(from={0}, to={1})'.format(old_unit,
+                                                                  new_unit)
+                        cvtx = FunctionEvaluator('convert', name, 
+                                                 old_unit.convert,
+                                                 signature=(new_unit,))
+                        cvtx.units = new_unit
+                        vtx.units = ret_unit
+                        nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
+                                           vtx.signature)[:i])]
+                        graph.disconnect(nbr, vtx)
+                        graph.connect(nbr, cvtx)
+                        graph.connect(cvtx, vtx)
+        return vtx.units
