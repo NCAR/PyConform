@@ -357,7 +357,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
         testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = acts.FunctionEvaluator('+', opname, operator.add, args=[1])
+        FE = acts.FunctionEvaluator('+', opname, operator.add, signature=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -366,7 +366,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
         testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = acts.FunctionEvaluator('+', opname, operator.add, args=[None, 2])
+        FE = acts.FunctionEvaluator('+', opname, operator.add, signature=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)

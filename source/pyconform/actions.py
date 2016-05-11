@@ -255,7 +255,7 @@ class FunctionEvaluator(Action):
     Generic function operator that acts on two operands
     """
     
-    def __init__(self, key, name, func, args=[]):
+    def __init__(self, key, name, func, signature=[]):
         """
         Initializer
         
@@ -263,7 +263,7 @@ class FunctionEvaluator(Action):
             key (hashable): Hashable key associated with the function
             name (str): A string name/identifier for the operator
             func (Function): A function with arguments taken from other operators
-            args (list): Arguments to the function, in order, where 'None'
+            signature (list): Arguments to the function, in order, where 'None'
                 indicates an argument passed in at runtime
         """
         # Check function
@@ -272,19 +272,19 @@ class FunctionEvaluator(Action):
         self._function = func
         
         # Check arguments
-        if not isinstance(args, (tuple, list)):
-            raise TypeError('Arguments not contained in list')
-        self._arguments = args
+        if not isinstance(signature, (tuple, list)):
+            raise TypeError('Signature not contained in list')
+        self._signature = signature
         
         # Count the number of runtime arguments needed
-        self._nargs = sum(arg is None for arg in args)
+        self._nargs = sum(arg is None for arg in signature)
 
         # Call base class initializer
         super(FunctionEvaluator, self).__init__(key, name)
 
     @property
-    def arguments(self):
-        return self._arguments
+    def signature(self):
+        return self._signature
     
     def __eq__(self, other):
         """
@@ -294,7 +294,7 @@ class FunctionEvaluator(Action):
             return False
         elif self._function != other._function:
             return False
-        elif self._arguments != other._arguments:
+        elif self._signature != other._signature:
             return False
         elif self._nargs != other._nargs:
             return False
@@ -312,7 +312,7 @@ class FunctionEvaluator(Action):
             raise RuntimeError('Received {} arguments, expected '
                                '{}'.format(len(args), self._nargs))
         tmp_args = list(args)
-        rtargs = [arg if arg else tmp_args.pop(0) for arg in self._arguments]
+        rtargs = [arg if arg else tmp_args.pop(0) for arg in self._signature]
         rtargs.extend(tmp_args)
         return self._function(*rtargs)
 
