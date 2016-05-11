@@ -26,19 +26,16 @@ def _all_subclasses_(cls):
 # Get a list of the available functions by function key and number of arguments
 #===============================================================================
 def available_operators():
-    return [(c().symbol, c().numargs)
-            for c in _all_subclasses_(OperatorAbstract)]
+    return __OPERATORS__.items()
 
 #===============================================================================
 # Get the function associated with the given key-symbol
 #===============================================================================
 def get_operator(symbol, numargs=2):
-    func_map = dict(((c().symbol, c().numargs), c().function)
-                    for c in _all_subclasses_(OperatorAbstract))
-    if (symbol, numargs) not in func_map:
+    if (symbol, numargs) not in __OPERATORS__:
         raise KeyError(('{0}-arg operator with symbol {1!r} not '
                         'found').format(numargs, symbol))
-    return func_map[(symbol, numargs)]
+    return __OPERATORS__[(symbol, numargs)]
 
 #===============================================================================
 # OperatorAbstract - From which all 'X op Y'-pattern operators derive
@@ -123,6 +120,17 @@ class DivisionOperator(OperatorAbstract):
     @property
     def function(self):
         return truediv
+
+#===============================================================================
+# Operator map - Fixed to prevent user-redefinition!
+#===============================================================================
+
+__OPERATORS__ = {('-', 1): NegationOperator,
+                 ('^', 2): PowerOperator,
+                 ('+', 2): AdditionOperator,
+                 ('-', 2): SubtractionOperator,
+                 ('*', 2): MultiplicationOperator,
+                 ('/', 2): DivisionOperator}
 
 ################################################################################
 ##### FUNCTIONS ################################################################
