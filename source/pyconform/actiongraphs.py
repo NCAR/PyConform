@@ -18,7 +18,6 @@ from pyconform.actions import (Action, InputSliceReader,
                                FunctionEvaluator, OutputSliceHandle)
 from pyconform.functions import find_function, find_operator, UnitsError
 from itertools import cycle
-from cf_units import Unit
 
 
 #===============================================================================
@@ -184,6 +183,7 @@ class GraphFiller(object):
         """
         for handle in graph.handles():
             hunits = GraphFiller._compute_units_(graph, handle)
+            print hunits
 
     @staticmethod
     def _compute_units_(graph, vtx):
