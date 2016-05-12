@@ -228,6 +228,128 @@ class FunctionsTests(unittest.TestCase):
 
 
 #===============================================================================
+# UnitsTests
+#===============================================================================
+class UnitsTests(unittest.TestCase):
+    """
+    Unit tests for the units methods of the functions.FunctionAbstract classes
+    """
+    
+    def test_units_neg_m(self):
+        indata = (Unit('m'),)
+        testname = 'NegationOperator.units({!r})'.format(*indata)
+        actual = functions.NegationOperator.units(*indata)
+        expected = Unit(indata[0]), (None,)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_neg_1(self):
+        indata = (1,)
+        testname = 'NegationOperator.units({!r})'.format(*indata)
+        actual = functions.NegationOperator.units(*indata)
+        expected = Unit(indata[0]), (None,)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_add_m_m(self):
+        indata = (Unit('m'), Unit('m'))
+        testname = 'AdditionOperator.units({!r})'.format(*indata)
+        actual = functions.AdditionOperator.units(*indata)
+        expected = Unit(indata[0]), (None, None)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_add_m_km(self):
+        indata = (Unit('m'), Unit('km'))
+        testname = 'AdditionOperator.units({!r})'.format(*indata)
+        actual = functions.AdditionOperator.units(*indata)
+        expected = Unit(indata[0]), (None, Unit('m'))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_add_m_g(self):
+        indata = (Unit('m'), Unit('g'))
+        testname = 'AdditionOperator.units({!r})'.format(*indata)
+        expected = functions.UnitsError
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, functions.AdditionOperator.units, *indata)
+
+    def test_units_add_1_u1(self):
+        indata = (1, Unit(1))
+        testname = 'AdditionOperator.units({!r})'.format(*indata)
+        actual = functions.AdditionOperator.units(*indata)
+        expected = Unit(indata[0]), (None, None)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_add_m_2(self):
+        indata = (Unit('m'), 2)
+        testname = 'AdditionOperator.units({!r})'.format(*indata)
+        expected = functions.UnitsError
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, functions.AdditionOperator.units, *indata)
+
+    def test_units_sub_m_km(self):
+        indata = (Unit('m'), Unit('km'))
+        testname = 'SubtractionOperator.units({!r})'.format(*indata)
+        actual = functions.SubtractionOperator.units(*indata)
+        expected = Unit(indata[0]), (None, Unit('m'))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_mul_m_m(self):
+        indata = (Unit('m'), Unit('m'))
+        testname = 'MultiplicationOperator.units({!r})'.format(*indata)
+        actual = functions.MultiplicationOperator.units(*indata)
+        expected = Unit(op.mul(*indata)), (None, None)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_mul_1_m(self):
+        indata = (1, Unit('m'))
+        testname = 'MultiplicationOperator.units({!r})'.format(*indata)
+        actual = functions.MultiplicationOperator.units(*indata)
+        expected = Unit(op.mul(*indata)), (None, None)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_div_1_m(self):
+        indata = (1, Unit('m'))
+        testname = 'DivisionOperator.units({!r})'.format(*indata)
+        actual = functions.DivisionOperator.units(*indata)
+        expected = Unit(1)/Unit('m'), (None, None)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_units_sqrt_m2(self):
+        indata = (Unit('m')**2,)
+        testname = 'SquareRootFunction.units({!r})'.format(*indata)
+        actual = functions.SquareRootFunction.units(*indata)
+        expected = Unit('m'), (None,)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertTupleEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+        
+#===============================================================================
 # Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":

@@ -84,7 +84,8 @@ class NegationOperator(Operator):
     numargs = 1
     function = neg
 
-    def units(self, arg_unit):
+    @staticmethod
+    def units(arg_unit):
         uret = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
         return uret, (None,)
 
@@ -96,7 +97,8 @@ class AdditionOperator(Operator):
     numargs = 2
     function = add
 
-    def units(self, *arg_units):
+    @staticmethod
+    def units(*arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         if u[0] == u[1]:
             return u[0], (None, None)
@@ -104,7 +106,7 @@ class AdditionOperator(Operator):
             return u[0], (None, u[0])
         else:
             raise UnitsError(('Data with units {0[0]!s} and {0[1]!s} cannot be '
-                              'added').format(u))
+                              'added or subtracted').format(u))
 
 #===============================================================================
 # SubtractionOperator
@@ -114,15 +116,9 @@ class SubtractionOperator(Operator):
     numargs = 2
     function = sub
 
-    def units(self, *arg_units):
-        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
-        if u[0] == u[1]:
-            return u[0], (None, None)
-        elif u[1].is_convertible(u[0]):
-            return u[0], (None, u[0])
-        else:
-            raise UnitsError(('Data with units {0[0]!s} and {0[1]!s} cannot be '
-                              'subtracted').format(u))
+    @staticmethod
+    def units(*arg_units):
+        return AdditionOperator.units(*arg_units)
 
 #===============================================================================
 # PowerOperator
@@ -132,7 +128,8 @@ class PowerOperator(Operator):
     numargs = 2
     function = pow
 
-    def units(self, *arg_units):
+    @staticmethod
+    def units(*arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         if not u[1].is_dimensionless():
             raise UnitsError('Exponent in power function must be dimensionless')
@@ -151,12 +148,13 @@ class MultiplicationOperator(Operator):
     numargs = 2
     function = mul
 
-    def units(self, *arg_units):
+    @staticmethod
+    def units(*arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         try:
             uret = mul(*u)
         except:
-            raise UnitsError(('Cannot multiply units {0[0]} and '
+            raise UnitsError(('Cannot multiply or divide units {0[0]} and '
                               '{0[1]}').format(u))
         return uret, (None, None)
 
@@ -168,12 +166,13 @@ class DivisionOperator(Operator):
     numargs = 2
     function = sub
 
-    def units(self, *arg_units):
+    @staticmethod
+    def units(*arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         try:
             uret = truediv(*u)
         except:
-            raise UnitsError(('Cannot divide units {0[0]} and '
+            raise UnitsError(('Cannot multiply or divide units {0[0]} and '
                               '{0[1]}').format(u))
         return uret, (None, None)
 
@@ -255,10 +254,11 @@ class SquareRootFunction(Function):
     numargs = 1
     function = sqrt
 
-    def units(self, arg_unit):
+    @staticmethod
+    def units(arg_unit):
         u = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
         try:
-            uret = self.function(u)
+            uret = u.root(2)
         except:
             raise UnitsError(('Cannot take square-root of units {0}').format(u))
         return uret, (None,)
