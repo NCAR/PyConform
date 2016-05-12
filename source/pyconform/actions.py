@@ -192,7 +192,8 @@ class InputSliceReader(Action):
         self._slice = SliceTuple(slicetuple)
         
         # Call base class initializer - sets self._name
-        name = '{0}[{1}]'.format(variable, str(self._slice))
+        slcstr = str(self._slice).replace('(', '[').replace(')', ']')
+        name = '{0}{1}'.format(variable, slcstr)
         super(InputSliceReader, self).__init__(variable, name)
 
         # Read/set the units
@@ -340,7 +341,8 @@ class OutputSliceHandle(Action):
         self._slice = SliceTuple(slicetuple)
         
         # Call base class initializer
-        name = '{0}[{1}]'.format(variable, str(self._slice))
+        slcstr = str(self._slice).replace('(', '[').replace(')', ']')
+        name = '{0}{1}'.format(variable, slcstr)
         super(OutputSliceHandle, self).__init__(variable, name)
 
         # Store min/max
