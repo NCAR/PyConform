@@ -84,11 +84,11 @@ class DiGraph(object):
         """
         connected_vertices = set(sum(self.edges, ()))
         unconnected_vertices = self.vertices - connected_vertices
-        strtemp = '{0}    '.format(linesep)
-        strverts = strtemp.join(str(v) for v in unconnected_vertices) 
-        stredges = strtemp.join('{0[0]} --> {0[1]}'.format(e)
-                                for e in self.edges)
-        return 'DiGraph:{0}{1}{0}{2}'.format(strtemp, strverts, stredges)
+        strverts = ''.join('{0}    {1}'.format(linesep, str(v))
+                           for v in unconnected_vertices) 
+        stredges = ''.join('{0}    {1[0]} --> {1[1]}'.format(linesep, e)
+                           for e in self.edges)
+        return 'DiGraph:{0}{1}'.format(strverts, stredges)
 
     def leaves(self):
         """
