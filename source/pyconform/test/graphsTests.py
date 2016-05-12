@@ -102,6 +102,13 @@ class GraphTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
 
+    def test_str(self):
+        G = graphs.DiGraph()
+        G.add(1)
+        G.connect(2,3)
+        G.connect(2,5)
+        print G
+
     def test_clear(self):
         G = graphs.DiGraph()
         G.connect(1, 2)

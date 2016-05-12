@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from copy import deepcopy
+from os import linesep
 
 
 #===============================================================================
@@ -76,6 +77,18 @@ class DiGraph(object):
             int: The number of vertices in the graph
         """
         return len(self._vertices)
+
+    def __str__(self):
+        """
+        String representation of the graph
+        """
+        connected_vertices = set(sum(self.edges, ()))
+        unconnected_vertices = self.vertices - connected_vertices
+        strtemp = '{0}    '.format(linesep)
+        strverts = strtemp.join(str(v) for v in unconnected_vertices) 
+        stredges = strtemp.join('{0[0]} --> {0[1]}'.format(e)
+                                for e in self.edges)
+        return 'DiGraph:{0}{1}{0}{2}'.format(strtemp, strverts, stredges)
 
     def leaves(self):
         """
