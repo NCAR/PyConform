@@ -7,8 +7,8 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep
 from abc import ABCMeta, abstractmethod
-from operator import pow, neg, add, sub, mul, truediv
 from cf_units import Unit
+from operator import pow, neg, add, sub, mul, truediv
 from numpy import sqrt
 
 
@@ -38,21 +38,15 @@ def find(key, numargs=2):
 #===============================================================================
 class FunctionAbstract(object):
     __metaclass__ = ABCMeta
-    @staticmethod
+    
+    key = 'function'
+    numargs = 2
+    function = lambda x, y: 1
+    
     @abstractmethod
-    def key():
-        return 'function'
-    @staticmethod
-    @abstractmethod
-    def function():
-        return lambda x, y: 1
-    @staticmethod
-    def numargs():
-        return 2
-    @staticmethod
-    def units(*arg_units):
+    def units(self, *arg_units):
         uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
-        uarg = (None,) * len(arg_units)
+        uarg = (None,) * len(self.numargs)
         return uret, uarg
     
 ################################################################################
@@ -78,42 +72,31 @@ def find_operator(key, numargs=2):
 # Operator - From which all 'X op Y'-pattern operators derive
 #===============================================================================
 class Operator(FunctionAbstract):
-    __metaclass__ = ABCMeta
-    @staticmethod
-    @abstractmethod
-    def key():
-        return 'function'
-    @staticmethod
-    @abstractmethod
-    def function():
-        return lambda x, y: 1
+    key = '?'
+    numargs = 2
+    function = lambda x, y: 1
 
 #===============================================================================
 # NegationOperator
 #===============================================================================
 class NegationOperator(Operator):
-    @staticmethod
-    def key():
-        return '-'
-    @staticmethod
-    def function():
-        return neg
-    @staticmethod
-    def numargs():
-        return 1
+    key = '-'
+    numargs = 1
+    function = neg
+
+    def units(self, arg_unit):
+        uret = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
+        return uret, (None,)
 
 #===============================================================================
 # AdditionOperator
 #===============================================================================
 class AdditionOperator(Operator):
-    @staticmethod
-    def key():
-        return '+'
-    @staticmethod
-    def function():
-        return add
-    @staticmethod
-    def units(*arg_units):
+    key = '+'
+    numargs = 2
+    function = add
+
+    def units(self, *arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         if u[0] == u[1]:
             return u[0], (None, None)
@@ -127,14 +110,11 @@ class AdditionOperator(Operator):
 # SubtractionOperator
 #===============================================================================
 class SubtractionOperator(Operator):
-    @staticmethod
-    def key():
-        return '-'
-    @staticmethod
-    def function():
-        return sub
-    @staticmethod
-    def units(*arg_units):
+    key = '-'
+    numargs = 2
+    function = sub
+
+    def units(self, *arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         if u[0] == u[1]:
             return u[0], (None, None)
@@ -148,14 +128,11 @@ class SubtractionOperator(Operator):
 # PowerOperator
 #===============================================================================
 class PowerOperator(Operator):
-    @staticmethod
-    def key():
-        return '^'
-    @staticmethod
-    def function():
-        return pow
-    @staticmethod
-    def units(*arg_units):
+    key = '^'
+    numargs = 2
+    function = pow
+
+    def units(self, *arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         if not u[1].is_dimensionless():
             raise UnitsError('Exponent in power function must be dimensionless')
@@ -170,14 +147,11 @@ class PowerOperator(Operator):
 # MultiplicationOperator
 #===============================================================================
 class MultiplicationOperator(Operator):
-    @staticmethod
-    def key():
-        return '*'
-    @staticmethod
-    def function():
-        return mul
-    @staticmethod
-    def units(*arg_units):
+    key = '*'
+    numargs = 2
+    function = mul
+
+    def units(self, *arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         try:
             uret = mul(*u)
@@ -190,14 +164,11 @@ class MultiplicationOperator(Operator):
 # DivisionOperator
 #===============================================================================
 class DivisionOperator(Operator):
-    @staticmethod
-    def key():
-        return '/'
-    @staticmethod
-    def function():
-        return truediv
-    @staticmethod
-    def units(*arg_units):
+    key = '-'
+    numargs = 2
+    function = sub
+
+    def units(self, *arg_units):
         u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
         try:
             uret = truediv(*u)
@@ -233,7 +204,7 @@ def _all_subclasses_(cls):
 #===============================================================================
 def check_functions():
     func_dict = {}
-    func_map = [((c.key(), c.numargs()), c)
+    func_map = [((c.key, c.numargs), c)
                 for c in _all_subclasses_(Function)]
     non_unique_patterns = []
     for func_pattern, class_name in func_map:
@@ -254,14 +225,14 @@ def check_functions():
 # Get a list of the available functions by function key and number of arguments
 #===============================================================================
 def available_functions():
-    return set((c.key(), c.numargs())
+    return set((c.key, c.numargs)
                for c in _all_subclasses_(Function))
 
 #===============================================================================
 # Get the function associated with the given key-symbol
 #===============================================================================
 def find_function(key, numargs=2):
-    func_map = dict(((c.key(), c.numargs()), c)
+    func_map = dict(((c.key, c.numargs), c)
                     for c in _all_subclasses_(Function))
     if (key, numargs) not in func_map:
         raise KeyError(('{0}-arg function with key {1!r} not '
@@ -272,34 +243,22 @@ def find_function(key, numargs=2):
 # Function - From which all 'func(...)'-pattern functions derive
 #===============================================================================
 class Function(FunctionAbstract):
-    __metaclass__ = ABCMeta
-    @staticmethod
-    @abstractmethod
-    def key():
-        return 'function'
-    @staticmethod
-    @abstractmethod
-    def function():
-        return lambda x: x
-    @staticmethod
-    def numargs():
-        return 1
+    key = 'f'
+    numargs = 1
+    function = lambda x: x
 
 #===============================================================================
 # SquareRoot
 #===============================================================================
 class SquareRootFunction(Function):
-    @staticmethod
-    def key():
-        return 'sqrt'
-    @staticmethod
-    def function():
-        return sqrt
-    @staticmethod
-    def units(arg_unit):
+    key = 'sqrt'
+    numargs = 1
+    function = sqrt
+
+    def units(self, arg_unit):
         u = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
         try:
-            uret = sqrt(u)
+            uret = self.function(u)
         except:
             raise UnitsError(('Cannot take square-root of units {0}').format(u))
         return uret, (None,)
