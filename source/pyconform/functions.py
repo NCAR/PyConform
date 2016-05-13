@@ -9,7 +9,7 @@ from os import linesep
 from abc import ABCMeta, abstractmethod
 from cf_units import Unit
 from operator import pow, neg, add, sub, mul, truediv
-from numpy import sqrt
+from numpy import sqrt, transpose
 
 
 class UnitsError(ValueError):
@@ -349,3 +349,23 @@ class ConvertFunction(Function):
     def dimensions(*arg_dims):
         dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
         return dret, (None, None, None)
+
+#===============================================================================
+# TransposeFunction
+#===============================================================================
+class TransposeFunction(Function):
+    key = 'transpose'
+    numargs = 2
+    function = transpose
+
+    @staticmethod
+    def units(*arg_units):
+        u = [a if isinstance(a, Unit) else Unit(1) for a in arg_units]
+        return u[0], (None, None)
+
+    @staticmethod
+    def dimensions(*arg_dims):
+        d = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
+        order = arg_dims[1]
+        dret = tuple(d[i] for i in order)
+        return dret, (None, None)
