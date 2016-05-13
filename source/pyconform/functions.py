@@ -360,8 +360,8 @@ class TransposeFunction(Function):
 
     @staticmethod
     def units(*arg_units):
-        u = [a if isinstance(a, Unit) else Unit(1) for a in arg_units]
-        return u[0], (None, None)
+        uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
+        return uret, (None, None)
 
     @staticmethod
     def dimensions(*arg_dims):
