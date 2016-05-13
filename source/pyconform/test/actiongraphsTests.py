@@ -357,10 +357,29 @@ class GraphFillerTests(unittest.TestCase):
         gfiller.from_definitions(g, self.outds)
         gfiller.match_units(g)
         print g
+
+    def test_match_units_reapply(self):
+        print_test_message('GraphFiller.match_units() x2')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        print 'AFTER FIRST PASS:'
+        print
+        print g
         print
         gfiller.match_units(g)
+        print 'AFTER SECOND PASS:'
+        print
         print g
 
+    def test_match_dimensions(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_dimensions(g)
+        print g
 
 #===============================================================================
 # Command-Line Execution

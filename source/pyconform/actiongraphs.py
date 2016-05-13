@@ -16,7 +16,8 @@ from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actions import (Action, InputSliceReader,
                                FunctionEvaluator, OutputSliceHandle)
-from pyconform.functions import find_function, find_operator, find, UnitsError
+from pyconform.functions import (find_function, find_operator, find,
+                                 UnitsError, DimensionsError)
 from itertools import cycle
 
 
@@ -208,6 +209,7 @@ class GraphFiller(object):
                         cvtx.units = new_unit
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
+                        cvtx.dimensions = nbr.dimensions
                         graph.disconnect(nbr, vtx)
                         graph.connect(nbr, cvtx)
                         graph.connect(cvtx, vtx)
@@ -223,6 +225,7 @@ class GraphFiller(object):
                     cvtx = FunctionEvaluator('convert', name, cfunc,
                                              signature=(None, old_unit, vtx.units))
                     cvtx.units = vtx.units
+                    cvtx.dimensions = vtx.dimensions
 
                     graph.disconnect(nbrs[0], vtx)
                     graph.connect(nbrs[0], cvtx)
@@ -237,4 +240,76 @@ class GraphFiller(object):
                                           '{1!r} to {2} units '
                                           '{3!r}').format(nbrs[0], old_unit,
                                                           vtx, vtx.units))
+        
+        else:
+            if len(to_units) == 1:
+                vtx.units = to_units[0]
+
         return vtx.units
+
+    def match_dimensions(self, graph):
+        """
+        Match dimensions of connected Actions in an ActionGraph
+        
+        This will add new Actions to the ActionGraph, as necessary, to transpose
+        dimensions to match the necessary dimensions needed by each Action.
+        
+        Parameters:
+            graph (ActionGraph): The ActionGraph in which to match dimensions 
+        """
+        dmap = {}
+        for handle in graph.handles():
+            GraphFiller._compute_dimensions_(graph, handle, dmap)
+        
+        print dmap
+
+    @staticmethod
+    def _compute_dimensions_(graph, vtx, dmap={}):
+        nbrs = graph.neighbors_to(vtx)
+        to_dims = [GraphFiller._compute_dimensions_(graph, nbr, dmap)
+                   for nbr in nbrs]
+        if isinstance(vtx, FunctionEvaluator):
+            arg_dims = [to_dims.pop(0) if arg is None else arg
+                        for arg in vtx.signature]
+            func = find(vtx.key, numargs=len(arg_dims))
+            ret_dims, new_dims = func.dimensions(*arg_dims)
+            for i, new_dim in enumerate(new_dims):
+                if new_dim is not None:
+                    if vtx.signature[i] is not None:
+                        raise DimensionsError(('Argument {0} in action {1} '
+                                               'requires dimensions '
+                                               '{2}').format(i, vtx, new_dim))
+                    else:
+                        old_dim = arg_dims[i]
+                        neworder = [new_dim.index(d) for d in old_dim]
+                        name = 'transpose({0!r}, order={1!r})'.format(old_dim,
+                                                                      neworder)
+                        tfunc = find_function('transpose', 2)
+                        tvtx = FunctionEvaluator('transpose', name, tfunc,
+                                                 signature=(None, neworder))
+                        tvtx.dimensions = new_dim
+                        nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
+                                           vtx.signature)[:i])]
+                        tvtx.units = nbr.units
+                        graph.disconnect(nbr, vtx)
+                        graph.connect(nbr, tvtx)
+                        graph.connect(tvtx, vtx)
+            vtx.dimensions = ret_dims
+
+        if isinstance(vtx, OutputSliceHandle):
+            nbr = nbrs[0]
+            to_dim = to_dims[0]
+            if len(to_dim) != len(vtx.dimensions):
+                raise DimensionsError(('Action {0} with dimensions {1} '
+                                       'inconsistent with required output '
+                                       'variable {2} dimensions '
+                                       '{3}').format(nbr, to_dim, vtx,
+                                                     vtx.dimensions))
+            elif len(to_dim) == 1:
+                dmap[vtx.dimensions[0]] = to_dim[0]
+                
+        else:
+            if len(to_dims) == 1:
+                vtx.dimensions = to_dims[0]
+
+        return vtx.dimensions
