@@ -152,8 +152,8 @@ class ActionGraphTests(unittest.TestCase):
         g = actiongraphs.ActionGraph()
         u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
         u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = actions.FunctionEvaluator('(u1+u2)', operator.add,
-                                             args=[None, None])
+        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         actual = g(u1plusu2)
@@ -162,13 +162,25 @@ class ActionGraphTests(unittest.TestCase):
                            actual=actual, expected=expected)
         nptst.assert_array_equal(actual, expected,
                                  'ActionGraph() failed')
-    
+
+    def test_print(self):
+        g = actiongraphs.ActionGraph()
+        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
+        vhandle = actions.OutputSliceHandle('V')
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
+        g.connect(u1plusu2, vhandle)
+        print g
+        
     def test_handles(self):
         g = actiongraphs.ActionGraph()
         u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
         u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = actions.FunctionEvaluator('(u1+u2)', operator.add,
-                                             args=[None, None])
+        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
         vhandle = actions.OutputSliceHandle('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
@@ -209,7 +221,7 @@ class GraphFillerTests(unittest.TestCase):
                                              'standard_name': 'time'}),
                                    ('u1', {'units': 'm',
                                            'standard_name': 'u variable 1'}),
-                                   ('u2', {'units': 'm',
+                                   ('u2', {'units': 'ft',
                                            'standard_name': 'u variable 2'}),
                                    ('u3', {'units': 'km',
                                            'standard_name': 'u variable 3'})])
@@ -278,7 +290,7 @@ class GraphFillerTests(unittest.TestCase):
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
-        vattribs['units'] = 'days since 0001-01-01 00:00:00'
+        vattribs['units'] = 'hours since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
         vdicts['T']['attributes'] = vattribs
 
@@ -302,6 +314,16 @@ class GraphFillerTests(unittest.TestCase):
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
         
+        vdicts['V3'] = OrderedDict()
+        vdicts['V3']['datatype'] = 'float64'
+        vdicts['V3']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V3']['definition'] = '(u2 + u1) / u3'
+        vdicts['V3']['filename'] = 'var3.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 2'
+        vattribs['units'] = '1'
+        vdicts['V3']['attributes'] = vattribs
+        
         self.outds = datasets.OutputDataset('outds', self.dsdict)
         
     def tearDown(self):
@@ -322,10 +344,22 @@ class GraphFillerTests(unittest.TestCase):
                          'GraphFiller type not correct')
 
     def test_from_definitions(self):
+        print_test_message('GraphFiller.from_definitions()')
         g = actiongraphs.ActionGraph()
         gfiller = actiongraphs.GraphFiller(self.inpds)
         gfiller.from_definitions(g, self.outds)
-        print_test_message('GraphFiller.from_definitions()')
+        print g
+
+    def test_match_units(self):
+        print_test_message('GraphFiller.match_units()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        print g
+        print
+        gfiller.match_units(g)
+        print g
 
 
 #===============================================================================

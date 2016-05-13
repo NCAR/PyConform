@@ -16,7 +16,7 @@ from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actions import (Action, InputSliceReader,
                                FunctionEvaluator, OutputSliceHandle)
-from pyconform.functions import find_function, find_operator, UnitsError
+from pyconform.functions import find_function, find_operator, find, UnitsError
 from itertools import cycle
 
 
@@ -156,7 +156,7 @@ class GraphFiller(object):
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            return FunctionEvaluator(str(obj), func, args=args)
+            return FunctionEvaluator(symbol, str(obj), func, signature=args)
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
@@ -166,7 +166,7 @@ class GraphFiller(object):
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            return FunctionEvaluator(str(obj), func, args=args)
+            return FunctionEvaluator(name, str(obj), func, signature=args)
         
         else:
             return obj
@@ -182,8 +182,7 @@ class GraphFiller(object):
             graph (ActionGraph): The ActionGraph in which to match units 
         """
         for handle in graph.handles():
-            hunits = GraphFiller._compute_units_(graph, handle)
-            print hunits
+            GraphFiller._compute_units_(graph, handle)
 
     @staticmethod
     def _compute_units_(graph, vtx):
@@ -192,8 +191,8 @@ class GraphFiller(object):
         if isinstance(vtx, FunctionEvaluator):
             arg_units = [to_units.pop(0) if arg is None else arg
                          for arg in vtx.signature]
-            func = find_function(vtx.key, numargs=len(arg_units))
-            ret_unit, new_units = func.units(arg_units)
+            func = find(vtx.key, numargs=len(arg_units))
+            ret_unit, new_units = func.units(*arg_units)
             for i, new_unit in enumerate(new_units):
                 if new_unit is not None:
                     if vtx.signature[i] is not None:
@@ -201,16 +200,41 @@ class GraphFiller(object):
                                           'units {2}').format(i, vtx, new_unit))
                     else:
                         old_unit = arg_units[i]
-                        name = 'convert(from={0}, to={1})'.format(old_unit,
-                                                                  new_unit)
-                        cvtx = FunctionEvaluator('convert', name, 
-                                                 old_unit.convert,
-                                                 signature=(new_unit,))
+                        name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
+                                                                      new_unit)
+                        cfunc = find_function('convert', 3)
+                        cvtx = FunctionEvaluator('convert', name, cfunc,
+                                                 signature=(None, old_unit, new_unit))
                         cvtx.units = new_unit
-                        vtx.units = ret_unit
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
                         graph.disconnect(nbr, vtx)
                         graph.connect(nbr, cvtx)
                         graph.connect(cvtx, vtx)
+            vtx.units = ret_unit
+                        
+        elif isinstance(vtx, OutputSliceHandle):
+            old_unit = to_units[0]
+            if vtx.units != old_unit:
+                if old_unit.is_convertible(vtx.units):
+                    name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
+                                                                  vtx.units)
+                    cfunc = find_function('convert', 3)
+                    cvtx = FunctionEvaluator('convert', name, cfunc,
+                                             signature=(None, old_unit, vtx.units))
+                    cvtx.units = vtx.units
+
+                    graph.disconnect(nbrs[0], vtx)
+                    graph.connect(nbrs[0], cvtx)
+                    graph.connect(cvtx, vtx)
+                else:
+                    if old_unit.calendar != vtx.units.calendar:
+                        raise UnitsError(('Cannot convert {0} units to {1} '
+                                          'units.  Calendars must be '
+                                          'same.').format(nbrs[0], vtx))
+                    else:
+                        raise UnitsError(('Cannot convert {0} units '
+                                          '{1!r} to {2} units '
+                                          '{3!r}').format(nbrs[0], old_unit,
+                                                          vtx, vtx.units))
         return vtx.units

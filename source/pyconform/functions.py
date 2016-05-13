@@ -262,3 +262,23 @@ class SquareRootFunction(Function):
         except:
             raise UnitsError(('Cannot take square-root of units {0}').format(u))
         return uret, (None,)
+
+#===============================================================================
+# ConvertFunction
+#===============================================================================
+class ConvertFunction(Function):
+    key = 'convert'
+    numargs = 3
+    function = lambda data, uFrom, uTo: uFrom.convert(data, uTo)
+
+    @staticmethod
+    def units(*arg_units):
+        u = [a if isinstance(a, Unit) else Unit(1) for a in arg_units]
+        if u[0] != u[1]:
+            raise UnitsError(('Input units {0[0]} different from expected '
+                              'units {0[1]}').format(u))
+        if not u[1].is_convertible(u[2]):
+            raise UnitsError(('Ill-formed convert function.  Cannot convert '
+                              'units {0[1]} to {0[2]}').format(u))
+        uret = u[2]
+        return uret, (None, None, None)
