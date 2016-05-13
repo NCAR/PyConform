@@ -266,6 +266,11 @@ class GraphFiller(object):
         
         for handle in graph.handles():
             nbr = graph.neighbors_to(handle)[0]
+            if not all(d in dmap for d in nbr.dimensions):
+                unmapped_dims = tuple(d for d in nbr.dimensions if d not in dmap)
+                raise DimensionsError(('Could not determine complete dimension '
+                                       'map for input dimensions '
+                                       '{0}').format(unmapped_dims))
             mapped_dims = tuple(dmap[d] for d in nbr.dimensions)
             if handle.dimensions != mapped_dims:
                 if set(handle.dimensions) == set(mapped_dims):
