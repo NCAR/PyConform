@@ -381,6 +381,24 @@ class GraphFillerTests(unittest.TestCase):
         gfiller.match_dimensions(g)
         print g
 
+    def test_match_units_dimensions(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        gfiller.match_dimensions(g)
+        print g
+
+    def test_match_dimensions_units(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_dimensions(g)
+        gfiller.match_units(g)
+        print g
+
 #===============================================================================
 # Command-Line Execution
 #===============================================================================
