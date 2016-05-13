@@ -257,11 +257,29 @@ class GraphFiller(object):
         Parameters:
             graph (ActionGraph): The ActionGraph in which to match dimensions 
         """
+        # Fill the graph with dimensions up to the OutputSliceHandles and
+        # compute the map of input dataset dimensions to output dataset dims
         dmap = {}
         for handle in graph.handles():
             GraphFiller._compute_dimensions_(graph, handle, dmap)
-        
         print dmap
+        
+        for handle in graph.handles():
+            nbr = graph.neighbors_to(handle)[0]
+            mapped_dims = tuple(dmap[d] for d in nbr.dimensions)
+            if handle.dimensions != mapped_dims:
+                if set(handle.dimensions) == set(mapped_dims):
+                    neworder = [handle.dimensions.index(d) for d in mapped_dims]
+                    name = 'transpose({0!r}, order={1!r})'.format(mapped_dims,
+                                                                  neworder)
+                    tfunc = find_function('transpose', 2)
+                    tvtx = FunctionEvaluator('transpose', name, tfunc,
+                                             signature=(None, neworder))
+                    tvtx.dimensions = handle.dimensions
+                    tvtx.units = nbr.units
+                    graph.disconnect(nbr, handle)
+                    graph.connect(nbr, tvtx)
+                    graph.connect(tvtx, handle)
 
     @staticmethod
     def _compute_dimensions_(graph, vtx, dmap={}):
@@ -306,7 +324,7 @@ class GraphFiller(object):
                                        '{3}').format(nbr, to_dim, vtx,
                                                      vtx.dimensions))
             elif len(to_dim) == 1:
-                dmap[vtx.dimensions[0]] = to_dim[0]
+                dmap[to_dim[0]] = vtx.dimensions[0]
                 
         else:
             if len(to_dims) == 1:
