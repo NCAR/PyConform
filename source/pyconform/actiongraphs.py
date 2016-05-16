@@ -19,6 +19,7 @@ from pyconform.actions import (Action, ReaderAction,
 from pyconform.functions import (find_function, find_operator, find,
                                  UnitsError, DimensionsError)
 from itertools import cycle
+from os import linesep
 
 
 #===============================================================================
@@ -38,6 +39,43 @@ class ActionGraph(DiGraph):
         """
         super(ActionGraph, self).__init__()
 
+    def __str__(self):
+        """
+        Display an ActionGraph as a string
+        """
+        output = []
+        for h in self.handles():
+            nodes = self._actions_by_depth_(h)
+            houtput = []
+            for i, u in nodes:
+                indent = '    '*i
+                if i > 0:
+                    houtput.append('{0}|'.format(indent))
+                houtput.append('{0}+-- {1!s}'.format(indent, u))
+            for i in xrange(len(houtput)):
+                for j in [j for j, c in enumerate(houtput[i]) if c == '|']:
+                    k = i - 1
+                    while k > 0:
+                        if houtput[k][j] == ' ':
+                            houtput[k] = houtput[k][:j] + '|' + houtput[k][j+1:]
+                            k = k - 1
+                        else:
+                            k = 0
+            output.extend(houtput)
+            output.append('')
+        return linesep.join(output)
+    
+    def _actions_by_depth_(self, v, depth=0, visited=None):
+        if visited is None:
+            visited = set()
+        visited.add(v)
+        nodes = [(depth, v)]
+        for n in self.neighbors_to(v):
+            if n not in visited:
+                nodes.extend(self._actions_by_depth_(n, depth=depth+1,
+                                                     visited=visited))
+        return nodes
+    
     def add(self, vertex):
         """
         Add a vertex to the graph
@@ -262,7 +300,6 @@ class GraphFiller(object):
         dmap = {}
         for handle in graph.handles():
             GraphFiller._compute_dimensions_(graph, handle, dmap)
-        print dmap
         
         for handle in graph.handles():
             nbr = graph.neighbors_to(handle)[0]
