@@ -239,12 +239,7 @@ class GraphFiller(object):
                                           'units {2}').format(i, vtx, new_unit))
                     else:
                         old_unit = arg_units[i]
-                        name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
-                                                                      new_unit)
-                        cfunc = find_function('convert', 3)
-                        cvtx = Evaluator('convert', name, cfunc,
-                                                 signature=(None, old_unit, new_unit))
-                        cvtx.units = new_unit
+                        cvtx = GraphFiller._new_converter_(old_unit, new_unit)
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
                         cvtx.dimensions = nbr.dimensions
@@ -257,12 +252,7 @@ class GraphFiller(object):
             old_unit = to_units[0]
             if vtx.units != old_unit:
                 if old_unit.is_convertible(vtx.units):
-                    name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
-                                                                  vtx.units)
-                    cfunc = find_function('convert', 3)
-                    cvtx = Evaluator('convert', name, cfunc,
-                                             signature=(None, old_unit, vtx.units))
-                    cvtx.units = vtx.units
+                    cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
                     cvtx.dimensions = vtx.dimensions
 
                     graph.disconnect(nbrs[0], vtx)
@@ -284,6 +274,15 @@ class GraphFiller(object):
                 vtx.units = to_units[0]
 
         return vtx.units
+
+    @staticmethod
+    def _new_converter_(old_units, new_units):
+        name = 'convert(from={0!r}, to={1!r})'.format(str(old_units), str(new_units))
+        func = find_function('convert', 3)
+        action = Evaluator('convert', name, func,
+                           signature=(None, old_units, new_units))
+        action.units = new_units
+        return action
 
     def match_dimensions(self, graph):
         """
@@ -309,15 +308,10 @@ class GraphFiller(object):
                                        'map for input dimensions '
                                        '{0}').format(unmapped_dims))
             mapped_dims = tuple(dmap[d] for d in nbr.dimensions)
-            if handle.dimensions != mapped_dims:
-                if set(handle.dimensions) == set(mapped_dims):
-                    neworder = [handle.dimensions.index(d) for d in mapped_dims]
-                    name = 'transpose({0!r}, order={1!r})'.format(mapped_dims,
-                                                                  neworder)
-                    tfunc = find_function('transpose', 2)
-                    tvtx = Evaluator('transpose', name, tfunc,
-                                             signature=(None, neworder))
-                    tvtx.dimensions = handle.dimensions
+            hdims = handle.dimensions
+            if hdims != mapped_dims:
+                if set(hdims) == set(mapped_dims):
+                    tvtx = GraphFiller._new_transpositor_(mapped_dims, hdims)
                     tvtx.units = nbr.units
                     graph.disconnect(nbr, handle)
                     graph.connect(nbr, tvtx)
@@ -341,13 +335,7 @@ class GraphFiller(object):
                                                '{2}').format(i, vtx, new_dim))
                     else:
                         old_dim = arg_dims[i]
-                        neworder = [new_dim.index(d) for d in old_dim]
-                        name = 'transpose({0!r}, order={1!r})'.format(old_dim,
-                                                                      neworder)
-                        tfunc = find_function('transpose', 2)
-                        tvtx = Evaluator('transpose', name, tfunc,
-                                                 signature=(None, neworder))
-                        tvtx.dimensions = new_dim
+                        tvtx = GraphFiller._new_transpositor_(old_dim, new_dim)
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
                         tvtx.units = nbr.units
@@ -373,3 +361,12 @@ class GraphFiller(object):
                 vtx.dimensions = to_dims[0]
 
         return vtx.dimensions
+
+    @staticmethod
+    def _new_transpositor_(old_dims, new_dims):
+        new_order = [new_dims.index(d) for d in old_dims]
+        name = 'transpose({0}, order={1})'.format(old_dims, new_order)
+        func = find_function('transpose', 2)
+        action = Evaluator('transpose', name, func, signature=(None, new_order))
+        action.dimensions = new_dims
+        return action
