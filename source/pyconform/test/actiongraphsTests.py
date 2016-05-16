@@ -132,7 +132,7 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_add_op(self):
         g = actiongraphs.ActionGraph()
-        u1r = actions.InputSliceReader(self.filenames['u1'], 'u1')
+        u1r = actions.ReaderAction(self.filenames['u1'], 'u1')
         g.add(u1r)
         actual = g.vertices
         expected = set([u1r])
@@ -150,9 +150,9 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_call(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
-        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
+        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
@@ -165,11 +165,11 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_print(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
-        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
+        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.OutputSliceHandle('V')
+        vhandle = actions.Handle('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)
@@ -177,11 +177,11 @@ class ActionGraphTests(unittest.TestCase):
         
     def test_handles(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.InputSliceReader(self.filenames['u1'], 'u1')
-        u2read = actions.InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = actions.FunctionEvaluator('+', '(u1+u2)', operator.add,
+        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
+        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.OutputSliceHandle('V')
+        vhandle = actions.Handle('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)

@@ -14,8 +14,8 @@ from pyconform.graphs import DiGraph
 from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
                                ParsedBinOp, parse_definition)
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.actions import (Action, InputSliceReader,
-                               FunctionEvaluator, OutputSliceHandle)
+from pyconform.actions import (Action, ReaderAction,
+                               Evaluator, Handle)
 from pyconform.functions import (find_function, find_operator, find,
                                  UnitsError, DimensionsError)
 from itertools import cycle
@@ -67,7 +67,7 @@ class ActionGraph(DiGraph):
         """
         Return a dictionary of output variable handles in the graph
         """
-        return [op for op in self.vertices if isinstance(op, OutputSliceHandle)]
+        return [op for op in self.vertices if isinstance(op, Handle)]
 
 
 #===============================================================================
@@ -120,7 +120,7 @@ class GraphFiller(object):
         for vname, vinfo in outds.variables.iteritems():
             obj = parse_definition(vinfo.definition)
             vtx = self._add_to_graph_(graph, obj)
-            handle = OutputSliceHandle(vname)
+            handle = Handle(vname)
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
             graph.connect(vtx, handle)
@@ -147,7 +147,7 @@ class GraphFiller(object):
                 fname = var.filename
             else:
                 fname = self._infile_cycle.next()
-            return InputSliceReader(fname, vname, slicetuple=obj.args)
+            return ReaderAction(fname, vname, slicetuple=obj.args)
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             symbol = obj.key
@@ -157,7 +157,7 @@ class GraphFiller(object):
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            return FunctionEvaluator(symbol, str(obj), func, signature=args)
+            return Evaluator(symbol, str(obj), func, signature=args)
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
@@ -167,7 +167,7 @@ class GraphFiller(object):
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            return FunctionEvaluator(name, str(obj), func, signature=args)
+            return Evaluator(name, str(obj), func, signature=args)
         
         else:
             return obj
@@ -189,7 +189,7 @@ class GraphFiller(object):
     def _compute_units_(graph, vtx):
         nbrs = graph.neighbors_to(vtx)
         to_units = [GraphFiller._compute_units_(graph, nbr) for nbr in nbrs]
-        if isinstance(vtx, FunctionEvaluator):
+        if isinstance(vtx, Evaluator):
             arg_units = [to_units.pop(0) if arg is None else arg
                          for arg in vtx.signature]
             func = find(vtx.key, numargs=len(arg_units))
@@ -204,7 +204,7 @@ class GraphFiller(object):
                         name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
                                                                       new_unit)
                         cfunc = find_function('convert', 3)
-                        cvtx = FunctionEvaluator('convert', name, cfunc,
+                        cvtx = Evaluator('convert', name, cfunc,
                                                  signature=(None, old_unit, new_unit))
                         cvtx.units = new_unit
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
@@ -215,14 +215,14 @@ class GraphFiller(object):
                         graph.connect(cvtx, vtx)
             vtx.units = ret_unit
                         
-        elif isinstance(vtx, OutputSliceHandle):
+        elif isinstance(vtx, Handle):
             old_unit = to_units[0]
             if vtx.units != old_unit:
                 if old_unit.is_convertible(vtx.units):
                     name = 'convert(from={0!r}, to={1!r})'.format(old_unit,
                                                                   vtx.units)
                     cfunc = find_function('convert', 3)
-                    cvtx = FunctionEvaluator('convert', name, cfunc,
+                    cvtx = Evaluator('convert', name, cfunc,
                                              signature=(None, old_unit, vtx.units))
                     cvtx.units = vtx.units
                     cvtx.dimensions = vtx.dimensions
@@ -278,7 +278,7 @@ class GraphFiller(object):
                     name = 'transpose({0!r}, order={1!r})'.format(mapped_dims,
                                                                   neworder)
                     tfunc = find_function('transpose', 2)
-                    tvtx = FunctionEvaluator('transpose', name, tfunc,
+                    tvtx = Evaluator('transpose', name, tfunc,
                                              signature=(None, neworder))
                     tvtx.dimensions = handle.dimensions
                     tvtx.units = nbr.units
@@ -291,7 +291,7 @@ class GraphFiller(object):
         nbrs = graph.neighbors_to(vtx)
         to_dims = [GraphFiller._compute_dimensions_(graph, nbr, dmap)
                    for nbr in nbrs]
-        if isinstance(vtx, FunctionEvaluator):
+        if isinstance(vtx, Evaluator):
             arg_dims = [to_dims.pop(0) if arg is None else arg
                         for arg in vtx.signature]
             func = find(vtx.key, numargs=len(arg_dims))
@@ -308,7 +308,7 @@ class GraphFiller(object):
                         name = 'transpose({0!r}, order={1!r})'.format(old_dim,
                                                                       neworder)
                         tfunc = find_function('transpose', 2)
-                        tvtx = FunctionEvaluator('transpose', name, tfunc,
+                        tvtx = Evaluator('transpose', name, tfunc,
                                                  signature=(None, neworder))
                         tvtx.dimensions = new_dim
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
@@ -319,7 +319,7 @@ class GraphFiller(object):
                         graph.connect(tvtx, vtx)
             vtx.dimensions = ret_dims
 
-        if isinstance(vtx, OutputSliceHandle):
+        if isinstance(vtx, Handle):
             nbr = nbrs[0]
             to_dim = to_dims[0]
             if len(to_dim) != len(vtx.dimensions):

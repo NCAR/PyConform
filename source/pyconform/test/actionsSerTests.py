@@ -219,7 +219,7 @@ class ActionTests(unittest.TestCase):
 #===============================================================================
 class InputSliceReaderTests(unittest.TestCase):
     """
-    Unit tests for the operators.InputSliceReader class
+    Unit tests for the operators.ReaderAction class
     """
     
     def setUp(self):
@@ -245,40 +245,40 @@ class InputSliceReaderTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'InputSliceReader.__init__()'
-        VSR = acts.InputSliceReader(self.ncfile, self.var)
+        testname = 'ReaderAction.__init__()'
+        VSR = acts.ReaderAction(self.ncfile, self.var)
         actual = type(VSR)
-        expected = acts.InputSliceReader
+        expected = acts.ReaderAction
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_filename_failure(self):
-        testname = 'InputSliceReader.__init__(bad filename)'
+        testname = 'ReaderAction.__init__(bad filename)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          acts.InputSliceReader, 'badname.nc', self.var)
+                          acts.ReaderAction, 'badname.nc', self.var)
         print_test_message(testname, actual, expected)
 
     def test_init_varname_failure(self):
-        testname = 'InputSliceReader.__init__(bad variable name)'
+        testname = 'ReaderAction.__init__(bad variable name)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          acts.InputSliceReader, self.ncfile, 'badvar')
+                          acts.ReaderAction, self.ncfile, 'badvar')
         print_test_message(testname, actual, expected)
 
     def test_init_with_slice(self):
-        testname = 'InputSliceReader.__init__(slice)'
-        VSR = acts.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'ReaderAction.__init__(slice)'
+        VSR = acts.ReaderAction(self.ncfile, self.var, self.slice)
         actual = type(VSR)
-        expected = acts.InputSliceReader
+        expected = acts.ReaderAction
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call(self):
-        testname = 'InputSliceReader().__call__()'
-        VSR = acts.InputSliceReader(self.ncfile, self.var)
+        testname = 'ReaderAction().__call__()'
+        VSR = acts.ReaderAction(self.ncfile, self.var)
         actual = VSR()
         expected = self.vardata
         print_test_message(testname, actual, expected)
@@ -286,8 +286,8 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_call_slice(self):
-        testname = 'InputSliceReader(slice).__call__()'
-        VSR = acts.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'ReaderAction(slice).__call__()'
+        VSR = acts.ReaderAction(self.ncfile, self.var, self.slice)
         actual = VSR()
         expected = self.vardata[self.slice]
         print_test_message(testname, actual, expected)
@@ -295,9 +295,9 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_equal(self):
-        testname = 'InputSliceReader() == InputSliceReader()'
-        VSR1 = acts.InputSliceReader(self.ncfile, self.var, self.slice)
-        VSR2 = acts.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'ReaderAction() == ReaderAction()'
+        VSR1 = acts.ReaderAction(self.ncfile, self.var, self.slice)
+        VSR2 = acts.ReaderAction(self.ncfile, self.var, self.slice)
         actual = VSR1 == VSR2
         expected = True
         print_test_message(testname, actual, expected)
@@ -309,7 +309,7 @@ class InputSliceReaderTests(unittest.TestCase):
 #===============================================================================
 class FunctionEvaluatorTests(unittest.TestCase):
     """
-    Unit tests for the operators.FunctionEvaluator class
+    Unit tests for the operators.Evaluator class
     """
     
     def setUp(self):
@@ -321,25 +321,25 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_init(self):
         opname = '1'
-        testname = 'FunctionEvaluator.__init__(function)'
-        FE = acts.FunctionEvaluator('1', opname, lambda: 1)
+        testname = 'Evaluator.__init__(function)'
+        FE = acts.Evaluator('1', opname, lambda: 1)
         actual = type(FE)
-        expected = acts.FunctionEvaluator
+        expected = acts.Evaluator
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_fail(self):
         opname = 'int(1)'
-        testname = 'FunctionEvaluator.__init__(non-function)'
-        self.assertRaises(TypeError, acts.FunctionEvaluator, 1, opname, 1)
+        testname = 'Evaluator.__init__(non-function)'
+        self.assertRaises(TypeError, acts.Evaluator, 1, opname, 1)
         actual = TypeError
         expected = TypeError
         print_test_message(testname, actual, expected)
 
     def test_unity(self):
         opname = 'identity'
-        testname = 'FunctionEvaluator(lambda x: x).__call__(x)'
-        FE = acts.FunctionEvaluator('I', opname, lambda x: x)
+        testname = 'Evaluator(lambda x: x).__call__(x)'
+        FE = acts.Evaluator('I', opname, lambda x: x)
         actual = FE(self.params[0])
         expected = self.params[0]
         print_test_message(testname, actual, expected)
@@ -347,8 +347,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
         
     def test_add(self):
         opname = 'add(a,b)'
-        testname = 'FunctionEvaluator(add).__call__(a, b)'
-        FE = acts.FunctionEvaluator('+', opname, operator.add)
+        testname = 'Evaluator(add).__call__(a, b)'
+        FE = acts.Evaluator('+', opname, operator.add)
         actual = FE(*self.params)
         expected = operator.add(*self.params)
         print_test_message(testname, actual, expected)
@@ -356,8 +356,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
-        testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = acts.FunctionEvaluator('+', opname, operator.add, signature=[1])
+        testname = 'Evaluator(add, 1).__call__(a)'
+        FE = acts.Evaluator('+', opname, operator.add, signature=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -365,8 +365,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
-        testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = acts.FunctionEvaluator('+', opname, operator.add, signature=[None, 2])
+        testname = 'Evaluator(add, None, 2).__call__(a)'
+        FE = acts.Evaluator('+', opname, operator.add, signature=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)
@@ -374,8 +374,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_sub(self):
         opname = 'sub(a,b)'
-        testname = 'FunctionEvaluator(sub).__call__(a, b)'
-        FE = acts.FunctionEvaluator('-', opname, operator.sub)
+        testname = 'Evaluator(sub).__call__(a, b)'
+        FE = acts.Evaluator('-', opname, operator.sub)
         actual = FE(*self.params)
         expected = operator.sub(*self.params)
         print_test_message(testname, actual, expected)
@@ -383,9 +383,9 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_equal(self):
         opname = 'sub(a,b)'
-        testname = 'FunctionEvaluator() == FunctionEvaluator()'
-        FE1 = acts.FunctionEvaluator('-', opname, operator.sub)
-        FE2 = acts.FunctionEvaluator('-', opname, operator.sub)
+        testname = 'Evaluator() == Evaluator()'
+        FE1 = acts.Evaluator('-', opname, operator.sub)
+        FE2 = acts.Evaluator('-', opname, operator.sub)
         actual = FE1 == FE2
         expected = True
         print_test_message(testname, actual, expected)
@@ -398,7 +398,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
 #===============================================================================
 class OutputSliceHandleTests(unittest.TestCase):
     """
-    Unit tests for the operators.OutputSliceHandle class
+    Unit tests for the operators.Handle class
     """
     
     def setUp(self):
@@ -424,17 +424,17 @@ class OutputSliceHandleTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'OutputSliceHandle.__init__()'
-        OSH = acts.OutputSliceHandle('x')
+        testname = 'Handle.__init__()'
+        OSH = acts.Handle('x')
         actual = type(OSH)
-        expected = acts.OutputSliceHandle
+        expected = acts.Handle
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_min_ok(self):
         indata = 1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = acts.OutputSliceHandle('x', minimum=0.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', minimum=0.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -442,8 +442,8 @@ class OutputSliceHandleTests(unittest.TestCase):
         
     def test_min_warn(self):
         indata = -1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = acts.OutputSliceHandle('x', minimum=0.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', minimum=0.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -451,8 +451,8 @@ class OutputSliceHandleTests(unittest.TestCase):
 
     def test_max_ok(self):
         indata = 1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = acts.OutputSliceHandle('x', maximum=10.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', maximum=10.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -460,8 +460,8 @@ class OutputSliceHandleTests(unittest.TestCase):
         
     def test_max_warn(self):
         indata = 11.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = acts.OutputSliceHandle('x', maximum=10.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', maximum=10.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)

@@ -148,9 +148,9 @@ class Action(object):
     
 
 #===============================================================================
-# InputSliceReader
+# ReaderAction
 #===============================================================================
-class InputSliceReader(Action):
+class ReaderAction(Action):
     """
     Action that reads an input variable slice upon calling
     """
@@ -194,7 +194,7 @@ class InputSliceReader(Action):
         # Call base class initializer - sets self._name
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
-        super(InputSliceReader, self).__init__(variable, name)
+        super(ReaderAction, self).__init__(variable, name)
 
         # Read/set the units
         if 'units' in ncfile.variables[variable].ncattrs():
@@ -229,14 +229,14 @@ class InputSliceReader(Action):
         """
         Check if two Actions are equal
         """
-        if not isinstance(other, InputSliceReader):
+        if not isinstance(other, ReaderAction):
             return False
         elif self._filepath != other._filepath:
             return False
         elif self._slice != other._slice:
             return False
         else:
-            return super(InputSliceReader, self).__eq__(other)
+            return super(ReaderAction, self).__eq__(other)
     
     def __call__(self):
         """
@@ -249,9 +249,9 @@ class InputSliceReader(Action):
 
 
 #===============================================================================
-# FunctionEvaluator
+# Evaluator
 #===============================================================================
-class FunctionEvaluator(Action):
+class Evaluator(Action):
     """
     Generic function operator that acts on two operands
     """
@@ -281,7 +281,7 @@ class FunctionEvaluator(Action):
         self._nargs = sum(arg is None for arg in signature)
 
         # Call base class initializer
-        super(FunctionEvaluator, self).__init__(key, name)
+        super(Evaluator, self).__init__(key, name)
 
     @property
     def signature(self):
@@ -291,7 +291,7 @@ class FunctionEvaluator(Action):
         """
         Check if two Actions are equal
         """
-        if not isinstance(other, FunctionEvaluator):
+        if not isinstance(other, Evaluator):
             return False
         elif self._function != other._function:
             return False
@@ -300,7 +300,7 @@ class FunctionEvaluator(Action):
         elif self._nargs != other._nargs:
             return False
         else:
-            return super(FunctionEvaluator, self).__eq__(other)
+            return super(Evaluator, self).__eq__(other)
         
     def __call__(self, *args):
         """
@@ -319,9 +319,9 @@ class FunctionEvaluator(Action):
 
 
 #===============================================================================
-# OutputSliceHandle
+# Handle
 #===============================================================================
-class OutputSliceHandle(Action):
+class Handle(Action):
     """
     Action that acts as a "handle" for output data streams
     """
@@ -343,7 +343,7 @@ class OutputSliceHandle(Action):
         # Call base class initializer
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
-        super(OutputSliceHandle, self).__init__(variable, name)
+        super(Handle, self).__init__(variable, name)
 
         # Store min/max
         self._min = minimum
@@ -357,7 +357,7 @@ class OutputSliceHandle(Action):
         """
         Check if two Actions are equal
         """
-        if not isinstance(other, OutputSliceHandle):
+        if not isinstance(other, Handle):
             return False
         elif self._slice != other._slice:
             return False
@@ -366,7 +366,7 @@ class OutputSliceHandle(Action):
         elif self._max != other._max:
             return False
         else:
-            return super(OutputSliceHandle, self).__eq__(other)
+            return super(Handle, self).__eq__(other)
         
     def __call__(self, data):
         """
