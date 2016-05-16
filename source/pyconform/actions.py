@@ -122,24 +122,6 @@ class Action(object):
         self._dimensions = tuple(d)
 
     @abstractmethod
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, Action):
-            return False
-        elif self._key != other._key:
-            return False
-        elif self._name != other._name:
-            return False
-        elif self._units != other._units:
-            return False
-        elif self._dimensions != other._dimensions:
-            return False
-        else:
-            return True
-
-    @abstractmethod
     def __call__(self):
         """
         Perform the operation and return the resulting data 
@@ -148,9 +130,9 @@ class Action(object):
     
 
 #===============================================================================
-# ReaderAction
+# Reader
 #===============================================================================
-class ReaderAction(Action):
+class Reader(Action):
     """
     Action that reads an input variable slice upon calling
     """
@@ -194,7 +176,7 @@ class ReaderAction(Action):
         # Call base class initializer - sets self._name
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
-        super(ReaderAction, self).__init__(variable, name)
+        super(Reader, self).__init__(variable, name)
 
         # Read/set the units
         if 'units' in ncfile.variables[variable].ncattrs():
@@ -224,20 +206,7 @@ class ReaderAction(Action):
     @property
     def slicetuple(self):
         return self._slice
-    
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, ReaderAction):
-            return False
-        elif self._filepath != other._filepath:
-            return False
-        elif self._slice != other._slice:
-            return False
-        else:
-            return super(ReaderAction, self).__eq__(other)
-    
+
     def __call__(self):
         """
         Make callable like a function
@@ -286,21 +255,6 @@ class Evaluator(Action):
     @property
     def signature(self):
         return self._signature
-    
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, Evaluator):
-            return False
-        elif self._function != other._function:
-            return False
-        elif self._signature != other._signature:
-            return False
-        elif self._nargs != other._nargs:
-            return False
-        else:
-            return super(Evaluator, self).__eq__(other)
         
     def __call__(self, *args):
         """
@@ -353,21 +307,6 @@ class Handle(Action):
     def slicetuple(self):
         return self._slice.index
 
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, Handle):
-            return False
-        elif self._slice != other._slice:
-            return False
-        elif self._min != other._min:
-            return False
-        elif self._max != other._max:
-            return False
-        else:
-            return super(Handle, self).__eq__(other)
-        
     def __call__(self, data):
         """
         Make callable like a function
@@ -429,17 +368,6 @@ class MPISender(Action):
     def destination(self):
         return self._dest
 
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, MPISender):
-            return False
-        elif self._dest != other._dest:
-            return False
-        else:
-            return super(MPISender, self).__eq__(other)
-        
     def __call__(self, data):
         """
         Make callable like a function
@@ -513,18 +441,7 @@ class MPIReceiver(Action):
     @property
     def source(self):
         return self._source
-    
-    def __eq__(self, other):
-        """
-        Check if two Actions are equal
-        """
-        if not isinstance(other, MPIReceiver):
-            return False
-        elif self._source != other._source:
-            return False
-        else:
-            return super(MPIReceiver, self).__eq__(other)
-        
+
     def __call__(self):
         """
         Make callable like a function

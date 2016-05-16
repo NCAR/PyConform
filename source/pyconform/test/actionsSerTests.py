@@ -34,8 +34,6 @@ def print_test_message(testname, actual, expected):
 class MockAction(acts.Action):
     def __init__(self, key, name):
         super(MockAction, self).__init__(key, name)
-    def __eq__(self, other):
-        return super(MockAction, self).__eq__(other)
     def __call__(self):
         super(MockAction, self).__call__()
 
@@ -183,7 +181,7 @@ class ActionTests(unittest.TestCase):
         O1 = MockAction(1, nm)
         O2 = MockAction(1, nm)
         actual = (O1 == O2)
-        expected = True
+        expected = False
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          'Action equality not correct')
@@ -219,7 +217,7 @@ class ActionTests(unittest.TestCase):
 #===============================================================================
 class InputSliceReaderTests(unittest.TestCase):
     """
-    Unit tests for the operators.ReaderAction class
+    Unit tests for the operators.Reader class
     """
     
     def setUp(self):
@@ -245,40 +243,40 @@ class InputSliceReaderTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'ReaderAction.__init__()'
-        VSR = acts.ReaderAction(self.ncfile, self.var)
+        testname = 'Reader.__init__()'
+        VSR = acts.Reader(self.ncfile, self.var)
         actual = type(VSR)
-        expected = acts.ReaderAction
+        expected = acts.Reader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_filename_failure(self):
-        testname = 'ReaderAction.__init__(bad filename)'
+        testname = 'Reader.__init__(bad filename)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          acts.ReaderAction, 'badname.nc', self.var)
+                          acts.Reader, 'badname.nc', self.var)
         print_test_message(testname, actual, expected)
 
     def test_init_varname_failure(self):
-        testname = 'ReaderAction.__init__(bad variable name)'
+        testname = 'Reader.__init__(bad variable name)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          acts.ReaderAction, self.ncfile, 'badvar')
+                          acts.Reader, self.ncfile, 'badvar')
         print_test_message(testname, actual, expected)
 
     def test_init_with_slice(self):
-        testname = 'ReaderAction.__init__(slice)'
-        VSR = acts.ReaderAction(self.ncfile, self.var, self.slice)
+        testname = 'Reader.__init__(slice)'
+        VSR = acts.Reader(self.ncfile, self.var, self.slice)
         actual = type(VSR)
-        expected = acts.ReaderAction
+        expected = acts.Reader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call(self):
-        testname = 'ReaderAction().__call__()'
-        VSR = acts.ReaderAction(self.ncfile, self.var)
+        testname = 'Reader().__call__()'
+        VSR = acts.Reader(self.ncfile, self.var)
         actual = VSR()
         expected = self.vardata
         print_test_message(testname, actual, expected)
@@ -286,8 +284,8 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_call_slice(self):
-        testname = 'ReaderAction(slice).__call__()'
-        VSR = acts.ReaderAction(self.ncfile, self.var, self.slice)
+        testname = 'Reader(slice).__call__()'
+        VSR = acts.Reader(self.ncfile, self.var, self.slice)
         actual = VSR()
         expected = self.vardata[self.slice]
         print_test_message(testname, actual, expected)
@@ -295,13 +293,13 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_equal(self):
-        testname = 'ReaderAction() == ReaderAction()'
-        VSR1 = acts.ReaderAction(self.ncfile, self.var, self.slice)
-        VSR2 = acts.ReaderAction(self.ncfile, self.var, self.slice)
+        testname = 'Reader() == Reader()'
+        VSR1 = acts.Reader(self.ncfile, self.var, self.slice)
+        VSR2 = acts.Reader(self.ncfile, self.var, self.slice)
         actual = VSR1 == VSR2
-        expected = True
+        expected = False
         print_test_message(testname, actual, expected)
-        self.assertTrue(actual, '{} failed'.format(testname))
+        self.assertFalse(actual, '{} failed'.format(testname))
 
 
 #===============================================================================
@@ -387,7 +385,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
         FE1 = acts.Evaluator('-', opname, operator.sub)
         FE2 = acts.Evaluator('-', opname, operator.sub)
         actual = FE1 == FE2
-        expected = True
+        expected = False
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected,
                                '{} failed'.format(testname))

@@ -124,10 +124,7 @@ class DiGraph(object):
         Returns:
             DiGraph: A copy of this graph
         """
-        new_graph = DiGraph()
-        new_graph._vertices = deepcopy(self._vertices) 
-        new_graph._edges = deepcopy(self._edges)
-        return new_graph
+        return deepcopy(self)
 
     @property
     def vertices(self):
@@ -237,7 +234,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with incoming edges from vertex
         """
-        return set(v2 for (v1, v2) in self._edges if v1 == vertex)
+        return [v2 for (v1, v2) in self._edges if v1 == vertex]
 
     def neighbors_to(self, vertex):
         """
@@ -334,7 +331,7 @@ class DiGraph(object):
         Returns whether the graph is cyclic or not
         """
         return self.toposort() is None
-                
+
     def components(self):
         """
         Return the connected components of the graph
@@ -342,28 +339,29 @@ class DiGraph(object):
         Returns:
             list: A list of connected DiGraphs
         """
-        unvisited = set(self._vertices)
+        unvisited = set(self.vertices)
         components = []
         while unvisited:
             start = unvisited.pop()
-            comp = DiGraph()
+            comp = type(self)()
             stack = [start]
             while stack:
                 vertex = stack.pop()
                 # Forward
                 neighbors = [v for v in self.neighbors_from(vertex) 
-                             if v not in comp._vertices]
+                             if v not in comp.vertices]
                 for neighbor in neighbors:
                     comp.connect(vertex, neighbor)
                 stack.extend(neighbors)
                 # Backward
                 neighbors = [v for v in self.neighbors_to(vertex) 
-                             if v not in comp._vertices]
+                             if v not in comp.vertices]
                 for neighbor in neighbors:
                     comp.connect(neighbor, vertex)
                 stack.extend(neighbors)
+                # Mark vertex as visited
                 if vertex in unvisited:
                     unvisited.remove(vertex)
-            if len(comp._vertices) > 0:
+            if len(comp.vertices) > 0:
                 components.append(comp)
         return components

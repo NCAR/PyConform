@@ -145,7 +145,7 @@ class GraphTests(unittest.TestCase):
         indata = 1
         G.add(indata)
         actual = G.vertices
-        expected = [indata]
+        expected = set([indata])
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))

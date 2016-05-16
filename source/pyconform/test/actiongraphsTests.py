@@ -132,7 +132,7 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_add_op(self):
         g = actiongraphs.ActionGraph()
-        u1r = actions.ReaderAction(self.filenames['u1'], 'u1')
+        u1r = actions.Reader(self.filenames['u1'], 'u1')
         g.add(u1r)
         actual = g.vertices
         expected = set([u1r])
@@ -150,8 +150,8 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_call(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
-        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
         g.connect(u1read, u1plusu2)
@@ -165,8 +165,8 @@ class ActionGraphTests(unittest.TestCase):
 
     def test_print(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
-        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
         vhandle = actions.Handle('V')
@@ -177,8 +177,8 @@ class ActionGraphTests(unittest.TestCase):
         
     def test_handles(self):
         g = actiongraphs.ActionGraph()
-        u1read = actions.ReaderAction(self.filenames['u1'], 'u1')
-        u2read = actions.ReaderAction(self.filenames['u2'], 'u2')
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
         vhandle = actions.Handle('V')
@@ -349,6 +349,16 @@ class GraphFillerTests(unittest.TestCase):
         gfiller = actiongraphs.GraphFiller(self.inpds)
         gfiller.from_definitions(g, self.outds)
         print g
+
+    def test_from_definitions_components(self):
+        print_test_message('GraphFiller.from_definitions().components()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        glist = g.components()
+        for ig in glist:
+            print 'GRAPH:'
+            print ig
 
     def test_match_units(self):
         print_test_message('GraphFiller.match_units()')
