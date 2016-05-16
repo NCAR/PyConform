@@ -359,20 +359,18 @@ class GraphFillerTests(unittest.TestCase):
         print g
 
     def test_match_units_reapply(self):
-        print_test_message('GraphFiller.match_units() x2')
         g = actiongraphs.ActionGraph()
         gfiller = actiongraphs.GraphFiller(self.inpds)
         gfiller.from_definitions(g, self.outds)
         gfiller.match_units(g)
-        print 'AFTER FIRST PASS:'
-        print
-        print g
-        print
+        expected = str(g)
         gfiller.match_units(g)
-        print 'AFTER SECOND PASS:'
-        print
-        print g
-
+        actual = str(g)
+        print_test_message('GraphFiller.match_units() Reapplied',
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'GraphFiller.match_units() reapplied failed')
+        
     def test_match_dimensions(self):
         print_test_message('GraphFiller.match_dimensions()')
         g = actiongraphs.ActionGraph()
@@ -380,6 +378,20 @@ class GraphFillerTests(unittest.TestCase):
         gfiller.from_definitions(g, self.outds)
         gfiller.match_dimensions(g)
         print g
+
+    def test_match_dimensions_reapply(self):
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        indata = str(g)
+        gfiller.match_dimensions(g)
+        expected = str(g)
+        gfiller.match_dimensions(g)
+        actual = str(g)
+        print_test_message('GraphFiller.match_dimensions() Reapplied',
+                           indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'GraphFiller.match_dimensions() reapplied failed')
 
     def test_match_units_dimensions(self):
         print_test_message('GraphFiller.match_dimensions()')
