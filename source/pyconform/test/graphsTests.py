@@ -5,6 +5,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from copy import deepcopy
 from pyconform import graphs
 from os import linesep
 
@@ -71,6 +72,7 @@ class GraphTests(unittest.TestCase):
         G.add(3)
         G.add(indata)
         G.add(5)
+        G.connect(4, 5)
         actual = indata in G
         expected = True
         print_test_message(testname, actual, expected)
@@ -83,7 +85,7 @@ class GraphTests(unittest.TestCase):
         G = graphs.DiGraph()
         G.add(2)
         G.add(3)
-        G.add(5)
+        G.connect(4, 5)
         actual = indata not in G
         expected = True
         print_test_message(testname, actual, expected)
@@ -106,6 +108,7 @@ class GraphTests(unittest.TestCase):
         G = graphs.DiGraph()
         G.add(1)
         G.connect(2,3)
+        G.connect(3,4)
         G.connect(2,5)
         print G
 
@@ -127,17 +130,6 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
-        
-    def test_copy(self):
-        testname = 'DiGraph.copy()'
-        G = graphs.DiGraph()
-        G.connect(1, 2)
-        G.connect(1, 3)
-        actual = G.copy()
-        expected = G
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
 
     def test_vertices(self):
         testname = 'DiGraph.vertices()'
@@ -186,7 +178,7 @@ class GraphTests(unittest.TestCase):
         G.add(2)
         G.add(indata)
         G.remove(indata)
-        actual = G._vertices
+        actual = G.vertices
         expected = {2}
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -199,18 +191,18 @@ class GraphTests(unittest.TestCase):
         H = graphs.DiGraph()
         H.connect(1,4)
         H.connect(2,5)
-        I = G.copy()
+        I = deepcopy(G)
         I.update(H)
-        actual = I._vertices
-        expected = G._vertices.union(H._vertices)
-        testname = 'DiGraph.update(DiGraph)._vertices'
+        actual = I.vertices
+        expected = G.vertices.union(H.vertices)
+        testname = 'DiGraph.update(DiGraph).vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
-        actual = I._edges
-        expected = list(G._edges)
-        expected.extend(H._edges)
-        testname = 'DiGraph.update(DiGraph)._edges'
+        actual = I.edges
+        expected = list(G.edges)
+        expected.extend(H.edges)
+        testname = 'DiGraph.update(DiGraph).edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -223,16 +215,16 @@ class GraphTests(unittest.TestCase):
         H.connect(1,4)
         H.connect(2,5)
         I = G.union(H)
-        actual = I._vertices
-        expected = G._vertices.union(H._vertices)
-        testname = 'DiGraph.union(DiGraph)._vertices'
+        actual = I.vertices
+        expected = G.vertices.union(H.vertices)
+        testname = 'DiGraph.union(DiGraph).vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
-        actual = I._edges
-        expected = list(G._edges)
-        expected.extend(H._edges)
-        testname = 'DiGraph.union(DiGraph)._edges'
+        actual = I.edges
+        expected = list(G.edges)
+        expected.extend(H.edges)
+        testname = 'DiGraph.union(DiGraph).edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -244,7 +236,7 @@ class GraphTests(unittest.TestCase):
         G.add(indata[0])
         G.add(indata[1])
         G.connect(*indata)
-        actual = G._edges
+        actual = G.edges
         expected = [indata]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
