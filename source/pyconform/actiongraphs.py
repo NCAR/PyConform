@@ -47,10 +47,12 @@ class ActionGraph(DiGraph):
             nodes = self._actions_by_depth_(h)
             houtput = []
             for i, u in nodes:
-                indent = '    '*i
+                indent = '    '*(i-1)
                 if i > 0:
                     houtput.append('{0}|'.format(indent))
-                houtput.append('{0}+-- {1!s}'.format(indent, u))
+                    houtput.append('{0}+-> {1!s}'.format(indent, u))
+                else:
+                    houtput.append('{1!s}'.format(indent, u))
             for i in xrange(len(houtput)):
                 for j in [j for j, c in enumerate(houtput[i]) if c == '|']:
                     k = i - 1
