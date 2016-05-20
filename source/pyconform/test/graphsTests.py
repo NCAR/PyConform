@@ -279,27 +279,27 @@ class GraphTests(unittest.TestCase):
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
 
-    def test_leaves(self):
-        testname = 'DiGraph.leaves()'
+    def test_sinks(self):
+        testname = 'DiGraph.sinks()'
         G = graphs.DiGraph()
         G.connect(1, 3)
         G.connect(2, 3)
         G.connect(3, 4)
         G.connect(3, 5)
-        actual = G.leaves()
+        actual = G.sinks()
         expected = set([4, 5])
         print_test_message(testname, actual, expected)
         self.assertSetEqual(actual, expected,
                             '{} returned unexpected result'.format(testname))
 
-    def test_roots(self):
-        testname = 'DiGraph.roots()'
+    def test_sources(self):
+        testname = 'DiGraph.sources()'
         G = graphs.DiGraph()
         G.connect(1, 3)
         G.connect(2, 3)
         G.connect(3, 4)
         G.connect(3, 5)
-        actual = G.roots()
+        actual = G.sources()
         expected = set([1, 2])
         print_test_message(testname, actual, expected)
         self.assertSetEqual(actual, expected,

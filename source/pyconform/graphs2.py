@@ -7,7 +7,6 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from collections import defaultdict
 from copy import deepcopy
 from os import linesep
 
@@ -24,9 +23,21 @@ class DiGraph(object):
         """
         Initializer
         """
-        self._vertices = set()
-        self._neighbors_to = defaultdict(list)
-        self._neighbors_from = defaultdict(list)
+        self._forward_map = {}
+        self._reverse_map = {}
+
+    def __str__(self):
+        """
+        String representation of the graph
+        """
+        outstrs = ['DiGraph:']
+        for vertex, neighbors in self._forward_map.iteritems():
+            if len(neighbors) == 0:
+                outstrs.append('   {0!s}'.format(vertex))
+            else:
+                for neighbor in neighbors:
+                    outstrs.append('   {0!s} --> {1!s}'.format(vertex, neighbor))
+        return linesep.join(outstrs)
 
     def __eq__(self, other):
         """
@@ -42,9 +53,8 @@ class DiGraph(object):
             bool: True if equal, False if not equal
         """
         if isinstance(other, DiGraph):
-            if (self._neighbors_to == other._neighbors_to and 
-                self._neighbors_from == other._neighbors_from and
-                self._vertices == other._vertices):
+            if (self._forward_map == other._forward_map and
+                self._reverse_map == other._reverse_map):
                 return True
         return False
     
@@ -70,7 +80,7 @@ class DiGraph(object):
         Returns:
             bool: True if vertex in graph, False otherwise
         """
-        return vertex in self._vertices
+        return vertex in self._forward_map or vertex in self._reverse_map
     
     def __len__(self):
         """
@@ -79,57 +89,70 @@ class DiGraph(object):
         Returns:
             int: The number of vertices in the graph
         """
-        return len(self._vertices)
+        return self.nvertices
 
-    def __str__(self):
+    @property
+    def nvertices(self):
         """
-        String representation of the graph
+        Returns the number of edges in the graph
+        
+        Returns:
+            int: The numebr of edges in the graph
         """
-        outstr = 'DiGraph:{0}'.format(linesep)
-        for v in self.vertices:
-            outstr += '   {0!s}'.format(v)
-            neighbors = self.neighbors_from(v)
-            if len(neighbors) > 0:
-                for n in neighbors:
-                    outstr += ' --> {0!s}'.format(n)
-            outstr += linesep
-        return outstr
+        return len(self.vertices)
+    
+    @property
+    def nedges(self):
+        """
+        Returns the number of edges in the graph
+        
+        Returns:
+            int: The numebr of edges in the graph
+        """
+        return len(self.edges)
 
-    def leaves(self):
+    def sinks(self):
         """
         Returns the set of vertices in the graph with only incoming edges
         
         Returns:
             set: The set of vertices in the graph with only incoming edges
         """
-        return set(self._neighbors_to.keys()) - set(self._neighbors_from.keys())
+        zero_outgoing = set(v for v,n in self._forward_map.iteritems()
+                            if len(n) == 0)
+        plus_incoming = set(v for v,n in self._reverse_map.iteritems()
+                            if len(n) > 0)
+        return plus_incoming.intersection(zero_outgoing)
 
-    def roots(self):
+    def sources(self):
         """
         Returns the set of vertices in the graph with only outgoing edges
         
         Returns:
             set: The set of vertices in the graph with only outgoing edges
         """
-        return set(self._neighbors_from.keys()) - set(self._neighbors_to.keys())
+        zero_incoming = set(v for v,n in self._reverse_map.iteritems()
+                            if len(n) == 0)
+        plus_outgoing = set(v for v,n in self._forward_map.iteritems()
+                            if len(n) > 0)
+        return plus_outgoing.intersection(zero_incoming)
                 
     def clear(self):
         """
         Remove all vertices and edges from the graph
         """
-        self._vertices.clear()
-        self._neighbors_to = defaultdict(list)
-        self._neighbors_from = defaultdict(list)
+        self._reverse_map = {}
+        self._forward_map = {}
 
     @property
     def vertices(self):
         """
-        Return the set of vertices in the graph
+        Return the list of vertices in the graph
         
         Returns:
-            set: The set of vertices contained in this graph
+            set: The list of vertices contained in this graph
         """
-        return self._vertices
+        return self._forward_map.keys()
 
     @property
     def edges(self):
@@ -139,7 +162,7 @@ class DiGraph(object):
         Returns:
             list: The list of edges contained in this graph
         """
-        return [(v,u) for u,vs in self._neighbors_to.iteritems() for v in vs]
+        return [(u,v) for u,vs in self._forward_map.iteritems() for v in vs]
     
     def add(self, vertex):
         """
@@ -148,7 +171,9 @@ class DiGraph(object):
         Parameters:
             vertex: The vertex object to be added to the graph
         """
-        self._vertices.add(vertex)
+        if vertex not in self._forward_map:
+            self._forward_map[vertex] = []
+            self._reverse_map[vertex] = []
 
     def remove(self, vertex):
         """
@@ -157,9 +182,9 @@ class DiGraph(object):
         Parameters:
             vertex: The vertex object to remove from the graph
         """
-        self._vertices.discard(vertex)
-        self._neighbors_to.pop(vertex, None)
-        self._neighbors_from.pop(vertex, None)
+        if vertex in self._forward_map:
+            self._forward_map.pop(vertex)
+            self._reverse_map.pop(vertex)
                 
     def update(self, other):
         """
@@ -170,11 +195,13 @@ class DiGraph(object):
         """
         if not isinstance(other, DiGraph):
             raise TypeError("Cannot form union between DiGraph and non-DiGraph")
-        self._vertices.update(other._vertices)
-        for v, n in other._neighbors_to.iteritems():
-            self._neighbors_to[v].extend(n)
-        for v, n in other._neighbors_from.iteritems():
-            self._neighbors_from[v].extend(n)
+        for vertex, neighbors in other._forward_map.iteritems():
+            self.add(vertex)
+            self._forward_map[vertex].extend([n for n in neighbors if n not in
+                                              self._forward_map[vertex]])
+        for vertex, neighbors in other._reverse_map.iteritems():
+            self._reverse_map[vertex].extend([n for n in neighbors if n not in
+                                              self._forward_map[vertex]])
 
     def union(self, other):
         """
@@ -204,14 +231,9 @@ class DiGraph(object):
         """
         self.add(start)
         self.add(stop)
-        if start not in self._neighbors_from:
-            self._neighbors_from[start] = [stop]
-        else:
-            self._neighbors_from[start].append(stop)
-        if stop not in self._neighbors_to:
-            self._neighbors_to[stop] = [start]
-        else:
-            self._neighbors_to[stop].append(start)
+        if stop not in self._forward_map[start]:
+            self._forward_map[start].append(stop)
+            self._reverse_map[stop].append(start)
 
     def disconnect(self, start, stop):
         """
@@ -221,16 +243,11 @@ class DiGraph(object):
             start: The starting point of the edge to be removed from the graph
             stop: The ending point of the edge to be removed from the graph
         """
-        if start in self._neighbors_from:
-            if stop in self._neighbors_from[start]:
-                self._neighbors_from[start].remove(stop)
-                if self._neighbors_from[start] == []:
-                    self._neighbors_from.pop(start)
-        if stop in self._neighbors_to:
-            if start in self._neighbors_to[stop]:
-                self._neighbors_to[stop].remove(start)
-                if self._neighbors_to[stop] == []:
-                    self._neighbors_to.pop(stop)
+        if start not in self._forward_map:
+            return
+        if stop in self._forward_map[start]:
+            self._forward_map[start].remove(stop)
+            self._reverse_map[stop].remove(start)
 
     def neighbors_from(self, vertex):
         """
@@ -242,7 +259,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with incoming edges from vertex
         """
-        return list(self._neighbors_from[vertex])
+        return list(self._forward_map[vertex])
 
     def neighbors_to(self, vertex):
         """
@@ -254,7 +271,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with outgoing edges to vertex
         """
-        return list(self._neighbors_to[vertex])
+        return list(self._reverse_map[vertex])
 
     def iter_bfs(self, start, reverse=False):
         """
@@ -274,15 +291,15 @@ class DiGraph(object):
         visited = set()
         queue = [start]
         if reverse:
-            neighbors = self.neighbors_to
+            neighbors = self._reverse_map
         else:
-            neighbors = self.neighbors_from
+            neighbors = self._forward_map
         while queue:
             vertex = queue.pop(0)
             if vertex not in visited:
                 yield vertex
                 visited.add(vertex)
-                queue.extend(v for v in neighbors(vertex) if v not in visited)
+                queue.extend(v for v in neighbors[vertex] if v not in visited)
 
     def iter_dfs(self, start, reverse=False):
         """
@@ -299,15 +316,15 @@ class DiGraph(object):
         visited = set()
         stack = [start]
         if reverse:
-            neighbors = self.neighbors_to
+            neighbors = self._reverse_map
         else:
-            neighbors = self.neighbors_from
+            neighbors = self._forward_map
         while stack:
             vertex = stack.pop()
             if vertex not in visited:
                 yield vertex
                 visited.add(vertex)
-                stack.extend(v for v in neighbors(vertex) if v not in visited)
+                stack.extend(v for v in neighbors[vertex] if v not in visited)
 
     def toposort(self):
         """
@@ -321,15 +338,15 @@ class DiGraph(object):
         """
         G = deepcopy(self)
         sorted_list = []
-        stack = list(G.vertices - set(sum(G._neighbors_from.itervalues(), [])))
+        stack = [v for v,n in G._reverse_map.iteritems() if len(n) == 0]
         while stack:
             vertex = stack.pop()
             sorted_list.append(vertex)
-            for neighbor in G.neighbors_from(vertex):
+            for neighbor in list(G._forward_map[vertex]):
                 G.disconnect(vertex, neighbor)
-                if len(G.neighbors_to(neighbor)) == 0:
+                if len(G._reverse_map[neighbor]) == 0:
                     stack.append(neighbor)
-        if len(sum(G._neighbors_from.itervalues(), [])) > 0:
+        if sum(len(n) for n in G._forward_map.itervalues()) > 0:
             return None
         else:
             return sorted_list
@@ -356,14 +373,14 @@ class DiGraph(object):
             while stack:
                 vertex = stack.pop()
                 # Forward
-                neighbors = [v for v in self.neighbors_from(vertex) 
-                             if v not in comp.vertices]
+                neighbors = [v for v in self._forward_map[vertex] 
+                             if v not in comp]
                 for neighbor in neighbors:
                     comp.connect(vertex, neighbor)
                 stack.extend(neighbors)
                 # Backward
-                neighbors = [v for v in self.neighbors_to(vertex) 
-                             if v not in comp.vertices]
+                neighbors = [v for v in self._reverse_map[vertex] 
+                             if v not in comp]
                 for neighbor in neighbors:
                     comp.connect(neighbor, vertex)
                 stack.extend(neighbors)

@@ -90,7 +90,7 @@ class DiGraph(object):
                            for e in self.edges)
         return 'DiGraph:{0}{1}'.format(strverts, stredges)
 
-    def leaves(self):
+    def sinks(self):
         """
         Returns the set of vertices in the graph with only incoming edges
         
@@ -100,7 +100,7 @@ class DiGraph(object):
         w_outgoing, w_incoming = zip(*self._edges)
         return set(w_incoming) - set(w_outgoing)
 
-    def roots(self):
+    def sources(self):
         """
         Returns the set of vertices in the graph with only outgoing edges
         
