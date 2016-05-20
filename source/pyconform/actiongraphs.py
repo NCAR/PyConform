@@ -10,7 +10,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.graphs import DiGraph
+from pyconform.graphs1 import DiGraph
 from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
                                ParsedBinOp, parse_definition)
 from pyconform.datasets import InputDataset, OutputDataset
