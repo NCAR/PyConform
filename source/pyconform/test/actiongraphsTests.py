@@ -135,10 +135,10 @@ class ActionGraphTests(unittest.TestCase):
         u1r = actions.Reader(self.filenames['u1'], 'u1')
         g.add(u1r)
         actual = g.vertices
-        expected = set([u1r])
+        expected = [u1r]
         print_test_message('ActionGraph.add(Action)',
                            actual=actual, expected=expected)
-        self.assertSetEqual(actual, expected,
+        self.assertListEqual(actual, expected,
                             'ActionGraph did not add Action')
 
     def test_add_int(self):
