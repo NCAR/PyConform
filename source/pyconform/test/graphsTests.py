@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from copy import deepcopy
-from pyconform import graphs1
+from pyconform import graphs as graphs
 from os import linesep
 
 import unittest
@@ -28,23 +28,23 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 class GraphTests(unittest.TestCase):
     """
-    Unit tests for the graphs1.DiGraph class
+    Unit tests for the graphs.DiGraph class
     """
 
     def test_init(self):
         testname = 'DiGraph.__init__()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         actual = type(G)
-        expected = graphs1.DiGraph
+        expected = graphs.DiGraph
         print_test_message(testname, actual, expected)
         self.assertIsInstance(G, expected,
                               '{} returned unexpected result'.format(testname))
 
     def test_equal(self):
         testname = 'DiGraph == DiGraph'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1,2)
-        H = graphs1.DiGraph()
+        H = graphs.DiGraph()
         H.connect(1,2)
         actual = G == H
         expected = True
@@ -54,9 +54,9 @@ class GraphTests(unittest.TestCase):
 
     def test_unequal(self):
         testname = 'DiGraph != DiGraph'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1,2)
-        H = graphs1.DiGraph()
+        H = graphs.DiGraph()
         H.connect(2,1)
         actual = G != H
         expected = True
@@ -67,7 +67,7 @@ class GraphTests(unittest.TestCase):
     def test_in(self):
         indata = 1
         testname = '{} in DiGraph'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(2)
         G.add(3)
         G.add(indata)
@@ -82,7 +82,7 @@ class GraphTests(unittest.TestCase):
     def test_not_in(self):
         indata = 1
         testname = '{} not in DiGraph'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(2)
         G.add(3)
         G.connect(4, 5)
@@ -94,7 +94,7 @@ class GraphTests(unittest.TestCase):
 
     def test_len(self):
         testname = 'len(DiGraph)'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(2)
         G.add(3)
         G.add(5)
@@ -105,7 +105,7 @@ class GraphTests(unittest.TestCase):
                          '{} returned unexpected result'.format(testname))
 
     def test_str(self):
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(1)
         G.connect(2,3)
         G.connect(3,4)
@@ -113,27 +113,27 @@ class GraphTests(unittest.TestCase):
         print G
 
     def test_clear(self):
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1, 2)
         G.connect(2, 3)
         G.connect(2, 4)
         G.clear()
         testname = 'DiGraph.clear() vertices'
         actual = G.vertices
-        expected = set()
+        expected = []
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
         testname = 'DiGraph.clear() - edges'
         actual = G.edges
-        expected = list()
+        expected = []
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
 
     def test_vertices(self):
         testname = 'DiGraph.vertices()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         indata = 1
         G.add(indata)
         actual = G.vertices
@@ -145,7 +145,7 @@ class GraphTests(unittest.TestCase):
     def test_edges(self):
         indata = (1,'a')
         testname = 'DiGraph.edges()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(*indata)
         actual = G.edges
         expected = [indata]
@@ -156,9 +156,9 @@ class GraphTests(unittest.TestCase):
     def test_add_hashable(self):
         indata = 1
         testname = 'DiGraph.add({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(indata)
-        actual = G._vertices
+        actual = G.vertices
         expected = {indata}
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -167,14 +167,14 @@ class GraphTests(unittest.TestCase):
     def test_add_unhashable(self):
         indata = {'a': 1, 'b': 2}
         testname = 'DiGraph.add({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         print_test_message(testname, '???', 'TypeError')
         self.assertRaises(TypeError, G.add, indata)
 
     def test_remove(self):
         indata = 1
         testname = 'DiGraph.remove({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(2)
         G.add(indata)
         G.remove(indata)
@@ -185,45 +185,47 @@ class GraphTests(unittest.TestCase):
                               '{} returned unexpected result'.format(testname))
 
     def test_update(self):
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1,2)
         G.connect(1,3)
-        H = graphs1.DiGraph()
+        H = graphs.DiGraph()
         H.connect(1,4)
         H.connect(2,5)
         I = deepcopy(G)
         I.update(H)
         actual = I.vertices
-        expected = G.vertices.union(H.vertices)
+        expected = [v for v in G.vertices]
+        expected.extend(v for v in H.vertices if v not in G.vertices)
         testname = 'DiGraph.update(DiGraph).vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I.edges
-        expected = list(G.edges)
-        expected.extend(H.edges)
+        expected = set(G.edges)
+        expected.update(H.edges)
         testname = 'DiGraph.update(DiGraph).edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
 
     def test_union(self):
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1,2)
         G.connect(1,3)
-        H = graphs1.DiGraph()
+        H = graphs.DiGraph()
         H.connect(1,4)
         H.connect(2,5)
         I = G.union(H)
         actual = I.vertices
-        expected = G.vertices.union(H.vertices)
+        expected = [v for v in G.vertices]
+        expected.extend(v for v in H.vertices if v not in G.vertices)
         testname = 'DiGraph.union(DiGraph).vertices'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
         actual = I.edges
-        expected = list(G.edges)
-        expected.extend(H.edges)
+        expected = set(G.edges)
+        expected.update(H.edges)
         testname = 'DiGraph.union(DiGraph).edges'
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
@@ -232,12 +234,12 @@ class GraphTests(unittest.TestCase):
     def test_connect(self):
         indata = (1,'a')
         testname = 'DiGraph.connect({}, {})'.format(*indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(indata[0])
         G.add(indata[1])
         G.connect(*indata)
         actual = G.edges
-        expected = [indata]
+        expected = {indata}
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -245,12 +247,12 @@ class GraphTests(unittest.TestCase):
     def test_disconnect(self):
         indata = (1,'a')
         testname = 'DiGraph.disconnect({}, {})'.format(*indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(*indata)
         G.connect(3,5)
         G.disconnect(*indata)
         actual = G.edges
-        expected = [(3,5)]
+        expected = {(3,5)}
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -258,7 +260,7 @@ class GraphTests(unittest.TestCase):
     def test_neighbors_from(self):
         indata = 1
         testname = 'DiGraph.neighbors_from({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(indata, 'a')
         G.connect(indata, 2)
         actual = G.neighbors_from(indata)
@@ -270,7 +272,7 @@ class GraphTests(unittest.TestCase):
     def test_neighbors_to(self):
         indata = 1
         testname = 'DiGraph.neighbors_to({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(indata, 'a')
         G.connect(2, indata)
         actual = G.neighbors_to(indata)
@@ -281,7 +283,7 @@ class GraphTests(unittest.TestCase):
 
     def test_sinks(self):
         testname = 'DiGraph.sinks()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1, 3)
         G.connect(2, 3)
         G.connect(3, 4)
@@ -294,7 +296,7 @@ class GraphTests(unittest.TestCase):
 
     def test_sources(self):
         testname = 'DiGraph.sources()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1, 3)
         G.connect(2, 3)
         G.connect(3, 4)
@@ -308,7 +310,7 @@ class GraphTests(unittest.TestCase):
     def test_bfs(self):
         indata = 1
         testname = 'DiGraph.iter_bfs({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -324,7 +326,7 @@ class GraphTests(unittest.TestCase):
     def test_bfs_reversed(self):
         indata = 5
         testname = 'DiGraph.iter_bfs({}, reverse=True)'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -340,7 +342,7 @@ class GraphTests(unittest.TestCase):
     def test_dfs(self):
         indata = 1
         testname = 'DiGraph.iter_dfs({})'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -356,7 +358,7 @@ class GraphTests(unittest.TestCase):
     def test_dfs_reversed(self):
         indata = 5
         testname = 'DiGraph.iter_dfs({}, reverse=True)'.format(indata)
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -371,7 +373,7 @@ class GraphTests(unittest.TestCase):
 
     def test_toposort_acyclic(self):
         testname = 'DiGraph.toposort(acyclic)'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -387,7 +389,7 @@ class GraphTests(unittest.TestCase):
  
     def test_toposort_cyclic(self):
         testname = 'DiGraph.toposort(cyclic)'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -403,7 +405,7 @@ class GraphTests(unittest.TestCase):
 
     def test_is_not_cyclic(self):
         testname = 'DiGraph.is_cyclic(acyclic)'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -418,7 +420,7 @@ class GraphTests(unittest.TestCase):
  
     def test_is_cyclic(self):
         testname = 'DiGraph.is_cyclic(cyclic)'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.add(0)
         G.connect(1, 2)
         G.connect(2, 3)
@@ -434,10 +436,10 @@ class GraphTests(unittest.TestCase):
         
     def test_components(self):
         testname = 'DiGraph.components()'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         G.connect(1,2)
         G.connect(1,3)
-        H = graphs1.DiGraph()
+        H = graphs.DiGraph()
         H.connect(4, 5)
         H.connect(5, 6)
         I = G.union(H)
@@ -450,7 +452,7 @@ class GraphTests(unittest.TestCase):
     
     def test_commutative_call_graph(self):
         testname = 'DiGraph Commutative Call-Graph Evaluation'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         f1 = lambda: 1
         f2 = lambda: 2
         G.add(f1)
@@ -471,7 +473,7 @@ class GraphTests(unittest.TestCase):
 
     def test_noncommutative_call_graph(self):
         testname = 'DiGraph Non-Commutative Call-Graph Evaluation'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         f6 = lambda: 6
         f2 = lambda: 2
         G.add(f6)
@@ -492,7 +494,7 @@ class GraphTests(unittest.TestCase):
 
     def test_incremented_call_graph(self):
         testname = 'DiGraph Incremented Call-Graph Evaluation'
-        G = graphs1.DiGraph()
+        G = graphs.DiGraph()
         f1 = lambda: 1
         finc = lambda x: x+1
         G.connect((0, f1), (1, finc)) # 1 + 1 = 2
