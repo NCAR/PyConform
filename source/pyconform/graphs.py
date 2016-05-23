@@ -185,7 +185,12 @@ class DiGraph(object):
         if vertex in self._forward_map:
             self._forward_map.pop(vertex)
             self._reverse_map.pop(vertex)
-                
+            for v in self._forward_map:
+                if vertex in self._forward_map[v]:
+                    self._forward_map[v].remove(vertex)
+                if vertex in self._reverse_map[v]:
+                    self._reverse_map[v].remove(vertex)
+                                
     def update(self, other):
         """
         Update this graph with the union of itself and another
