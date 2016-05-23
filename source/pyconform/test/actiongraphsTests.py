@@ -1,5 +1,5 @@
 """
-Parsing Unit Tests
+ActionGraph Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -7,9 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep, remove
 from os.path import exists
-from pyconform import dataset
-from pyconform import opgraph
-from pyconform.operators import InputSliceReader, FunctionEvaluator
+from pyconform import datasets, actiongraphs, actions
 from netCDF4 import Dataset as NCDataset
 from collections import OrderedDict
 from numpy import testing as nptst
@@ -47,11 +45,11 @@ def print_test_message(testname, indata=None, actual=None, expected=None):
     
 
 #=========================================================================
-# OperationGraphTests - Tests for the opgraph.OperationGraph class
+# ActionGraphTests - Tests for the actiongraphs.ActionGraph class
 #=========================================================================
-class OperationGraphTests(unittest.TestCase):
+class ActionGraphTests(unittest.TestCase):
     """
-    Unit Tests for the opgraph.OperationGraph class
+    Unit Tests for the actiongraphs.ActionGraph class
     """
 
     def setUp(self):        
@@ -113,7 +111,7 @@ class OperationGraphTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             
-        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
     def tearDown(self):
         self._clear_()
@@ -124,48 +122,74 @@ class OperationGraphTests(unittest.TestCase):
                 remove(fname)
     
     def test_init(self):
-        g = opgraph.OperationGraph()
+        g = actiongraphs.ActionGraph()
         actual = type(g)
-        expected = opgraph.OperationGraph
-        print_test_message('type(OperationGraph)', 
+        expected = actiongraphs.ActionGraph
+        print_test_message('type(ActionGraph)', 
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'OperationGraph type not correct')
+                         'ActionGraph type not correct')
 
     def test_add_op(self):
-        g = opgraph.OperationGraph()
-        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
-        g.add(u1Op)
+        g = actiongraphs.ActionGraph()
+        u1r = actions.Reader(self.filenames['u1'], 'u1')
+        g.add(u1r)
         actual = g.vertices
-        expected = set([u1Op])
-        print_test_message('OperationGraph.add(Operator)',
+        expected = [u1r]
+        print_test_message('ActionGraph.add(Action)',
                            actual=actual, expected=expected)
-        self.assertSetEqual(actual, expected,
-                            'OperationGraph did not add Operators')
+        self.assertListEqual(actual, expected,
+                            'ActionGraph did not add Action')
 
     def test_add_int(self):
-        g = opgraph.OperationGraph()
+        g = actiongraphs.ActionGraph()
         expected = TypeError
-        print_test_message('OperationGraph.add(int) TypeError',
+        print_test_message('ActionGraph.add(int) TypeError',
                            expected=expected)
         self.assertRaises(expected, g.add, 1)
 
     def test_call(self):
-        g = opgraph.OperationGraph()
-        u1Op = InputSliceReader(self.filenames['u1'], 'u1')
-        u2Op = InputSliceReader(self.filenames['u2'], 'u2')
-        u1plusu2 = FunctionEvaluator('(u1+u2)', operator.add,
-                                     args=[None, None],
-                                     units=u1Op.units,
-                                     dimensions=u1Op.dimensions)
-        g.connect(u1Op, u1plusu2)
-        g.connect(u2Op, u1plusu2)
+        g = actiongraphs.ActionGraph()
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
         actual = g(u1plusu2)
         expected = self.vdat['u1'] + self.vdat['u2']
-        print_test_message('OperationGraph.__call__()', 
+        print_test_message('ActionGraph.__call__()', 
                            actual=actual, expected=expected)
         nptst.assert_array_equal(actual, expected,
-                                 'OperationGraph() failed')
+                                 'ActionGraph() failed')
+
+    def test_print(self):
+        g = actiongraphs.ActionGraph()
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
+        vhandle = actions.Handle('V')
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
+        g.connect(u1plusu2, vhandle)
+        print g
+        
+    def test_handles(self):
+        g = actiongraphs.ActionGraph()
+        u1read = actions.Reader(self.filenames['u1'], 'u1')
+        u2read = actions.Reader(self.filenames['u2'], 'u2')
+        u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
+                                             signature=[None, None])
+        vhandle = actions.Handle('V')
+        g.connect(u1read, u1plusu2)
+        g.connect(u2read, u1plusu2)
+        g.connect(u1plusu2, vhandle)
+        actual = g.handles()[0]
+        expected = vhandle
+        print_test_message('ActionGraph.handles()', 
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'ActionGraph() failed')
 
 
 #===============================================================================
@@ -173,7 +197,7 @@ class OperationGraphTests(unittest.TestCase):
 #===============================================================================
 class GraphFillerTests(unittest.TestCase):
     """
-    Unit Tests for the opgraph.GraphFiller class
+    Unit Tests for the actiongraphs.GraphFiller class
     """
 
     def setUp(self):        
@@ -197,7 +221,7 @@ class GraphFillerTests(unittest.TestCase):
                                              'standard_name': 'time'}),
                                    ('u1', {'units': 'm',
                                            'standard_name': 'u variable 1'}),
-                                   ('u2', {'units': 'm',
+                                   ('u2', {'units': 'ft',
                                            'standard_name': 'u variable 2'}),
                                    ('u3', {'units': 'km',
                                            'standard_name': 'u variable 3'})])
@@ -235,7 +259,7 @@ class GraphFillerTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             
-        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
         self.dsdict = OrderedDict()
         self.dsdict['attributes'] = self.fattribs
@@ -266,13 +290,13 @@ class GraphFillerTests(unittest.TestCase):
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
-        vattribs['units'] = 'days since 0001-01-01 00:00:00'
+        vattribs['units'] = 'hours since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
         vdicts['T']['attributes'] = vattribs
 
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'float64'
-        vdicts['V1']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V1']['dimensions'] = ('t', 'x', 'y')
         vdicts['V1']['definition'] = 'u1 + u2'
         vdicts['V1']['filename'] = 'var1.nc'
         vattribs = OrderedDict()
@@ -290,7 +314,17 @@ class GraphFillerTests(unittest.TestCase):
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
         
-        self.outds = dataset.OutputDataset('outds', self.dsdict)
+        vdicts['V3'] = OrderedDict()
+        vdicts['V3']['datatype'] = 'float64'
+        vdicts['V3']['dimensions'] = ('t', 'y', 'x')
+        vdicts['V3']['definition'] = '(u2 + u1) / u3'
+        vdicts['V3']['filename'] = 'var3.nc'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'variable 2'
+        vattribs['units'] = '1'
+        vdicts['V3']['attributes'] = vattribs
+        
+        self.outds = datasets.OutputDataset('outds', self.dsdict)
         
     def tearDown(self):
         self._clear_()
@@ -301,30 +335,91 @@ class GraphFillerTests(unittest.TestCase):
                 remove(fname)
 
     def test_init(self):
-        gfiller = opgraph.GraphFiller()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
         actual = type(gfiller)
-        expected = opgraph.GraphFiller
+        expected = actiongraphs.GraphFiller
         print_test_message('type(GraphFiller)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'GraphFiller type not correct')
 
     def test_from_definitions(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller()
-        gfiller.from_definitions(g, self.inpds, self.outds)
         print_test_message('GraphFiller.from_definitions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        print g
 
-    def test_dimension_map(self):
-        g = opgraph.OperationGraph()
-        gfiller = opgraph.GraphFiller()
-        gfiller.from_definitions(g, self.inpds, self.outds)
-        actual = gfiller.dimension_map
-        expected = {'x': 'lon', 'y': 'lat', 't': 'time'}
-        print_test_message('GraphFiller.from_definitions()')
-        self.assertDictEqual(actual, expected,
-                             'Dimension map incorrect')
+    def test_from_definitions_components(self):
+        print_test_message('GraphFiller.from_definitions().components()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        glist = g.components()
+        for ig in glist:
+            print 'GRAPH:'
+            print ig
 
+    def test_match_units(self):
+        print_test_message('GraphFiller.match_units()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        print g
+
+    def test_match_units_reapply(self):
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        expected = str(g)
+        gfiller.match_units(g)
+        actual = str(g)
+        print_test_message('GraphFiller.match_units() Reapplied',
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'GraphFiller.match_units() reapplied failed')
+        
+    def test_match_dimensions(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_dimensions(g)
+        print g
+
+    def test_match_dimensions_reapply(self):
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        indata = str(g)
+        gfiller.match_dimensions(g)
+        expected = str(g)
+        gfiller.match_dimensions(g)
+        actual = str(g)
+        print_test_message('GraphFiller.match_dimensions() Reapplied',
+                           indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'GraphFiller.match_dimensions() reapplied failed')
+
+    def test_match_units_dimensions(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_units(g)
+        gfiller.match_dimensions(g)
+        print g
+
+    def test_match_dimensions_units(self):
+        print_test_message('GraphFiller.match_dimensions()')
+        g = actiongraphs.ActionGraph()
+        gfiller = actiongraphs.GraphFiller(self.inpds)
+        gfiller.from_definitions(g, self.outds)
+        gfiller.match_dimensions(g)
+        gfiller.match_units(g)
+        print g
 
 #===============================================================================
 # Command-Line Execution

@@ -1,5 +1,5 @@
 """
-Fundamental Operators for the Operation Graph Unit Tests
+Fundamental Actions for the Action Graph Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import remove
 from os.path import exists
-from pyconform import operators as ops
+from pyconform import actions as acts
 from os import linesep
 from cf_units import Unit
 
@@ -29,123 +29,187 @@ def print_test_message(testname, actual, expected):
     
 
 #===============================================================================
-# OperatorTests
+# ActionTests
 #===============================================================================
-class MockOp(ops.Operator):
-    def __init__(self, name, units=Unit(1)):
-        super(MockOp, self).__init__(name, units=units)
-    def __eq__(self, other):
-        return super(MockOp, self).__eq__(other)
+class MockAction(acts.Action):
+    def __init__(self, key, name):
+        super(MockAction, self).__init__(key, name)
     def __call__(self):
-        super(MockOp, self).__call__()
+        super(MockAction, self).__call__()
 
 
-class OperatorTests(unittest.TestCase):
+class ActionTests(unittest.TestCase):
     """
-    Unit tests for the operators.Operator class
+    Unit tests for the operators.Action class
     """
     def setUp(self):
-        ops.Operator._id_ = 0
+        acts.Action._id_ = 0
     
     def test_abc(self):
         opname = 'xop'
-        testname = 'Operator.__init__()'
-        self.assertRaises(TypeError, ops.Operator, opname)
+        testname = 'Action.__init__()'
+        self.assertRaises(TypeError, acts.Action, opname)
         print_test_message(testname, TypeError, TypeError)
 
     def test_init(self):
         opname = 'xop'
-        testname = 'Mock Operator.__init__()'
-        O = MockOp(opname)
-        actual = isinstance(O, ops.Operator)
+        testname = 'Mock Action.__init__()'
+        O = MockAction(0, opname)
+        actual = isinstance(O, acts.Action)
         expected = True
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Could not create mock Operator object')
+                         'Could not create mock Action object')
 
     def test_name(self):
         opname = 'xop'
-        testname = 'Mock Operator.__init__({!r})'.format(opname)
-        O = MockOp(opname)
+        testname = 'Mock Action.__init__({!r})'.format(opname)
+        O = MockAction(0, opname)
         actual = O.name
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator name incorrect')
+                         'Action name incorrect')
 
     def test_str(self):
         opname = 'xop'
-        testname = 'Mock Operator.__str__()'.format(opname)
-        O = MockOp(opname)
+        testname = 'Mock Action.__str__()'
+        O = MockAction('0', opname)
         actual = str(O)
         expected = opname
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator string conversion incorrect')
-
+                         'Action string conversion incorrect')
+    
     def test_units_default(self):
         opname = 'xop'
-        testname = 'Mock Operator.units({!r})'.format(opname)
-        O = MockOp(opname)
+        testname = 'Mock Action.units'
+        O = MockAction(0, opname)
         actual = O.units
-        expected = Unit(1)
+        expected = None
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator name incorrect')
+                         'Action units incorrect')
 
-    def test_units_set(self):
+    def test_units_from_Unit(self):
         opname = 'xop'
-        units = 'm'
-        testname = 'Mock Operator.units({!r}, units={!r})'.format(opname, units)
-        O = MockOp(opname, units=units)
+        testname = 'Mock Action.units = Unit(m)'
+        O = MockAction(0, opname)
+        O.units = Unit('m')
         actual = O.units
-        expected = Unit(units)
+        expected = Unit('m')
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator name incorrect')
+                         'Action units incorrect')
+
+    def test_units_from_str(self):
+        opname = 'xop'
+        testname = 'Mock Action.units = m'
+        O = MockAction(0, opname)
+        O.units = 'm'
+        actual = O.units
+        expected = Unit('m')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action units incorrect')
     
+    def test_units_from_tuple(self):
+        opname = 'xop'
+        testname = 'Mock Action.units = (days, standard)'
+        O = MockAction(0, opname)
+        O.units = ('days from 0001-01-01 00:00:00', 'standard')
+        actual = O.units
+        expected = Unit('days from 0001-01-01 00:00:00', calendar='standard')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action units incorrect')
+    
+    def test_units_bad_unit(self):
+        opname = 'xop'
+        testname = 'Mock Action.units = ncxedajbec'
+        O = MockAction(0, opname)
+        expected = ValueError
+        try:
+            O.units = 'ncxedajbec'
+        except ValueError:
+            actual = ValueError
+        else:
+            actual = None
+            self.assertTrue(False, 'Action units did not fail')
+        print_test_message(testname, actual, expected)
+
+    def test_units_bad_calendar(self):
+        opname = 'xop'
+        testname = 'Mock Action.units = (days, ncxedajbec)'
+        O = MockAction(0, opname)
+        expected = ValueError
+        try:
+            O.units = ('days since 0001-01-01 00:00:00', 'ncxedajbec')
+        except ValueError:
+            actual = ValueError
+        else:
+            actual = None
+            self.assertTrue(False, 'Action units did not fail')
+        print_test_message(testname, actual, expected)
+
+    def test_dimensions_default(self):
+        opname = 'xop'
+        testname = 'Mock Action.dimensions'
+        O = MockAction(0, opname)
+        actual = O.dimensions
+        expected = None
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action dimensions incorrect')
+
+    def test_dimensions_from_tuple(self):
+        opname = 'xop'
+        testname = 'Mock Action.dimensions = Unit(m)'.format(opname)
+        indata = ('t', 'x')
+        O = MockAction(0, opname)
+        O.dimensions = indata
+        actual = O.dimensions
+        expected = indata
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action dimensions incorrect')
+        
     def test_equal_same(self):
         nm = 'xop'
-        un = 'm'
-        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
-                    '{!r})').format(nm, un, nm, un)
-        O1 = MockOp(nm, units=un)
-        O2 = MockOp(nm, units=un)
-        actual = (O1 == O2)
-        expected = True
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected,
-                         'Operator equality not correct')
-
-    def test_equal_diff_units(self):
-        nm1 = 'xop'
-        nm2 = nm1
-        un1 = 'm'
-        un2 = Unit('km')
-        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
-                    '{!r})').format(nm1, un1, nm2, un2)
-        O1 = MockOp(nm1, units=un1)
-        O2 = MockOp(nm2, units=un2)
+        testname = ('Mock Action({!r}) == Action('
+                    '{!r})').format(nm, nm)
+        O1 = MockAction(1, nm)
+        O2 = MockAction(1, nm)
         actual = (O1 == O2)
         expected = False
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator equality not correct')
+                         'Action equality not correct')
 
     def test_equal_diff_names(self):
         nm1 = 'xop'
         nm2 = 'yop'
-        un1 = 'm'
-        un2 = un1
-        testname = ('Mock Operator({!r},{!r}) == Operator({!r},'
-                    '{!r})').format(nm1, un1, nm2, un2)
-        O1 = MockOp(nm1, units=un1)
-        O2 = MockOp(nm2, units=un2)
+        testname = ('Mock Action({!r}) == Action('
+                    '{!r})').format(nm1, nm2)
+        O1 = MockAction(1, nm1)
+        O2 = MockAction(1, nm2)
         actual = (O1 == O2)
         expected = False
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
-                         'Operator equality not correct')    
+                         'Action equality not correct')    
+
+    def test_equal_diff_keys(self):
+        nm = 'xop'
+        testname = ('Mock Action(1, {!r}) == Action(2, '
+                    '{!r})').format(nm, nm)
+        O1 = MockAction(1, nm)
+        O2 = MockAction(2, nm)
+        actual = (O1 == O2)
+        expected = False
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected,
+                         'Action equality not correct')    
 
 
 #===============================================================================
@@ -153,7 +217,7 @@ class OperatorTests(unittest.TestCase):
 #===============================================================================
 class InputSliceReaderTests(unittest.TestCase):
     """
-    Unit tests for the operators.InputSliceReader class
+    Unit tests for the operators.Reader class
     """
     
     def setUp(self):
@@ -179,40 +243,40 @@ class InputSliceReaderTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'InputSliceReader.__init__()'
-        VSR = ops.InputSliceReader(self.ncfile, self.var)
+        testname = 'Reader.__init__()'
+        VSR = acts.Reader(self.ncfile, self.var)
         actual = type(VSR)
-        expected = ops.InputSliceReader
+        expected = acts.Reader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_filename_failure(self):
-        testname = 'InputSliceReader.__init__(bad filename)'
+        testname = 'Reader.__init__(bad filename)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.InputSliceReader, 'badname.nc', self.var)
+                          acts.Reader, 'badname.nc', self.var)
         print_test_message(testname, actual, expected)
 
     def test_init_varname_failure(self):
-        testname = 'InputSliceReader.__init__(bad variable name)'
+        testname = 'Reader.__init__(bad variable name)'
         actual = OSError
         expected = OSError
         self.assertRaises(OSError, 
-                          ops.InputSliceReader, self.ncfile, 'badvar')
+                          acts.Reader, self.ncfile, 'badvar')
         print_test_message(testname, actual, expected)
 
     def test_init_with_slice(self):
-        testname = 'InputSliceReader.__init__(slice)'
-        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'Reader.__init__(slice)'
+        VSR = acts.Reader(self.ncfile, self.var, self.slice)
         actual = type(VSR)
-        expected = ops.InputSliceReader
+        expected = acts.Reader
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call(self):
-        testname = 'InputSliceReader().__call__()'
-        VSR = ops.InputSliceReader(self.ncfile, self.var)
+        testname = 'Reader().__call__()'
+        VSR = acts.Reader(self.ncfile, self.var)
         actual = VSR()
         expected = self.vardata
         print_test_message(testname, actual, expected)
@@ -220,8 +284,8 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_call_slice(self):
-        testname = 'InputSliceReader(slice).__call__()'
-        VSR = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'Reader(slice).__call__()'
+        VSR = acts.Reader(self.ncfile, self.var, self.slice)
         actual = VSR()
         expected = self.vardata[self.slice]
         print_test_message(testname, actual, expected)
@@ -229,14 +293,13 @@ class InputSliceReaderTests(unittest.TestCase):
                                '{} failed'.format(testname))
 
     def test_equal(self):
-        testname = 'InputSliceReader() == InputSliceReader()'
-        VSR1 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
-        VSR2 = ops.InputSliceReader(self.ncfile, self.var, self.slice)
+        testname = 'Reader() == Reader()'
+        VSR1 = acts.Reader(self.ncfile, self.var, self.slice)
+        VSR2 = acts.Reader(self.ncfile, self.var, self.slice)
         actual = VSR1 == VSR2
-        expected = True
+        expected = False
         print_test_message(testname, actual, expected)
-        npt.assert_array_equal(actual, expected,
-                               '{} failed'.format(testname))
+        self.assertFalse(actual, '{} failed'.format(testname))
 
 
 #===============================================================================
@@ -244,7 +307,7 @@ class InputSliceReaderTests(unittest.TestCase):
 #===============================================================================
 class FunctionEvaluatorTests(unittest.TestCase):
     """
-    Unit tests for the operators.FunctionEvaluator class
+    Unit tests for the operators.Evaluator class
     """
     
     def setUp(self):
@@ -256,25 +319,25 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_init(self):
         opname = '1'
-        testname = 'FunctionEvaluator.__init__(function)'
-        FE = ops.FunctionEvaluator(opname, lambda: 1)
+        testname = 'Evaluator.__init__(function)'
+        FE = acts.Evaluator('1', opname, lambda: 1)
         actual = type(FE)
-        expected = ops.FunctionEvaluator
+        expected = acts.Evaluator
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_fail(self):
         opname = 'int(1)'
-        testname = 'FunctionEvaluator.__init__(non-function)'
-        self.assertRaises(TypeError, ops.FunctionEvaluator, opname, 1)
+        testname = 'Evaluator.__init__(non-function)'
+        self.assertRaises(TypeError, acts.Evaluator, 1, opname, 1)
         actual = TypeError
         expected = TypeError
         print_test_message(testname, actual, expected)
 
     def test_unity(self):
         opname = 'identity'
-        testname = 'FunctionEvaluator(lambda x: x).__call__(x)'
-        FE = ops.FunctionEvaluator(opname, lambda x: x)
+        testname = 'Evaluator(lambda x: x).__call__(x)'
+        FE = acts.Evaluator('I', opname, lambda x: x)
         actual = FE(self.params[0])
         expected = self.params[0]
         print_test_message(testname, actual, expected)
@@ -282,8 +345,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
         
     def test_add(self):
         opname = 'add(a,b)'
-        testname = 'FunctionEvaluator(add).__call__(a, b)'
-        FE = ops.FunctionEvaluator(opname, operator.add)
+        testname = 'Evaluator(add).__call__(a, b)'
+        FE = acts.Evaluator('+', opname, operator.add)
         actual = FE(*self.params)
         expected = operator.add(*self.params)
         print_test_message(testname, actual, expected)
@@ -291,8 +354,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_add_constant_1st(self):
         opname = 'add(1,a)'
-        testname = 'FunctionEvaluator(add, 1).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, args=[1])
+        testname = 'Evaluator(add, 1).__call__(a)'
+        FE = acts.Evaluator('+', opname, operator.add, signature=[1])
         actual = FE(self.params[0])
         expected = operator.add(1, self.params[0])
         print_test_message(testname, actual, expected)
@@ -300,8 +363,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_add_constant_2nd(self):
         opname = 'add(a,2)'
-        testname = 'FunctionEvaluator(add, None, 2).__call__(a)'
-        FE = ops.FunctionEvaluator(opname, operator.add, args=[None, 2])
+        testname = 'Evaluator(add, None, 2).__call__(a)'
+        FE = acts.Evaluator('+', opname, operator.add, signature=[None, 2])
         actual = FE(self.params[0])
         expected = operator.add(self.params[0], 2)
         print_test_message(testname, actual, expected)
@@ -309,8 +372,8 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_sub(self):
         opname = 'sub(a,b)'
-        testname = 'FunctionEvaluator(sub).__call__(a, b)'
-        FE = ops.FunctionEvaluator(opname, operator.sub)
+        testname = 'Evaluator(sub).__call__(a, b)'
+        FE = acts.Evaluator('-', opname, operator.sub)
         actual = FE(*self.params)
         expected = operator.sub(*self.params)
         print_test_message(testname, actual, expected)
@@ -318,11 +381,11 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
     def test_equal(self):
         opname = 'sub(a,b)'
-        testname = 'FunctionEvaluator() == FunctionEvaluator()'
-        FE1 = ops.FunctionEvaluator(opname, operator.sub)
-        FE2 = ops.FunctionEvaluator(opname, operator.sub)
+        testname = 'Evaluator() == Evaluator()'
+        FE1 = acts.Evaluator('-', opname, operator.sub)
+        FE2 = acts.Evaluator('-', opname, operator.sub)
         actual = FE1 == FE2
-        expected = True
+        expected = False
         print_test_message(testname, actual, expected)
         npt.assert_array_equal(actual, expected,
                                '{} failed'.format(testname))
@@ -333,7 +396,7 @@ class FunctionEvaluatorTests(unittest.TestCase):
 #===============================================================================
 class OutputSliceHandleTests(unittest.TestCase):
     """
-    Unit tests for the operators.OutputSliceHandle class
+    Unit tests for the operators.Handle class
     """
     
     def setUp(self):
@@ -359,17 +422,17 @@ class OutputSliceHandleTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'OutputSliceHandle.__init__()'
-        OSH = ops.OutputSliceHandle('x')
+        testname = 'Handle.__init__()'
+        OSH = acts.Handle('x')
         actual = type(OSH)
-        expected = ops.OutputSliceHandle
+        expected = acts.Handle
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_min_ok(self):
         indata = 1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', minimum=0.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -377,8 +440,8 @@ class OutputSliceHandleTests(unittest.TestCase):
         
     def test_min_warn(self):
         indata = -1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = ops.OutputSliceHandle('x', minimum=0.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', minimum=0.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -386,8 +449,8 @@ class OutputSliceHandleTests(unittest.TestCase):
 
     def test_max_ok(self):
         indata = 1.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', maximum=10.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -395,8 +458,8 @@ class OutputSliceHandleTests(unittest.TestCase):
         
     def test_max_warn(self):
         indata = 11.0
-        testname = 'OutputSliceHandle({})'.format(indata)
-        OSH = ops.OutputSliceHandle('x', maximum=10.0)
+        testname = 'Handle({})'.format(indata)
+        OSH = acts.Handle('x', maximum=10.0)
         actual = OSH(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -404,7 +467,7 @@ class OutputSliceHandleTests(unittest.TestCase):
 
 
 #===============================================================================
-# Command-Line Operation
+# Command-Line Action
 #===============================================================================
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

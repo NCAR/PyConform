@@ -7,8 +7,8 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from dataset import InputDataset, OutputDataset
-from opgraph import OperationGraph, GraphFiller
+from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.actiongraphs import ActionGraph, GraphFiller
 from mpi4py import MPI
 from netCDF4 import Dataset as NCDataset
 
@@ -48,7 +48,7 @@ def conform(inp, out):
     loc_vars = tservars[mpirank::mpisize]
     
     # Compute the operation graph
-    opgraph = OperationGraph() 
+    opgraph = ActionGraph() 
     
     # Fill the operation graph
     gfiller = GraphFiller()

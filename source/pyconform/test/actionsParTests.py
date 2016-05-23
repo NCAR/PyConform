@@ -1,11 +1,11 @@
 """
-Fundamental Operators for the Operation Graph Unit Tests - Parallel
+Fundamental Actions for the Operation Graph Unit Tests - Parallel
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import operators as ops
+from pyconform import actions as acts
 from os import linesep
 from mpi4py import MPI
 
@@ -30,7 +30,7 @@ def print_test_message(testname, actual, expected):
 #===============================================================================
 class MPISendRecvTests(unittest.TestCase):
     """
-    Unit tests for the operators.SendOperator and operators.RecvOperator classes
+    Unit tests for the operators.MPISender and operators.MPIReceiver classes
     """
     
     def setUp(self):
@@ -41,32 +41,32 @@ class MPISendRecvTests(unittest.TestCase):
         pass
 
     def test_sendop_init(self):
-        testname = 'SendOperator.__init__(1)'
-        SO = ops.SendOperator(1)
+        testname = 'MPISender.__init__(1)'
+        SO = acts.MPISender(1)
         actual = type(SO)
-        expected = ops.SendOperator
+        expected = acts.MPISender
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_recvop_init(self):
-        testname = 'RecvOperator.__init__(1)'
-        RO = ops.RecvOperator(1)
+        testname = 'MPIReceiver.__init__(1)'
+        RO = acts.MPIReceiver(1)
         actual = type(RO)
-        expected = ops.RecvOperator
+        expected = acts.MPIReceiver
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_send_recv(self):
-        testname = 'SendOperator() -> RecvOperator()'
+        testname = 'MPISender() -> MPIReceiver()'
         data = np.arange(0,10)
         if MPI.COMM_WORLD.Get_rank() == 0:
-            op = ops.SendOperator(dest=1)
+            op = acts.MPISender(dest=1)
             actual = op(data)
             expected = None
             print_test_message(testname, actual, expected)
             self.assertEqual(actual, expected, '{} failed'.format(testname))
         elif MPI.COMM_WORLD.Get_rank() == 1:
-            op = ops.RecvOperator(source=0)
+            op = acts.MPIReceiver(source=0)
             actual = op()
             expected = data
             print_test_message(testname, actual, expected)

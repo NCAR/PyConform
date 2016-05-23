@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from copy import deepcopy
+from os import linesep
 
 
 #===============================================================================
@@ -22,8 +23,21 @@ class DiGraph(object):
         """
         Initializer
         """
-        self._vertices = set()
-        self._edges = list()
+        self._forward_map = {}
+        self._reverse_map = {}
+
+    def __str__(self):
+        """
+        String representation of the graph
+        """
+        outstrs = ['DiGraph:']
+        for vertex, neighbors in self._forward_map.iteritems():
+            if len(neighbors) == 0:
+                outstrs.append('   {0!s}'.format(vertex))
+            else:
+                for neighbor in neighbors:
+                    outstrs.append('   {0!s} --> {1!s}'.format(vertex, neighbor))
+        return linesep.join(outstrs)
 
     def __eq__(self, other):
         """
@@ -39,8 +53,8 @@ class DiGraph(object):
             bool: True if equal, False if not equal
         """
         if isinstance(other, DiGraph):
-            if (self._vertices == other._vertices and 
-                self._edges == other._edges):
+            if (self._forward_map == other._forward_map and
+                self._reverse_map == other._reverse_map):
                 return True
         return False
     
@@ -66,7 +80,7 @@ class DiGraph(object):
         Returns:
             bool: True if vertex in graph, False otherwise
         """
-        return vertex in self._vertices
+        return vertex in self._forward_map or vertex in self._reverse_map
     
     def __len__(self):
         """
@@ -75,46 +89,60 @@ class DiGraph(object):
         Returns:
             int: The number of vertices in the graph
         """
-        return len(self._vertices)
+        return self.nvertices
 
-    def leaves(self):
+    @property
+    def nvertices(self):
+        """
+        Returns the number of edges in the graph
+        
+        Returns:
+            int: The numebr of edges in the graph
+        """
+        return len(self.vertices)
+    
+    @property
+    def nedges(self):
+        """
+        Returns the number of edges in the graph
+        
+        Returns:
+            int: The numebr of edges in the graph
+        """
+        return len(self.edges)
+
+    def sinks(self):
         """
         Returns the set of vertices in the graph with only incoming edges
         
         Returns:
             set: The set of vertices in the graph with only incoming edges
         """
-        w_outgoing, w_incoming = zip(*self._edges)
-        return set(w_incoming) - set(w_outgoing)
+        zero_outgoing = set(v for v,n in self._forward_map.iteritems()
+                            if len(n) == 0)
+        plus_incoming = set(v for v,n in self._reverse_map.iteritems()
+                            if len(n) > 0)
+        return plus_incoming.intersection(zero_outgoing)
 
-    def roots(self):
+    def sources(self):
         """
         Returns the set of vertices in the graph with only outgoing edges
         
         Returns:
             set: The set of vertices in the graph with only outgoing edges
         """
-        w_outgoing, w_incoming = zip(*self._edges)
-        return set(w_outgoing) - set(w_incoming)
+        zero_incoming = set(v for v,n in self._reverse_map.iteritems()
+                            if len(n) == 0)
+        plus_outgoing = set(v for v,n in self._forward_map.iteritems()
+                            if len(n) > 0)
+        return plus_outgoing.intersection(zero_incoming)
                 
     def clear(self):
         """
         Remove all vertices and edges from the graph
         """
-        self._vertices.clear()
-        self._edges = list()
-
-    def copy(self):
-        """
-        Create a new graph by copying another
-            
-        Returns:
-            DiGraph: A copy of this graph
-        """
-        new_graph = DiGraph()
-        new_graph._vertices = deepcopy(self._vertices) 
-        new_graph._edges = deepcopy(self._edges)
-        return new_graph
+        self._reverse_map = {}
+        self._forward_map = {}
 
     @property
     def vertices(self):
@@ -122,9 +150,9 @@ class DiGraph(object):
         Return the list of vertices in the graph
         
         Returns:
-            list: The list of vertices contained in this graph
+            set: The list of vertices contained in this graph
         """
-        return self._vertices
+        return self._forward_map.keys()
 
     @property
     def edges(self):
@@ -134,7 +162,7 @@ class DiGraph(object):
         Returns:
             list: The list of edges contained in this graph
         """
-        return self._edges
+        return [(u,v) for u,vs in self._forward_map.iteritems() for v in vs]
     
     def add(self, vertex):
         """
@@ -143,7 +171,9 @@ class DiGraph(object):
         Parameters:
             vertex: The vertex object to be added to the graph
         """
-        self._vertices.add(vertex)
+        if vertex not in self._forward_map:
+            self._forward_map[vertex] = []
+            self._reverse_map[vertex] = []
 
     def remove(self, vertex):
         """
@@ -152,12 +182,15 @@ class DiGraph(object):
         Parameters:
             vertex: The vertex object to remove from the graph
         """
-        if vertex in self._vertices:
-            self._vertices.remove(vertex)
-        for edge in self._edges:
-            if vertex in edge:
-                self._edges.remove(edge)
-                
+        if vertex in self._forward_map:
+            self._forward_map.pop(vertex)
+            self._reverse_map.pop(vertex)
+            for v in self._forward_map:
+                if vertex in self._forward_map[v]:
+                    self._forward_map[v].remove(vertex)
+                if vertex in self._reverse_map[v]:
+                    self._reverse_map[v].remove(vertex)
+                                
     def update(self, other):
         """
         Update this graph with the union of itself and another
@@ -166,9 +199,14 @@ class DiGraph(object):
             other (DiGraph): the other graph to union with
         """
         if not isinstance(other, DiGraph):
-            raise TypeError("Cannot for union between DiGraph and non-DiGraph")
-        self._vertices.update(other._vertices)
-        self._edges.extend(other._edges)
+            raise TypeError("Cannot form union between DiGraph and non-DiGraph")
+        for vertex, neighbors in other._forward_map.iteritems():
+            self.add(vertex)
+            self._forward_map[vertex].extend([n for n in neighbors if n not in
+                                              self._forward_map[vertex]])
+        for vertex, neighbors in other._reverse_map.iteritems():
+            self._reverse_map[vertex].extend([n for n in neighbors if n not in
+                                              self._forward_map[vertex]])
 
     def union(self, other):
         """
@@ -182,7 +220,7 @@ class DiGraph(object):
         """
         if not isinstance(other, DiGraph):
             raise TypeError("Cannot for union between DiGraph and non-DiGraph")
-        G = self.copy()
+        G = deepcopy(self)
         G.update(other)
         return G
 
@@ -198,9 +236,9 @@ class DiGraph(object):
         """
         self.add(start)
         self.add(stop)
-        edge = (start, stop)
-        if edge not in self._edges:
-            self._edges.append((start, stop))
+        if stop not in self._forward_map[start]:
+            self._forward_map[start].append(stop)
+            self._reverse_map[stop].append(start)
 
     def disconnect(self, start, stop):
         """
@@ -210,9 +248,11 @@ class DiGraph(object):
             start: The starting point of the edge to be removed from the graph
             stop: The ending point of the edge to be removed from the graph
         """
-        edge = (start, stop)
-        if edge in self._edges:
-            self._edges.remove(edge)
+        if start not in self._forward_map:
+            return
+        if stop in self._forward_map[start]:
+            self._forward_map[start].remove(stop)
+            self._reverse_map[stop].remove(start)
 
     def neighbors_from(self, vertex):
         """
@@ -224,7 +264,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with incoming edges from vertex
         """
-        return set(v2 for (v1, v2) in self._edges if v1 == vertex)
+        return list(self._forward_map[vertex])
 
     def neighbors_to(self, vertex):
         """
@@ -236,7 +276,7 @@ class DiGraph(object):
         Returns:
             list: The list of vertices with outgoing edges to vertex
         """
-        return [v1 for (v1,v2) in self._edges if v2 == vertex]
+        return list(self._reverse_map[vertex])
 
     def iter_bfs(self, start, reverse=False):
         """
@@ -250,21 +290,21 @@ class DiGraph(object):
         Yields:
             The next vertex found in the breadth-first search from start
         """
-        if start not in self._vertices:
+        if start not in self.vertices:
             raise KeyError('Root vertex not in graph')
         
-        visited = []
+        visited = set()
         queue = [start]
         if reverse:
-            neighbors = self.neighbors_to
+            neighbors = self._reverse_map
         else:
-            neighbors = self.neighbors_from
+            neighbors = self._forward_map
         while queue:
             vertex = queue.pop(0)
             if vertex not in visited:
                 yield vertex
-                visited.append(vertex)
-                queue.extend(v for v in neighbors(vertex) if v not in visited)
+                visited.add(vertex)
+                queue.extend(v for v in neighbors[vertex] if v not in visited)
 
     def iter_dfs(self, start, reverse=False):
         """
@@ -275,21 +315,21 @@ class DiGraph(object):
             reverse (bool): Whether to perform the search "backwards"
                 through the graph (True) or "forwards" (False)
         """
-        if start not in self._vertices:
+        if start not in self.vertices:
             raise KeyError('Root vertex not in graph')
         
-        visited = []
+        visited = set()
         stack = [start]
         if reverse:
-            neighbors = self.neighbors_to
+            neighbors = self._reverse_map
         else:
-            neighbors = self.neighbors_from
+            neighbors = self._forward_map
         while stack:
             vertex = stack.pop()
             if vertex not in visited:
                 yield vertex
-                visited.append(vertex)
-                stack.extend(v for v in neighbors(vertex) if v not in visited)
+                visited.add(vertex)
+                stack.extend(v for v in neighbors[vertex] if v not in visited)
 
     def toposort(self):
         """
@@ -301,17 +341,17 @@ class DiGraph(object):
             None: If topological ordering is not possible (i.e., if the DiGraph
                 is cyclic), then return None
         """
-        G = self.copy()
+        G = deepcopy(self)
         sorted_list = []
-        stack = list(G._vertices - set(map(lambda edge: edge[1], G._edges)))
+        stack = [v for v,n in G._reverse_map.iteritems() if len(n) == 0]
         while stack:
             vertex = stack.pop()
             sorted_list.append(vertex)
-            for neighbor in G.neighbors_from(vertex):
+            for neighbor in list(G._forward_map[vertex]):
                 G.disconnect(vertex, neighbor)
-                if len(G.neighbors_to(neighbor)) == 0:
+                if len(G._reverse_map[neighbor]) == 0:
                     stack.append(neighbor)
-        if len(G._edges) > 0:
+        if sum(len(n) for n in G._forward_map.itervalues()) > 0:
             return None
         else:
             return sorted_list
@@ -321,7 +361,7 @@ class DiGraph(object):
         Returns whether the graph is cyclic or not
         """
         return self.toposort() is None
-                
+
     def components(self):
         """
         Return the connected components of the graph
@@ -329,28 +369,29 @@ class DiGraph(object):
         Returns:
             list: A list of connected DiGraphs
         """
-        unvisited = set(self._vertices)
-        components = []
+        unvisited = set(self.vertices)
+        components = set()
         while unvisited:
             start = unvisited.pop()
-            comp = DiGraph()
+            comp = type(self)()
             stack = [start]
             while stack:
                 vertex = stack.pop()
                 # Forward
-                neighbors = [v for v in self.neighbors_from(vertex) 
-                             if v not in comp._vertices]
+                neighbors = [v for v in self._forward_map[vertex] 
+                             if v not in comp]
                 for neighbor in neighbors:
                     comp.connect(vertex, neighbor)
                 stack.extend(neighbors)
                 # Backward
-                neighbors = [v for v in self.neighbors_to(vertex) 
-                             if v not in comp._vertices]
+                neighbors = [v for v in self._reverse_map[vertex] 
+                             if v not in comp]
                 for neighbor in neighbors:
                     comp.connect(neighbor, vertex)
                 stack.extend(neighbors)
+                # Mark vertex as visited
                 if vertex in unvisited:
                     unvisited.remove(vertex)
-            if len(comp._vertices) > 0:
-                components.append(comp)
+            if len(comp.vertices) > 0:
+                components.add(comp)
         return components
