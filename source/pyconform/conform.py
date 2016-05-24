@@ -58,10 +58,8 @@ def conform(inp, out):
     str_graph = str(agraph).replace(linesep, '{0}        '.format(linesep))
     print 'GRAPH:  {0}'.format(str_graph)
     
-    dim_map = agraph.dimension_map
-    
     print 'DIMENSIONS:'
-    for out_dim, inp_dim in dim_map.iteritems():
+    for out_dim, inp_dim in agraph.dimension_map.iteritems():
         print '    {0} --> {1}'.format(inp_dim, out_dim)
     print
     
@@ -91,7 +89,7 @@ def conform(inp, out):
         # Create the required dimensions
         tsdims = req_dims.union(set(tsinfo.dimensions))
         for dname in tsdims:
-            idim = inp.dimensions[dim_map[dname]]
+            idim = inp.dimensions[agraph.dimension_map[dname]]
             if idim.unlimited:
                 ncf.createDimension(dname)
             else:
