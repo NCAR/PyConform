@@ -11,6 +11,7 @@ from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actiongraphs import ActionGraph, GraphFiller
 from netCDF4 import Dataset as NCDataset
 from mpi4py import MPI
+from os import linesep
 
 
 #===============================================================================
@@ -39,24 +40,30 @@ def conform(inp, out):
     meta_vars = [vname for vname in out.variables if vname not in tser_vars]
 
     # Get the set of necessary dimensions for the meta_vars
-    req_dims = set()
-    for mvar in meta_vars:
-        for d in out.variables[mvar].dimensions:
-            req_dims.add(d)
+    req_dims = set(d for mvar in meta_vars
+                   for d in out.variables[mvar].dimensions)
     
     # Get the local list of tseries variable names
     loc_vars = tser_vars[mpi_rank::mpi_size]
     
     # Compute the operation graph
-    agraph = ActionGraph() 
+    agraph = ActionGraph()
     
     # Fill the operation graph
     filler = GraphFiller(inp)
     filler.from_definitions(agraph, out)
-    filler.match_units(agraph)
     filler.match_dimensions(agraph)
+    filler.match_units(agraph)
+
+    str_graph = str(agraph).replace(linesep, '{0}        '.format(linesep))
+    print 'GRAPH:  {0}'.format(str_graph)
     
     dim_map = agraph.dimension_map
+    
+    print 'DIMENSIONS:'
+    for out_dim, inp_dim in dim_map.iteritems():
+        print '    {0} --> {1}'.format(inp_dim, out_dim)
+    print
     
     # Fill a map of variable name to graph handle
     # CURRENT: handle.key maps to output variable name
