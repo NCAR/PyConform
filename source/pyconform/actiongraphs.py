@@ -49,7 +49,8 @@ class ActionGraph(DiGraph):
         Display an ActionGraph as a string
         """
         output = []
-        for h in self.handles():
+        sorted_handles = sorted((str(h), h) for h in self.handles())
+        for _, h in sorted_handles:
             nodes = self._actions_by_depth_(h)
             houtput = []
             for i, u in nodes:
