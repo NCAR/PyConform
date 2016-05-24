@@ -313,7 +313,7 @@ class GraphFiller(object):
                     graph.connect(nbr, tvtx)
                     graph.connect(tvtx, handle)
         
-        graph._dim_map = dmap
+        graph._dim_map = dict((v,k) for (k,v) in dmap.iteritems())
 
     @staticmethod
     def _compute_dimensions_(graph, vtx, dmap={}):
