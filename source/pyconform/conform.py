@@ -30,31 +30,46 @@ def conform(inp, out):
         raise TypeError('Output dataset must be of OutputDataset type')
     
     # MPI rank and size
-    mpirank = MPI.COMM_WORLD.Get_rank()
-    mpisize = MPI.COMM_WORLD.Get_size()
+    mpi_rank = MPI.COMM_WORLD.Get_rank()
+    mpi_size = MPI.COMM_WORLD.Get_size()
     
     # Get time-series names and metadata names
-    tservars = [vname for vname, vinfo in out.variables.iteritems()
+    tser_vars = [vname for vname, vinfo in out.variables.iteritems()
                 if vinfo.filename is not None]
-    metavars = [vname for vname in out.variables if vname not in tservars]
+    meta_vars = [vname for vname in out.variables if vname not in tser_vars]
 
-    # Get the set of necessary dimensions for the metavars
+    # Get the set of necessary dimensions for the meta_vars
     req_dims = set()
-    for mvar in metavars:
+    for mvar in meta_vars:
         for d in out.variables[mvar].dimensions:
             req_dims.add(d)
     
     # Get the local list of tseries variable names
-    loc_vars = tservars[mpirank::mpisize]
+    loc_vars = tser_vars[mpi_rank::mpi_size]
     
     # Compute the operation graph
-    opgraph = ActionGraph() 
+    agraph = ActionGraph() 
     
     # Fill the operation graph
-    gfiller = GraphFiller()
-    groots = gfiller.from_definitions(opgraph, inp, out)
-    dim_map = gfiller.dimension_map
+    filler = GraphFiller(inp)
+    filler.from_definitions(agraph, out)
+    filler.match_units(agraph)
+    filler.match_dimensions(agraph)
     
+    dim_map = agraph.dimension_map
+    
+    # Fill a map of variable name to graph handle
+    handles = {}
+    for handle in agraph.handles():
+        
+        # CURRENT: handle.key maps to output variable name
+        # FUTURE: handle.name (Key+Slice) should map to output identifier
+        if handle.key in handles:
+            raise KeyError(('Doubly-mapped key in ActionGraph: '
+                            '{0!r}').format(handle.key))
+        else:
+            handles[handle.key] = handle
+
     # Write each local time-series file
     for tsvar in loc_vars:
         
@@ -78,7 +93,7 @@ def conform(inp, out):
         
         # Create the variables and write their attributes
         ncvars = {}
-        for mvar in metavars:
+        for mvar in meta_vars:
             mvinfo = out.variables[mvar]
             ncvar = ncf.createVariable(mvar, mvinfo.datatype, mvinfo.dimensions)
             for aname, avalue in mvinfo.attributes.iteritems():
@@ -92,5 +107,5 @@ def conform(inp, out):
         
         # Now perform the operation graphs and write data to variables
         for vname, vobj in ncvars.iteritems():
-            groot = groots[vname]
-            vobj[:] = opgraph(groot)
+            groot = handles[vname]
+            vobj[:] = agraph(groot)
