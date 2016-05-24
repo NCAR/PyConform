@@ -59,13 +59,12 @@ def conform(inp, out):
     dim_map = agraph.dimension_map
     
     # Fill a map of variable name to graph handle
+    # CURRENT: handle.key maps to output variable name
+    # FUTURE: handle.name (Key+Slice) should map to output identifier
     handles = {}
-    for handle in agraph.handles():
-        
-        # CURRENT: handle.key maps to output variable name
-        # FUTURE: handle.name (Key+Slice) should map to output identifier
+    for handle in agraph.handles():        
         if handle.key in handles:
-            raise KeyError(('Doubly-mapped key in ActionGraph: '
+            raise KeyError(('Doubly-mapped handle key in ActionGraph: '
                             '{0!r}').format(handle.key))
         else:
             handles[handle.key] = handle

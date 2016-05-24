@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep, remove
 from os.path import exists
-from pyconform import conform, dataset
+from pyconform import conform, datasets
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 
@@ -104,7 +104,7 @@ class ConformTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             
-        self.inpds = dataset.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
         self.dsdict = OrderedDict()
         self.dsdict['attributes'] = self.fattribs
@@ -181,7 +181,7 @@ class ConformTests(unittest.TestCase):
         vattribs['valid_max'] = 100.0
         vdicts['V4']['attributes'] = vattribs
                 
-        self.outds = dataset.OutputDataset('outds', self.dsdict)
+        self.outds = datasets.OutputDataset('outds', self.dsdict)
 
     def tearDown(self):
         self._clear_()
