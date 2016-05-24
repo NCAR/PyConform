@@ -37,6 +37,12 @@ class ActionGraph(DiGraph):
         Initialize
         """
         super(ActionGraph, self).__init__()
+        
+        self._dim_map = {}
+    
+    @property
+    def dimension_map(self):
+        return self._dim_map
 
     def __str__(self):
         """
@@ -278,7 +284,11 @@ class GraphFiller(object):
         dimensions to match the necessary dimensions needed by each Action.
         
         Parameters:
-            graph (ActionGraph): The ActionGraph in which to match dimensions 
+            graph (ActionGraph): The ActionGraph in which to match dimensions
+        
+        Returns:
+            dict: A dictionary of output dimension names mapped to their
+                corresponding input dimension names
         """
         # Fill the graph with dimensions up to the OutputSliceHandles and
         # compute the map of input dataset dimensions to output dataset dims
@@ -302,6 +312,8 @@ class GraphFiller(object):
                     graph.disconnect(nbr, handle)
                     graph.connect(nbr, tvtx)
                     graph.connect(tvtx, handle)
+        
+        graph._dim_map = dmap
 
     @staticmethod
     def _compute_dimensions_(graph, vtx, dmap={}):
