@@ -9,8 +9,8 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actiongraphs import ActionGraph, GraphFiller
-from mpi4py import MPI
 from netCDF4 import Dataset as NCDataset
+from mpi4py import MPI
 
 
 #===============================================================================
