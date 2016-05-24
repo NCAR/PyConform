@@ -15,14 +15,17 @@ from numpy import sqrt, transpose
 class UnitsError(ValueError):
     pass
 
+
 class DimensionsError(ValueError):
     pass
+
 
 #===============================================================================
 # List all available functions or operators
 #===============================================================================
 def available():
     return available_operators().union(available_functions())
+
 
 #===============================================================================
 # Find a function or operator based on key and number of arguments
@@ -36,16 +39,15 @@ def find(key, numargs=2):
         raise KeyError(('{0}-arg operator/function with key {1!r} not '
                         'found').format(numargs, key))
 
+
 #===============================================================================
 # FunctionalAbstract - base class for Function and Operator Classes
 #===============================================================================
 class FunctionAbstract(object):
     __metaclass__ = ABCMeta
-    
     key = 'function'
     numargs = 2
-    function = lambda x, y: 1
-    
+
     @abstractmethod
     def units(self, *arg_units):
         uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
@@ -58,6 +60,10 @@ class FunctionAbstract(object):
         darg = (None,) * len(self.numargs)
         return dret, darg
     
+    def __call__(self, *args):
+        return 1
+    
+
 ################################################################################
 ##### OPERATORS ################################################################
 ################################################################################
@@ -68,6 +74,7 @@ class FunctionAbstract(object):
 def available_operators():
     return set(__OPERATORS__.keys())
 
+
 #===============================================================================
 # Get the function associated with the given key-symbol
 #===============================================================================
@@ -77,13 +84,14 @@ def find_operator(key, numargs=2):
                         'found').format(numargs, key))
     return __OPERATORS__[(key, numargs)]
 
+
 #===============================================================================
 # Operator - From which all 'X op Y'-pattern operators derive
 #===============================================================================
 class Operator(FunctionAbstract):
     key = '?'
     numargs = 2
-    function = lambda x, y: 1
+
 
 #===============================================================================
 # NegationOperator
@@ -91,7 +99,6 @@ class Operator(FunctionAbstract):
 class NegationOperator(Operator):
     key = '-'
     numargs = 1
-    function = neg
 
     @staticmethod
     def units(arg_unit):
@@ -102,6 +109,10 @@ class NegationOperator(Operator):
     def dimensions(arg_dims):
         dret = arg_dims if isinstance(arg_dims, tuple) else ()
         return dret, (None,)
+    
+    def __call__(self, *args):
+        return neg(*args)
+    
 
 #===============================================================================
 # AdditionOperator
@@ -109,7 +120,6 @@ class NegationOperator(Operator):
 class AdditionOperator(Operator):
     key = '+'
     numargs = 2
-    function = add
 
     @staticmethod
     def units(*arg_units):
@@ -134,6 +144,9 @@ class AdditionOperator(Operator):
         else:
             raise DimensionsError(('Data with dimensions {0[0]} and {0[1]} '
                                    'cannot be added or subtracted').format(d))
+    
+    def __call__(self, *args):
+        return add(*args)
 
 #===============================================================================
 # SubtractionOperator
@@ -141,7 +154,6 @@ class AdditionOperator(Operator):
 class SubtractionOperator(Operator):
     key = '-'
     numargs = 2
-    function = sub
 
     @staticmethod
     def units(*arg_units):
@@ -150,6 +162,9 @@ class SubtractionOperator(Operator):
     @staticmethod
     def dimensions(*arg_dims):
         return AdditionOperator.dimensions(*arg_dims)
+    
+    def __call__(self, *args):
+        return sub(*args)
 
 #===============================================================================
 # PowerOperator
@@ -157,7 +172,6 @@ class SubtractionOperator(Operator):
 class PowerOperator(Operator):
     key = '^'
     numargs = 2
-    function = pow
 
     @staticmethod
     def units(*arg_units):
@@ -179,6 +193,10 @@ class PowerOperator(Operator):
                                   'dimensionless scalar')
         dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else () 
         return dret, (None, None)
+    
+    def __call__(self, *args):
+        return pow(*args)
+
 
 #===============================================================================
 # MultiplicationOperator
@@ -186,7 +204,6 @@ class PowerOperator(Operator):
 class MultiplicationOperator(Operator):
     key = '*'
     numargs = 2
-    function = mul
 
     @staticmethod
     def units(*arg_units):
@@ -210,6 +227,10 @@ class MultiplicationOperator(Operator):
         else:
             raise DimensionsError(('Data with dimensions {0[0]} and {0[1]} '
                                    'cannot be multiplied or divided').format(d))
+    
+    def __call__(self, *args):
+        return mul(*args)
+
 
 #===============================================================================
 # DivisionOperator
@@ -217,7 +238,6 @@ class MultiplicationOperator(Operator):
 class DivisionOperator(Operator):
     key = '-'
     numargs = 2
-    function = sub
 
     @staticmethod
     def units(*arg_units):
@@ -232,17 +252,21 @@ class DivisionOperator(Operator):
     @staticmethod
     def dimensions(*arg_dims):
         return MultiplicationOperator.dimensions(*arg_dims)
+    
+    def __call__(self, *args):
+        return truediv(*args)
+
 
 #===============================================================================
 # Operator map - Fixed to prevent user-redefinition!
 #===============================================================================
 
-__OPERATORS__ = {('-', 1): NegationOperator,
-                 ('^', 2): PowerOperator,
-                 ('+', 2): AdditionOperator,
-                 ('-', 2): SubtractionOperator,
-                 ('*', 2): MultiplicationOperator,
-                 ('/', 2): DivisionOperator}
+__OPERATORS__ = {('-', 1): NegationOperator(),
+                 ('^', 2): PowerOperator(),
+                 ('+', 2): AdditionOperator(),
+                 ('-', 2): SubtractionOperator(),
+                 ('*', 2): MultiplicationOperator(),
+                 ('/', 2): DivisionOperator()}
 
 ################################################################################
 ##### FUNCTIONS ################################################################
@@ -288,7 +312,7 @@ def available_functions():
 # Get the function associated with the given key-symbol
 #===============================================================================
 def find_function(key, numargs=2):
-    func_map = dict(((c.key, c.numargs), c)
+    func_map = dict(((c.key, c.numargs), c())
                     for c in _all_subclasses_(Function))
     if (key, numargs) not in func_map:
         raise KeyError(('{0}-arg function with key {1!r} not '
@@ -301,7 +325,6 @@ def find_function(key, numargs=2):
 class Function(FunctionAbstract):
     key = 'f'
     numargs = 1
-    function = lambda x: x
 
 #===============================================================================
 # SquareRoot
@@ -309,7 +332,6 @@ class Function(FunctionAbstract):
 class SquareRootFunction(Function):
     key = 'sqrt'
     numargs = 1
-    function = sqrt
 
     @staticmethod
     def units(arg_unit):
@@ -324,6 +346,9 @@ class SquareRootFunction(Function):
     def dimensions(arg_dims):
         dret = arg_dims if isinstance(arg_dims, tuple) else ()
         return dret, (None,)
+    
+    def __call__(self, data):
+        return sqrt(data)
 
 #===============================================================================
 # ConvertFunction
@@ -331,7 +356,6 @@ class SquareRootFunction(Function):
 class ConvertFunction(Function):
     key = 'convert'
     numargs = 3
-    function = lambda data, uFrom, uTo: uFrom.convert(data, uTo)
 
     @staticmethod
     def units(*arg_units):
@@ -349,6 +373,9 @@ class ConvertFunction(Function):
     def dimensions(*arg_dims):
         dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
         return dret, (None, None, None)
+    
+    def __call__(self, data, uFrom, uTo):
+        return uFrom.convert(data, uTo)
 
 #===============================================================================
 # TransposeFunction
@@ -356,7 +383,6 @@ class ConvertFunction(Function):
 class TransposeFunction(Function):
     key = 'transpose'
     numargs = 2
-    function = transpose
 
     @staticmethod
     def units(*arg_units):
@@ -369,3 +395,6 @@ class TransposeFunction(Function):
         order = arg_dims[1]
         dret = tuple(d[i] for i in order)
         return dret, (None, None)
+    
+    def __call__(self, data, order):
+        return transpose(data, order)
