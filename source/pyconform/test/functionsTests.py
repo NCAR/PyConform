@@ -36,7 +36,7 @@ class FunctionsTests(unittest.TestCase):
     def setUp(self):
         self.all_operators = set((('-', 1), ('^', 2), ('+', 2),
                                   ('-', 2), ('*', 2), ('/', 2)))
-        self.all_functions = set((('sqrt', 1),))
+        self.all_functions = set((('transpose', 2), ('sqrt', 1), ('convert', 3)))
         self.all = (self.all_operators).union(self.all_functions)
 
     def test_available_operators(self):
