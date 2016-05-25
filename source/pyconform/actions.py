@@ -218,6 +218,69 @@ class Reader(Action):
 
 
 #===============================================================================
+# Coordinate
+#===============================================================================
+class Coordinate(Action):
+    """
+    Action that returns pre-defined coordinate data
+    """
+    
+    def __init__(self, variable, data, units=Unit(1), slicetuple=None):
+        """
+        Initializer
+        
+        Parameters:
+            variable (str): A string variable name for referencing
+            data (array): A numpy array containing the coordinate data
+            units (Unit): A cf_units.Unit object specifying the coordinate units
+            slicetuple (SliceTuple): 
+        """
+        # Parse variable name
+        if not isinstance(variable, (str, unicode)):
+            raise TypeError('Unrecognized variable name object of type '
+                            '{!r}: {!r}'.format(type(variable), variable))
+
+        # Data should be an array
+        if not isinstance(data, numpy.ndarray):
+            raise TypeError('Coordinate {0} data is not an array'.format(variable))
+        self._data = data
+        
+        # Parse slice tuple
+        self._slice = SliceTuple(slicetuple)
+
+        # Call base class
+        slcstr = str(self._slice).replace('(', '[').replace(')', ']')
+        name = '{0}{1}'.format(variable, slcstr)
+        super(Coordinate, self).__init__(variable, name)
+
+        # Units
+        if not isinstance(units, Unit):
+            raise TypeError('Coordinate {0!s} units not of Unit type'.format(variable))
+        self._units = units
+                
+        # Dimensions
+        self._dimensions = (variable,)
+        
+    @Action.units.setter
+    def units(self, u):
+        pass # Prevent from changing units!
+    
+    @Action.dimensions.setter
+    def dimensions(self, d):
+        pass # Prevent from changing dimensions!
+
+    @property
+    def slicetuple(self):
+        return self._slice
+
+    def __call__(self):
+        """
+        Make callable like a function
+        """
+        return self._data[self._slice.index]
+
+
+#===============================================================================
 # Evaluator
 #===============================================================================
 class Evaluator(Action):
