@@ -369,7 +369,12 @@ class GraphFiller(object):
                                        '{3}').format(nbr, to_dim, vtx,
                                                      vtx.dimensions))
             elif len(to_dim) == 1:
-                dmap[to_dim[0]] = vtx.dimensions[0]
+                if to_dim[0] in dmap:
+                    raise DimensionsError(('Action {0} has dimension {1!r} '
+                                           'that has already been '
+                                           'mapped').format(nbr, to_dim[0]))
+                else:
+                    dmap[to_dim[0]] = vtx.dimensions[0]
                 
         else:
             if len(to_dims) == 1:
