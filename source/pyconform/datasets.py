@@ -439,7 +439,7 @@ class OutputDataset(Dataset):
             elif has_defn:
                 kwargs['definition'] = vdict['definition']
             elif has_data:
-                kwargs['data'] = vdict['data']
+                kwargs['data'] = tuple(vdict['data'])
                 dname = vdict['dimensions'][0]
                 dsize = len(vdict['data'])
                 dinfo = DimensionInfo(dname, dsize)
