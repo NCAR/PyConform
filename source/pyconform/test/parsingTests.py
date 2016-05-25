@@ -110,6 +110,28 @@ class ParsedStringTypeTests(unittest.TestCase):
 #===============================================================================
 class DefinitionParserTests(unittest.TestCase):
 
+#===== QUOTED STRINGS ==========================================================
+
+    def test_parse_quote(self):
+        indata = '"1"'
+        actual = parsing.parse_definition(indata)
+        expected = '1'
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'String parsing failed')
+
+    def test_parse_quote_escaped(self):
+        indata = '"\\"1\\""'
+        actual = parsing.parse_definition(indata)
+        expected = '"1"'
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'String parsing failed')
+           
 #===== INTEGERS ================================================================
 
     def test_parse_integer(self):

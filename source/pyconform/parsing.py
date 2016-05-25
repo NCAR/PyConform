@@ -11,7 +11,8 @@ LICENSE: See the LICENSE.rst file for details
 from slicetuple import SliceTuple
 from pyparsing import (nums, alphas, alphanums, oneOf, delimitedList,
                        operatorPrecedence, opAssoc, Word, Combine, Literal,
-                       Forward, Suppress, Group, CaselessLiteral, Optional)
+                       Forward, Suppress, Group, CaselessLiteral, Optional,
+                       QuotedString)
 
 #===============================================================================
 # ParsedFunction
@@ -119,6 +120,9 @@ _FLOAT_ = ( Combine( Word(nums) + _EXP_FLT_ ) |
             Combine( _DEC_FLT_ + Optional(_EXP_FLT_) ) )
 _FLOAT_.setParseAction(lambda t: float(t[0]))
 
+# QUOTED STRINGS: Any words between quotations
+_STR_ = QuotedString('"', escChar='\\')
+
 # String _NAME_s ...identifiers for function or variable _NAME_s
 _NAME_ = Word( alphas+"_", alphanums+"_" )
 
@@ -148,7 +152,7 @@ _VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') +
 _VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
-_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _FUNC_ | _VARIABLE_,
+_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE_,
                                     [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
                                      (oneOf('* /'), 2, opAssoc.RIGHT, _binop_),
