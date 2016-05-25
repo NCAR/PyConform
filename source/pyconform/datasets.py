@@ -72,6 +72,7 @@ class VariableInfo(object):
                  dimensions=(), 
                  attributes=OrderedDict(),
                  definition=None,
+                 data=None,
                  filename=None):
         """
         Initializer
@@ -82,6 +83,7 @@ class VariableInfo(object):
             dimensions (tuple): Tuple of dimension names in variable
             attributes (dict): Dictionary of variable attributes
             definition (str): Optional string definition of variable
+            data (tuple): Tuple of data to initialize the variable
             filename (str): Filename for read/write of variable
         """
         self._name = str(name)
@@ -89,6 +91,7 @@ class VariableInfo(object):
         self._dimensions = dimensions
         self._attributes = attributes
         self._definition = definition
+        self._data = data
         self._filename = filename
     
     @property
@@ -112,6 +115,10 @@ class VariableInfo(object):
         return self._definition
 
     @property
+    def data(self):
+        return self._data
+
+    @property
     def filename(self):
         return self._filename
 
@@ -126,6 +133,8 @@ class VariableInfo(object):
             return False
         if self.definition != other.definition:
             return False
+        if self.data != other.data:
+            return False
         if self.filename != other.filename:
             return False
         return True
@@ -139,6 +148,8 @@ class VariableInfo(object):
         strval += '   dimensions: {!s}'.format(self.dimensions) + linesep
         if self.definition:
             strval += '   definition: {!r}'.format(self.definition) + linesep
+        if self.data:
+            strval += '   data: {!r}'.format(self.data) + linesep
         if self.filename:
             strval += '   filename: {!r}'.format(self.filename) + linesep
         if self.attributes:
@@ -250,6 +261,8 @@ class Dataset(object):
             vdict['dimensions'] = vinfo.dimensions
             if vinfo.definition:
                 vdict['definition'] = vinfo.definition
+            if vinfo.data:
+                vdict['data'] = vinfo.data
             if vinfo.filename:
                 vdict['filename'] = vinfo.filename
             if vinfo.attributes:
@@ -412,12 +425,20 @@ class OutputDataset(Dataset):
                 raise ValueError(err_msg)
             else:
                 kwargs['dimensions'] = vdict['dimensions']
-            if 'definition' not in vdict:
-                err_msg = ('Definition is required for output variable '
+            has_defn = 'definition' in vdict
+            has_data = 'data' in vdict
+            if not has_data and not has_defn:
+                err_msg = ('Definition or data is required for output variable '
                            '{!r}').format(vname)
                 raise ValueError(err_msg)
-            else:
+            elif has_data and has_defn:
+                err_msg = ('Both definition and data cannot be defined for '
+                           'output variable {!r}').format(vname)
+                raise ValueError(err_msg)
+            elif has_defn:
                 kwargs['definition'] = vdict['definition']
+            elif has_data:
+                kwargs['data'] = vdict['data']
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
             if 'attributes' in vdict:

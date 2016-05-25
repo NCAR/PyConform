@@ -250,6 +250,16 @@ class InfoObjTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Default VariableInfo.definition is not {!r}'.format(indata))
 
+    def test_vinfo_data(self):
+        indata = (1,2,3,4,5,6)
+        vinfo = datasets.VariableInfo('x', data=indata)
+        actual = vinfo.data
+        expected = indata
+        print_test_message('VariableInfo.data', indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Default VariableInfo.data is not {!r}'.format(indata))
+
     def test_vinfo_filename(self):
         indata = 'nc1.nc'
         vinfo = datasets.VariableInfo('x', filename=indata)
@@ -449,7 +459,16 @@ class DatasetTests(unittest.TestCase):
         self.dsdict['attributes'] = self.fattribs
         self.dsdict['variables'] = OrderedDict()
         vdicts = self.dsdict['variables']
-        
+
+        vdicts['W'] = OrderedDict()
+        vdicts['W']['datatype'] = 'float64'
+        vdicts['W']['dimensions'] = ('w',)
+        vdicts['W']['data'] = (1., 2., 3., 4., 5., 6., 7., 8.)
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'something'
+        vattribs['units'] = '1'
+        vdicts['W']['attributes'] = vattribs
+            
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'float64'
         vdicts['X']['dimensions'] = ('x',)
