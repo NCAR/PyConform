@@ -89,11 +89,15 @@ def conform(inp, out):
         # Create the required dimensions
         tsdims = req_dims.union(set(tsinfo.dimensions))
         for dname in tsdims:
-            idim = inp.dimensions[agraph.dimension_map[dname]]
-            if idim.unlimited:
+            name = agraph.dimension_map[dname]
+            if name in inp.dimensions:
+                dim = inp.dimensions[name]
+            elif name in out.dimensions:
+                dim = out.dimensions[name]
+            if dim.unlimited:
                 ncf.createDimension(dname)
             else:
-                ncf.createDimension(dname, idim.size)
+                ncf.createDimension(dname, dim.size)
         
         # Create the variables and write their attributes
         ncvars = {}

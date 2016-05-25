@@ -110,6 +110,15 @@ class ConformTests(unittest.TestCase):
         self.dsdict['attributes'] = self.fattribs
         self.dsdict['variables'] = OrderedDict()
         vdicts = self.dsdict['variables']
+
+        vdicts['L'] = OrderedDict()
+        vdicts['L']['datatype'] = 'float32'
+        vdicts['L']['dimensions'] = ('l',)
+        vdicts['L']['data'] = tuple(range(5))
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'level'
+        vattribs['units'] = '1'
+        vdicts['L']['attributes'] = vattribs
         
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'float64'

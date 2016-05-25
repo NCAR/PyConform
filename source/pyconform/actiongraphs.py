@@ -14,11 +14,12 @@ from pyconform.graphs import DiGraph
 from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
                                ParsedBinOp, parse_definition)
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.actions import Action, Reader, Evaluator, Handle
+from pyconform.actions import Action, Reader, Coordinate, Evaluator, Handle
 from pyconform.functions import (find_function, find_operator, find,
                                  UnitsError, DimensionsError)
 from itertools import cycle
 from os import linesep
+from numpy import array
 
 
 #===============================================================================
@@ -159,8 +160,11 @@ class GraphFiller(object):
 
         # Parse the output variable definitions
         for vname, vinfo in outds.variables.iteritems():
-            obj = parse_definition(vinfo.definition)
-            vtx = self._add_to_graph_(graph, obj)
+            if vinfo.definition:
+                obj = parse_definition(vinfo.definition)
+            elif vinfo.data:
+                obj = parse_definition(vname)
+            vtx = self._add_to_graph_(graph, obj, outds)
             handle = Handle(vname)
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
@@ -170,25 +174,36 @@ class GraphFiller(object):
         if graph.is_cyclic():
             raise ValueError('Graph is cyclic.  Cannot continue.')
             
-    def _add_to_graph_(self, graph, obj):
-        vtx = self._convert_obj_(obj)
+    def _add_to_graph_(self, graph, obj, outds):
+        vtx = self._convert_obj_(obj, outds)
         graph.add(vtx)
         if isinstance(obj.args, tuple):
             for arg in obj.args:
-                graph.connect(self._add_to_graph_(graph, arg), vtx)
+                graph.connect(self._add_to_graph_(graph, arg, outds), vtx)
         return vtx
 
-    def _convert_obj_(self, obj):
+    def _convert_obj_(self, obj, outds):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
-            if vname not in self._inputds.variables:
-                raise KeyError('Variable {0!r} not found'.format(vname))
-            var = self._inputds.variables[vname]
-            if var.filename:
-                fname = var.filename
+            if vname in self._inputds.variables:
+                var = self._inputds.variables[vname]
+                if var.filename:
+                    fname = var.filename
+                else:
+                    fname = self._infile_cycle.next()
+                return Reader(fname, vname, slicetuple=obj.args)
+            elif vname in outds.variables:
+                var = outds.variables[vname]
+                if var.data:
+                    vdata = array(var.data, dtype=var.datatype)
+                    vdim = var.dimensions[0]
+                    return Coordinate(vname, vdim, vdata, units=var.cfunits(),
+                                      slicetuple=obj.args)
+                else:
+                    raise KeyError(('Cannot reference output variable {0!r} '
+                                    'without defined data').format(vname))
             else:
-                fname = self._infile_cycle.next()
-            return Reader(fname, vname, slicetuple=obj.args)
+                raise KeyError('Variable {0!r} not found'.format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp, ParsedFunction)):
             name = obj.key
@@ -294,10 +309,11 @@ class GraphFiller(object):
         # Fill the graph with dimensions up to the OutputSliceHandles and
         # compute the map of input dataset dimensions to output dataset dims
         dmap = {}
-        for handle in graph.handles():
+        handles = graph.handles()
+        for handle in handles:
             GraphFiller._compute_dimensions_(graph, handle, dmap)
         
-        for handle in graph.handles():
+        for handle in handles:
             nbr = graph.neighbors_to(handle)[0]
             if not all(d in dmap for d in nbr.dimensions):
                 unmapped_dims = tuple(d for d in nbr.dimensions if d not in dmap)
