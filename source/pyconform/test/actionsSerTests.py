@@ -213,9 +213,9 @@ class ActionTests(unittest.TestCase):
 
 
 #===============================================================================
-# InputSliceReaderTests
+# ReaderTests
 #===============================================================================
-class InputSliceReaderTests(unittest.TestCase):
+class ReaderTests(unittest.TestCase):
     """
     Unit tests for the operators.Reader class
     """
@@ -303,9 +303,9 @@ class InputSliceReaderTests(unittest.TestCase):
 
 
 #===============================================================================
-# FunctionEvaluatorTests
+# EvaluatorTests
 #===============================================================================
-class FunctionEvaluatorTests(unittest.TestCase):
+class EvaluatorTests(unittest.TestCase):
     """
     Unit tests for the operators.Evaluator class
     """
@@ -392,9 +392,9 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
 
 #===============================================================================
-# OutputSliceHandleTests
+# HandleTests
 #===============================================================================
-class OutputSliceHandleTests(unittest.TestCase):
+class HandleTests(unittest.TestCase):
     """
     Unit tests for the operators.Handle class
     """
@@ -465,6 +465,50 @@ class OutputSliceHandleTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+
+#===============================================================================
+# CoordinateTests
+#===============================================================================
+class CoordinateTests(unittest.TestCase):
+    """
+    Unit tests for the operators.Coordinate class
+    """
+
+    def setUp(self):
+        self.data = np.array([1,2,3,4,5,6,7], dtype='double')
+
+    def test_init(self):
+        testname = 'Coordinate.__init__()'
+        C = acts.Coordinate('x', 'm', data=self.data)
+        actual = type(C)
+        expected = acts.Coordinate
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_units(self):
+        testname = 'Coordinate.units()'
+        C = acts.Coordinate('x', 'm', data=self.data)
+        actual = C.units
+        expected = Unit('m')
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_dimensions(self):
+        testname = 'Coordinate.dimensions()'
+        C = acts.Coordinate('x', 'm', data=self.data)
+        actual = C.dimensions
+        expected = ('x',)
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_call(self):
+        testname = 'Coordinate.__call__()'
+        C = acts.Coordinate('x', 'm', data=self.data)
+        actual = C()
+        expected = self.data
+        print_test_message(testname, actual, expected)
+        npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        
 
 #===============================================================================
 # Command-Line Action
