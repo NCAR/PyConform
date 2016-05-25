@@ -218,49 +218,6 @@ class Reader(Action):
 
 
 #===============================================================================
-# Coordinate
-#===============================================================================
-class Coordinate(Action):
-    """
-    Action that generates new coordinate/dimension data on calling
-    """
-    
-    def __init__(self, name, units, calendar=None, data=None):
-        """
-        Initializer
-        
-        Parameters:
-            name (str): A string name to associate with the coordinate
-            units (str): A string units assumed for the coordinate data
-        """
-        # Call base class initializer - sets self._name
-        super(Coordinate, self).__init__(name, name)
-
-        # Set the units
-        self._units = Unit(units, calendar=calendar)
-        
-        # Read/set the dimensions
-        self._dimensions = (name,)
-        
-        # Set the data to be returned
-        self._data = data
-
-    @Action.units.setter
-    def units(self, u):
-        pass # Prevent from changing units!
-    
-    @Action.dimensions.setter
-    def dimensions(self, d):
-        pass # Prevent from changing dimensions!
-
-    def __call__(self):
-        """
-        Make callable like a function
-        """
-        return self._data
-
-
-#===============================================================================
 # Evaluator
 #===============================================================================
 class Evaluator(Action):
