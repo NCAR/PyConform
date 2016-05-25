@@ -416,6 +416,7 @@ class OutputDataset(Dataset):
         """
         attributes = dsdict.get('attributes', OrderedDict())
         variables = OrderedDict()
+        dimensions = OrderedDict()
         invars = dsdict.get('variables', OrderedDict())
         for vname, vdict in invars.iteritems():
             kwargs = {}
@@ -439,6 +440,10 @@ class OutputDataset(Dataset):
                 kwargs['definition'] = vdict['definition']
             elif has_data:
                 kwargs['data'] = vdict['data']
+                dname = vdict['dimensions'][0]
+                dsize = len(vdict['data'])
+                dinfo = DimensionInfo(dname, dsize)
+                dimensions[dname] = dinfo
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
             if 'attributes' in vdict:
@@ -447,4 +452,5 @@ class OutputDataset(Dataset):
                 kwargs['filename'] = vdict['filename']
             variables[vname] = VariableInfo(vname, **kwargs)
         super(OutputDataset, self).__init__(name, variables=variables,
+                                            dimensions=dimensions,
                                             gattribs=attributes)
