@@ -213,9 +213,9 @@ class ActionTests(unittest.TestCase):
 
 
 #===============================================================================
-# InputSliceReaderTests
+# ReaderTests
 #===============================================================================
-class InputSliceReaderTests(unittest.TestCase):
+class ReaderTests(unittest.TestCase):
     """
     Unit tests for the operators.Reader class
     """
@@ -303,9 +303,9 @@ class InputSliceReaderTests(unittest.TestCase):
 
 
 #===============================================================================
-# FunctionEvaluatorTests
+# EvaluatorTests
 #===============================================================================
-class FunctionEvaluatorTests(unittest.TestCase):
+class EvaluatorTests(unittest.TestCase):
     """
     Unit tests for the operators.Evaluator class
     """
@@ -392,9 +392,9 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
 
 #===============================================================================
-# OutputSliceHandleTests
+# HandleTests
 #===============================================================================
-class OutputSliceHandleTests(unittest.TestCase):
+class HandleTests(unittest.TestCase):
     """
     Unit tests for the operators.Handle class
     """
