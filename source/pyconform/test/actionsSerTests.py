@@ -481,7 +481,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_init(self):
         testname = 'Coordinate.__init__()'
-        C = acts.Coordinate('x', self.data)
+        C = acts.Coordinate('X', 'x', self.data)
         actual = type(C)
         expected = acts.Coordinate
         print_test_message(testname, actual, expected)
@@ -489,7 +489,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_init_slicetuple(self):
         testname = 'Coordinate.__init__(slicetuple)'
-        C = acts.Coordinate('x', self.data, slicetuple=self.slice)
+        C = acts.Coordinate('X', 'x', self.data, slicetuple=self.slice)
         actual = type(C)
         expected = acts.Coordinate
         print_test_message(testname, actual, expected)
@@ -497,7 +497,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_init_units(self):
         testname = 'Coordinate.__init__(units)'
-        C = acts.Coordinate('x', self.data, units=self.units)
+        C = acts.Coordinate('X', 'x', self.data, units=self.units)
         actual = type(C)
         expected = acts.Coordinate
         print_test_message(testname, actual, expected)
@@ -505,7 +505,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_units(self):
         testname = 'Coordinate.units'
-        C = acts.Coordinate('x', self.data, units=self.units)
+        C = acts.Coordinate('X', 'x', self.data, units=self.units)
         actual = C.units
         expected = self.units
         print_test_message(testname, actual, expected)
@@ -513,7 +513,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_dimensions(self):
         testname = 'Coordinate.dimensions'
-        C = acts.Coordinate('x', self.data, units=self.units)
+        C = acts.Coordinate('X', 'x', self.data, units=self.units)
         actual = C.dimensions
         expected = ('x',)
         print_test_message(testname, actual, expected)
@@ -521,7 +521,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_call(self):
         testname = 'Coordinate.__call__()'
-        C = acts.Coordinate('x', self.data, units=self.units)
+        C = acts.Coordinate('X', 'x', self.data, units=self.units)
         actual = C()
         expected = self.data
         print_test_message(testname, actual, expected)
@@ -529,7 +529,7 @@ class CoordinateTests(unittest.TestCase):
 
     def test_call_slicetuple(self):
         testname = 'Coordinate.__call__()'
-        C = acts.Coordinate('x', self.data,
+        C = acts.Coordinate('X', 'x', self.data,
                             units=self.units, slicetuple=self.slice)
         actual = C()
         expected = self.data[self.slice]

@@ -225,12 +225,13 @@ class Coordinate(Action):
     Action that returns pre-defined coordinate data
     """
     
-    def __init__(self, variable, data, units=Unit(1), slicetuple=None):
+    def __init__(self, variable, dimension, data, units=Unit(1), slicetuple=None):
         """
         Initializer
         
         Parameters:
             variable (str): A string variable name for referencing
+            dimension (str); A dimension name corresponding to the coordinate
             data (array): A numpy array containing the coordinate data
             units (Unit): A cf_units.Unit object specifying the coordinate units
             slicetuple (SliceTuple): 
@@ -239,6 +240,11 @@ class Coordinate(Action):
         if not isinstance(variable, (str, unicode)):
             raise TypeError('Unrecognized variable name object of type '
                             '{!r}: {!r}'.format(type(variable), variable))
+
+        # Parse dimension name
+        if not isinstance(dimension, (str, unicode)):
+            raise TypeError('Unrecognized dimension name object of type '
+                            '{!r}: {!r}'.format(type(dimension), dimension))
 
         # Data should be an array
         if not isinstance(data, numpy.ndarray):
@@ -259,7 +265,7 @@ class Coordinate(Action):
         self._units = units
                 
         # Dimensions
-        self._dimensions = (variable,)
+        self._dimensions = (dimension,)
         
     @Action.units.setter
     def units(self, u):
