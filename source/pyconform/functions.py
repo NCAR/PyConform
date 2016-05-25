@@ -8,7 +8,6 @@ LICENSE: See the LICENSE.rst file for details
 from os import linesep
 from abc import ABCMeta, abstractmethod
 from cf_units import Unit
-from operator import pow, neg, add, sub, mul, truediv
 from numpy import sqrt, transpose
 
 
@@ -101,17 +100,17 @@ class NegationOperator(Operator):
     numargs = 1
 
     @staticmethod
-    def units(arg_unit):
-        uret = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
+    def units(unit):
+        uret = unit if isinstance(unit, Unit) else Unit(1)
         return uret, (None,)
 
     @staticmethod
-    def dimensions(arg_dims):
-        dret = arg_dims if isinstance(arg_dims, tuple) else ()
+    def dimensions(dims):
+        dret = dims if isinstance(dims, tuple) else ()
         return dret, (None,)
     
-    def __call__(self, *args):
-        return neg(*args)
+    def __call__(self, arg):
+        return -arg
     
 
 #===============================================================================
@@ -122,31 +121,33 @@ class AdditionOperator(Operator):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
-        if u[0] == u[1]:
-            return u[0], (None, None)
-        elif u[1].is_convertible(u[0]):
-            return u[0], (None, u[0])
+    def units(lunit, runit):
+        ul = lunit if isinstance(lunit, Unit) else Unit(1)
+        ur = runit if isinstance(runit, Unit) else Unit(1)
+        if ul == ur:
+            return ul, (None, None)
+        elif ur.is_convertible(ul):
+            return ul, (None, ul)
         else:
-            raise UnitsError(('Data with units {0[0]!s} and {0[1]!s} cannot be '
-                              'added or subtracted').format(u))
+            raise UnitsError(('Data with units {0!s} and {1!s} cannot be '
+                              'added or subtracted').format(ul, ur))
 
     @staticmethod
-    def dimensions(*arg_dims):
-        d = tuple(a if isinstance(a, tuple) else () for a in arg_dims)
-        if d[0] == ():
-            return d[1], (None, None)
-        elif d[0] == d[1] or d[1] == ():
-            return d[0], (None, None)
-        elif set(d[0]) == set(d[1]):
-            return d[0], (None, d[0])
+    def dimensions(ldims, rdims):
+        dl = ldims if isinstance(ldims, tuple) else ()
+        dr = rdims if isinstance(rdims, tuple) else ()
+        if dl == ():
+            return dr, (None, None)
+        elif dl == dr or dr == ():
+            return dl, (None, None)
+        elif set(dl) == set(dr):
+            return dl, (None, dl)
         else:
-            raise DimensionsError(('Data with dimensions {0[0]} and {0[1]} '
-                                   'cannot be added or subtracted').format(d))
+            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
+                                   'be added or subtracted').format(dl, dr))
     
-    def __call__(self, *args):
-        return add(*args)
+    def __call__(self, left, right):
+        return left + right
 
 #===============================================================================
 # SubtractionOperator
@@ -156,15 +157,15 @@ class SubtractionOperator(Operator):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        return AdditionOperator.units(*arg_units)
+    def units(lunit, runit):
+        return AdditionOperator.units(lunit, runit)
     
     @staticmethod
-    def dimensions(*arg_dims):
-        return AdditionOperator.dimensions(*arg_dims)
+    def dimensions(ldims, rdims):
+        return AdditionOperator.dimensions(ldims, rdims)
     
-    def __call__(self, *args):
-        return sub(*args)
+    def __call__(self, left, right):
+        return left - right
 
 #===============================================================================
 # PowerOperator
@@ -174,28 +175,28 @@ class PowerOperator(Operator):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        if not isinstance(arg_units[1], (int, float)):
+    def units(lunit, runit):
+        if not isinstance(runit, (int, float)):
             raise UnitsError('Exponent in power function must be a '
                              'unitless scalar')
         try:
-            upow = pow(*arg_units)
+            upow = lunit ** runit
         except:
             raise UnitsError(('Cannot exponentiate units to power '
-                              '{0}').format(arg_units[1]))
+                              '{0}').format(runit))
         uret = upow if isinstance(upow, Unit) else Unit(1)
         return uret, (None, None)
 
     @staticmethod
-    def dimensions(*arg_dims):
-        if not isinstance(arg_dims[1], (int, float)):
+    def dimensions(ldims, rdims):
+        if not isinstance(rdims, (int, float)):
             raise DimensionsError('Exponent in power function must be a '
                                   'dimensionless scalar')
-        dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else () 
+        dret = ldims if isinstance(ldims, tuple) else () 
         return dret, (None, None)
     
-    def __call__(self, *args):
-        return pow(*args)
+    def __call__(self, left, right):
+        return left ** right
 
 
 #===============================================================================
@@ -206,30 +207,32 @@ class MultiplicationOperator(Operator):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+    def units(lunit, runit):
+        ul = lunit if isinstance(lunit, Unit) else Unit(1)
+        ur = runit if isinstance(runit, Unit) else Unit(1)
         try:
-            uret = mul(*u)
+            uret = ul * ur
         except:
-            raise UnitsError(('Cannot multiply or divide units {0[0]} and '
-                              '{0[1]}').format(u))
+            raise UnitsError(('Cannot multiply or divide units {0} and '
+                              '{1}').format(ul, ur))
         return uret, (None, None)
 
     @staticmethod
-    def dimensions(*arg_dims):
-        d = tuple(a if isinstance(a, tuple) else () for a in arg_dims)
-        if d[0] == ():
-            return d[1], (None, None)
-        elif d[0] == d[1] or d[1] == ():
-            return d[0], (None, None)
-        elif set(d[0]) == set(d[1]):
-            return d[0], (None, d[0])
+    def dimensions(ldims, rdims):
+        dl = ldims if isinstance(ldims, tuple) else ()
+        dr = rdims if isinstance(rdims, tuple) else ()
+        if dl == ():
+            return dr, (None, None)
+        elif dl == dr or dr == ():
+            return dl, (None, None)
+        elif set(dl) == set(dr):
+            return dl, (None, dl)
         else:
-            raise DimensionsError(('Data with dimensions {0[0]} and {0[1]} '
-                                   'cannot be multiplied or divided').format(d))
+            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
+                                   'be multiplied or divided').format(dl, dr))
     
-    def __call__(self, *args):
-        return mul(*args)
+    def __call__(self, left, right):
+        return left * right
 
 
 #===============================================================================
@@ -240,21 +243,22 @@ class DivisionOperator(Operator):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        u = tuple(a if isinstance(a, Unit) else Unit(1) for a in arg_units)
+    def units(lunit, runit):
+        ul = lunit if isinstance(lunit, Unit) else Unit(1)
+        ur = runit if isinstance(runit, Unit) else Unit(1)
         try:
-            uret = truediv(*u)
+            uret = ul / ur
         except:
-            raise UnitsError(('Cannot multiply or divide units {0[0]} and '
-                              '{0[1]}').format(u))
+            raise UnitsError(('Cannot multiply or divide units {0} and '
+                              '{1}').format(ul, ur))
         return uret, (None, None)
 
     @staticmethod
-    def dimensions(*arg_dims):
-        return MultiplicationOperator.dimensions(*arg_dims)
+    def dimensions(ldims, rdims):
+        return MultiplicationOperator.dimensions(ldims, rdims)
     
-    def __call__(self, *args):
-        return truediv(*args)
+    def __call__(self, left, right):
+        return left / right
 
 
 #===============================================================================
@@ -334,8 +338,8 @@ class SquareRootFunction(Function):
     numargs = 1
 
     @staticmethod
-    def units(arg_unit):
-        u = arg_unit if isinstance(arg_unit, Unit) else Unit(1)
+    def units(unit):
+        u = unit if isinstance(unit, Unit) else Unit(1)
         try:
             uret = u.root(2)
         except:
@@ -343,8 +347,8 @@ class SquareRootFunction(Function):
         return uret, (None,)
 
     @staticmethod
-    def dimensions(arg_dims):
-        dret = arg_dims if isinstance(arg_dims, tuple) else ()
+    def dimensions(dims):
+        dret = dims if isinstance(dims, tuple) else ()
         return dret, (None,)
     
     def __call__(self, data):
@@ -358,24 +362,26 @@ class ConvertFunction(Function):
     numargs = 3
 
     @staticmethod
-    def units(*arg_units):
-        u = [a if isinstance(a, Unit) else Unit(1) for a in arg_units]
-        if u[0] != u[1]:
-            raise UnitsError(('Input units {0[0]} different from expected '
-                              'units {0[1]}').format(u))
-        if not u[1].is_convertible(u[2]):
+    def units(data_units, from_units, to_units):
+        ud = data_units if isinstance(data_units, Unit) else Unit(1)
+        uf = from_units if isinstance(from_units, Unit) else Unit(1)
+        ut = to_units if isinstance(to_units, Unit) else Unit(1)
+        if ud != uf:
+            raise UnitsError(('Input units {0} different from expected '
+                              'units {1}').format(ud, uf))
+        if not uf.is_convertible(ut):
             raise UnitsError(('Ill-formed convert function.  Cannot convert '
-                              'units {0[1]} to {0[2]}').format(u))
-        uret = u[2]
+                              'units {0} to {1}').format(uf, ut))
+        uret = ut
         return uret, (None, None, None)
 
     @staticmethod
-    def dimensions(*arg_dims):
-        dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
+    def dimensions(data_dims, from_units, to_units):
+        dret = data_dims if isinstance(data_dims, tuple) else ()
         return dret, (None, None, None)
     
-    def __call__(self, data, uFrom, uTo):
-        return uFrom.convert(data, uTo)
+    def __call__(self, data, from_units, to_units):
+        return from_units.convert(data, to_units)
 
 #===============================================================================
 # TransposeFunction
@@ -385,14 +391,13 @@ class TransposeFunction(Function):
     numargs = 2
 
     @staticmethod
-    def units(*arg_units):
-        uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
+    def units(data_units, order):
+        uret = data_units if isinstance(data_units, Unit) else Unit(1)
         return uret, (None, None)
 
     @staticmethod
-    def dimensions(*arg_dims):
-        d = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
-        order = arg_dims[1]
+    def dimensions(data_dims, order):
+        d = data_dims if isinstance(data_dims, tuple) else ()
         dret = tuple(d[i] for i in order)
         return dret, (None, None)
     
