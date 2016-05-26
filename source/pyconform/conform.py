@@ -88,16 +88,18 @@ def conform(inp, out):
 
         # Create the required dimensions
         tsdims = req_dims.union(set(tsinfo.dimensions))
-        for dname in tsdims:
-            name = agraph.dimension_map[dname]
-            if name in inp.dimensions:
-                dim = inp.dimensions[name]
-            elif name in out.dimensions:
-                dim = out.dimensions[name]
-            if dim.unlimited:
-                ncf.createDimension(dname)
+        for odim in tsdims:
+            if odim in agraph.dimension_map:
+                idim = agraph.dimension_map[odim]
+                dinfo = inp.dimensions[idim]
+            elif odim in out.dimensions:
+                dinfo = out.dimensions[odim]
             else:
-                ncf.createDimension(dname, dim.size)
+                raise RuntimeError('Cannot find dimension {0}'.format(odim))
+            if dinfo.unlimited:
+                ncf.createDimension(odim)
+            else:
+                ncf.createDimension(odim, dinfo.size)
         
         # Create the variables and write their attributes
         ncvars = {}

@@ -110,9 +110,16 @@ class ActionGraph(DiGraph):
     
     def handles(self):
         """
-        Return a dictionary of output variable handles in the graph
+        Return a list of all output variable handles in the graph
         """
         return [op for op in self.vertices if isinstance(op, Finalizer)]
+
+    def presets(self):
+        """
+        Return a list of preset output variable handles in the graph
+        """
+        return [op for op in self.vertices
+                if isinstance(op, Finalizer) and op.is_preset()]
 
 
 #===============================================================================
@@ -158,35 +165,53 @@ class GraphFiller(object):
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
 
-        # 
-        # Parse the output variable definitions
+        # Separate output variables into preset and defined
+        preset = {}
+        defined = {}
         for vname, vinfo in outds.variables.iteritems():
-
-            if vinfo.definition:
-                handle = Finalizer(vname)
-                obj = parse_definition(vinfo.definition)
-                vtx = self._add_to_graph_(graph, obj, outds)
-                graph.connect(vtx, handle)
-            elif vinfo.data:
-                obj = parse_definition(vinfo.definition)
-                handle = Finalizer(vname, data=vinfo.data)
-
+            if vinfo.data is not None:
+                preset[vname] = vinfo
+            elif vinfo.definition is not None:
+                defined[vname] = vinfo
+            else:
+                raise ValueError(('Output variable {0} does not have preset '
+                                  'data nor a definition').format(vname))
+                
+        # Parse output variables with preset data
+        for vname, vinfo in preset.iteritems():
+            vmin = vinfo.attributes.get('valid_min', None)
+            vmax = vinfo.attributes.get('valid_max', None)
+            vdata = array(vinfo.data, dtype=vinfo.datatype)
+            handle = Finalizer(vname, data=vdata, minimum=vmin, maximum=vmax)
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
+            graph.add(handle)
+        
+        # Parse the output variable with definitions
+        for vname, vinfo in defined.iteritems():
+            vmin = vinfo.attributes.get('valid_min', None)
+            vmax = vinfo.attributes.get('valid_max', None)
+            handle = Finalizer(vname, minimum=vmin, maximum=vmax)
+            handle.units = vinfo.cfunits()
+            handle.dimensions = vinfo.dimensions
+
+            obj = parse_definition(vinfo.definition)
+            vtx = self._add_to_graph_(graph, obj)
+            graph.connect(vtx, handle)
 
         # Check to make sure the graph is not cyclic
         if graph.is_cyclic():
             raise ValueError('Graph is cyclic.  Cannot continue.')
             
-    def _add_to_graph_(self, graph, obj, outds):
-        vtx = self._convert_obj_(obj, outds)
+    def _add_to_graph_(self, graph, obj):
+        vtx = self._convert_obj_(graph, obj)
         graph.add(vtx)
         if isinstance(obj.args, tuple):
             for arg in obj.args:
-                graph.connect(self._add_to_graph_(graph, arg, outds), vtx)
+                graph.connect(self._add_to_graph_(graph, arg), vtx)
         return vtx
 
-    def _convert_obj_(self, obj, outds):
+    def _convert_obj_(self, graph, obj):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._inputds.variables:
@@ -196,8 +221,13 @@ class GraphFiller(object):
                 else:
                     fname = self._infile_cycle.next()
                 return Reader(fname, vname, slicetuple=obj.args)
+
             else:
-                raise KeyError('Variable {0!r} not found'.format(vname))
+                preset_dict = dict((f.key, f) for f in graph.presets())
+                if vname in preset_dict:
+                    return preset_dict[vname]
+                else:
+                    raise KeyError('Variable {0!r} not found'.format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp, ParsedFunction)):
             name = obj.key
@@ -251,25 +281,31 @@ class GraphFiller(object):
             vtx.units = ret_unit
                         
         elif isinstance(vtx, Finalizer):
-            old_unit = to_units[0]
-            if vtx.units != old_unit:
-                if old_unit.is_convertible(vtx.units):
-                    cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
-                    cvtx.dimensions = vtx.dimensions
-
-                    graph.disconnect(nbrs[0], vtx)
-                    graph.connect(nbrs[0], cvtx)
-                    graph.connect(cvtx, vtx)
-                else:
-                    if old_unit.calendar != vtx.units.calendar:
-                        raise UnitsError(('Cannot convert {0} units to {1} '
-                                          'units.  Calendars must be '
-                                          'same.').format(nbrs[0], vtx))
+            if len(nbrs) == 0:
+                pass
+            elif len(nbrs) == 1:
+                old_unit = to_units[0]
+                if vtx.units != old_unit:
+                    if old_unit.is_convertible(vtx.units):
+                        cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
+                        cvtx.dimensions = vtx.dimensions
+    
+                        graph.disconnect(nbrs[0], vtx)
+                        graph.connect(nbrs[0], cvtx)
+                        graph.connect(cvtx, vtx)
                     else:
-                        raise UnitsError(('Cannot convert {0} units '
-                                          '{1!r} to {2} units '
-                                          '{3!r}').format(nbrs[0], old_unit,
-                                                          vtx, vtx.units))
+                        if old_unit.calendar != vtx.units.calendar:
+                            raise UnitsError(('Cannot convert {0} units to {1} '
+                                              'units.  Calendars must be '
+                                              'same.').format(nbrs[0], vtx))
+                        else:
+                            raise UnitsError(('Cannot convert {0} units '
+                                              '{1!r} to {2} units '
+                                              '{3!r}').format(nbrs[0], old_unit,
+                                                              vtx, vtx.units))
+            else:
+                raise ValueError(('Graph malformed.  Finalizer with more than '
+                                  'one input edge {0}').format(vtx))                
         
         else:
             if len(to_units) == 1:
@@ -308,7 +344,10 @@ class GraphFiller(object):
             GraphFiller._compute_dimensions_(graph, handle, dmap)
         
         for handle in handles:
-            nbr = graph.neighbors_to(handle)[0]
+            nbrs = graph.neighbors_to(handle)
+            if len(nbrs) == 0:
+                continue
+            nbr = nbrs[0]
             if not all(d in dmap for d in nbr.dimensions):
                 unmapped_dims = tuple(d for d in nbr.dimensions if d not in dmap)
                 raise DimensionsError(('Could not determine complete dimension '
@@ -354,21 +393,27 @@ class GraphFiller(object):
             vtx.dimensions = ret_dims
 
         if isinstance(vtx, Finalizer):
-            nbr = nbrs[0]
-            to_dim = to_dims[0]
-            if len(to_dim) != len(vtx.dimensions):
-                raise DimensionsError(('Action {0} with dimensions {1} '
-                                       'inconsistent with required output '
-                                       'variable {2} dimensions '
-                                       '{3}').format(nbr, to_dim, vtx,
-                                                     vtx.dimensions))
-            elif len(to_dim) == 1:
-                if to_dim[0] in dmap:
-                    raise DimensionsError(('Action {0} has dimension {1!r} '
-                                           'that has already been '
-                                           'mapped').format(nbr, to_dim[0]))
-                else:
-                    dmap[to_dim[0]] = vtx.dimensions[0]
+            if len(nbrs) == 0:
+                pass
+            elif len(nbrs) == 1:
+                nbr = nbrs[0]
+                to_dim = to_dims[0]
+                if len(to_dim) != len(vtx.dimensions):
+                    raise DimensionsError(('Action {0} with dimensions {1} '
+                                           'inconsistent with required output '
+                                           'variable {2} dimensions '
+                                           '{3}').format(nbr, to_dim, vtx,
+                                                         vtx.dimensions))
+                elif len(to_dim) == 1:
+                    if to_dim[0] in dmap:
+                        raise DimensionsError(('Action {0} has dimension {1!r} '
+                                               'that has already been '
+                                               'mapped').format(nbr, to_dim[0]))
+                    else:
+                        dmap[to_dim[0]] = vtx.dimensions[0]
+            else:
+                raise ValueError(('Graph malformed.  Finalizer with more than '
+                                  'one input edge {0}').format(vtx))
                 
         else:
             if len(to_dims) == 1:
