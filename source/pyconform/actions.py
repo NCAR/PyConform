@@ -309,7 +309,10 @@ class Finalizer(Action):
         if data is not None and not isinstance(data, numpy.ndarray):
             raise TypeError('Data set in Handler object must be an array')
         self._data = data
-        
+    
+    def is_preset(self):
+        return self._data is not None
+    
     @property
     def slicetuple(self):
         return self._slice.index
