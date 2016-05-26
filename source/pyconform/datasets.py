@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep
 from collections import OrderedDict
-from numpy import dtype
+from numpy import dtype, array
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
 
@@ -217,9 +217,9 @@ class Dataset(object):
                        'dict').format(self.name)
             raise TypeError(err_msg)
         for dinfo in dimensions.itervalues():
-            if not isinstance(dinfo, DimensionInfo):
+            if dinfo is not None and not isinstance(dinfo, DimensionInfo):
                 err_msg = ('Dataset {!r} dimensions must be DimensionInfo '
-                           'type').format(self.name)
+                           'type or None').format(self.name)
                 raise TypeError(err_msg)
         self._dimensions = dimensions
 
@@ -259,13 +259,13 @@ class Dataset(object):
             vdict = OrderedDict()
             vdict['datatype'] = vinfo.datatype
             vdict['dimensions'] = vinfo.dimensions
-            if vinfo.definition:
+            if vinfo.definition is not None:
                 vdict['definition'] = vinfo.definition
-            if vinfo.data:
+            if vinfo.data is not None:
                 vdict['data'] = vinfo.data
-            if vinfo.filename:
+            if vinfo.filename is not None:
                 vdict['filename'] = vinfo.filename
-            if vinfo.attributes:
+            if vinfo.attributes is not None:
                 vdict['attributes'] = vinfo.attributes
             dsdict['variables'][vinfo.name] = vdict
         return dsdict
@@ -416,16 +416,19 @@ class OutputDataset(Dataset):
         """
         attributes = dsdict.get('attributes', OrderedDict())
         variables = OrderedDict()
-        dimensions = OrderedDict()
         invars = dsdict.get('variables', OrderedDict())
         for vname, vdict in invars.iteritems():
             kwargs = {}
+            if 'attributes' in vdict:
+                kwargs['attributes'] = vdict['attributes']
             if 'dimensions' not in vdict:
                 err_msg = ('Dimensions are required for variable '
                            '{!r}').format(vname)
                 raise ValueError(err_msg)
             else:
                 kwargs['dimensions'] = vdict['dimensions']
+            if 'datatype' in vdict:
+                kwargs['datatype'] = vdict['datatype']
             has_defn = 'definition' in vdict
             has_data = 'data' in vdict
             if not has_data and not has_defn:
@@ -437,20 +440,29 @@ class OutputDataset(Dataset):
                            'output variable {!r}').format(vname)
                 raise ValueError(err_msg)
             elif has_defn:
-                kwargs['definition'] = vdict['definition']
+                kwargs['definition'] = str(vdict['definition'])
             elif has_data:
-                kwargs['data'] = tuple(vdict['data'])
-                dname = vdict['dimensions'][0]
-                dsize = len(vdict['data'])
-                dinfo = DimensionInfo(dname, dsize)
-                dimensions[dname] = dinfo
-            if 'datatype' in vdict:
-                kwargs['datatype'] = vdict['datatype']
-            if 'attributes' in vdict:
-                kwargs['attributes'] = vdict['attributes']
+                kwargs['data'] = array(vdict['data'], dtype=vdict['datatype'])
             if 'filename' in vdict:
                 kwargs['filename'] = vdict['filename']
             variables[vname] = VariableInfo(vname, **kwargs)
+        
+        dimensions = OrderedDict()
+        for vname, vinfo in variables.iteritems():
+            if vinfo.data is not None:
+                for dname, dsize in zip(vinfo.dimensions, vinfo.data.shape):
+                    if dname in dimensions:
+                        if dsize != dimensions[dname].size:
+                            raise ValueError(('Dimension {0!r} is inconsistently '
+                                              'defined in OutputDataset '
+                                              '{1!r}').format(dname, name))
+                    else:
+                        dimensions[dname] = DimensionInfo(dname, dsize)
+            else:
+                for dname in vinfo.dimensions:
+                    if dname not in dimensions:
+                        dimensions[dname] = None 
+                
         super(OutputDataset, self).__init__(name, variables=variables,
                                             dimensions=dimensions,
                                             gattribs=attributes)
