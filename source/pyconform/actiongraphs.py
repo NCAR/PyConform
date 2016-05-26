@@ -14,7 +14,7 @@ from pyconform.graphs import DiGraph
 from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
                                ParsedBinOp, parse_definition)
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.actions import Action, Reader, Coordinate, Evaluator, Handle
+from pyconform.actions import Action, Reader, Evaluator, Finalizer
 from pyconform.functions import (find_function, find_operator, find,
                                  UnitsError, DimensionsError)
 from itertools import cycle
@@ -112,7 +112,7 @@ class ActionGraph(DiGraph):
         """
         Return a dictionary of output variable handles in the graph
         """
-        return [op for op in self.vertices if isinstance(op, Handle)]
+        return [op for op in self.vertices if isinstance(op, Finalizer)]
 
 
 #===============================================================================
@@ -158,17 +158,21 @@ class GraphFiller(object):
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
 
+        # 
         # Parse the output variable definitions
         for vname, vinfo in outds.variables.iteritems():
+
             if vinfo.definition:
+                handle = Finalizer(vname)
                 obj = parse_definition(vinfo.definition)
+                vtx = self._add_to_graph_(graph, obj, outds)
+                graph.connect(vtx, handle)
             elif vinfo.data:
-                obj = parse_definition(vname)
-            vtx = self._add_to_graph_(graph, obj, outds)
-            handle = Handle(vname)
+                obj = parse_definition(vinfo.definition)
+                handle = Finalizer(vname, data=vinfo.data)
+
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
-            graph.connect(vtx, handle)
 
         # Check to make sure the graph is not cyclic
         if graph.is_cyclic():
@@ -192,16 +196,6 @@ class GraphFiller(object):
                 else:
                     fname = self._infile_cycle.next()
                 return Reader(fname, vname, slicetuple=obj.args)
-            elif vname in outds.variables:
-                var = outds.variables[vname]
-                if var.data:
-                    vdata = array(var.data, dtype=var.datatype)
-                    vdim = var.dimensions[0]
-                    return Coordinate(vname, vdim, vdata, units=var.cfunits(),
-                                      slicetuple=obj.args)
-                else:
-                    raise KeyError(('Cannot reference output variable {0!r} '
-                                    'without defined data').format(vname))
             else:
                 raise KeyError('Variable {0!r} not found'.format(vname))
 
@@ -256,7 +250,7 @@ class GraphFiller(object):
                         graph.connect(cvtx, vtx)
             vtx.units = ret_unit
                         
-        elif isinstance(vtx, Handle):
+        elif isinstance(vtx, Finalizer):
             old_unit = to_units[0]
             if vtx.units != old_unit:
                 if old_unit.is_convertible(vtx.units):
@@ -359,7 +353,7 @@ class GraphFiller(object):
                         graph.connect(tvtx, vtx)
             vtx.dimensions = ret_dims
 
-        if isinstance(vtx, Handle):
+        if isinstance(vtx, Finalizer):
             nbr = nbrs[0]
             to_dim = to_dims[0]
             if len(to_dim) != len(vtx.dimensions):

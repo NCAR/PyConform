@@ -392,11 +392,11 @@ class EvaluatorTests(unittest.TestCase):
 
 
 #===============================================================================
-# HandleTests
+# FinalizerTests
 #===============================================================================
-class HandleTests(unittest.TestCase):
+class FinalizerTests(unittest.TestCase):
     """
-    Unit tests for the operators.Handle class
+    Unit tests for the operators.Finalizer class
     """
     
     def setUp(self):
@@ -423,32 +423,32 @@ class HandleTests(unittest.TestCase):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'Handle.__init__()'
-        H = acts.Handle('x')
+        testname = 'Finalizer.__init__()'
+        H = acts.Finalizer('x')
         actual = type(H)
-        expected = acts.Handle
+        expected = acts.Finalizer
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_data(self):
-        testname = 'Handle.__init__(data)'
-        H = acts.Handle('x', data=self.data)
+        testname = 'Finalizer.__init__(data)'
+        H = acts.Finalizer('x', data=self.data)
         actual = type(H)
-        expected = acts.Handle
+        expected = acts.Finalizer
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_call_data(self):
-        testname = 'Handle.__call__(data)'
-        H = acts.Handle('x', data=self.data)
+        testname = 'Finalizer.__call__(data)'
+        H = acts.Finalizer('x', data=self.data)
         actual = H()
         expected = self.data
         print_test_message(testname, actual, expected)
         npt.assert_equal(actual, expected, '{} failed'.format(testname))
 
     def test_call_data_failure(self):
-        testname = 'Handle.__call__(data)'
-        H = acts.Handle('x', data=self.data)
+        testname = 'Finalizer.__call__(data)'
+        H = acts.Finalizer('x', data=self.data)
         indata = np.array([1,2,3,4,8,6,4], dtype=np.float64)
         actual = '???'
         expected = ValueError
@@ -457,8 +457,8 @@ class HandleTests(unittest.TestCase):
         
     def test_min_ok(self):
         indata = 1.0
-        testname = 'Handle({})'.format(indata)
-        H = acts.Handle('x', minimum=0.0)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', minimum=0.0)
         actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -466,8 +466,8 @@ class HandleTests(unittest.TestCase):
         
     def test_min_warn(self):
         indata = -1.0
-        testname = 'Handle({})'.format(indata)
-        H = acts.Handle('x', minimum=0.0)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', minimum=0.0)
         actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -475,8 +475,8 @@ class HandleTests(unittest.TestCase):
 
     def test_max_ok(self):
         indata = 1.0
-        testname = 'Handle({})'.format(indata)
-        H = acts.Handle('x', maximum=10.0)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', maximum=10.0)
         actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
@@ -484,8 +484,8 @@ class HandleTests(unittest.TestCase):
         
     def test_max_warn(self):
         indata = 11.0
-        testname = 'Handle({})'.format(indata)
-        H = acts.Handle('x', maximum=10.0)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', maximum=10.0)
         actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)

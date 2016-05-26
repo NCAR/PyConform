@@ -169,7 +169,7 @@ class ActionGraphTests(unittest.TestCase):
         u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.Handle('V')
+        vhandle = actions.Finalizer('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)
@@ -181,7 +181,7 @@ class ActionGraphTests(unittest.TestCase):
         u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.Handle('V')
+        vhandle = actions.Finalizer('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)

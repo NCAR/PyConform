@@ -273,9 +273,9 @@ class Evaluator(Action):
 
 
 #===============================================================================
-# Handle
+# Finalizer
 #===============================================================================
-class Handle(Action):
+class Finalizer(Action):
     """
     Action that acts as a "handle" for output data streams
     """
@@ -299,7 +299,7 @@ class Handle(Action):
         # Call base class initializer
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
-        super(Handle, self).__init__(variable, name)
+        super(Finalizer, self).__init__(variable, name)
 
         # Store min/max
         self._min = minimum
