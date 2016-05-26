@@ -416,6 +416,7 @@ class HandleTests(unittest.TestCase):
         dataset.variables[self.var][:] = self.vardata
         dataset.close()
         self.slice = (slice(0, 1), slice(1, 3))
+        self.data = np.array([1,2,3,4,5], dtype='float32')
         
     def tearDown(self):
         if exists(self.ncfile):
@@ -423,17 +424,42 @@ class HandleTests(unittest.TestCase):
 
     def test_init(self):
         testname = 'Handle.__init__()'
-        OSH = acts.Handle('x')
-        actual = type(OSH)
+        H = acts.Handle('x')
+        actual = type(H)
         expected = acts.Handle
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+    def test_init_data(self):
+        testname = 'Handle.__init__(data)'
+        H = acts.Handle('x', data=self.data)
+        actual = type(H)
+        expected = acts.Handle
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_call_data(self):
+        testname = 'Handle.__call__(data)'
+        H = acts.Handle('x', data=self.data)
+        actual = H()
+        expected = self.data
+        print_test_message(testname, actual, expected)
+        npt.assert_equal(actual, expected, '{} failed'.format(testname))
+
+    def test_call_data_failure(self):
+        testname = 'Handle.__call__(data)'
+        H = acts.Handle('x', data=self.data)
+        indata = np.array([1,2,3,4,8,6,4], dtype=np.float64)
+        actual = '???'
+        expected = ValueError
+        print_test_message(testname, actual, expected)
+        self.assertRaises(expected, H, indata)
+        
     def test_min_ok(self):
         indata = 1.0
         testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', minimum=0.0)
-        actual = OSH(indata)
+        H = acts.Handle('x', minimum=0.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -441,8 +467,8 @@ class HandleTests(unittest.TestCase):
     def test_min_warn(self):
         indata = -1.0
         testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', minimum=0.0)
-        actual = OSH(indata)
+        H = acts.Handle('x', minimum=0.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -450,8 +476,8 @@ class HandleTests(unittest.TestCase):
     def test_max_ok(self):
         indata = 1.0
         testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', maximum=10.0)
-        actual = OSH(indata)
+        H = acts.Handle('x', maximum=10.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -459,82 +485,11 @@ class HandleTests(unittest.TestCase):
     def test_max_warn(self):
         indata = 11.0
         testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', maximum=10.0)
-        actual = OSH(indata)
+        H = acts.Handle('x', maximum=10.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-
-#===============================================================================
-# CoordinateTests
-#===============================================================================
-class CoordinateTests(unittest.TestCase):
-    """
-    Unit tests for the operators.Coordinate class
-    """
-    
-    def setUp(self):
-        self.data = np.array([1,2,3,4,5], dtype='float32')
-        self.slice = (slice(2, 3),)
-        self.units = Unit('km')
-
-    def test_init(self):
-        testname = 'Coordinate.__init__()'
-        C = acts.Coordinate('X', 'x', self.data)
-        actual = type(C)
-        expected = acts.Coordinate
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_init_slicetuple(self):
-        testname = 'Coordinate.__init__(slicetuple)'
-        C = acts.Coordinate('X', 'x', self.data, slicetuple=self.slice)
-        actual = type(C)
-        expected = acts.Coordinate
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_init_units(self):
-        testname = 'Coordinate.__init__(units)'
-        C = acts.Coordinate('X', 'x', self.data, units=self.units)
-        actual = type(C)
-        expected = acts.Coordinate
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_units(self):
-        testname = 'Coordinate.units'
-        C = acts.Coordinate('X', 'x', self.data, units=self.units)
-        actual = C.units
-        expected = self.units
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_dimensions(self):
-        testname = 'Coordinate.dimensions'
-        C = acts.Coordinate('X', 'x', self.data, units=self.units)
-        actual = C.dimensions
-        expected = ('x',)
-        print_test_message(testname, actual, expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_call(self):
-        testname = 'Coordinate.__call__()'
-        C = acts.Coordinate('X', 'x', self.data, units=self.units)
-        actual = C()
-        expected = self.data
-        print_test_message(testname, actual, expected)
-        npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
-
-    def test_call_slicetuple(self):
-        testname = 'Coordinate.__call__()'
-        C = acts.Coordinate('X', 'x', self.data,
-                            units=self.units, slicetuple=self.slice)
-        actual = C()
-        expected = self.data[self.slice]
-        print_test_message(testname, actual, expected)
-        npt.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
 
 #===============================================================================
