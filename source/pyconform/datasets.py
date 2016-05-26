@@ -442,7 +442,7 @@ class OutputDataset(Dataset):
             elif has_defn:
                 kwargs['definition'] = str(vdict['definition'])
             elif has_data:
-                kwargs['data'] = array(vdict['data'], dtype=vdict['datatype'])
+                kwargs['data'] = list(vdict['data'])
             if 'filename' in vdict:
                 kwargs['filename'] = vdict['filename']
             variables[vname] = VariableInfo(vname, **kwargs)
@@ -450,7 +450,12 @@ class OutputDataset(Dataset):
         dimensions = OrderedDict()
         for vname, vinfo in variables.iteritems():
             if vinfo.data is not None:
-                for dname, dsize in zip(vinfo.dimensions, vinfo.data.shape):
+                try:
+                    dshape = array(vinfo.data).shape
+                except:
+                    raise ValueError(('Variable {0!r} has improperly shaped '
+                                      'data').format(vname))
+                for dname, dsize in zip(vinfo.dimensions, dshape):
                     if dname in dimensions:
                         if dsize != dimensions[dname].size:
                             raise ValueError(('Dimension {0!r} is inconsistently '
@@ -466,3 +471,4 @@ class OutputDataset(Dataset):
         super(OutputDataset, self).__init__(name, variables=variables,
                                             dimensions=dimensions,
                                             gattribs=attributes)
+        

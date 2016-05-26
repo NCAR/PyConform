@@ -11,10 +11,8 @@ from pyconform import datasets
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 from cf_units import Unit
-from copy import deepcopy
 
 import numpy as np
-import numpy.testing as npt
 import unittest
 
 
@@ -519,11 +517,6 @@ class DatasetTests(unittest.TestCase):
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
         
-        self.dsdict_out = deepcopy(self.dsdict)
-        for vdict in self.dsdict_out['variables'].itervalues():
-            if 'data' in vdict:
-                vdict['data'] = np.array(vdict['data'], dtype=vdict['datatype'])
-
     def tearDown(self):
         self._clear_()
         
@@ -562,10 +555,10 @@ class DatasetTests(unittest.TestCase):
     def test_dataset_get_dict_from_output(self):
         outds = datasets.OutputDataset('myoutds', self.dsdict)
         actual = outds.get_dict()
-        expected = self.dsdict_out
+        expected = self.dsdict
         print_test_message('OutputDataset.get_dict()',
                            actual=actual, expected=expected)
-        npt.assert_equal(actual, expected,
+        self.assertEqual(actual, expected,
                          'OutputDataset.get_dict() returns wrong data')
         
     def test_dataset_get_dict_from_input(self):
