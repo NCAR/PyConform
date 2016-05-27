@@ -212,7 +212,7 @@ class ConformTests(unittest.TestCase):
                 remove(fname)
 
     def test_setup(self):
-        with open('setup.spec', 'w') as fp:
+        with open('conform.spec', 'w') as fp:
             json.dump(self.outds.get_dict(), fp, indent=4)
         actual = conform.setup(self.inpds, self.outds)
         expected = None
@@ -222,7 +222,7 @@ class ConformTests(unittest.TestCase):
         #                 'setup() incorrect')
 
     def test_run(self):
-        with open('setup.spec', 'w') as fp:
+        with open('conform.spec', 'w') as fp:
             json.dump(self.outds.get_dict(), fp, indent=4)
         agraph = conform.setup(self.inpds, self.outds)
         actual = conform.run(self.inpds, self.outds, agraph)
