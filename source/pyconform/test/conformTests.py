@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep, remove
 from os.path import exists
-from pyconform import setup, datasets
+from pyconform import conform, datasets
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 
@@ -211,15 +211,26 @@ class ConformTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
 
-    def test_conform(self):
+    def test_setup(self):
         with open('setup.spec', 'w') as fp:
             json.dump(self.outds.get_dict(), fp, indent=4)
-        actual = setup.setup(self.inpds, self.outds)
+        actual = conform.setup(self.inpds, self.outds)
         expected = None
         print_test_message('setup()',
                            actual=actual, expected=expected)
+        #self.assertEqual(actual, expected,
+        #                 'setup() incorrect')
+
+    def test_run(self):
+        with open('setup.spec', 'w') as fp:
+            json.dump(self.outds.get_dict(), fp, indent=4)
+        agraph = conform.setup(self.inpds, self.outds)
+        actual = conform.run(self.inpds, self.outds, agraph)
+        expected = None
+        print_test_message('run()',
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'setup() incorrect')
+                         'run() incorrect')
 
 
 #===============================================================================

@@ -33,15 +33,28 @@ def setup(inp, out):
     # Compute the operation graph
     agraph = ActionGraph()
     
-    # Fill the operation graph
+    # Create a Graph Filler object to fill the graph
     filler = GraphFiller(inp)
-    filler.from_definitions(agraph, out)
-    filler.match_dimensions(agraph)
-    filler.match_units(agraph)
 
-    str_graph = str(agraph).replace(linesep, '{0}        '.format(linesep))
-    print 'GRAPH:  {0}'.format(str_graph)
+    # Fill the Graph with initial definitions
+    filler.from_definitions(agraph, out)
+    print 'INITIAL GRAPH CONSTRUCTION:'
+    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
+    print '    {0}'.format(str_graph)
     
+    # Attempt to match dimensions in the graph
+    filler.match_dimensions(agraph)
+    print 'GRAPH AFTER DIMENSION MATCHING:'
+    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
+    print '    {0}'.format(str_graph)
+
+    # Attempt to match units in the graph
+    filler.match_units(agraph)
+    print 'GRAPH AFTER UNITS MATCHING:'
+    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
+    print '    {0}'.format(str_graph)
+
+    # Print out the mapped dimensions
     print 'DIMENSIONS:'
     for out_dim, inp_dim in agraph.dimension_map.iteritems():
         print '    {0} --> {1}'.format(inp_dim, out_dim)
