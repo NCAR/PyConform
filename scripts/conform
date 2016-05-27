@@ -17,7 +17,7 @@ from collections import OrderedDict
 from argparse import ArgumentParser
 
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.conform import conform
+from pyconform.conform import setup, run
 
 
 #==============================================================================
@@ -69,8 +69,11 @@ def main(argv=None):
     inpds = InputDataset(filenames=infiles)
     outds = OutputDataset(dsdict=dsdict)
 
-    # Run the PyConform main method
-    conform(inpds, outds)
+    # Setup the PyConform problem
+    agraph = setup(inpds, outds)
+    
+    # Run PyConform
+    run(inpds, outds, agraph)
 
 #==============================================================================
 # Command-line Operation

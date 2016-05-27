@@ -15,11 +15,11 @@ from os import linesep
 
 
 #===============================================================================
-# conform
+# setup
 #===============================================================================
-def conform(inp, out):
+def setup(inp, out):
     """
-    Perform the conform operation
+    Setup the conform operation
 
     Parameters:
         inp (InputDataset): The input Dataset
@@ -29,23 +29,7 @@ def conform(inp, out):
         raise TypeError('Input dataset must be of InputDataset type')
     if not isinstance(out, OutputDataset):
         raise TypeError('Output dataset must be of OutputDataset type')
-    
-    # MPI rank and size
-    mpi_rank = MPI.COMM_WORLD.Get_rank()
-    mpi_size = MPI.COMM_WORLD.Get_size()
-    
-    # Get time-series names and metadata names
-    tser_vars = [vname for vname, vinfo in out.variables.iteritems()
-                if vinfo.filename is not None]
-    meta_vars = [vname for vname in out.variables if vname not in tser_vars]
 
-    # Get the set of necessary dimensions for the meta_vars
-    req_dims = set(d for mvar in meta_vars
-                   for d in out.variables[mvar].dimensions)
-    
-    # Get the local list of tseries variable names
-    loc_vars = tser_vars[mpi_rank::mpi_size]
-    
     # Compute the operation graph
     agraph = ActionGraph()
     
@@ -62,6 +46,38 @@ def conform(inp, out):
     for out_dim, inp_dim in agraph.dimension_map.iteritems():
         print '    {0} --> {1}'.format(inp_dim, out_dim)
     print
+    
+    return agraph
+
+
+#===============================================================================
+# run
+#===============================================================================
+def run(inp, out, agraph):
+    """
+    Run the conform operation
+
+    Parameters:
+        inp (InputDataset): The input Dataset
+        out (OutputDataset): The output Dataset
+        agraph (ActionGraph): The action graph needed to get the data
+    """
+
+    # MPI rank and size
+    mpi_rank = MPI.COMM_WORLD.Get_rank()
+    mpi_size = MPI.COMM_WORLD.Get_size()
+    
+    # Get time-series names and metadata names
+    tser_vars = [vname for vname, vinfo in out.variables.iteritems()
+                if vinfo.filename is not None]
+    meta_vars = [vname for vname in out.variables if vname not in tser_vars]
+
+    # Get the set of necessary dimensions for the meta_vars
+    req_dims = set(d for mvar in meta_vars
+                   for d in out.variables[mvar].dimensions)
+    
+    # Get the local list of tseries variable names
+    loc_vars = tser_vars[mpi_rank::mpi_size]
     
     # Fill a map of variable name to graph handle
     # CURRENT: handle.key maps to output variable name
