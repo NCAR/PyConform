@@ -13,6 +13,7 @@ from netCDF4 import Dataset as NCDataset
 from cf_units import Unit
 
 import numpy as np
+import numpy.testing as npt
 import unittest
 
 
@@ -558,7 +559,7 @@ class DatasetTests(unittest.TestCase):
         expected = self.dsdict
         print_test_message('OutputDataset.get_dict()',
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
+        npt.assert_equal(actual, expected,
                          'OutputDataset.get_dict() returns wrong data')
         
     def test_dataset_get_dict_from_input(self):
