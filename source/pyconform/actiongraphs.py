@@ -232,7 +232,7 @@ class GraphFiller(object):
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp, ParsedFunction)):
             name = obj.key
             nargs = len(obj.args)
-            func = find_operator(name, numargs=nargs)
+            func = find(name, numargs=nargs)
             args = [o if isinstance(o, (int, float)) else None
                     for o in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
@@ -405,10 +405,11 @@ class GraphFiller(object):
                                            '{3}').format(nbr, to_dim, vtx,
                                                          vtx.dimensions))
                 elif len(to_dim) == 1:
-                    if to_dim[0] in dmap:
+                    if to_dim[0] in dmap and dmap[to_dim[0]] != vtx.dimensions[0]:
                         raise DimensionsError(('Action {0} has dimension {1!r} '
-                                               'that has already been '
-                                               'mapped').format(nbr, to_dim[0]))
+                                               'that has already been mapped to '
+                                               '{2!r}').format(nbr, to_dim[0],
+                                                               vtx.dimensions[0]))
                     else:
                         dmap[to_dim[0]] = vtx.dimensions[0]
             else:
