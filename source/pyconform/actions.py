@@ -187,7 +187,11 @@ class Reader(Action):
             calendar = ncfile.variables[variable].getncattr('calendar')
         else:
             calendar = None
-        self._units = Unit(units, calendar=calendar)
+        try:
+            unit_obj = Unit(units, calendar=calendar)
+        except:
+            unit_obj = Unit(1)
+        self._units = unit_obj
         
         # Read/set the dimensions
         self._dimensions = ncfile.variables[variable].dimensions
