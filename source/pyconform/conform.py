@@ -31,13 +31,13 @@ def setup(inp, out):
 
     # Compute the operation graph
     agraph = ActionGraph()
-    
+
     # Create a Graph Filler object to fill the graph
     filler = GraphFiller(inp)
 
     # Fill the Graph with initial definitions
     filler.from_definitions(agraph, out)
-    
+
     # Attempt to match dimensions in the graph
     filler.match_dimensions(agraph)
 
@@ -63,24 +63,24 @@ def run(inp, out, agraph):
     # MPI rank and size
     mpi_rank = MPI.COMM_WORLD.Get_rank()
     mpi_size = MPI.COMM_WORLD.Get_size()
-    
+
     # Get time-series names and metadata names
     tser_vars = [vname for vname, vinfo in out.variables.iteritems()
                 if vinfo.filename is not None]
     meta_vars = [vname for vname in out.variables if vname not in tser_vars]
-    
+
     # Get the set of necessary dimensions for the meta_vars
     req_dims = set(d for mvar in meta_vars
                    for d in out.variables[mvar].dimensions)
-    
+
     # Get the local list of tseries variable names
     loc_vars = tser_vars[mpi_rank::mpi_size]
-    
+
     # Fill a map of variable name to graph handle
     # CURRENT: handle.key maps to output variable name
     # FUTURE: handle.name (Key+Slice) should map to output identifier
     handles = {}
-    for handle in agraph.handles():        
+    for handle in agraph.handles():
         if handle.key in handles:
             raise KeyError(('Doubly-mapped handle key in ActionGraph: '
                             '{0!r}').format(handle.key))
@@ -89,15 +89,15 @@ def run(inp, out, agraph):
 
     # Write each local time-series file
     for tsvar in loc_vars:
-        print ('[{0}/{1}] Starting to writing output variable: '
+        print ('[{0}/{1}] Starting to write output variable: '
                '{2}').format(mpi_rank, mpi_size, tsvar)
-        
+
         # Get the time-series variable info object
         tsinfo = out.variables[tsvar]
-        
+
         # Create the output file
         ncf = NCDataset(tsinfo.filename, 'w')
-        
+
         # Write the file attributes
         ncf.setncatts(out.attributes)
 
@@ -115,7 +115,7 @@ def run(inp, out, agraph):
                 ncf.createDimension(odim)
             else:
                 ncf.createDimension(odim, dinfo.size)
-        
+
         # Create the variables and write their attributes
         ncvars = {}
         for mvar in meta_vars:
@@ -129,12 +129,12 @@ def run(inp, out, agraph):
         for aname, avalue in tsinfo.attributes.iteritems():
             ncvar.setncattr(aname, avalue)
         ncvars[tsvar] = ncvar
-        
+
         # Now perform the operation graphs and write data to variables
         for vname, vobj in ncvars.iteritems():
             groot = handles[vname]
             vobj[:] = agraph(groot)
-        
+
         ncf.close()
 
         print ('[{0}/{1}] Finished writing output variable: '
