@@ -282,21 +282,22 @@ class GraphFiller(object):
             if len(nbrs) == 0:
                 pass
             elif len(nbrs) == 1:
+                nbr = nbrs[0]
                 old_unit = to_units[0]
                 if vtx.units != old_unit:
                     if old_unit.is_convertible(vtx.units):
                         cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
                         cvtx.dimensions = vtx.dimensions
-                        graph.insert(nbrs[0], cvtx, vtx)
+                        graph.insert(nbr, cvtx, vtx)
                     else:
                         if old_unit.calendar != vtx.units.calendar:
                             raise UnitsError(('Cannot convert {0} units to {1} '
                                               'units.  Calendars must be '
-                                              'same.').format(nbrs[0], vtx))
+                                              'same.').format(nbr, vtx))
                         else:
                             raise UnitsError(('Cannot convert {0} units '
                                               '{1!r} to {2} units '
-                                              '{3!r}').format(nbrs[0], old_unit,
+                                              '{3!r}').format(nbr, old_unit,
                                                               vtx, vtx.units))
             else:
                 raise ValueError(('Graph malformed.  Finalizer with more than '

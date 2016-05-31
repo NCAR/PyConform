@@ -269,11 +269,12 @@ class DiGraph(object):
         if start not in self._forward_map:
             return
         if stop in self._forward_map[start]:
-            idx = self._forward_map[start].index(stop)
-            self._forward_map[start][idx] = vertex
-            idx = self._reverse_map[stop].index(start)
-            self._reverse_map[stop][idx] = vertex
-            self.connect(vertex, stop)
+            fidx = self._forward_map[start].index(stop)
+            self._forward_map[start][fidx] = vertex
+            self._forward_map[vertex].append(stop)
+            ridx = self._reverse_map[stop].index(start)
+            self._reverse_map[stop][ridx] = vertex
+            self._reverse_map[vertex].append(start)
 
     def neighbors_from(self, vertex):
         """

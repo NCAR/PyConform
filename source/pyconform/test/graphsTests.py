@@ -263,13 +263,21 @@ class GraphTests(unittest.TestCase):
         G.connect(1, 2)
         G.connect(1, 3)
         G.connect(1, 4)
+        G.connect(3, 5)
+        G.connect(3, 6)
+        G.connect(3, 7)
         print G
         print
-        G.insert(1, 5, 3)
+        G.insert(1, 8, 3)
         print G
         print
         actual = G.neighbors_from(1)
-        expected = [2, 5, 4]
+        expected = [2, 8, 4]
+        print_test_message(testname, actual, expected)
+        self.assertItemsEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+        actual = G.neighbors_to(3)
+        expected = [8]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
