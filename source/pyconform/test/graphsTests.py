@@ -43,9 +43,9 @@ class GraphTests(unittest.TestCase):
     def test_equal(self):
         testname = 'DiGraph == DiGraph'
         G = graphs.DiGraph()
-        G.connect(1,2)
+        G.connect(1, 2)
         H = graphs.DiGraph()
-        H.connect(1,2)
+        H.connect(1, 2)
         actual = G == H
         expected = True
         print_test_message(testname, actual, expected)
@@ -55,9 +55,9 @@ class GraphTests(unittest.TestCase):
     def test_unequal(self):
         testname = 'DiGraph != DiGraph'
         G = graphs.DiGraph()
-        G.connect(1,2)
+        G.connect(1, 2)
         H = graphs.DiGraph()
-        H.connect(2,1)
+        H.connect(2, 1)
         actual = G != H
         expected = True
         print_test_message(testname, actual, expected)
@@ -107,9 +107,9 @@ class GraphTests(unittest.TestCase):
     def test_str(self):
         G = graphs.DiGraph()
         G.add(1)
-        G.connect(2,3)
-        G.connect(3,4)
-        G.connect(2,5)
+        G.connect(2, 3)
+        G.connect(3, 4)
+        G.connect(2, 5)
         print G
 
     def test_clear(self):
@@ -143,7 +143,7 @@ class GraphTests(unittest.TestCase):
                               '{} returned unexpected result'.format(testname))
 
     def test_edges(self):
-        indata = (1,'a')
+        indata = (1, 'a')
         testname = 'DiGraph.edges()'
         G = graphs.DiGraph()
         G.connect(*indata)
@@ -186,11 +186,11 @@ class GraphTests(unittest.TestCase):
 
     def test_update(self):
         G = graphs.DiGraph()
-        G.connect(1,2)
-        G.connect(1,3)
+        G.connect(1, 2)
+        G.connect(1, 3)
         H = graphs.DiGraph()
-        H.connect(1,4)
-        H.connect(2,5)
+        H.connect(1, 4)
+        H.connect(2, 5)
         I = deepcopy(G)
         I.update(H)
         actual = I.vertices
@@ -210,11 +210,11 @@ class GraphTests(unittest.TestCase):
 
     def test_union(self):
         G = graphs.DiGraph()
-        G.connect(1,2)
-        G.connect(1,3)
+        G.connect(1, 2)
+        G.connect(1, 3)
         H = graphs.DiGraph()
-        H.connect(1,4)
-        H.connect(2,5)
+        H.connect(1, 4)
+        H.connect(2, 5)
         I = G.union(H)
         actual = I.vertices
         expected = [v for v in G.vertices]
@@ -230,9 +230,9 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
-        
+
     def test_connect(self):
-        indata = (1,'a')
+        indata = (1, 'a')
         testname = 'DiGraph.connect({}, {})'.format(*indata)
         G = graphs.DiGraph()
         G.add(indata[0])
@@ -245,14 +245,27 @@ class GraphTests(unittest.TestCase):
                               '{} returned unexpected result'.format(testname))
 
     def test_disconnect(self):
-        indata = (1,'a')
+        indata = (1, 'a')
         testname = 'DiGraph.disconnect({}, {})'.format(*indata)
         G = graphs.DiGraph()
         G.connect(*indata)
-        G.connect(3,5)
+        G.connect(3, 5)
         G.disconnect(*indata)
         actual = G.edges
-        expected = {(3,5)}
+        expected = {(3, 5)}
+        print_test_message(testname, actual, expected)
+        self.assertItemsEqual(actual, expected,
+                              '{} returned unexpected result'.format(testname))
+
+    def test_insert(self):
+        testname = 'DiGraph.insert()'
+        G = graphs.DiGraph()
+        G.connect(1, 2)
+        G.connect(1, 3)
+        G.connect(1, 4)
+        G.insert(1, 5, 3)
+        actual = G.neighbors_from(1)
+        expected = [2, 5, 4]
         print_test_message(testname, actual, expected)
         self.assertItemsEqual(actual, expected,
                               '{} returned unexpected result'.format(testname))
@@ -306,7 +319,7 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertSetEqual(actual, expected,
                             '{} returned unexpected result'.format(testname))
-                
+
     def test_bfs(self):
         indata = 1
         testname = 'DiGraph.iter_bfs({})'.format(indata)
@@ -318,7 +331,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3, 5)
         G.connect(4, 5)
         actual = [v for v in G.iter_bfs(indata)]
-        expected = ([1,2,3,4,5], [1,2,4,3,5])
+        expected = ([1, 2, 3, 4, 5], [1, 2, 4, 3, 5])
         print_test_message(testname, actual, expected)
         self.assertIn(actual, expected,
                       '{} returned unexpected result'.format(testname))
@@ -334,7 +347,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3, 5)
         G.connect(4, 5)
         actual = [v for v in G.iter_bfs(indata, reverse=True)]
-        expected = ([5,3,4,2,1], [5,4,3,2,1])
+        expected = ([5, 3, 4, 2, 1], [5, 4, 3, 2, 1])
         print_test_message(testname, actual, expected)
         self.assertIn(actual, expected,
                       '{} returned unexpected result'.format(testname))
@@ -350,7 +363,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3, 5)
         G.connect(4, 5)
         actual = [v for v in G.iter_dfs(indata)]
-        expected = ([1,2,3,5,4], [1,2,4,5,3])
+        expected = ([1, 2, 3, 5, 4], [1, 2, 4, 5, 3])
         print_test_message(testname, actual, expected)
         self.assertIn(actual, expected,
                       '{} returned unexpected result'.format(testname))
@@ -366,7 +379,7 @@ class GraphTests(unittest.TestCase):
         G.connect(3, 5)
         G.connect(4, 5)
         actual = [v for v in G.iter_dfs(indata, reverse=True)]
-        expected = ([5,3,2,1,4], [5,4,2,1,3])
+        expected = ([5, 3, 2, 1, 4], [5, 4, 2, 1, 3])
         print_test_message(testname, actual, expected)
         self.assertIn(actual, expected,
                       '{} returned unexpected result'.format(testname))
@@ -381,12 +394,12 @@ class GraphTests(unittest.TestCase):
         G.connect(3, 5)
         G.connect(4, 5)
         actual = G.toposort()
-        expected = ([0,1,2,3,4,5],[1,2,3,4,5,0],
-                    [0,1,2,4,3,5],[1,2,4,3,5,0])
+        expected = ([0, 1, 2, 3, 4, 5], [1, 2, 3, 4, 5, 0],
+                    [0, 1, 2, 4, 3, 5], [1, 2, 4, 3, 5, 0])
         print_test_message(testname, actual, expected)
         self.assertIn(actual, expected,
                       '{} returned unexpected result'.format(testname))
- 
+
     def test_toposort_cyclic(self):
         testname = 'DiGraph.toposort(cyclic)'
         G = graphs.DiGraph()
@@ -417,7 +430,7 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
- 
+
     def test_is_cyclic(self):
         testname = 'DiGraph.is_cyclic(cyclic)'
         G = graphs.DiGraph()
@@ -433,23 +446,23 @@ class GraphTests(unittest.TestCase):
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
                          '{} returned unexpected result'.format(testname))
-        
+
     def test_components(self):
         testname = 'DiGraph.components()'
         G = graphs.DiGraph()
-        G.connect(1,2)
-        G.connect(1,3)
+        G.connect(1, 2)
+        G.connect(1, 3)
         H = graphs.DiGraph()
         H.connect(4, 5)
         H.connect(5, 6)
         I = G.union(H)
         actual = I.components()
-        expected = [G,H]
+        expected = [G, H]
         print_test_message(testname, actual, expected)
         for g in actual:
-            self.assertTrue(g==G or g==H, 
+            self.assertTrue(g == G or g == H,
                             '{} returned unexpected result'.format(testname))
-    
+
     def test_commutative_call_graph(self):
         testname = 'DiGraph Commutative Call-Graph Evaluation'
         G = graphs.DiGraph()
@@ -459,13 +472,13 @@ class GraphTests(unittest.TestCase):
         G.add(f2)
         G.add(op.add)
         G.connect(f1, op.add)
-        G.connect(f2, op.add) # 1 + 2 = 3
+        G.connect(f2, op.add)  # 1 + 2 = 3
         G.add(op.mul)
         G.connect(op.add, op.mul)
-        G.connect(f2, op.mul) # 3 * 2 = 6
+        G.connect(f2, op.mul)  # 3 * 2 = 6
         def evaluate_G(v):
             return v(*map(evaluate_G, G.neighbors_to(v)))
-        actual = evaluate_G(op.mul)        
+        actual = evaluate_G(op.mul)
         expected = 6
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -480,13 +493,13 @@ class GraphTests(unittest.TestCase):
         G.add(f2)
         G.add(op.div)
         G.connect(f6, op.div)
-        G.connect(f2, op.div) # 6 / 2 = 3
+        G.connect(f2, op.div)  # 6 / 2 = 3
         G.add(op.sub)
         G.connect(op.div, op.sub)
-        G.connect(f2, op.sub) # 3 - 2 = 1
+        G.connect(f2, op.sub)  # 3 - 2 = 1
         def evaluate_G(v):
             return v(*map(evaluate_G, G.neighbors_to(v)))
-        actual = evaluate_G(op.sub)        
+        actual = evaluate_G(op.sub)
         expected = 1
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -496,13 +509,13 @@ class GraphTests(unittest.TestCase):
         testname = 'DiGraph Incremented Call-Graph Evaluation'
         G = graphs.DiGraph()
         f1 = lambda: 1
-        finc = lambda x: x+1
-        G.connect((0, f1), (1, finc)) # 1 + 1 = 2
-        G.connect((1, finc), (2, finc)) # 2 + 1 = 3
-        G.connect((2, finc), (3, finc)) # 3 + 1 = 4
+        finc = lambda x: x + 1
+        G.connect((0, f1), (1, finc))  # 1 + 1 = 2
+        G.connect((1, finc), (2, finc))  # 2 + 1 = 3
+        G.connect((2, finc), (3, finc))  # 3 + 1 = 4
         def evaluate_G(v):
             return v[1](*map(evaluate_G, G.neighbors_to(v)))
-        actual = evaluate_G((3, finc))        
+        actual = evaluate_G((3, finc))
         expected = 4
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected,
@@ -513,5 +526,5 @@ class GraphTests(unittest.TestCase):
 # Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
