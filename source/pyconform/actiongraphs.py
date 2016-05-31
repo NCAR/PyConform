@@ -38,9 +38,9 @@ class ActionGraph(DiGraph):
         Initialize
         """
         super(ActionGraph, self).__init__()
-        
+
         self._dim_map = {}
-    
+
     @property
     def dimension_map(self):
         return self._dim_map
@@ -55,7 +55,7 @@ class ActionGraph(DiGraph):
             nodes = self._actions_by_depth_(h)
             houtput = []
             for i, u in nodes:
-                indent = '    '*(i-1)
+                indent = '    ' * (i - 1)
                 if i > 0:
                     houtput.append('{0}|'.format(indent))
                     houtput.append('{0}+-- {1!s}'.format(indent, u))
@@ -66,14 +66,14 @@ class ActionGraph(DiGraph):
                     k = i - 1
                     while k > 0:
                         if houtput[k][j] == ' ':
-                            houtput[k] = houtput[k][:j] + '|' + houtput[k][j+1:]
+                            houtput[k] = houtput[k][:j] + '|' + houtput[k][j + 1:]
                             k = k - 1
                         else:
                             k = 0
             output.extend(houtput)
             output.append('')
         return linesep.join(output)
-    
+
     def _actions_by_depth_(self, v, depth=0, visited=None):
         if visited is None:
             visited = set()
@@ -81,10 +81,10 @@ class ActionGraph(DiGraph):
         nodes = [(depth, v)]
         for n in self.neighbors_to(v):
             if n not in visited:
-                nodes.extend(self._actions_by_depth_(n, depth=depth+1,
+                nodes.extend(self._actions_by_depth_(n, depth=depth + 1,
                                                      visited=visited))
         return nodes
-    
+
     def add(self, vertex):
         """
         Add a vertex to the graph
@@ -107,7 +107,7 @@ class ActionGraph(DiGraph):
         if root not in self:
             raise KeyError('Action {!r} not in ActionGraph'.format(root))
         return root(*map(self.__call__, self.neighbors_to(root)))
-    
+
     def handles(self):
         """
         Return a list of all output variable handles in the graph
@@ -129,7 +129,7 @@ class GraphFiller(object):
     """
     Object that fills an ActionGraph
     """
-    
+
     def __init__(self, inp, cyc=True):
         """
         Initializer
@@ -160,7 +160,7 @@ class GraphFiller(object):
         # Action Graph
         if not isinstance(graph, ActionGraph):
             raise TypeError('Graph must be an ActionGraph object')
-            
+
         # Output dataset
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
@@ -176,7 +176,7 @@ class GraphFiller(object):
             else:
                 raise ValueError(('Output variable {0} does not have preset '
                                   'data nor a definition').format(vname))
-                
+
         # Parse output variables with preset data
         for vname, vinfo in preset.iteritems():
             vmin = vinfo.attributes.get('valid_min', None)
@@ -186,7 +186,7 @@ class GraphFiller(object):
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
             graph.add(handle)
-        
+
         # Parse the output variable with definitions
         for vname, vinfo in defined.iteritems():
             vmin = vinfo.attributes.get('valid_min', None)
@@ -202,7 +202,7 @@ class GraphFiller(object):
         # Check to make sure the graph is not cyclic
         if graph.is_cyclic():
             raise ValueError('Graph is cyclic.  Cannot continue.')
-            
+
     def _add_to_graph_(self, graph, obj):
         vtx = self._convert_obj_(graph, obj)
         graph.add(vtx)
@@ -238,7 +238,7 @@ class GraphFiller(object):
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
             return Evaluator(name, str(obj), func, signature=args)
-        
+
         else:
             return obj
 
@@ -275,11 +275,9 @@ class GraphFiller(object):
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
                         cvtx.dimensions = nbr.dimensions
-                        graph.disconnect(nbr, vtx)
-                        graph.connect(nbr, cvtx)
-                        graph.connect(cvtx, vtx)
+                        graph.insert(nbr, cvtx, vtx)
             vtx.units = ret_unit
-                        
+
         elif isinstance(vtx, Finalizer):
             if len(nbrs) == 0:
                 pass
@@ -289,10 +287,7 @@ class GraphFiller(object):
                     if old_unit.is_convertible(vtx.units):
                         cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
                         cvtx.dimensions = vtx.dimensions
-    
-                        graph.disconnect(nbrs[0], vtx)
-                        graph.connect(nbrs[0], cvtx)
-                        graph.connect(cvtx, vtx)
+                        graph.insert(nbrs[0], cvtx, vtx)
                     else:
                         if old_unit.calendar != vtx.units.calendar:
                             raise UnitsError(('Cannot convert {0} units to {1} '
@@ -305,8 +300,8 @@ class GraphFiller(object):
                                                               vtx, vtx.units))
             else:
                 raise ValueError(('Graph malformed.  Finalizer with more than '
-                                  'one input edge {0}').format(vtx))                
-        
+                                  'one input edge {0}').format(vtx))
+
         else:
             if len(to_units) == 1:
                 vtx.units = to_units[0]
@@ -342,7 +337,7 @@ class GraphFiller(object):
         handles = sorted(graph.handles(), key=lambda h: len(h.dimensions))
         for handle in handles:
             GraphFiller._map_dimensions_(graph, handle, dmap)
-        
+
         for handle in handles:
             nbrs = graph.neighbors_to(handle)
             if len(nbrs) == 0:
@@ -350,7 +345,7 @@ class GraphFiller(object):
             nbr = nbrs[0]
             for d in nbr.dimensions:
                 if d in dmap:
-                    if (d not in self._inputds.dimensions and 
+                    if (d not in self._inputds.dimensions and
                         d in handle.dimensions):
                         dmap.pop(d)
                 else:
@@ -368,11 +363,9 @@ class GraphFiller(object):
                 if set(hdims) == set(mapped_dims):
                     tvtx = GraphFiller._new_transpositor_(mapped_dims, hdims)
                     tvtx.units = nbr.units
-                    graph.disconnect(nbr, handle)
-                    graph.connect(nbr, tvtx)
-                    graph.connect(tvtx, handle)
-        
-        graph._dim_map = dict((v,k) for (k,v) in dmap.iteritems())
+                    graph.insert(nbr, tvtx, handle)
+
+        graph._dim_map = dict((v, k) for (k, v) in dmap.iteritems())
 
     @staticmethod
     def _map_dimensions_(graph, vtx, dmap={}):
@@ -396,9 +389,7 @@ class GraphFiller(object):
                         nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
                                            vtx.signature)[:i])]
                         tvtx.units = nbr.units
-                        graph.disconnect(nbr, vtx)
-                        graph.connect(nbr, tvtx)
-                        graph.connect(tvtx, vtx)
+                        graph.insert(nbr, tvtx, vtx)
             vtx.dimensions = ret_dims
 
         if isinstance(vtx, Finalizer):
@@ -428,7 +419,7 @@ class GraphFiller(object):
             else:
                 raise ValueError(('Graph malformed.  Finalizer with more than '
                                   'one input edge {0}').format(vtx))
-                
+
         else:
             if len(nbrs_dims) == 1:
                 vtx.dimensions = nbrs_dims[0]
