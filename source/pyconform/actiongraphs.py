@@ -348,14 +348,19 @@ class GraphFiller(object):
             if len(nbrs) == 0:
                 continue
             nbr = nbrs[0]
-            if not all(d in dmap or d in handle.dimensions
-                       for d in nbr.dimensions):
-                print dmap
-                print handle, handle.dimensions, '<--', nbr, nbr.dimensions
-                unmapped_dims = tuple(d for d in nbr.dimensions if d not in dmap)
-                raise DimensionsError(('Could not determine complete dimension '
-                                       'map for input dimensions '
-                                       '{0}').format(unmapped_dims))
+            for d in nbr.dimensions:
+                if d in dmap:
+                    if (d not in self._inputds.dimensions and 
+                        d in handle.dimensions):
+                        dmap.pop(d)
+                else:
+                    if (d in self._inputds.dimensions or
+                        d not in handle.dimensions):
+                        unmapped_dims = tuple(d for d in nbr.dimensions
+                                              if d not in dmap)
+                        raise DimensionsError(('Could not determine complete '
+                                               'dimension map for input dims '
+                                               '{0}').format(unmapped_dims))
             mapped_dims = tuple(dmap[d] if d in dmap else d
                                 for d in nbr.dimensions)
             hdims = handle.dimensions
@@ -409,14 +414,17 @@ class GraphFiller(object):
                                            '{3}').format(nbr, nbr_dims, vtx,
                                                          vtx.dimensions))
                 else:
-                    unmapped_dims = [d for d in nbr_dims if d not in dmap]
-                    if len(unmapped_dims) > 1:
-                        raise DimensionsError(('Cannot map input dimensions {0} '
-                                               'to output dimension').format(unmapped_dims))
-                    elif len(unmapped_dims) == 1:
-                        unmapped_dim = unmapped_dims[0]
-                        dim_idx = nbr_dims.index(unmapped_dim)
-                        dmap[unmapped_dim] = vtx.dimensions[dim_idx]
+                    unmapped_nbr_dims = [d for d in nbr_dims if d not in dmap]
+                    if len(unmapped_nbr_dims) > 1:
+                        raise DimensionsError(('Cannot map input dimensions '
+                                               '{0} to output '
+                                               'dimension').format(unmapped_nbr_dims))
+                    elif len(unmapped_nbr_dims) == 1:
+                        unmapped_nbr_dim = unmapped_nbr_dims[0]
+                        unmapped_vtx_dims = [d for d in vtx.dimensions
+                                             if d not in dmap.values()]
+                        unmapped_vtx_dim = unmapped_vtx_dims[0]
+                        dmap[unmapped_nbr_dim] = unmapped_vtx_dim
             else:
                 raise ValueError(('Graph malformed.  Finalizer with more than '
                                   'one input edge {0}').format(vtx))
