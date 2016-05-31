@@ -15,7 +15,7 @@ from pyconform.parsing import (ParsedFunction, ParsedVariable, ParsedUniOp,
                                ParsedBinOp, parse_definition)
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actions import Action, Reader, Evaluator, Finalizer
-from pyconform.functions import (find_function, find_operator, find,
+from pyconform.functions import (find_function, find,
                                  UnitsError, DimensionsError)
 from itertools import cycle
 from os import linesep
@@ -315,7 +315,7 @@ class GraphFiller(object):
 
     @staticmethod
     def _new_converter_(old_units, new_units):
-        name = 'convert(from={0!r}, to={1!r})'.format(str(old_units), str(new_units))
+        name = 'convert({0!r}->{1!r})'.format(str(old_units), str(new_units))
         func = find_function('convert', 3)
         action = Evaluator('convert', name, func,
                            signature=(None, old_units, new_units))
@@ -339,21 +339,25 @@ class GraphFiller(object):
         # Fill the graph with dimensions up to the OutputSliceHandles and
         # compute the map of input dataset dimensions to output dataset dims
         dmap = {}
-        handles = graph.handles()
+        handles = sorted(graph.handles(), key=lambda h: len(h.dimensions))
         for handle in handles:
-            GraphFiller._compute_dimensions_(graph, handle, dmap)
+            GraphFiller._map_dimensions_(graph, handle, dmap)
         
         for handle in handles:
             nbrs = graph.neighbors_to(handle)
             if len(nbrs) == 0:
                 continue
             nbr = nbrs[0]
-            if not all(d in dmap for d in nbr.dimensions):
+            if not all(d in dmap or d in handle.dimensions
+                       for d in nbr.dimensions):
+                print dmap
+                print handle, handle.dimensions, '<--', nbr, nbr.dimensions
                 unmapped_dims = tuple(d for d in nbr.dimensions if d not in dmap)
                 raise DimensionsError(('Could not determine complete dimension '
                                        'map for input dimensions '
                                        '{0}').format(unmapped_dims))
-            mapped_dims = tuple(dmap[d] for d in nbr.dimensions)
+            mapped_dims = tuple(dmap[d] if d in dmap else d
+                                for d in nbr.dimensions)
             hdims = handle.dimensions
             if hdims != mapped_dims:
                 if set(hdims) == set(mapped_dims):
@@ -366,12 +370,12 @@ class GraphFiller(object):
         graph._dim_map = dict((v,k) for (k,v) in dmap.iteritems())
 
     @staticmethod
-    def _compute_dimensions_(graph, vtx, dmap={}):
+    def _map_dimensions_(graph, vtx, dmap={}):
         nbrs = graph.neighbors_to(vtx)
-        to_dims = [GraphFiller._compute_dimensions_(graph, nbr, dmap)
+        nbrs_dims = [GraphFiller._map_dimensions_(graph, nbr, dmap)
                    for nbr in nbrs]
         if isinstance(vtx, Evaluator):
-            arg_dims = [to_dims.pop(0) if arg is None else arg
+            arg_dims = [nbrs_dims.pop(0) if arg is None else arg
                         for arg in vtx.signature]
             func = find(vtx.key, numargs=len(arg_dims))
             ret_dims, new_dims = func.dimensions(*arg_dims)
@@ -397,35 +401,36 @@ class GraphFiller(object):
                 pass
             elif len(nbrs) == 1:
                 nbr = nbrs[0]
-                to_dim = to_dims[0]
-                if len(to_dim) != len(vtx.dimensions):
+                nbr_dims = nbrs_dims[0]
+                if len(nbr_dims) != len(vtx.dimensions):
                     raise DimensionsError(('Action {0} with dimensions {1} '
                                            'inconsistent with required output '
                                            'variable {2} dimensions '
-                                           '{3}').format(nbr, to_dim, vtx,
+                                           '{3}').format(nbr, nbr_dims, vtx,
                                                          vtx.dimensions))
-                elif len(to_dim) == 1:
-                    if to_dim[0] in dmap and dmap[to_dim[0]] != vtx.dimensions[0]:
-                        raise DimensionsError(('Action {0} has dimension {1!r} '
-                                               'that has already been mapped to '
-                                               '{2!r}').format(nbr, to_dim[0],
-                                                               vtx.dimensions[0]))
-                    else:
-                        dmap[to_dim[0]] = vtx.dimensions[0]
+                else:
+                    unmapped_dims = [d for d in nbr_dims if d not in dmap]
+                    if len(unmapped_dims) > 1:
+                        raise DimensionsError(('Cannot map input dimensions {0} '
+                                               'to output dimension').format(unmapped_dims))
+                    elif len(unmapped_dims) == 1:
+                        unmapped_dim = unmapped_dims[0]
+                        dim_idx = nbr_dims.index(unmapped_dim)
+                        dmap[unmapped_dim] = vtx.dimensions[dim_idx]
             else:
                 raise ValueError(('Graph malformed.  Finalizer with more than '
                                   'one input edge {0}').format(vtx))
                 
         else:
-            if len(to_dims) == 1:
-                vtx.dimensions = to_dims[0]
+            if len(nbrs_dims) == 1:
+                vtx.dimensions = nbrs_dims[0]
 
         return vtx.dimensions
 
     @staticmethod
     def _new_transpositor_(old_dims, new_dims):
         new_order = [new_dims.index(d) for d in old_dims]
-        name = 'transpose({0}, order={1})'.format(old_dims, new_order)
+        name = 'transpose({0}->{1})'.format(old_dims, new_dims)
         func = find_function('transpose', 2)
         action = Evaluator('transpose', name, func, signature=(None, new_order))
         action.dimensions = new_dims
