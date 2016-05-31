@@ -55,7 +55,7 @@ def setup(inp, out):
     print '    {0}'.format(str_graph)
 
     # Print out the mapped dimensions
-    print 'DIMENSIONS:'
+    print 'DIMENSION MAPPING:'
     for out_dim, inp_dim in agraph.dimension_map.iteritems():
         print '    {0} --> {1}'.format(inp_dim, out_dim)
     print
@@ -84,7 +84,7 @@ def run(inp, out, agraph):
     tser_vars = [vname for vname, vinfo in out.variables.iteritems()
                 if vinfo.filename is not None]
     meta_vars = [vname for vname in out.variables if vname not in tser_vars]
-
+    
     # Get the set of necessary dimensions for the meta_vars
     req_dims = set(d for mvar in meta_vars
                    for d in out.variables[mvar].dimensions)
@@ -105,6 +105,7 @@ def run(inp, out, agraph):
 
     # Write each local time-series file
     for tsvar in loc_vars:
+        print 'Starting to writing output variable: {0}'.format(tsvar)
         
         # Get the time-series variable info object
         tsinfo = out.variables[tsvar]
@@ -136,15 +137,18 @@ def run(inp, out, agraph):
             mvinfo = out.variables[mvar]
             ncvar = ncf.createVariable(mvar, mvinfo.datatype, mvinfo.dimensions)
             for aname, avalue in mvinfo.attributes.iteritems():
-                setattr(ncvar, aname, avalue)
+                ncvar.setncattr(aname, avalue)
             ncvars[mvar] = ncvar
 
         ncvar = ncf.createVariable(tsvar, tsinfo.datatype, tsinfo.dimensions)
         for aname, avalue in tsinfo.attributes.iteritems():
-            setattr(ncvar, aname, avalue)
+            ncvar.setncattr(aname, avalue)
         ncvars[tsvar] = ncvar
         
         # Now perform the operation graphs and write data to variables
         for vname, vobj in ncvars.iteritems():
             groot = handles[vname]
             vobj[:] = agraph(groot)
+        
+        ncf.close()
+        print 'Finished writing output variable: {0}'.format(tsvar)
