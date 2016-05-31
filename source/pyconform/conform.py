@@ -11,7 +11,6 @@ from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.actiongraphs import ActionGraph, GraphFiller
 from netCDF4 import Dataset as NCDataset
 from mpi4py import MPI
-from os import linesep
 
 
 #===============================================================================
@@ -38,28 +37,13 @@ def setup(inp, out):
 
     # Fill the Graph with initial definitions
     filler.from_definitions(agraph, out)
-    print 'INITIAL GRAPH CONSTRUCTION:'
-    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
-    print '    {0}'.format(str_graph)
     
     # Attempt to match dimensions in the graph
     filler.match_dimensions(agraph)
-    print 'GRAPH AFTER DIMENSION MATCHING:'
-    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
-    print '    {0}'.format(str_graph)
 
     # Attempt to match units in the graph
     filler.match_units(agraph)
-    print 'GRAPH AFTER UNITS MATCHING:'
-    str_graph = str(agraph).replace(linesep, '{0}    '.format(linesep))
-    print '    {0}'.format(str_graph)
 
-    # Print out the mapped dimensions
-    print 'DIMENSION MAPPING:'
-    for out_dim, inp_dim in agraph.dimension_map.iteritems():
-        print '    {0} --> {1}'.format(inp_dim, out_dim)
-    print
-    
     return agraph
 
 
