@@ -456,11 +456,9 @@ class OutputDataset(Dataset):
         dimensions = OrderedDict()
         for vname, vinfo in variables.iteritems():
             if vinfo.data is not None:
-                try:
-                    dshape = vinfo.data.shape
-                except:
-                    raise ValueError(('Variable {0!r} has improperly shaped '
-                                      'data').format(vname))
+                dshape = vinfo.data.shape
+                if len(dshape) == 0:
+                    dshape = (1,)
                 for dname, dsize in zip(vinfo.dimensions, dshape):
                     if dname in dimensions and dimensions[dname] is not None:
                         if dsize != dimensions[dname].size:
