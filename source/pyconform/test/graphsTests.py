@@ -263,7 +263,11 @@ class GraphTests(unittest.TestCase):
         G.connect(1, 2)
         G.connect(1, 3)
         G.connect(1, 4)
+        print G
+        print
         G.insert(1, 5, 3)
+        print G
+        print
         actual = G.neighbors_from(1)
         expected = [2, 5, 4]
         print_test_message(testname, actual, expected)
