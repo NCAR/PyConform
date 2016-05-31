@@ -89,7 +89,8 @@ def run(inp, out, agraph):
 
     # Write each local time-series file
     for tsvar in loc_vars:
-        print 'Starting to writing output variable: {0}'.format(tsvar)
+        print ('[{0}/{1}] Starting to writing output variable: '
+               '{2}').format(mpi_rank, mpi_size, tsvar)
         
         # Get the time-series variable info object
         tsinfo = out.variables[tsvar]
@@ -135,4 +136,6 @@ def run(inp, out, agraph):
             vobj[:] = agraph(groot)
         
         ncf.close()
-        print 'Finished writing output variable: {0}'.format(tsvar)
+
+        print ('[{0}/{1}] Finished writing output variable: '
+               '{2}').format(mpi_rank, mpi_size, tsvar)
