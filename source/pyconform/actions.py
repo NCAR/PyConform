@@ -43,9 +43,9 @@ class Action(object):
     """
     The abstract base class for the Action objects used in OperationGraphs
     """
-    
+
     __metaclass__ = ABCMeta
-    
+
     @abstractmethod
     def __init__(self, key, name):
         """
@@ -58,23 +58,23 @@ class Action(object):
         if not isinstance(name, (str, unicode)):
             raise TypeError('Action names must be strings')
         self._name = name
-        
+
         # Key
         self._key = key
-        
+
         # Default units
         self._units = None
-        
+
         # Default dimensions
         self._dimensions = None
-        
+
     @property
     def name(self):
         """
         Return the internal name of the Action
         """
         return self._name
-    
+
     @property
     def key(self):
         """
@@ -94,7 +94,7 @@ class Action(object):
         The units of the data returned by the operation
         """
         return self._units
-    
+
     @units.setter
     def units(self, u):
         """
@@ -113,7 +113,7 @@ class Action(object):
         The dimensions tuple of the data returned by the operation
         """
         return self._dimensions
-    
+
     @dimensions.setter
     def dimensions(self, d):
         """
@@ -127,7 +127,7 @@ class Action(object):
         Perform the operation and return the resulting data 
         """
         pass
-    
+
 
 #===============================================================================
 # Reader
@@ -136,7 +136,7 @@ class Reader(Action):
     """
     Action that reads an input variable slice upon calling
     """
-    
+
     def __init__(self, filepath, variable, slicetuple=None):
         """
         Initializer
@@ -154,14 +154,14 @@ class Reader(Action):
         if not exists(filepath):
             raise OSError('File path not found: {!r}'.format(filepath))
         self._filepath = filepath
-            
+
         # Attempt to open the NetCDF file
         try:
             ncfile = Dataset(self._filepath, 'r')
         except:
             raise OSError('Cannot open as a NetCDF file: '
                           '{!r}'.format(self._filepath))
-        
+
         # Parse variable name
         if not isinstance(variable, (str, unicode)):
             raise TypeError('Unrecognized variable name object of type '
@@ -172,7 +172,7 @@ class Reader(Action):
 
         # Parse slice tuple
         self._slice = SliceTuple(slicetuple)
-        
+
         # Call base class initializer - sets self._name
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
@@ -192,20 +192,20 @@ class Reader(Action):
         except:
             unit_obj = Unit(1)
         self._units = unit_obj
-        
+
         # Read/set the dimensions
         self._dimensions = ncfile.variables[variable].dimensions
-        
+
         # Close the NetCDF file
         ncfile.close()
-    
+
     @Action.units.setter
     def units(self, u):
-        pass # Prevent from changing units!
-    
+        pass  # Prevent from changing units!
+
     @Action.dimensions.setter
     def dimensions(self, d):
-        pass # Prevent from changing dimensions!
+        pass  # Prevent from changing dimensions!
 
     @property
     def slicetuple(self):
@@ -228,7 +228,7 @@ class Evaluator(Action):
     """
     Generic function operator that acts on two operands
     """
-    
+
     def __init__(self, key, name, func, signature=[]):
         """
         Initializer
@@ -244,12 +244,12 @@ class Evaluator(Action):
         if not callable(func):
             raise TypeError('Function object not callable: {!r}'.format(func))
         self._function = func
-        
+
         # Check arguments
         if not isinstance(signature, (tuple, list)):
             raise TypeError('Signature not contained in list')
         self._signature = signature
-        
+
         # Count the number of runtime arguments needed
         self._nargs = sum(arg is None for arg in signature)
 
@@ -259,7 +259,7 @@ class Evaluator(Action):
     @property
     def signature(self):
         return self._signature
-        
+
     def __call__(self, *args):
         """
         Make callable like a function
@@ -283,9 +283,10 @@ class Finalizer(Action):
     """
     Action that acts as a "handle" for output data streams
     """
-    
+
     def __init__(self, variable, data=None, slicetuple=None,
-                 minimum=None, maximum=None):
+                 minimum=None, maximum=None,
+                 min_mean_abs=None, max_mean_abs=None):
         """
         Initializer
         
@@ -296,10 +297,14 @@ class Finalizer(Action):
                 the data is to be written
             minimum: The minimum value the data should have, if valid
             maximum: The maximum value the data should have, if valid
+            min_mean_abs: The minimum acceptable value of the mean of the 
+                absolute value of the data
+            max_mean_abs: The maximum acceptable value of the mean of the 
+                absolute value of the data
         """
         # Parse slice tuple
         self._slice = SliceTuple(slicetuple)
-        
+
         # Call base class initializer
         slcstr = str(self._slice).replace('(', '[').replace(')', ']')
         name = '{0}{1}'.format(variable, slcstr)
@@ -308,15 +313,19 @@ class Finalizer(Action):
         # Store min/max
         self._min = minimum
         self._max = maximum
-        
+
+        # Stoe mean_abs min/max
+        self._min_mean_abs = min_mean_abs
+        self._max_mean_abs = max_mean_abs
+
         # Store predefined data, if available
         if data is not None and not isinstance(data, numpy.ndarray):
             raise TypeError('Data set in Handler object must be an array')
         self._data = data
-    
+
     def is_preset(self):
         return self._data is not None
-    
+
     @property
     def slicetuple(self):
         return self._slice.index
@@ -333,8 +342,8 @@ class Finalizer(Action):
                 raise ValueError('Handler with internally defined data '
                                  'received input from another Action')
             else:
-                data = self._data            
-            
+                data = self._data
+
         if self._min is not None:
             dmin = numpy.min(data)
             if dmin < self._min:
@@ -343,14 +352,29 @@ class Finalizer(Action):
                          '{}').format(self.name, dmin, self._min))
 
         if self._max is not None:
-            dmax= numpy.max(data)
+            dmax = numpy.max(data)
             if dmax > self._max:
                 warning(('Data from operator {!r} has maximum value '
                          '{} but requires data less than or equal to '
                          '{}').format(self.name, dmax, self._max))
-            
+
+        if self._min_mean_abs is not None or self._max_mean_abs is not None:
+            mean_abs = numpy.mean(numpy.abs(data))
+
+        if self._min_mean_abs is not None:
+            if mean_abs < self._min_mean_abs:
+                warning(('Data from operator {!r} has minimum mean_abs value '
+                         '{} but requires data greater than or equal to '
+                         '{}').format(self.name, mean_abs, self._min_mean_abs))
+
+        if self._max_mean_abs is not None:
+            if mean_abs > self._max:
+                warning(('Data from operator {!r} has maximum mean_abs value '
+                         '{} but requires data less than or equal to '
+                         '{}').format(self.name, mean_abs, self._max_mean_abs))
+
         return data
-    
+
 
 #===============================================================================
 # MPISender
@@ -359,7 +383,7 @@ class MPISender(Action):
     """
     Send data to a specified remote rank in COMM_WORLD
     """
-    
+
     def __init__(self, dest):
         """
         Initializer
@@ -376,15 +400,15 @@ class MPISender(Action):
         if dest < 0 or dest >= size:
             raise ValueError(('Destination rank must be between 0 and '
                               '{}').format(size))
-        
+
         # Call base class initializer
         source = MPI.COMM_WORLD.Get_rank()
         opname = 'send(to={},from={})'.format(dest, source)
         super(MPISender, self).__init__((source, dest), opname)
-        
+
         # Store the destination rank
         self._dest = dest
-    
+
     @property
     def destination(self):
         return self._dest
@@ -433,7 +457,7 @@ class MPIReceiver(Action):
     """
     Receive data from a specified remote rank in COMM_WORLD
     """
-    
+
     def __init__(self, source):
         """
         Initializer
@@ -450,12 +474,12 @@ class MPIReceiver(Action):
         if source < 0 or source >= size:
             raise ValueError(('Source rank must be between 0 and '
                               '{}').format(size))
-        
+
         # Call base class initializer
         dest = MPI.COMM_WORLD.Get_rank()
         opname = 'recv(to={},from={})'.format(dest, source)
         super(MPIReceiver, self).__init__((source, dest), opname)
-        
+
         # Store the source rank
         self._source = source
 
@@ -490,5 +514,5 @@ class MPIReceiver(Action):
         # Receive the data from the MPISender
         tag += MPI.COMM_WORLD.Get_size()
         recvd = numpy.empty(msg['shape'], dtype=msg['dtype'])
-        MPI.COMM_WORLD.Recv(recvd, source=self._source, tag=tag)        
+        MPI.COMM_WORLD.Recv(recvd, source=self._source, tag=tag)
         return recvd

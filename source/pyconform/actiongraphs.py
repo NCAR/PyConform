@@ -181,8 +181,11 @@ class GraphFiller(object):
         for vname, vinfo in preset.iteritems():
             vmin = vinfo.attributes.get('valid_min', None)
             vmax = vinfo.attributes.get('valid_max', None)
+            vmin_ma = vinfo.attributes.get('ok_min_mean_abs', None)
+            vmax_ma = vinfo.attributes.get('ok_max_mean_abs', None)
             vdata = array(vinfo.data, dtype=vinfo.datatype)
-            handle = Finalizer(vname, data=vdata, minimum=vmin, maximum=vmax)
+            handle = Finalizer(vname, data=vdata, minimum=vmin, maximum=vmax,
+                               min_mean_abs=vmin_ma, max_mean_abs=vmax_ma)
             handle.units = vinfo.cfunits()
             handle.dimensions = vinfo.dimensions
             graph.add(handle)
