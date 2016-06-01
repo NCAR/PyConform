@@ -211,7 +211,8 @@ class GraphFiller(object):
         graph.add(vtx)
         if isinstance(obj.args, tuple):
             for arg in obj.args:
-                graph.connect(self._add_to_graph_(graph, arg), vtx)
+                if not isinstance(arg, (int, float)):
+                    graph.connect(self._add_to_graph_(graph, arg), vtx)
         return vtx
 
     def _convert_obj_(self, graph, obj):

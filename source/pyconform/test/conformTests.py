@@ -158,7 +158,7 @@ class ConformTests(unittest.TestCase):
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'float64'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
-        vdicts['V1']['definition'] = 'u1 + u2'
+        vdicts['V1']['definition'] = '0.5*(u1 + u2)'
         vdicts['V1']['filename'] = 'var1.nc'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
