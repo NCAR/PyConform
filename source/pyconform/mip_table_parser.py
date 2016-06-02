@@ -5,7 +5,7 @@ import sys
 # Return a dcitionary that contains the parsed
 # information.
 #=============================================
-def  mip_table_parser(table_name,type=None,user_vars={},user_axes={},user_tableInfo={}):
+def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_tableInfo={}):
     """
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
     After the table has been parsed, the information is standardized into the three dictionaries 
@@ -18,6 +18,7 @@ def  mip_table_parser(table_name,type=None,user_vars={},user_axes={},user_tableI
                      table_dict = mip_table_parser('Tables/CMIP6_MIP_tables.txt','excel')
 
     Parameters:
+        exp (str): Name of the experiment.
         table_name (str):  Full path to a table.  Or in the case of XML, the experiment name.
         type (str): One of 3 keys that identify table type: 'excel', 'cmor', or 'xml'.
         user_var (dict): Allows users to add another synonym for one of the standard variable field keys.
@@ -125,7 +126,7 @@ def  mip_table_parser(table_name,type=None,user_vars={},user_axes={},user_tableI
         p = ParseCmorTable()
     elif type == 'xml':
         p = ParseXML()
-    return p.parse_table(table_name,table_var_fields,table_axes_fields,table_fields,
+    return p.parse_table(exp,table_name,table_var_fields,table_axes_fields,table_fields,
                         user_vars,user_axes,user_tableInfo)
  
 #=============================================
@@ -168,13 +169,14 @@ class ParseExcel(object):
     #=============================================
     # Parse the tab deliminated table file
     #=============================================
-    def parse_table(self, table_name,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self,exp,table_name,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse a tab deliminated file and return a dictionary containing
         the parsed fields.
 
         Parameter:
+            exp (str):  The name of the experiment.
             table_name (str): The full path to the table to be parsed.
             table_var_fields (dict):  Dictionary containing standardized field var names 
                                       as keys and acceptable synonyms as values.
@@ -277,13 +279,14 @@ class ParseCmorTable(object):
     #=============================================
     #  Parse a CMOR text file
     #=============================================
-    def parse_table(self, table_name,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self, exp,table_name,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse a CMOR table text file and return a dictionary containing
         the parsed fields.
 
         Parameter:
+            exp (str):  The name of the experiment.
             table_name (str): The full path to the table to be parsed.
             table_var_fields (dict):  Dictionary containing standardized field var names 
                                       as keys and acceptable synonyms as values.
@@ -430,19 +433,20 @@ class ParseCmorTable(object):
 class ParseXML(object):
 
     def _init_():
-        super(ParseXML, self, table_name,table_var_fields,table_axes_fields,table_fields).__init__()
+        super(ParseXML, self, miptable,table_var_fields,table_axes_fields,table_fields).__init__()
 
     #=============================================
     # Parse the XML format using dreqPy
     #=============================================
-    def parse_table(self, table_name,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self,exp,miptable,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse an XML file using dreqPy and return a dictionary containing
         the parsed fields.
 
         Parameter:
-            table_name (str): The full path to the table to be parsed.
+            exp (str):  The name of the experiment.
+            miptable (str): The name of the miptable.
             table_var_fields (dict):  Dictionary containing standardized field var names 
                                       as keys and acceptable synonyms as values.
             table_axes_fields (dict): Dictionary containing standardized field axes names 
@@ -463,106 +467,194 @@ class ParseXML(object):
         """
         import dreq
 
-        table_dict = {}
-
-        variables = {}
-        axes = {}
-        table_info = {} 
-
         dq = dreq.loadDreq()
 
         # Get table id
-        g_id = dq.inx.requestVarGroup.label[table_name]
-        table_info['table_id'] = g_id
-        if len(g_id) == 0:
-            print 'ERROR: Variable group/table ',table_name, ' not supported.'  
-            print 'Please select from the following: '
-            print dq.inx.requestVarGroup.label.keys()
-            print '\nIf your selected table is listed, it may not be supported in this verison of dreqpy.'
-            print '\nEXITING. \n'
-            sys.exit(1) 
-        # Get the id's of the variables in this table
-        g_vars = dq.inx.iref_by_sect[g_id[0]].a
+#        if len(g_id) == 0:
+#            print 'ERROR: Variable group/table ',table_name, ' not supported.'  
+#            print 'Please select from the following: '
+#            print dq.inx.requestVarGroup.label.keys()
+#            print '\nIf your selected table is listed, it may not be supported in this verison of dreqpy.'
+#            print '\nEXITING. \n'
+#            sys.exit(1) 
+#        # Get the id's of the variables in this table
+#        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
-        axes_list = []
-        # Loop through the variables and set their values
-        for v in g_vars['requestVar']:
-	    var = {}
-	    v_id = dq.inx.uid[v].vid  # Get the CMORvar id
-	    c_var = dq.inx.uid[v_id]
+        # Get a list of mips for the experiment
+        e_mip = []
+        e_id = dq.inx.experiment.label[exp]
+        e_vars = dq.inx.iref_by_sect[e_id[0]].a
+        for v in e_vars['requestItem']:
+            e_mip.append(dq.inx.uid[v].mip)
 
-	    # Set what we can from the CMORvar section
-	    #var['comment']= c_var.comment
-	    var['deflate']= c_var.deflate
-	    var['deflate_level']= c_var.deflate_level
-	    var['description']= c_var.description
-	    #var['flag_meanings']= c_var.flag_meanings
-	    #var['flag_values']= c_var.flag_values
-	    var['frequency']= c_var.frequency
-	    var['id']= c_var.label
-	    var['modeling_realm']= c_var.modeling_realm
-	    var['ok_min_mean_abs']= c_var.ok_min_mean_abs
-	    var['ok_max_mean_abs']= c_var.ok_max_mean_abs
-	    var['out_name']= c_var.label #?
-	    var['positive']= c_var.positive
-	    var['prov']= c_var.prov
-	    var['provNote']= c_var.provNote
-	    var['shuffle']= c_var.shuffle
-	    var['title']= c_var.title
-	    var['type']= c_var.type
-	    var['valid_max']= c_var.valid_max
-	    var['valid_min']= c_var.valid_min
+        # Loop through the needed mips and for the selected tables, pull variable uids
+        total_request = {}
+        for i in dq.coll['requestLink'].items:
+            if i.mip in e_mip:
+                if 'requestItem' in dq.inx.iref_by_sect[i.uid].a:
+                    ##print '\nRequest size: ', len(dq.inx.iref_by_sect[i.uid].a['requestItem']), i.mip, i.tab
+                    for u in dq.inx.iref_by_sect[i.uid].a['requestItem']:
+                        if '!' in dq.inx.uid[u].tab:
+                            tab_split = dq.inx.uid[u].tab.split('!')
+                            tab = tab_split[len(tab_split)-1]
+                        else:
+                            tab = dq.inx.uid[u].tab
+                        #print miptable, tab
+                        if miptable == None or miptable == tab:
+                            g_id = dq.inx.requestVarGroup.label[tab]
+                            if len(g_id) > 0:
+                                table_dict = {}
+
+                                variables = {}
+                                axes = {}
+                                table_info = {}
+                                data = {}
+
+                                vars = dq.inx.iref_by_sect[g_id[0]].a
+                                #print '# of vars: ',len(vars['requestVar'])
+                                axes_list = [] 
+                                for v in vars['requestVar']:
+	                            var = {}
+	                            v_id = dq.inx.uid[v].vid  # Get the CMORvar id
+	                            c_var = dq.inx.uid[v_id]
+
+	                            # Set what we can from the CMORvar section
+	                            #var['comment']= c_var.comment
+                                    if hasattr(c_var,'deflate'):
+	                                var['deflate']= c_var.deflate
+                                    if hasattr(c_var,'deflate_level'):
+	                                var['deflate_level']= c_var.deflate_level
+                                    if hasattr(c_var,'description'):
+                                        var['description']= c_var.description
+	                            #var['flag_meanings']= c_var.flag_meanings
+	                            #var['flag_values']= c_var.flag_values
+	                            if hasattr(c_var,'frequency'):
+                                        var['frequency']= c_var.frequency
+	                            if hasattr(c_var,'label'):
+                                        var['id']= c_var.label
+	                            if hasattr(c_var,'modeling_realm'):
+                                        var['modeling_realm']= c_var.modeling_realm
+	                            if hasattr(c_var,'ok_min_mean_abs'):
+                                        var['ok_min_mean_abs']= c_var.ok_min_mean_abs
+	                            if hasattr(c_var,'ok_max_mean_abs'):
+                                        var['ok_max_mean_abs']= c_var.ok_max_mean_abs
+	                            if hasattr(c_var,'out_name'):
+                                        var['out_name']= c_var.label #?
+	                            if hasattr(c_var,'positive'):
+                                        var['positive']= c_var.positive
+	                            if hasattr(c_var,'prov'):
+                                        var['prov']= c_var.prov
+	                            if hasattr(c_var,'procNote'):
+                                        var['provcNote']= c_var.procNote
+	                            if hasattr(c_var,'shuffle'):
+                                        var['shuffle']= c_var.shuffle
+	                            if hasattr(c_var,'title'):
+                                        var['title']= c_var.title
+	                            if hasattr(c_var,'type'):
+                                        var['type']= c_var.type
+	                            if hasattr(c_var,'valid_max'):
+                                        if isinstance(c_var.valid_max, (int, long, float, complex)):
+                                            var['valid_max']= c_var.valid_max
+	                            if hasattr(c_var,'valid_min'):
+                                        if isinstance(c_var.valid_min, (int, long, float, complex)): 
+                                            var['valid_min']= c_var.valid_min
  
-  	    # Set what we can from the standard section
-	    s_var = dq.inx.uid[c_var.stid]
-	    var['cell_measures']= s_var.cell_measures
-	    var['cell_methods']= s_var.cell_methods
+  	                            # Set what we can from the standard section
+                                    if hasattr(c_var,'stid'):
+	                                s_var = dq.inx.uid[c_var.stid]
+	                            if hasattr(s_var,'cell_measures'):
+                                        var['cell_measures']= s_var.cell_measures
+	                            if hasattr(s_var,'cell_methods'):
+                                        var['cell_methods']= s_var.cell_methods
+
+                                  # Set what we can from the time section
+                                    if hasattr(s_var, 'tmid'):
+                                        t_var = dq.inx.uid[s_var.tmid]
+                                        if hasattr(t_var,'dimensions'):
+                                            t = t_var.dimensions
+                                            if t != '' and t != 'None':
+                                                var['time'] = t
+                                                var['dimensions'] = t+'|'
+                                                if hasattr(t_var,'label'):
+                                                    var['time_label'] = t_var.label
+                                                if hasattr(t_var,'title'):
+                                                    var['time_title'] = t_var.title
  
-	    # Set what we can from the sp section
-	    sp_var = dq.inx.uid[s_var.spid]
-	    var['dimensions']= sp_var.dimensions
-            dims = sp_var.dimensions.split('|')
-            for d in dims:
-                if d not in axes_list:
-                    axes_list.append(d) 
+	                            # Set what we can from the spatial section
+                                    if hasattr(s_var, 'spid'):
+	                                sp_var = dq.inx.uid[s_var.spid]
+	                                if hasattr(sp_var,'dimensions'):
+                                            if 'dimensions' in var.keys():
+                                                var['dimensions'] = var['dimensions']+sp_var.dimensions
+                                            else:
+                                                var['dimensions'] = sp_var.dimensions
+                                            #dims = sp_var.dimensions.split('|')
+                                            dims = var['dimensions'].split('|')
+                                            for d in dims:
+                                                if d not in axes_list and d != '' and d != 'None':
+                                                    axes_list.append(d) 
 
-	    # Set what we can from the variable section
-	    v_var = dq.inx.uid[c_var.vid]
-	    var['cf_standard_name']= v_var.sn
-	    var['long_name']= v_var.sn
-	    var['units']= v_var.units
+	                            # Set what we can from the variable section
+                                    v_var = dq.inx.uid[c_var.vid]
+	                            if hasattr(v_var,'cf_standard_name'):
+                                        var['cf_standard_name']= v_var.sn
+	                            if hasattr(v_var,'long_name'):
+                                        var['long_name']= v_var.sn
+	                            if hasattr(v_var,'units'):
+                                        if v_var.units == "":
+                                            var['units']= '1'
+                                        else:
+                                            var['units']= v_var.units
 
-	    #var['ext_cell_measures']=
-	    #var['required']=
+	                            #var['ext_cell_measures']=
+	                            #var['required']=
 
-            # Add variable to variable dictionary
-	    variables[c_var.label] = var
+                                    # Add variable to variable dictionary
+	                            variables[c_var.label] = var
 
-        #for a in dq.inx.grids.label.keys():
-        for a in axes_list:
-            #id = dq.inx.var.sn[a]
-            id = dq.inx.grids.label[a]
-            ax = {}
-            if len(id) > 0:
-                v = dq.inx.grids.uid[id[0]]
-                ax['units'] = v.units
-                ax['axis'] = v.axis
-                ax['valid_max'] = v.valid_max
-                ax['valid_min'] = v.valid_min
-                ax['cf_standard_name'] = v.standardName
-                ax['type'] = v.type
-                ax['id'] = v.label
-                ax['positive'] = v.positive
-                ax['title'] = v.title
-                ax['bounds'] = v.bounds
-                ax['boundsRequested'] = v.boundsRequested
-                ax['boundsValues'] = v.boundsValues
-                ax['coords'] = v.coords
-            axes[a] = ax
+                                for a in axes_list:
+                                    id = dq.inx.grids.label[a]
+                                    ax = {}
+                                    if len(id) > 0:
+                                        v = dq.inx.grids.uid[id[0]]
+                                    if hasattr(v,'units'):
+                                        if v.units == "":
+                                            ax['units'] = '1'
+                                        else: 
+                                            ax['units'] = v.units
+                                    if hasattr(v,'axis'):
+                                        ax['axis'] = v.axis
+                                    if hasattr(v,'valid_max'):
+                                        if isinstance(v.valid_max, (int, long, float, complex)):        
+                                            ax['valid_max'] = v.valid_max
+                                    if hasattr(v,'valid_min'):
+                                        if isinstance(v.valid_min, (int, long, float, complex)):
+                                            ax['valid_min'] = v.valid_min
+                                    if hasattr(v,'cf_standard_name'):
+                                        ax['cf_standard_name'] = v.standardName
+                                    if hasattr(v,'type'):
+                                        ax['type'] = v.type
+                                    if hasattr(v,'id'):
+                                        ax['id'] = v.label
+                                    if hasattr(v,'positive'):
+                                        ax['positive'] = v.positive
+                                    if hasattr(v,'title'):
+                                        ax['title'] = v.title
+                                    if hasattr(v,'bounds'):
+                                        ax['bounds'] = v.bounds
+                                    if hasattr(v,'requested'):
+                                        ax['requested'] = v.requested
+                                    if hasattr(v,'boundsValues'):
+                                        ax['boundsValues'] = v.boundsValues
+                                    if hasattr(v,'coords'):
+                                        ax['coords'] = v.coords
+                                    axes[a] = ax
        
-        table_dict['variables'] = variables
-        table_dict['axes'] = axes 
-        table_dict['table_info'] = table_info
+                                table_dict['variables'] = variables
+                                table_dict['axes'] = axes 
+                                table_dict['table_info'] = table_info
 
-        return table_dict
+                                total_request[i.mip+'_'+tab] = table_dict
+
+        return total_request
 
