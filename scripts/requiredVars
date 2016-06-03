@@ -1,0 +1,147 @@
+#! /usr/bin/env python
+
+import os, argparse
+import xlsxwriter
+import dreq
+
+def parseArgs(argv = None):
+
+    desc = "This tool creates a list of required variables."
+
+    parser = argparse.ArgumentParser(prog='createOutputSpecs',
+                                     description=desc)
+    parser.add_argument('-d', '--defFile', default=None, type=str,
+                        help='A file listing the variable definitions.', required=True)
+    parser.add_argument('outputfile', default='out.json', type=str,
+                        help='Filename for the output variable lists.')
+
+    return parser.parse_args(argv)
+
+
+def load(defs):
+
+    # Read in the user supplied definitions file
+
+    def_dict = {}
+    for line in defs:
+        split = line.split('=')
+        if (len(split) == 2):
+            def_dict[split[0].strip()] = split[1].strip()
+        else:
+            if line != '\n':
+                print 'Could not parse this line: ',line
+    return def_dict
+
+
+def write_xls(fn, total_request, request_by, definitions):
+
+    # Create an excel workbook and setup some formatting
+    workbook = xlsxwriter.Workbook(fn)
+    header = workbook.add_format({'bold': True, 'font_size': 24})
+    bold = workbook.add_format({'bold': True})
+    format = workbook.add_format()
+    format.set_text_wrap()
+    format.set_border(1)
+ 
+    # For each mip table, create a new worksheet and set up header information
+    for mt in total_request.keys():
+        worksheet = workbook.add_worksheet(mt)
+        worksheet.set_column(0, 0, 20)
+        worksheet.set_column(1, 2, 40)
+        worksheet.write('A1', mt, header)
+        worksheet.write('C1', ' # of Variables: '+str(len(total_request[mt])))
+        worksheet.write('A2', 'variable', bold)
+        worksheet.write('B2', 'title', bold)
+        worksheet.write('C2', 'Model->CMIP Definition', bold) 
+        cr = 3
+        # For each variable requested, add it's name, official title, 
+        # and supply a def if we have one already
+        for v in total_request[mt].keys():
+            worksheet.write('A'+str(cr), v, format)
+            worksheet.write('B'+str(cr), total_request[mt][v], format)
+            if v in definitions.keys():
+                worksheet.write('C'+str(cr), definitions[v], format)
+            else: # We don't have a definition, create a border around a blank cell
+                worksheet.write('C'+str(cr), '', format)
+            cr = cr + 1
+        # List each mip that requested this table
+        cr = 3
+        worksheet.write('D2', 'Requested by:', bold)
+        for m in request_by[mt]:
+            worksheet.write('D'+str(cr), m)
+            cr = cr + 1    
+
+    workbook.close()
+
+
+def main(argv=None):
+
+    dq = dreq.loadDreq()
+    total_request = {}
+    mips = []
+    request_by = {}
+    not_recognized = []
+
+    # Parse args
+    args = parseArgs(argv)
+
+    # Open/Read the definition file
+    if os.path.isfile(args.defFile):
+        with open(args.defFile) as y_definitions:
+            definitions = load(y_definitions)
+
+    # Parse the xml file to find required vars
+    for i in dq.coll['requestLink'].items:
+        if i.mip not in mips and i.mip != 'VIACSAB':
+            mips.append(i) 
+
+    # Loop through the mips and find the requested mip tables and, there for, 
+    # the required variables
+    for i in mips:
+        if 'requestItem' in dq.inx.iref_by_sect[i.uid].a:
+            for u in dq.inx.iref_by_sect[i.uid].a['requestItem']:
+                table_request = {}
+                if '!' in dq.inx.uid[u].tab:
+                    tab_split = dq.inx.uid[u].tab.split('!')
+                    tab = tab_split[len(tab_split)-1]
+                else:
+                    tab = dq.inx.uid[u].tab
+                g_id = dq.inx.requestVarGroup.label[tab]
+                if len(g_id) > 0:
+                    if tab in request_by.keys():
+                        if i.mip not in request_by[tab]:
+                            request_by[tab].append(i.mip)
+                    else:
+                        request_by[tab] = [i.mip]
+                    vars = dq.inx.iref_by_sect[g_id[0]].a
+                    for v in vars['requestVar']:
+                        v_id = dq.inx.uid[v].vid  
+                        c_var = dq.inx.uid[v_id]
+                        v_var = dq.inx.uid[c_var.vid]
+                        table_request[c_var.label] = c_var.title + '   (' + v_var.units + ')'
+                    total_request[tab] = table_request
+
+                else:
+                    if tab not in not_recognized:
+                        not_recognized.append(tab)
+    print 'Not able to recognize miptable(s): ', not_recognized
+
+    for mt in request_by.keys():    
+        print '\ntable:', mt, request_by[mt], 'len: ',len(request_by[mt])
+
+    # Write out the xls spreadsheet
+    write_xls(args.outputfile, total_request, request_by, definitions)
+
+#    for mt in total_request.keys():
+#        print '#############################################'
+#        print '\ntable:', mt, 'len: ',len(total_request[mt])
+#        for v in total_request[mt].keys():
+#            if v in definitions.keys():
+#                d = definitions[v]
+#            else:
+#                d = ''
+#            print v,'|',total_request[mt][v],'|',d 
+
+
+if __name__ == '__main__':
+    main()
