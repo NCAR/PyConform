@@ -213,9 +213,9 @@ class ActionTests(unittest.TestCase):
 
 
 #===============================================================================
-# InputSliceReaderTests
+# ReaderTests
 #===============================================================================
-class InputSliceReaderTests(unittest.TestCase):
+class ReaderTests(unittest.TestCase):
     """
     Unit tests for the operators.Reader class
     """
@@ -303,9 +303,9 @@ class InputSliceReaderTests(unittest.TestCase):
 
 
 #===============================================================================
-# FunctionEvaluatorTests
+# EvaluatorTests
 #===============================================================================
-class FunctionEvaluatorTests(unittest.TestCase):
+class EvaluatorTests(unittest.TestCase):
     """
     Unit tests for the operators.Evaluator class
     """
@@ -392,11 +392,11 @@ class FunctionEvaluatorTests(unittest.TestCase):
 
 
 #===============================================================================
-# OutputSliceHandleTests
+# FinalizerTests
 #===============================================================================
-class OutputSliceHandleTests(unittest.TestCase):
+class FinalizerTests(unittest.TestCase):
     """
-    Unit tests for the operators.Handle class
+    Unit tests for the operators.Finalizer class
     """
     
     def setUp(self):
@@ -416,51 +416,77 @@ class OutputSliceHandleTests(unittest.TestCase):
         dataset.variables[self.var][:] = self.vardata
         dataset.close()
         self.slice = (slice(0, 1), slice(1, 3))
+        self.data = np.array([1,2,3,4,5], dtype='float32')
         
     def tearDown(self):
         if exists(self.ncfile):
             remove(self.ncfile)
 
     def test_init(self):
-        testname = 'Handle.__init__()'
-        OSH = acts.Handle('x')
-        actual = type(OSH)
-        expected = acts.Handle
+        testname = 'Finalizer.__init__()'
+        H = acts.Finalizer('x')
+        actual = type(H)
+        expected = acts.Finalizer
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+    def test_init_data(self):
+        testname = 'Finalizer.__init__(data)'
+        H = acts.Finalizer('x', data=self.data)
+        actual = type(H)
+        expected = acts.Finalizer
+        print_test_message(testname, actual, expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_call_data(self):
+        testname = 'Finalizer.__call__(data)'
+        H = acts.Finalizer('x', data=self.data)
+        actual = H()
+        expected = self.data
+        print_test_message(testname, actual, expected)
+        npt.assert_equal(actual, expected, '{} failed'.format(testname))
+
+    def test_call_data_failure(self):
+        testname = 'Finalizer.__call__(data)'
+        H = acts.Finalizer('x', data=self.data)
+        indata = np.array([1,2,3,4,8,6,4], dtype=np.float64)
+        actual = '???'
+        expected = ValueError
+        print_test_message(testname, actual, expected)
+        self.assertRaises(expected, H, indata)
+        
     def test_min_ok(self):
         indata = 1.0
-        testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', minimum=0.0)
-        actual = OSH(indata)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', minimum=0.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         
     def test_min_warn(self):
         indata = -1.0
-        testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', minimum=0.0)
-        actual = OSH(indata)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', minimum=0.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_max_ok(self):
         indata = 1.0
-        testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', maximum=10.0)
-        actual = OSH(indata)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', maximum=10.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         
     def test_max_warn(self):
         indata = 11.0
-        testname = 'Handle({})'.format(indata)
-        OSH = acts.Handle('x', maximum=10.0)
-        actual = OSH(indata)
+        testname = 'Finalizer({})'.format(indata)
+        H = acts.Finalizer('x', maximum=10.0)
+        actual = H(indata)
         expected = indata
         print_test_message(testname, actual, expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))

@@ -36,7 +36,7 @@ class FunctionsTests(unittest.TestCase):
     def setUp(self):
         self.all_operators = set((('-', 1), ('^', 2), ('+', 2),
                                   ('-', 2), ('*', 2), ('/', 2)))
-        self.all_functions = set((('sqrt', 1),))
+        self.all_functions = set((('transpose', 2), ('sqrt', 1), ('convert', 3)))
         self.all = (self.all_operators).union(self.all_functions)
 
     def test_available_operators(self):
@@ -54,8 +54,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.NegationOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_add(self):
         indata = ('+', 2)
@@ -64,8 +64,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.AdditionOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_sub(self):
         indata = ('-', 2)
@@ -74,8 +74,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.SubtractionOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_mul(self):
         indata = ('*', 2)
@@ -84,8 +84,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.MultiplicationOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_div(self):
         indata = ('/', 2)
@@ -94,8 +94,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.DivisionOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_pow(self):
         indata = ('^', 2)
@@ -104,8 +104,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.PowerOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_operator_key_failure(self):
         indata = ('?', 2)
@@ -136,8 +136,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.SquareRootFunction
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_function_key_failure(self):
         indata = ('f', 1)
@@ -168,8 +168,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.SquareRootFunction
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_mul(self):
         indata = ('*', 2)
@@ -178,8 +178,8 @@ class FunctionsTests(unittest.TestCase):
         expected = functions.MultiplicationOperator
         print_test_message(testname, indata=indata, 
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
     def test_find_failure(self):
         indata = ('*', 3)
@@ -188,21 +188,21 @@ class FunctionsTests(unittest.TestCase):
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(KeyError, functions.find, *indata)
 
-    def test_function_attribute_mul(self):
-        indata = ('*', 2)
-        testname = 'find({!r}, {}).function'.format(*indata)
-        actual = functions.find(*indata).function
-        expected = op.mul
+    def test_function_mul(self):
+        indata = (2.4, 3.2)
+        testname = 'find({!r}, {}).function'.format('*', 2)
+        actual = functions.find('*', 2)(*indata)
+        expected = op.mul(*indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+                         '{} returned unexpected result'.format(testname))
 
     def test_function_attribute_sqrt(self):
-        indata = ('sqrt', 1)
-        testname = 'find({!r}, {}).function'.format(*indata)
-        actual = functions.find(*indata).function
-        expected = np.sqrt
+        indata = (4.0,)
+        testname = 'find({!r}, {}).function'.format('sqrt', 1)
+        actual = functions.find('sqrt', 1)(*indata)
+        expected = np.sqrt(*indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
@@ -212,19 +212,23 @@ class FunctionsTests(unittest.TestCase):
         class myfunc(functions.Function):
             key = 'myfunc'
             numargs = 3
-            function = lambda x,y,z: x
             def units(self, *arg_units):
                 uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
                 return uret, (None, None, None)
+            def dimensions(self, *arg_dims):
+                dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
+                return dret, (None, None, None)
+            def __call(self, x, y, z):
+                return x
 
         indata = ('myfunc', 3)
         testname = 'find({!r}, {}).function'.format(*indata)
-        actual = functions.find(*indata).function
-        expected = myfunc.function
+        actual = functions.find(*indata)
+        expected = myfunc
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
+        self.assertIsInstance(actual, expected,
+                              '{} returned unexpected result'.format(testname))
 
 
 #===============================================================================

@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep
 from collections import OrderedDict
-from numpy import dtype
+from numpy import dtype, array, array_equal
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
 
@@ -72,6 +72,7 @@ class VariableInfo(object):
                  dimensions=(), 
                  attributes=OrderedDict(),
                  definition=None,
+                 data=None,
                  filename=None):
         """
         Initializer
@@ -82,6 +83,7 @@ class VariableInfo(object):
             dimensions (tuple): Tuple of dimension names in variable
             attributes (dict): Dictionary of variable attributes
             definition (str): Optional string definition of variable
+            data (tuple): Tuple of data to initialize the variable
             filename (str): Filename for read/write of variable
         """
         self._name = str(name)
@@ -89,6 +91,7 @@ class VariableInfo(object):
         self._dimensions = dimensions
         self._attributes = attributes
         self._definition = definition
+        self._data = data
         self._filename = filename
     
     @property
@@ -112,6 +115,10 @@ class VariableInfo(object):
         return self._definition
 
     @property
+    def data(self):
+        return self._data
+
+    @property
     def filename(self):
         return self._filename
 
@@ -122,9 +129,14 @@ class VariableInfo(object):
             return False
         if self.dimensions != other.dimensions:
             return False
-        if self.attributes != other.attributes:
-            return False
+        for k,v in other.attributes.iteritems():
+            if k not in self.attributes:
+                return False
+            elif not array_equal(v, self.attributes[k]):
+                return False
         if self.definition != other.definition:
+            return False
+        if not array_equal(self.data, other.data):
             return False
         if self.filename != other.filename:
             return False
@@ -137,11 +149,13 @@ class VariableInfo(object):
         strval = 'Variable: {!r}'.format(self.name) + linesep
         strval += '   datatype: {!r}'.format(self.datatype) + linesep
         strval += '   dimensions: {!s}'.format(self.dimensions) + linesep
-        if self.definition:
+        if self.definition is not None:
             strval += '   definition: {!r}'.format(self.definition) + linesep
-        if self.filename:
+        if self.data is not None:
+            strval += '   data: {!r}'.format(self.data) + linesep
+        if self.filename is not None:
             strval += '   filename: {!r}'.format(self.filename) + linesep
-        if self.attributes:
+        if len(self.attributes) > 0:
             strval += '   attributes:' + linesep
             for aname, avalue in self.attributes.iteritems():
                 strval += '      {}: {!r}'.format(aname, avalue) + linesep
@@ -149,6 +163,9 @@ class VariableInfo(object):
 
     def standard_name(self):
         return self.attributes.get('standard_name')
+
+    def long_name(self):
+        return self.attributes.get('long_name')
 
     def units(self):
         return self.attributes.get('units')
@@ -190,15 +207,15 @@ class Dataset(object):
             if not isinstance(vinfo, VariableInfo):
                 err_msg = ('Dataset {!r} variables must be of VariableInfo '
                            'type').format(self.name)
-                raise TypeError(err_msg)            
-            if not vinfo.units():
-                err_msg = ('Variable {!r} has no units in Dataset '
-                           '{!r}').format(vinfo.name, self.name)
-                raise ValueError(err_msg)
-            if not vinfo.standard_name():
-                err_msg = ('Variable {!r} has no standard_name in Dataset '
-                           '{!r}').format(vinfo.name, self.name)
-                raise ValueError(err_msg)
+                raise TypeError(err_msg)
+#             if not vinfo.units():
+#                 err_msg = ('Variable {!r} has no units in Dataset '
+#                            '{!r}').format(vinfo.name, self.name)
+#                 raise ValueError(err_msg)
+#             if not vinfo.standard_name() and not vinfo.long_name():
+#                 err_msg = ('Variable {!r} has no standard_name or long_name '
+#                            'in Dataset {!r}').format(vinfo.name, self.name)
+#                 raise ValueError(err_msg)
         self._variables = variables
 
         if not isinstance(dimensions, dict):
@@ -206,9 +223,9 @@ class Dataset(object):
                        'dict').format(self.name)
             raise TypeError(err_msg)
         for dinfo in dimensions.itervalues():
-            if not isinstance(dinfo, DimensionInfo):
+            if dinfo is not None and not isinstance(dinfo, DimensionInfo):
                 err_msg = ('Dataset {!r} dimensions must be DimensionInfo '
-                           'type').format(self.name)
+                           'type or None').format(self.name)
                 raise TypeError(err_msg)
         self._dimensions = dimensions
 
@@ -248,11 +265,13 @@ class Dataset(object):
             vdict = OrderedDict()
             vdict['datatype'] = vinfo.datatype
             vdict['dimensions'] = vinfo.dimensions
-            if vinfo.definition:
+            if vinfo.definition is not None:
                 vdict['definition'] = vinfo.definition
-            if vinfo.filename:
+            if vinfo.data is not None:
+                vdict['data'] = vinfo.data
+            if vinfo.filename is not None:
                 vdict['filename'] = vinfo.filename
-            if vinfo.attributes:
+            if vinfo.attributes is not None:
                 vdict['attributes'] = vinfo.attributes
             dsdict['variables'][vinfo.name] = vdict
         return dsdict
@@ -406,24 +425,54 @@ class OutputDataset(Dataset):
         invars = dsdict.get('variables', OrderedDict())
         for vname, vdict in invars.iteritems():
             kwargs = {}
+            if 'attributes' in vdict:
+                kwargs['attributes'] = vdict['attributes']
             if 'dimensions' not in vdict:
                 err_msg = ('Dimensions are required for variable '
                            '{!r}').format(vname)
                 raise ValueError(err_msg)
             else:
                 kwargs['dimensions'] = vdict['dimensions']
-            if 'definition' not in vdict:
-                err_msg = ('Definition is required for output variable '
-                           '{!r}').format(vname)
-                raise ValueError(err_msg)
-            else:
-                kwargs['definition'] = vdict['definition']
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
-            if 'attributes' in vdict:
-                kwargs['attributes'] = vdict['attributes']
+            has_defn = 'definition' in vdict
+            has_data = 'data' in vdict
+            if not has_data and not has_defn:
+                err_msg = ('Definition or data is required for output variable '
+                           '{!r}').format(vname)
+                raise ValueError(err_msg)
+            elif has_data and has_defn:
+                err_msg = ('Both definition and data cannot be defined for '
+                           'output variable {!r}').format(vname)
+                raise ValueError(err_msg)
+            elif has_defn:
+                kwargs['definition'] = str(vdict['definition'])
+            elif has_data:
+                kwargs['data'] = array(vdict['data'])
             if 'filename' in vdict:
                 kwargs['filename'] = vdict['filename']
             variables[vname] = VariableInfo(vname, **kwargs)
+        
+        dimensions = OrderedDict()
+        for vname, vinfo in variables.iteritems():
+            if vinfo.data is not None:
+                dshape = vinfo.data.shape
+                if len(dshape) == 0:
+                    dshape = (1,)
+                for dname, dsize in zip(vinfo.dimensions, dshape):
+                    if dname in dimensions and dimensions[dname] is not None:
+                        if dsize != dimensions[dname].size:
+                            raise ValueError(('Dimension {0!r} is inconsistently '
+                                              'defined in OutputDataset '
+                                              '{1!r}').format(dname, name))
+                    else:
+                        dimensions[dname] = DimensionInfo(dname, dsize)
+            else:
+                for dname in vinfo.dimensions:
+                    if dname not in dimensions:
+                        dimensions[dname] = None 
+                
         super(OutputDataset, self).__init__(name, variables=variables,
+                                            dimensions=dimensions,
                                             gattribs=attributes)
+        

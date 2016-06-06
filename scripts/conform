@@ -14,7 +14,10 @@ from os.path import exists
 from glob import glob
 from json import load as json_load
 from collections import OrderedDict
-import argparse
+from argparse import ArgumentParser
+
+from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.conform import setup, run
 
 
 #==============================================================================
@@ -25,7 +28,7 @@ def cli(argv=None):
               taking input from the command-line and a predefined output
               specification file (specfile)."""
 
-    parser = argparse.ArgumentParser(prog='conform', description=desc)
+    parser = ArgumentParser(description=desc)
     parser.add_argument('-i', '--infile', dest='infiles', default=[],
                         metavar='INFILE', action='append', type=str,
                         help='Input file path or globstring specifying input '
@@ -54,16 +57,23 @@ def cli(argv=None):
 def main(argv=None):
     args = cli(argv)
     
-    input_files = []
+    infiles = []
     for infile in args.infiles:
-        input_files.extend(glob(infile))
+        infiles.extend(glob(infile))
     
     if not exists(args.specfile):
-        raise OSError('Output specification file {!r} not '
-                      'found'.format(args.specfile))
-    output_specification = json_load(open(args.specfile, 'r'),
-                                     object_pairs_hook=OrderedDict)
+        raise OSError(('Output specification file {!r} not '
+                       'found').format(args.specfile))
+    dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
+    
+    inpds = InputDataset(filenames=infiles)
+    outds = OutputDataset(dsdict=dsdict)
 
+    # Setup the PyConform problem
+    agraph = setup(inpds, outds)
+    
+    # Run PyConform
+    run(inpds, outds, agraph)
 
 #==============================================================================
 # Command-line Operation

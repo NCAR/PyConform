@@ -13,6 +13,7 @@ from netCDF4 import Dataset as NCDataset
 from cf_units import Unit
 
 import numpy as np
+import numpy.testing as npt
 import unittest
 
 
@@ -250,6 +251,16 @@ class InfoObjTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Default VariableInfo.definition is not {!r}'.format(indata))
 
+    def test_vinfo_data(self):
+        indata = (1,2,3,4,5,6)
+        vinfo = datasets.VariableInfo('x', data=indata)
+        actual = vinfo.data
+        expected = indata
+        print_test_message('VariableInfo.data', indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'Default VariableInfo.data is not {!r}'.format(indata))
+
     def test_vinfo_filename(self):
         indata = 'nc1.nc'
         vinfo = datasets.VariableInfo('x', filename=indata)
@@ -449,7 +460,16 @@ class DatasetTests(unittest.TestCase):
         self.dsdict['attributes'] = self.fattribs
         self.dsdict['variables'] = OrderedDict()
         vdicts = self.dsdict['variables']
-        
+
+        vdicts['W'] = OrderedDict()
+        vdicts['W']['datatype'] = 'float64'
+        vdicts['W']['dimensions'] = ('w',)
+        vdicts['W']['data'] = [1., 2., 3., 4., 5., 6., 7., 8.]
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'something'
+        vattribs['units'] = '1'
+        vdicts['W']['attributes'] = vattribs
+            
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'float64'
         vdicts['X']['dimensions'] = ('x',)
@@ -497,7 +517,7 @@ class DatasetTests(unittest.TestCase):
         vattribs['standard_name'] = 'variable 2'
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
-
+        
     def tearDown(self):
         self._clear_()
         
@@ -539,7 +559,7 @@ class DatasetTests(unittest.TestCase):
         expected = self.dsdict
         print_test_message('OutputDataset.get_dict()',
                            actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
+        npt.assert_equal(actual, expected,
                          'OutputDataset.get_dict() returns wrong data')
         
     def test_dataset_get_dict_from_input(self):

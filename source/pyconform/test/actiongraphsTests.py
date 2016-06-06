@@ -56,7 +56,7 @@ class ActionGraphTests(unittest.TestCase):
         self.filenames = OrderedDict([('u1', 'u1.nc'),
                                       ('u2', 'u2.nc'),
                                       ('u3', 'u3.nc')])
-        self._clear_()
+        self._clear_input_()
         
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
@@ -114,9 +114,9 @@ class ActionGraphTests(unittest.TestCase):
         self.inpds = datasets.InputDataset('inpds', self.filenames.values())
 
     def tearDown(self):
-        self._clear_()
+        self._clear_input_()
         
-    def _clear_(self):
+    def _clear_input_(self):
         for fname in self.filenames.itervalues():
             if exists(fname):
                 remove(fname)
@@ -169,7 +169,7 @@ class ActionGraphTests(unittest.TestCase):
         u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.Handle('V')
+        vhandle = actions.Finalizer('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)
@@ -181,7 +181,7 @@ class ActionGraphTests(unittest.TestCase):
         u2read = actions.Reader(self.filenames['u2'], 'u2')
         u1plusu2 = actions.Evaluator('+', '(u1+u2)', operator.add,
                                              signature=[None, None])
-        vhandle = actions.Handle('V')
+        vhandle = actions.Finalizer('V')
         g.connect(u1read, u1plusu2)
         g.connect(u2read, u1plusu2)
         g.connect(u1plusu2, vhandle)
@@ -204,7 +204,7 @@ class GraphFillerTests(unittest.TestCase):
         self.filenames = OrderedDict([('u1', 'w1.nc'),
                                       ('u2', 'w2.nc'),
                                       ('u3', 'w3.nc')])
-        self._clear_()
+        self._clear_input_()
         
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
@@ -326,11 +326,22 @@ class GraphFillerTests(unittest.TestCase):
         
         self.outds = datasets.OutputDataset('outds', self.dsdict)
         
-    def tearDown(self):
-        self._clear_()
+        self.outfiles = dict((vname, vdict['filename'])
+                             for vname, vdict in vdicts.iteritems()
+                             if 'filename' in vdict)
+        self._clear_output_()
         
-    def _clear_(self):
+    def tearDown(self):
+        self._clear_input_()
+        self._clear_output_()
+        
+    def _clear_input_(self):
         for fname in self.filenames.itervalues():
+            if exists(fname):
+                remove(fname)
+
+    def _clear_output_(self):
+        for fname in self.outfiles.itervalues():
             if exists(fname):
                 remove(fname)
 
