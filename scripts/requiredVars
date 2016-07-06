@@ -44,31 +44,38 @@ def write_xls(fn, total_request, request_by, definitions):
     format.set_border(1)
  
     # For each mip table, create a new worksheet and set up header information
-    for mt in total_request.keys():
+    for mt in sorted(total_request):
         worksheet = workbook.add_worksheet(mt)
         worksheet.set_column(0, 0, 20)
-        worksheet.set_column(1, 2, 40)
+        worksheet.set_column(1, 1, 40)
+        worksheet.set_column(2, 2, 15)
+        worksheet.set_column(3, 4, 40)
         worksheet.write('A1', mt, header)
-        worksheet.write('C1', ' # of Variables: '+str(len(total_request[mt])))
-        worksheet.write('A2', 'variable', bold)
-        worksheet.write('B2', 'title', bold)
-        worksheet.write('C2', 'Model->CMIP Definition', bold) 
+        worksheet.write('B1', ' # of Variables: '+str(len(total_request[mt])), bold)
+        worksheet.write('A2', 'Variable', bold)
+        worksheet.write('B2', 'Title', bold)
+        worksheet.write('C2', 'Units', bold)
+        worksheet.write('D2', 'Dimensions', bold)
+        worksheet.write('E2', 'Model->CMIP Definition', bold) 
         cr = 3
         # For each variable requested, add it's name, official title, 
         # and supply a def if we have one already
-        for v in total_request[mt].keys():
+        for v in sorted(total_request[mt]):
             worksheet.write('A'+str(cr), v, format)
-            worksheet.write('B'+str(cr), total_request[mt][v], format)
+            var_info = total_request[mt][v].split('-----')
+            worksheet.write('B'+str(cr), var_info[0], format)
+            worksheet.write('C'+str(cr), var_info[1], format)
+            worksheet.write('D'+str(cr), var_info[2], format)
             if v in definitions.keys():
-                worksheet.write('C'+str(cr), definitions[v], format)
+                worksheet.write('E'+str(cr), definitions[v], format)
             else: # We don't have a definition, create a border around a blank cell
-                worksheet.write('C'+str(cr), '', format)
+                worksheet.write('E'+str(cr), '', format)
             cr = cr + 1
         # List each mip that requested this table
         cr = 3
-        worksheet.write('D2', 'Requested by:', bold)
+        worksheet.write('F2', 'Requested by:', bold)
         for m in request_by[mt]:
-            worksheet.write('D'+str(cr), m)
+            worksheet.write('F'+str(cr), m)
             cr = cr + 1    
 
     workbook.close()
@@ -89,45 +96,59 @@ def main(argv=None):
     if os.path.isfile(args.defFile):
         with open(args.defFile) as y_definitions:
             definitions = load(y_definitions)
+    
+    for v in dq.coll['CMORvar'].items:
 
-    # Parse the xml file to find required vars
-    for i in dq.coll['requestLink'].items:
-        if i.mip not in mips and i.mip != 'VIACSAB':
-            mips.append(i) 
+        tab = v.mipTable
+        if tab not in request_by.keys():
+            request_by[tab] = []
+        if v.prov not in request_by[tab]:
+            request_by[tab].append(v.prov)
 
-    # Loop through the mips and find the requested mip tables and, there for, 
-    # the required variables
-    for i in mips:
-        if 'requestItem' in dq.inx.iref_by_sect[i.uid].a:
-            for u in dq.inx.iref_by_sect[i.uid].a['requestItem']:
-                table_request = {}
-                if '!' in dq.inx.uid[u].tab:
-                    tab_split = dq.inx.uid[u].tab.split('!')
-                    tab = tab_split[len(tab_split)-1]
-                else:
-                    tab = dq.inx.uid[u].tab
-                g_id = dq.inx.requestVarGroup.label[tab]
-                if len(g_id) > 0:
-                    if tab in request_by.keys():
-                        if i.mip not in request_by[tab]:
-                            request_by[tab].append(i.mip)
-                    else:
-                        request_by[tab] = [i.mip]
-                    vars = dq.inx.iref_by_sect[g_id[0]].a
-                    for v in vars['requestVar']:
-                        v_id = dq.inx.uid[v].vid  
-                        c_var = dq.inx.uid[v_id]
-                        v_var = dq.inx.uid[c_var.vid]
-                        table_request[c_var.label] = c_var.title + '   (' + v_var.units + ')'
-                    total_request[tab] = table_request
+        if tab not in total_request.keys():
+            total_request[tab] = {}
 
-                else:
-                    if tab not in not_recognized:
-                        not_recognized.append(tab)
-    print 'Not able to recognize miptable(s): ', not_recognized
+        v_id = v.uid  
+        c_var = dq.inx.uid[v_id]
+        if hasattr(c_var,'vid'):
+            v_var = dq.inx.uid[c_var.vid]
+        else:
+            print 'Not able to recognize v_var for ', v.label 
+            v_var = None
+        if hasattr(c_var,'stid'):
+            s_var = dq.inx.uid[c_var.stid]
+            if hasattr(s_var,'spid'):
+                sp_var = dq.inx.uid[s_var.spid]
+            else:
+                sp_var = None
+            td = None
+            if hasattr(s_var,'tmid'):
+                t_var = dq.inx.uid[s_var.tmid]
+                if hasattr(t_var,'dimensions'):
+                    t = t_var.dimensions
+                    if t != '' and t != 'None':
+                        td = t+'|'
+        else:
+            print 'Not able to recognize s_var for ', v 
+            s_var = None
+            sp_var = None
+        request = c_var.title
+        if hasattr(v_var,'units'):
+            request = request + '-----' + v_var.units
+        else:
+            request = request + '----- No units listed'
+        if hasattr(sp_var, 'dimensions'):
+            if td != None:
+                request = request + '-----' + td + sp_var.dimensions
+            else:
+                request = request + '-----' + sp_var.dimensions 
+        else:
+            request = request + '----- No dimensions listed)'
+        if '-copy' not in v.label:
+            total_request[tab][v.label] = request
 
-    for mt in request_by.keys():    
-        print '\ntable:', mt, request_by[mt], 'len: ',len(request_by[mt])
+#    for mt in request_by.keys():    
+#        print '\ntable:', mt, request_by[mt], 'len: ',len(request_by[mt])
 
     # Write out the xls spreadsheet
     write_xls(args.outputfile, total_request, request_by, definitions)
