@@ -263,6 +263,7 @@ class GraphFiller(object):
     def _compute_units_(graph, vtx):
         nbrs = graph.neighbors_to(vtx)
         to_units = [GraphFiller._compute_units_(graph, nbr) for nbr in nbrs]
+
         if isinstance(vtx, Evaluator):
             arg_units = [to_units.pop(0) if arg is None else arg
                          for arg in vtx.signature]
