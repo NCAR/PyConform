@@ -498,8 +498,8 @@ class ParseXML(object):
                             tab_split = dq.inx.uid[u].tab.split('!')
                             tab = tab_split[len(tab_split)-1]
                         else:
-                            tab = dq.inx.uid[u].tab
-                        #print miptable, tab
+                             tab = dq.inx.uid[u].tab
+                        print miptable, tab
                         if miptable == None or miptable == tab:
                             g_id = dq.inx.requestVarGroup.label[tab]
                             if len(g_id) > 0:

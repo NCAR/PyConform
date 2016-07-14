@@ -33,7 +33,7 @@ def load(defs):
     return def_dict
 
 
-def write_xls(fn, total_request, request_by, definitions):
+def write_xls(fn, total_request, definitions):
 
     # Create an excel workbook and setup some formatting
     workbook = xlsxwriter.Workbook(fn)
@@ -47,36 +47,33 @@ def write_xls(fn, total_request, request_by, definitions):
     for mt in sorted(total_request):
         worksheet = workbook.add_worksheet(mt)
         worksheet.set_column(0, 0, 20)
-        worksheet.set_column(1, 1, 40)
+        worksheet.set_column(1, 1, 60)
         worksheet.set_column(2, 2, 15)
         worksheet.set_column(3, 4, 40)
+        worksheet.set_column(5, 5, 80)
         worksheet.write('A1', mt, header)
         worksheet.write('B1', ' # of Variables: '+str(len(total_request[mt])), bold)
         worksheet.write('A2', 'Variable', bold)
         worksheet.write('B2', 'Title', bold)
         worksheet.write('C2', 'Units', bold)
         worksheet.write('D2', 'Dimensions', bold)
-        worksheet.write('E2', 'Model->CMIP Definition', bold) 
+        worksheet.write('E2', 'Requested By', bold)
+        worksheet.write('F2', 'Model->CMIP Definition', bold)
         cr = 3
         # For each variable requested, add it's name, official title, 
         # and supply a def if we have one already
         for v in sorted(total_request[mt]):
             worksheet.write('A'+str(cr), v, format)
-            var_info = total_request[mt][v].split('-----')
-            worksheet.write('B'+str(cr), var_info[0], format)
-            worksheet.write('C'+str(cr), var_info[1], format)
-            worksheet.write('D'+str(cr), var_info[2], format)
+            worksheet.write('B'+str(cr), total_request[mt][v]['description'], format)
+            worksheet.write('C'+str(cr), total_request[mt][v]['units'], format)
+            worksheet.write('D'+str(cr), total_request[mt][v]['dimensions'], format)
+            request = ' ,'.join(total_request[mt][v]['req_by'])
+            worksheet.write('E'+str(cr), request, format)
             if v in definitions.keys():
-                worksheet.write('E'+str(cr), definitions[v], format)
+                worksheet.write('F'+str(cr), definitions[v], format)
             else: # We don't have a definition, create a border around a blank cell
-                worksheet.write('E'+str(cr), '', format)
+                worksheet.write('F'+str(cr), '', format)
             cr = cr + 1
-        # List each mip that requested this table
-        cr = 3
-        worksheet.write('F2', 'Requested by:', bold)
-        for m in request_by[mt]:
-            worksheet.write('F'+str(cr), m)
-            cr = cr + 1    
 
     workbook.close()
 
@@ -86,7 +83,6 @@ def main(argv=None):
     dq = dreq.loadDreq()
     total_request = {}
     mips = []
-    request_by = {}
     not_recognized = []
 
     # Parse args
@@ -99,59 +95,63 @@ def main(argv=None):
     
     for v in dq.coll['CMORvar'].items:
 
-        tab = v.mipTable
-        if tab not in request_by.keys():
-            request_by[tab] = []
-        if v.prov not in request_by[tab]:
-            request_by[tab].append(v.prov)
-
-        if tab not in total_request.keys():
-            total_request[tab] = {}
-
-        v_id = v.uid  
-        c_var = dq.inx.uid[v_id]
-        if hasattr(c_var,'vid'):
-            v_var = dq.inx.uid[c_var.vid]
-        else:
-            print 'Not able to recognize v_var for ', v.label 
-            v_var = None
-        if hasattr(c_var,'stid'):
-            s_var = dq.inx.uid[c_var.stid]
-            if hasattr(s_var,'spid'):
-                sp_var = dq.inx.uid[s_var.spid]
-            else:
-                sp_var = None
-            td = None
-            if hasattr(s_var,'tmid'):
-                t_var = dq.inx.uid[s_var.tmid]
-                if hasattr(t_var,'dimensions'):
-                    t = t_var.dimensions
-                    if t != '' and t != 'None':
-                        td = t+'|'
-        else:
-            print 'Not able to recognize s_var for ', v 
-            s_var = None
-            sp_var = None
-        request = c_var.title
-        if hasattr(v_var,'units'):
-            request = request + '-----' + v_var.units
-        else:
-            request = request + '----- No units listed'
-        if hasattr(sp_var, 'dimensions'):
-            if td != None:
-                request = request + '-----' + td + sp_var.dimensions
-            else:
-                request = request + '-----' + sp_var.dimensions 
-        else:
-            request = request + '----- No dimensions listed)'
         if '-copy' not in v.label:
-            total_request[tab][v.label] = request
+            tab = v.mipTable
 
-#    for mt in request_by.keys():    
-#        print '\ntable:', mt, request_by[mt], 'len: ',len(request_by[mt])
+            if tab not in total_request.keys():
+                total_request[tab] = {}
+
+            if v.label not in total_request[tab].keys():
+                total_request[tab][v.label] = {'req_by':[]}
+
+            if v.prov not in total_request[tab][v.label]['req_by']:
+                total_request[tab][v.label]['req_by'].append(v.prov)
+
+            v_id = v.uid
+            c_var = dq.inx.uid[v_id]
+
+            if hasattr(c_var,'vid'):
+                v_var = dq.inx.uid[c_var.vid]
+            else:
+                print 'Not able to recognize v_var for ', v.label 
+                v_var = None
+            if hasattr(c_var,'stid'):
+                s_var = dq.inx.uid[c_var.stid]
+                if hasattr(s_var,'spid'):
+                    sp_var = dq.inx.uid[s_var.spid]
+                else:
+                    sp_var = None
+                td = None
+                if hasattr(s_var,'tmid'):
+                    t_var = dq.inx.uid[s_var.tmid]
+                    if hasattr(t_var,'dimensions'):
+                        t = t_var.dimensions
+                        if t != '' and t != 'None':
+                            td = t+'|'
+            else:
+                print 'Not able to recognize s_var for ', v 
+                s_var = None
+                sp_var = None
+            total_request[tab][v.label]['description'] = c_var.title 
+            if 'None' not in c_var.description and c_var.description != '':
+                total_request[tab][v.label]['description'] = total_request[tab][v.label]['description'] + ': ' + c_var.description
+            if hasattr(v_var,'units'):
+                total_request[tab][v.label]['units'] = v_var.units
+                if 'ch4global' in v.label:
+                    print v_var.units
+            else:
+                total_request[tab][v.label]['units'] = 'No units listed'
+            if hasattr(sp_var, 'dimensions'):
+                if td != None:
+                    total_request[tab][v.label]['dimensions'] = td + sp_var.dimensions
+                else:
+                    total_request[tab][v.label]['dimensions'] = sp_var.dimensions 
+            else:
+                total_request[tab][v.label]['dimensions'] = 'No dimensions listed'
+
 
     # Write out the xls spreadsheet
-    write_xls(args.outputfile, total_request, request_by, definitions)
+    write_xls(args.outputfile, total_request, definitions)
 
 #    for mt in total_request.keys():
 #        print '#############################################'
