@@ -72,7 +72,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
     #print '\n\n',variables.keys(),'\n\n'#,axes,'\n',table_info
 
     # Get variables needed to piece together the filename
-    identifier = id.split('_')
+    identifier = id
     if ('model_id') in attributes.keys():
         model = attributes['model_id']
     else:
@@ -87,7 +87,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
                                                      attributes['grid_index']))
     else:
         ripfg = ''
-    table = identifier[1]
+    table = identifier
     attributes['experiment_id'] = table
     attributes['experiment'] = table
     today = datetime.datetime.now()
@@ -125,7 +125,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
             var["attributes"] = variables[v]
             var["definition"] = definitions[v]
             var["filename"] = f_name
-            if 'type' in variables[v].keys() and variables[v]['type'] != 'None':
+            if 'type' in variables[v].keys() and variables[v]['type'] != 'None' and variables[v]['type'] != '':
                 var["datatype"]  = data_types[variables[v]['type']]
             else:
                 var["datatype"] = 'None'
@@ -229,6 +229,8 @@ def main(argv=None):
     for t in exp_dict.keys():
         create_output(exp_dict[t], t, definitions, attributes, args.outputpath, args)
 
+    for t in sorted(exp_dict.keys()):
+        print t, len(exp_dict[t]['variables'])
  
 if __name__ == '__main__':
     main()
