@@ -16,11 +16,14 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from numpy import index_exp
 from numpy.ma import MaskedArray, asarray
 from cf_units import Unit
 from inspect import getargspec, isfunction
 from os.path import exists
 from netCDF4 import Dataset
+
+from pyconform.indexing import index_str, join
 
 
 #===================================================================================================
@@ -197,46 +200,13 @@ class ReaderNode(DataNode):
 
         # Parse the reading index
         self._shape = ncfile.variables[variable].shape
-        self._index = ReaderNode._index_to_tuple_(index, len(self._shape))
+        self._index = index_exp[index]
 
         # Set the node label
-        self._label = '{0}{1}'.format(variable, ReaderNode._index_to_str_(index))
+        self._label = '{0}{1}'.format(variable, index_str(index))
 
         # Close the NetCDF file
         ncfile.close()
-
-    @staticmethod
-    def _index_to_str_(index):
-        idx_str = ''
-        if isinstance(index, int):
-            idx_str += str(index)
-        elif isinstance(index, Ellipsis):
-            idx_str += '...'
-        elif isinstance(index, slice):
-            if index.start is not None:
-                idx_str += str(index.start)
-            idx_str += ':'
-            if index.stop is not None:
-                idx_str += str(index.stop)
-            if index.step is not None:
-                idx_str += ':{!s}'.format(index.step)
-        elif isinstance(index, tuple):
-            idx_str += ', '.join(ReaderNode._index_to_str_(idx) for idx in index)
-        else:
-            raise TypeError('ReaderNode index contains bad type {}'.format(type(index)))
-        return '[{}]'.format(idx_str)
-
-    @staticmethod
-    def _index_to_tuple_(index, ndim):
-        if isinstance(index, (int, slice)):
-            idx_list = [index] + [slice(None)] * (ndim - 1)
-        elif isinstance(index, Ellipsis):
-            idx_list = [slice(None)] * ndim
-        elif isinstance(index, tuple):
-            idx_list = sum(ReaderNode._index_to_tuple_(i, 1) for i in index)
-        else:
-            raise TypeError('ReaderNode index contains bad type {}'.format(type(index)))
-        return tuple(idx_list)
 
     @property
     def variable(self):
@@ -246,24 +216,32 @@ class ReaderNode(DataNode):
         """
         Read DataArray from file
         """
-        ncfile = Dataset(self._filepath, 'r')
-        ncvar = ncfile.variables[self.variable]
+        with Dataset(self._filepath, 'r') as ncfile:
 
-        # Read the units
-        attrs = ncvar.ncattrs()
-        units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
-        calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-        try:
-            units = Unit(units_attr, calendar=calendar_attr)
-        except:
-            units = Unit(1)
+            # Get a reference to the variable
+            ncvar = ncfile.variables[self.variable]
+    
+            # Read the variable units
+            attrs = ncvar.ncattrs()
+            units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
+            calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
+            try:
+                units = Unit(units_attr, calendar=calendar_attr)
+            except:
+                units = Unit(1)
+    
+            # Read the raw variable dimensions
+            dimensions = ncvar.dimensions
 
-        # Read the shape of the variable
-        shape = ncvar.shape
+            # Get the shape of the variable
+            shape0 = ncvar.shape
+            
+            # Compute the joined index object
+            rindex = join(shape0, self._index, index)
+            
+            # Gather the return dimensions
+            rdimensions = tuple(d for d,i in zip(dimensions, rindex) if isinstance(i, slice))            
+    
+            data = DataArray(ncvar[rindex], units=units, dimensions=rdimensions)
 
-        # Read the dimensions
-        dimensions = ncvar.dimensions
-
-        data = [self._index]
-        ncfile.close()
         return data
