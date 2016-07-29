@@ -65,9 +65,9 @@ def index_str(index):
 
 
 #===================================================================================================
-# _index_tuple_
+# index_tuple
 #===================================================================================================
-def _index_tuple_(index, ndims):
+def index_tuple(index, ndims):
     """
     Generate an index tuple from a given index expression and array shape tuple
     """
@@ -113,9 +113,9 @@ def join(shape0, index1, index2):
             raise TypeError('Array shape must be a tuple of integers')
 
     ndims0 = len(shape0)
-    idx1 = _index_tuple_(index1, ndims0)
+    idx1 = index_tuple(index1, ndims0)
     ndims1 = map(lambda i: isinstance(i, slice), idx1).count(True)
-    idx2 = _index_tuple_(index2, ndims1)
+    idx2 = index_tuple(index2, ndims1)
 
     idx2_l = list(idx2)
     idx12 = []

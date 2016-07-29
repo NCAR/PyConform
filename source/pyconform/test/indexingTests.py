@@ -5,7 +5,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.indexing import index_str, join
+from pyconform.indexing import index_str, index_tuple, join
 from testutils import print_test_message
 
 import unittest
@@ -46,6 +46,46 @@ class IndexStrTests(unittest.TestCase):
 
 
 #===================================================================================================
+# IndexTupleTests
+#===================================================================================================
+class IndexTupleTests(unittest.TestCase):
+    """
+    Unit tests for the indexing.index_tuple function
+    """
+
+    def test_index_tuple_int(self):
+        indata = (4, 3)
+        testname = 'index_tuple({}, {})'.format(*indata)
+        actual = index_tuple(*indata)
+        expected = (indata[0], slice(None), slice(None))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_index_tuple_slice(self):
+        indata = (slice(1,6,3), 3)
+        testname = 'index_tuple({}, {})'.format(*indata)
+        actual = index_tuple(*indata)
+        expected = (indata[0], slice(None), slice(None))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_index_tuple_tuple(self):
+        indata = ((4, slice(1,6,3)), 3)
+        testname = 'index_tuple({}, {})'.format(*indata)
+        actual = index_tuple(*indata)
+        expected = indata[0] + (slice(None),)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_index_tuple_tuple_too_large(self):
+        indata = ((4, slice(1,6,3), 6, 7), 3)
+        testname = 'index_tuple({}, {})'.format(*indata)
+        expected = ValueError
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, index_tuple, *indata)
+
+
+#===================================================================================================
 # JoinTests
 #===================================================================================================
 class JoinTests(unittest.TestCase):
@@ -61,13 +101,16 @@ class JoinTests(unittest.TestCase):
     def test_join_20_slice_slice(self):
         indata = 20
         A = numpy.arange(indata)
-        results = []
+        nfailures = 0
         for s1 in self.slices:
             for s2 in self.slices:
-                result = numpy.array_equal(A[s1][s2], A[join((indata,), s1, s2)])
-                print 'join(({},), {}, {}): {}'.format(indata, s1, s2, result)
-                results.append(result)
-        self.assertTrue(all(results), 'join(20, slice, slice) failed')
+                good = numpy.array_equal(A[s1][s2], A[join((indata,), s1, s2)])
+                if not good:
+                    print 'Failure: join(({},), {}, {})'.format(indata, s1, s2)
+                    nfailures += 1
+        testname = 'join(({},), slice, slice)'.format(indata)
+        print_test_message(testname, num_failures=nfailures)
+        self.assertEqual(nfailures, 0, '{} failures'.format(nfailures))
 
 #===============================================================================
 # Command-Line Operation
