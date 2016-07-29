@@ -1,53 +1,17 @@
 """
-Index Class & Functions
+Indexing Functions
 
-Because Python treats input to the __getitem__ method of a class as special, allowing for syntax
-that cannot normally be supplied to any other method or function, the Index class provides a way
-of parsing input to the __getitem__ method and returning the parsed value.
+The 'index_str' method gives a compact string representation of an indexing object (i.e., an
+object returned by the Numpy.index_exp[] method).
 
-The Index class provides 2 ways of returning the __getitem__ parsing: through a static interface
-and through an instantiated interface.
+    >>> idx = numpy.index_exp[1:2:3, 4]
 
-In the static inteface, one simply calls Index[index] to return a parsing of the index syntax into
-a Python indexing object.  For example:
-
-    >>> Index[1:2:3, 4] == (slice(1,2,3), 4)
-    True
-    
-    >>> Index[1] == 1
-    True
-    
-    >>> Index[1:2:3] == slice(1,2,3)
-    True
-
-The instantiated interface is slightly different, requiring an instantiation of an Index object
-before any attempts to parse an index.  For example:
-
-    >>> idx = Index()
-    
-    >>> idx[1]
-    <indexing.Index at 0x102c89fd0>
-
-    >>> idx.value
-    1
-
-The instantiated interface also allows for smart string conversion from an indexing object.
-
-    >>> str(idx[1:2:3, 4])
+    >>> index_str(idx)
     '1:2:3, 4'
-
-In the instantiated case, the last index input into the __getitem__ method (i.e., through the [...]
-interface) is stored in the instantiation of the Index object.  This allows you to references the
-last input index.  For example:
-
-    >>> idx[1,2,3:4:5]
-    
-    >>> str(idx)
-    '1, 2, 3:4:5'
 
 ----------------------------------------------------------------------------------------------------
 
-The 'join' operations in this module are designed to reduce multiple slicing operations, where
+The 'join' operation in this module is designed to reduce multiple slicing operations, where
 consecutive slices are reduced to a single slice:
 
     A[slice1][slice2] = A[slice12]
@@ -70,7 +34,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from types import EllipsisType
-from numpy import index_exp, arange
+from numpy import index_exp
 
 
 #===================================================================================================
@@ -103,19 +67,18 @@ def index_str(index):
 #===================================================================================================
 # _index_tuple_
 #===================================================================================================
-def _index_tuple_(index, shape):
+def _index_tuple_(index, ndims):
     """
     Generate an index tuple from a given index expression and array shape tuple
     """
-    idx = index_exp(index)
-    ndims = len(shape)
+    idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
     elocs = [loc for loc, i in enumerate(idx) if isinstance(i, EllipsisType)]
     if len(elocs) == 0:
         nfill = ndims - len(idx)
         if nfill < 0:
-            raise ValueError('Too many indices for array of shape {}'.format(shape))
+            raise ValueError('Too many indices for array with {} dimensions'.format(ndims))
         return idx + (slice(None),) * nfill
     elif len(elocs) == 1:
         eloc = elocs[0]
@@ -123,7 +86,7 @@ def _index_tuple_(index, shape):
         suffix = idx[eloc + 1:]
         nfill = ndims - len(prefix) - len(suffix)
         if nfill < 0:
-            raise ValueError('Too many indices for array of shape {}'.format(shape))
+            raise ValueError('Too many indices for array with {} dimensions'.format(ndims))
         return prefix + (slice(None),) * nfill + suffix
     else:
         raise ValueError('Too many ellipsis in index expression {}'.format(idx))
@@ -149,7 +112,38 @@ def join(shape0, index1, index2):
         if not isinstance(n, int):
             raise TypeError('Array shape must be a tuple of integers')
 
-    idx1 = _index_tuple_(index1, shape0)
-    shape1_ = tuple(None if isinstance(s, int) else len(arange(n)[s]) for s, n in zip(idx1, shape0))
-    shape1 = tuple(s for s in shape1_ if s is not None)
-    idx2 = _index_tuple_(index2, shape1)
+    ndims0 = len(shape0)
+    idx1 = _index_tuple_(index1, ndims0)
+    ndims1 = map(lambda i: isinstance(i, slice), idx1).count(True)
+    idx2 = _index_tuple_(index2, ndims1)
+
+    idx2_l = list(idx2)
+    idx12 = []
+    for i1, l0 in zip(idx1, shape0):
+        if isinstance(i1, slice):
+            i2 = idx2_l.pop(0)
+            start1, stop1, step1 = i1.indices(l0)
+            l1 = (abs(stop1 - start1) - 1) // abs(step1) + 1
+            if isinstance(i2, slice):
+                if (stop1 - start1) * step1 > 0:
+                    start2, stop2, step2 = i2.indices(l1)
+                    step12 = step1 * step2
+                    start12 = start1 + start2 * step1
+                    if (stop2 - start2) * step2 > 0:
+                        stop12 = start1 + stop2 * step1
+                        if start12 > stop12 and stop12 < 0:
+                            stop12 = None
+                        idx12.append(slice(start12, stop12, step12))
+                    else:
+                        idx12.append(slice(0, 0))
+                else:
+                    idx12.append(slice(0, 0))
+            else:
+                if i2 < -l1 or i2 >= l1:
+                    raise ValueError('Second index out of range in array')
+                idx12.append(start1 + i2 * step1)
+        else:
+            if i1 < -l0 or i1 >= l0:
+                raise ValueError('First index out of range in array')
+            idx12.append(i1)
+    return tuple(idx12)
