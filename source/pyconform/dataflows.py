@@ -106,9 +106,9 @@ class DataArray(numpy.ma.MaskedArray):
 #===================================================================================================
 class DataNode(object):
     """
-    The basic object that can appear in a Data Flow.
+    The base class for objects that can appear in a data flow
     
-    The Node object represents a point in the directed acyclic graph where multiple
+    The DataNode object represents a point in the directed acyclic graph where multiple
     edges meet.  It represents a functional operation on the DataArrays coming into it from
     its adjacent DataNodes.  The DataNode itself outputs the result of this operation
     through the __getitem__ interface (i.e., DataNode[item]), returning a slice of a
@@ -145,7 +145,7 @@ class DataNode(object):
 #===================================================================================================
 class EvalDataNode(DataNode):
     """
-    The basic class for evaluating a function on input from neighboring DataNodes
+    DataNode class for evaluating a function on input from neighboring DataNodes
     """
 
     def __init__(self, label, func, *args):
@@ -203,7 +203,7 @@ class EvalDataNode(DataNode):
 #===================================================================================================
 class ReadDataNode(DataNode):
     """
-    Basic class for reading data from a NetCDF file
+    DataNode class for reading data from a NetCDF file
     """
 
     def __init__(self, filepath, variable, index=slice(None)):
@@ -285,7 +285,7 @@ class ReadDataNode(DataNode):
 #===================================================================================================
 class ValidateDataNode(DataNode):
     """
-    The basic class to validate data
+    DataNode class to validate data from a neighboring DataNode
     """
     
     def __init__(self, label, dnode, minimum=None, maximum=None,
@@ -361,7 +361,7 @@ class ValidateDataNode(DataNode):
 #===================================================================================================
 class SetDataNode(DataNode):
     """
-    The basic class to set data in memory
+    DataNode class to set data in memory
     """
     
     def __init__(self, label, data, units=None, dimensions=None):
