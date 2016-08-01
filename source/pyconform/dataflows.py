@@ -18,7 +18,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
-from pyconform.indexing import index_str, join
+from pyconform.indexing import index_str, join, align_index
 from cf_units import Unit
 from inspect import getargspec, isfunction
 from os.path import exists
@@ -135,21 +135,6 @@ class DataNode(object):
         """
         pass
 
-    def _align_indices_(self, index, dimensions):
-        """
-        Compute an index tuple with indices aligned according to dimension name
-        
-        Parameters:
-            index: An index or a dictionary of indices keyed by dimension name
-            dimensions (tuple): A tuple of named dimensions for each axis of the data
-        """
-        if index is None:
-            return tuple(slice(0, 0) for d in dimensions)
-        elif isinstance(index, dict):
-            return tuple(index.get(d, slice(None)) for d in dimensions)
-        else:
-            return index
-
     @property
     def label(self):
         """
@@ -188,7 +173,7 @@ class CreateDataNode(DataNode):
         """
         Compute and retrieve the data associated with this DataNode operation
         """
-        return self._data[self._align_indices_(index, self._data.dimensions)]
+        return self._data[align_index(index, self._data.dimensions)]
 
 
 #===================================================================================================
@@ -265,13 +250,13 @@ class ReadDataNode(DataNode):
             dimensions0 = ncvar.dimensions
 
             # Align the read-indices on dimensions
-            index1 = self._align_indices_(self._index, dimensions0)
+            index1 = align_index(self._index, dimensions0)
 
             # Get the dimensions after application of the first index
             dimensions1 = tuple(d for d, i in zip(dimensions0, index1) if isinstance(i, slice))
 
             # Align the second index on the intermediate dimensions
-            index2 = self._align_indices_(index, dimensions1)
+            index2 = align_index(index, dimensions1)
 
             # Get the dimensions after application of the second index
             dimensions2 = tuple(d for d, i in zip(dimensions1, index2) if isinstance(i, slice))
@@ -348,7 +333,7 @@ class EvalDataNode(DataNode):
         if len(self._inputs) == 0:
             data = self._function()
             if isinstance(data, DataArray):
-                return data[self._align_indices_(index, data.dimensions)]
+                return data[align_index(index, data.dimensions)]
             else:
                 return data
         else:
@@ -357,7 +342,7 @@ class EvalDataNode(DataNode):
                 if isinstance(d, DataNode):
                     args.append(d[index])
                 elif isinstance(d, DataArray):
-                    args.append(d[self._align_indices_(index, d.dimensions)])
+                    args.append(d[align_index(index, d.dimensions)])
                 else:
                     args.append(d)
             return self._function(*args)
@@ -430,30 +415,17 @@ class MapDataNode(DataNode):
         """
         return self._attributes
 
-    @property
-    def units(self):
-        """
-        Output variable units
-        """
-        return Unit(self.attributes.get('units', 1), calendar=self.attributes.get('calendar', None))
-
-    @property
-    def dimensions(self):
-        """
-        Output variable dimensions
-        """
-        return self._dimensions
-
     def __getitem__(self, index):
         """
         Compute and retrieve the data associated with this DataNode operation
         """
 
         # Compute the output units from internal attributes
-        out_units = self.units
+        out_units = Unit(self.attributes.get('units', 1),
+                         calendar=self.attributes.get('calendar', None))
 
         # Compute the output dimensions from internal attributes
-        out_dims = self.dimensions
+        out_dims = self._dimensions
 
         # Compute the input index in terms of input dimensions
         if index is None:
