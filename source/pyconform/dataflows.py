@@ -430,17 +430,30 @@ class MapDataNode(DataNode):
         """
         return self._attributes
 
+    @property
+    def units(self):
+        """
+        Output variable units
+        """
+        return Unit(self.attributes.get('units', 1), calendar=self.attributes.get('calendar', None))
+
+    @property
+    def dimensions(self):
+        """
+        Output variable dimensions
+        """
+        return self._dimensions
+
     def __getitem__(self, index):
         """
         Compute and retrieve the data associated with this DataNode operation
         """
 
         # Compute the output units from internal attributes
-        out_units = Unit(self.attributes.get('units', 1),
-                         calendar=self.attributes.get('calendar', None))
+        out_units = self.units
 
         # Compute the output dimensions from internal attributes
-        out_dims = self._dimensions
+        out_dims = self.dimensions
 
         # Compute the input index in terms of input dimensions
         if index is None:
@@ -448,7 +461,8 @@ class MapDataNode(DataNode):
         elif isinstance(index, dict):
             in_index = dict((self._dmap.get(k, k), v) for k, v in index.iteritems())
         else:
-            in_index = dict((self._dmap.get(k, k), v) for k, v in zip(out_dims, numpy.index_exp[index]))
+            in_index = dict((self._dmap.get(k, k), v)
+                            for k, v in zip(out_dims, numpy.index_exp[index]))
 
         # Get the data to assign
         in_data = self._inputs[0][in_index]
