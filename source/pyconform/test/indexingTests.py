@@ -5,7 +5,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.indexing import index_str, index_tuple, join
+from pyconform.indexing import index_str, index_tuple, join, align_index
 from testutils import print_test_message
 
 import unittest
@@ -61,7 +61,7 @@ class IndexTupleTests(unittest.TestCase):
     Unit tests for the indexing.index_tuple function
     """
 
-    def test_index_tuple_int(self):
+    def test_int(self):
         indata = (4, 3)
         testname = 'index_tuple({}, {})'.format(*indata)
         actual = index_tuple(*indata)
@@ -69,7 +69,7 @@ class IndexTupleTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_index_tuple_slice(self):
+    def test_slice(self):
         indata = (slice(1, 6, 3), 3)
         testname = 'index_tuple({}, {})'.format(*indata)
         actual = index_tuple(*indata)
@@ -77,7 +77,7 @@ class IndexTupleTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_index_tuple_tuple(self):
+    def test_tuple(self):
         indata = ((4, slice(1, 6, 3)), 3)
         testname = 'index_tuple({}, {})'.format(*indata)
         actual = index_tuple(*indata)
@@ -85,12 +85,61 @@ class IndexTupleTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_index_tuple_tuple_too_large(self):
+    def test_tuple_too_large(self):
         indata = ((4, slice(1, 6, 3), 6, 7), 3)
         testname = 'index_tuple({}, {})'.format(*indata)
         expected = IndexError
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(expected, index_tuple, *indata)
+
+
+#===================================================================================================
+# AlignIndexTests
+#===================================================================================================
+class AlignIndexTests(unittest.TestCase):
+    """
+    Unit tests for the indexing.align_index function
+    """
+
+    def test_int(self):
+        indata = (4, ('a', 'b', 'c'))
+        testname = 'align_index({}, {})'.format(*indata)
+        actual = align_index(*indata)
+        expected = indata[0]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_slice(self):
+        indata = (slice(1, 5, 2), ('a', 'b', 'c'))
+        testname = 'align_index({}, {})'.format(*indata)
+        actual = align_index(*indata)
+        expected = indata[0]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_tuple(self):
+        indata = ((4, slice(1, 5, 2)), ('a', 'b', 'c'))
+        testname = 'align_index({}, {})'.format(*indata)
+        actual = align_index(*indata)
+        expected = indata[0]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_tuple_long(self):
+        indata = ((4, slice(1, 5, 2), 5, 9), ('a', 'b', 'c'))
+        testname = 'align_index({}, {})'.format(*indata)
+        actual = align_index(*indata)
+        expected = indata[0]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_dict(self):
+        indata = ({'a': slice(1, 5, 2), 'b': 6}, ('a', 'b', 'c'))
+        testname = 'align_index({}, {})'.format(*indata)
+        actual = align_index(*indata)
+        expected = (indata[0]['a'], indata[0]['b'], slice(None))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
 #===================================================================================================

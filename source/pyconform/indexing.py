@@ -96,6 +96,25 @@ def index_tuple(index, ndims):
 
 
 #===================================================================================================
+# align_index - Align index tuple along dimensions
+#===================================================================================================
+def align_index(index, dimensions):
+    """
+    Compute an index tuple with indices aligned according to dimension name
+    
+    Parameters:
+        index: An index or a dictionary of indices keyed by dimension name
+        dimensions (tuple): A tuple of named dimensions for each axis of the data
+    """
+    if index is None:
+        return tuple(slice(0, 0) for d in dimensions)
+    elif isinstance(index, dict):
+        return tuple(index.get(d, slice(None)) for d in dimensions)
+    else:
+        return index
+
+
+#===================================================================================================
 # join
 #===================================================================================================
 def join(shape0, index1, index2):
