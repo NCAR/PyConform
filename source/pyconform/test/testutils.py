@@ -14,9 +14,10 @@ from os import linesep
 def print_test_message(testname, **kwds):
     print '{}:'.format(testname)
     if len(kwds) > 0:
+        args = sorted(kwds)
         nlen = max(len(k) for k in kwds)
-        for k, v in kwds.iteritems():
-            val_str = sub(' +', ' ', repr(v).replace(linesep, ' '))
+        for k in args:
+            val_str = sub(' +', ' ', repr(kwds[k]).replace(linesep, ' '))
             print ' - {0:<{1}} = {2}'.format(k, nlen, val_str)
     print
 
