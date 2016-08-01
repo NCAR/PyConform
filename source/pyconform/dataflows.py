@@ -390,7 +390,7 @@ class MapDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, dnode, dmap={}, **attributes):
+    def __init__(self, label, dnode, dmap={}, dimensions=None, **attributes):
         """
         Initializer
         
@@ -399,6 +399,7 @@ class MapDataNode(DataNode):
             dnode (DataNode): DataNode that provides input into this DataNode
             dmap (dict): A dictionary mapping dimension names of the input data to
                 new dimensions names for the output variable
+            dimensions (tuple): The output dimensions for the mapped variable
             attributes: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
         """
@@ -411,6 +412,13 @@ class MapDataNode(DataNode):
 
         # Store the attributes given to the
         self._attributes = attributes
+
+        # Check for dimensions (necessary)
+        if dimensions is None:
+            raise DimensionsError('Must supply dimensions to MapDataNode')
+        elif not isinstance(dimensions, tuple):
+            raise TypeError('Dimensions must be a tuple')
+        self._dimensions = dimensions
 
         # Call base class initializer
         super(MapDataNode, self).__init__(label, dnode)
@@ -432,7 +440,7 @@ class MapDataNode(DataNode):
                          calendar=self.attributes.get('calendar', None))
 
         # Compute the output dimensions from internal attributes
-        out_dims = self.attributes.get('dimensions', None)
+        out_dims = self._dimensions
 
         # Compute the input index in terms of input dimensions
         if index is None:
