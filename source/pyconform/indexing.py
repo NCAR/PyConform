@@ -111,7 +111,7 @@ def align_index(index, dimensions):
     elif isinstance(index, dict):
         return tuple(index.get(d, slice(None)) for d in dimensions)
     else:
-        return index
+        return index_tuple(index, len(dimensions))
 
 
 #===================================================================================================

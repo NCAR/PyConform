@@ -105,7 +105,7 @@ class AlignIndexTests(unittest.TestCase):
         indata = (4, ('a', 'b', 'c'))
         testname = 'align_index({}, {})'.format(*indata)
         actual = align_index(*indata)
-        expected = indata[0]
+        expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -113,7 +113,7 @@ class AlignIndexTests(unittest.TestCase):
         indata = (slice(1, 5, 2), ('a', 'b', 'c'))
         testname = 'align_index({}, {})'.format(*indata)
         actual = align_index(*indata)
-        expected = indata[0]
+        expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -121,17 +121,16 @@ class AlignIndexTests(unittest.TestCase):
         indata = ((4, slice(1, 5, 2)), ('a', 'b', 'c'))
         testname = 'align_index({}, {})'.format(*indata)
         actual = align_index(*indata)
-        expected = indata[0]
+        expected = indata[0] + (slice(None),)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_tuple_long(self):
+    def test_tuple_too_long(self):
         indata = ((4, slice(1, 5, 2), 5, 9), ('a', 'b', 'c'))
         testname = 'align_index({}, {})'.format(*indata)
-        actual = align_index(*indata)
-        expected = indata[0]
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        expected = IndexError
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, align_index, *indata)
 
     def test_dict(self):
         indata = ({'a': slice(1, 5, 2), 'b': 6}, ('a', 'b', 'c'))
