@@ -60,8 +60,11 @@ def index_str(index):
         return strrep
     elif isinstance(index, tuple):
         return ', '.join(index_str(i) for i in index)
+    elif isinstance(index, dict):
+        dims = sorted(index)
+        return ', '.join('{!r}: {}'.format(d, index_str(index[d])) for d in dims)
     else:
-        raise ValueError('Unsupported index value {!r}'.format(index))
+        raise TypeError('Unsupported index type {!r}'.format(type(index)))
 
 
 #===================================================================================================
@@ -78,7 +81,7 @@ def index_tuple(index, ndims):
     if len(elocs) == 0:
         nfill = ndims - len(idx)
         if nfill < 0:
-            raise ValueError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
         return idx + (slice(None),) * nfill
     elif len(elocs) == 1:
         eloc = elocs[0]
@@ -86,10 +89,10 @@ def index_tuple(index, ndims):
         suffix = idx[eloc + 1:]
         nfill = ndims - len(prefix) - len(suffix)
         if nfill < 0:
-            raise ValueError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
         return prefix + (slice(None),) * nfill + suffix
     else:
-        raise ValueError('Too many ellipsis in index expression {}'.format(idx))
+        raise IndexError('Too many ellipsis in index expression {}'.format(idx))
 
 
 #===================================================================================================
@@ -140,10 +143,10 @@ def join(shape0, index1, index2):
                     idx12.append(slice(0, 0))
             else:
                 if i2 < -l1 or i2 >= l1:
-                    raise ValueError('Second index out of range in array')
+                    raise IndexError('Second index out of range in array')
                 idx12.append(start1 + i2 * step1)
         else:
             if i1 < -l0 or i1 >= l0:
-                raise ValueError('First index out of range in array')
+                raise IndexError('First index out of range in array')
             idx12.append(i1)
     return tuple(idx12)
