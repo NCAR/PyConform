@@ -427,12 +427,26 @@ class VariableDataNode(DataNode):
         Compute and retrieve the data associated with this DataNode operation
         """
 
+        # Request the input information without pulling data
+        in_info = self._inputs[0][None]
+
+        # Get the input data dimensions
+        in_dims = in_info.dimensions
+
         # Compute the output units from internal attributes
         out_units = Unit(self.attributes.get('units', 1),
                          calendar=self.attributes.get('calendar', None))
 
         # Compute the output dimensions from internal attributes
         out_dims = self._dimensions
+
+        # The input/output dimensions should be the same
+        # OR should be contained in the dimension map
+        for od in out_dims:
+            d = self._dmap.get(od, od)
+            if d not in in_dims:
+                raise DimensionsError(('Output dimension {!r} cannot be mapped to any input '
+                                       'dimension: {}').format(od, in_dims))
 
         # Compute the input index in terms of input dimensions
         if index is None:
@@ -452,7 +466,7 @@ class VariableDataNode(DataNode):
             if dmin < self.attributes['valid_min']:
                 warning(('Data from operator {!r} has minimum value '
                          '{} but requires data greater than or equal to '
-                         '{}').format(self.name, dmin, self._min))
+                         '{}').format(self.variable, dmin, self.attributes['valid_min']))
 
         # Validate maximum
         if 'valid_max' in self.attributes:
@@ -460,7 +474,7 @@ class VariableDataNode(DataNode):
             if dmax > self.attributes['valid_max']:
                 warning(('Data from operator {!r} has maximum value '
                          '{} but requires data less than or equal to '
-                         '{}').format(self.name, dmax, self._max))
+                         '{}').format(self.variable, dmax, self.attributes['valid_max']))
 
         # Compute mean of the absolute value, if necessary
         if 'ok_min_mean_abs' in self.attributes or 'ok_max_mean_abs' in self.attributes:
@@ -471,13 +485,13 @@ class VariableDataNode(DataNode):
             if mean_abs < self.attributes['ok_min_mean_abs']:
                 warning(('Data from operator {!r} has minimum mean_abs value '
                          '{} but requires data greater than or equal to '
-                         '{}').format(self.name, mean_abs, self._min_mean_abs))
+                         '{}').format(self.variable, mean_abs, self.attributes['ok_min_mean_abs']))
 
         # Validate maximum mean abs
         if 'ok_max_mean_abs' in self.attributes:
             if mean_abs > self.attributes['ok_max_mean_abs']:
                 warning(('Data from operator {!r} has maximum mean_abs value '
                          '{} but requires data less than or equal to '
-                         '{}').format(self.name, mean_abs, self._max_mean_abs))
+                         '{}').format(self.variable, mean_abs, self.attributes['ok_max_mean_abs']))
 
         return DataArray(in_data, units=out_units, dimensions=out_dims)

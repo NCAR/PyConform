@@ -504,30 +504,39 @@ class EvalDataNodeTests(unittest.TestCase):
 
 
 #===================================================================================================
-# MapDataNodeTests
+# VariableDataNodeTests
 #===================================================================================================
-class MapDataNodeTests(unittest.TestCase):
+class VariableDataNodeTests(unittest.TestCase):
     """
-    Unit tests for the dataflows.MapDataNode class
+    Unit tests for the dataflows.VariableDataNode class
     """
 
+    def setUp(self):
+        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), units='km', dimensions=('y',))
+
     def test_getitem_all(self):
-        indata = dataflows.CreateDataNode(0, numpy.arange(10), units='km', dimensions=('y',))
-        dmap = {'x': 'y'}
-        testname = 'MapDataNode.__getitem__(:)'
-        N = dataflows.MapDataNode(0, indata, dmap, dimensions=('x',), units='m')
+        testname = 'VariableDataNode.__getitem__(:)'
+        N = dataflows.VariableDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), units='m')
         actual = N[:]
-        expected = dataflows.DataArray(indata[:], units='m', dimensions=('x',))
+        expected = dataflows.DataArray(self.indata[:], units='m', dimensions=('x',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_getitem_slice(self):
+        testname = 'VariableDataNode.__getitem__(:3)'
+        N = dataflows.VariableDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), units='m')
+        actual = N[:3]
+        expected = dataflows.DataArray(self.indata[:3], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_none(self):
-        indata = dataflows.CreateDataNode(0, numpy.arange(10), units='km', dimensions=('y',))
-        dmap = {'x': 'y'}
-        testname = 'MapDataNode.__getitem__(None)'
-        N = dataflows.MapDataNode(0, indata, dmap, dimensions=('x',), units='m')
+        testname = 'VariableDataNode.__getitem__(None)'
+        N = dataflows.VariableDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), units='m')
         actual = N[None]
         expected = dataflows.DataArray(numpy.arange(0), units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
@@ -535,6 +544,84 @@ class MapDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
+    def test_getitem_slice_no_dmap_error(self):
+        testname = 'VariableDataNode(dmap={}).__getitem__(:3)'
+        N = dataflows.VariableDataNode(0, self.indata, dimensions=('x',), units='m')
+        expected = dataflows.DimensionsError
+        print_test_message(testname, expected=expected)
+        self.assertRaises(expected, N.__getitem__, slice(3))
+
+    def test_getitem_slice_no_dmap(self):
+        testname = 'VariableDataNode(dmap={}, dimensions=indims).__getitem__(:3)'
+        N = dataflows.VariableDataNode(0, self.indata, dimensions=('y',), units='m')
+        actual = N[:3]
+        expected = dataflows.DataArray(self.indata[:3], units='m', dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_attributes(self):
+        testname = 'VariableDataNode(x=4, y=(5,6)).attributes'
+        indata = {'x': 4, 'y': (5, 6)}
+        N = dataflows.VariableDataNode(0, self.indata, dimensions=('y',), **indata)
+        actual = N.attributes
+        expected = indata
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_variable(self):
+        testname = 'VariableDataNode(var,...).variable'
+        indata = 'var'
+        N = dataflows.VariableDataNode(indata, self.indata, dimensions=('y',))
+        actual = N.variable
+        expected = indata
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_min_ok(self):
+        indata = 0.0
+        testname = 'VariableDataNode(valid_min={})[:]'.format(indata)
+        N = dataflows.VariableDataNode('x', self.indata, dimensions=('y',), valid_min=indata)
+        actual = N[:]
+        expected = dataflows.DataArray(self.indata[:], units=1, dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_min_warn(self):
+        indata = 2.0
+        testname = 'VariableDataNode(valid_min={})[:]'.format(indata)
+        N = dataflows.VariableDataNode('x', self.indata, dimensions=('y',), valid_min=indata)
+        actual = N[:]
+        expected = dataflows.DataArray(self.indata[:], units=1, dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_max_ok(self):
+        indata = 20
+        testname = 'VariableDataNode(valid_max={})[:]'.format(indata)
+        N = dataflows.VariableDataNode('x', self.indata, dimensions=('y',), valid_max=indata)
+        actual = N[:]
+        expected = dataflows.DataArray(self.indata[:], units=1, dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_max_warn(self):
+        indata = 5.0
+        testname = 'VariableDataNode(valid_max={})[:]'.format(indata)
+        N = dataflows.VariableDataNode('x', self.indata, dimensions=('y',), valid_max=indata)
+        actual = N[:]
+        expected = dataflows.DataArray(self.indata[:], units=1, dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 #===============================================================================
 # Command-Line Operation
