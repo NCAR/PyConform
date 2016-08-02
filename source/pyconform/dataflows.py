@@ -349,13 +349,13 @@ class EvalDataNode(DataNode):
 
 
 #===================================================================================================
-# MapDataNode
+# VariableDataNode
 #===================================================================================================
-class MapDataNode(DataNode):
+class VariableDataNode(DataNode):
     """
-    DataNode class to map data from a neighboring DataNode to a new variable
+    DataNode class to map input data from a neighboring DataNode to a new variable for output
     
-    The MapDataNode takes additional attributes in its initializer that can effect the 
+    The VariableDataNode takes additional attributes in its initializer that can effect the 
     behavior of this DataNode's __getitem__ method.  The special attributes are:
     
         'valid_min': The minimum value the data should have, if valid
@@ -363,7 +363,7 @@ class MapDataNode(DataNode):
         'min_mean_abs': The minimum acceptable value of the mean of the absolute value of the data
         'max_mean_abs': The maximum acceptable value of the mean of the absolute value of the data
     
-    If these attributes are supplied to the MapDataNode at construction time, then the
+    If these attributes are supplied to the VariableDataNode at construction time, then the
     associated validation checks will be made on the data when __getitem__ is called.
     
     Some additional special attributes are:
@@ -375,13 +375,13 @@ class MapDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, dnode, dmap={}, dimensions=None, **attributes):
+    def __init__(self, variable, indata, dmap={}, dimensions=None, **attributes):
         """
         Initializer
         
         Parameters:
-            label: A label to give the DataNode
-            dnode (DataNode): DataNode that provides input into this DataNode
+            variable: The name of the variable associated with this DataNode
+            indata (DataNode): DataNode that provides input into this DataNode
             dmap (dict): A dictionary mapping dimension names of the input data to
                 new dimensions names for the output variable
             dimensions (tuple): The output dimensions for the mapped variable
@@ -389,7 +389,7 @@ class MapDataNode(DataNode):
                 to which to associate with the new variable
         """
         # Check DataNode type
-        if not isinstance(dnode, DataNode):
+        if not isinstance(indata, DataNode):
             raise TypeError('MapDataNode can only act on output from another DataNode')
 
         # Store the dimension map
@@ -406,7 +406,14 @@ class MapDataNode(DataNode):
         self._dimensions = dimensions
 
         # Call base class initializer
-        super(MapDataNode, self).__init__(label, dnode)
+        super(VariableDataNode, self).__init__(variable, indata)
+
+    @property
+    def variable(self):
+        """
+        Name of the output variable associate with this DataNode
+        """
+        return self.label
 
     @property
     def attributes(self):
