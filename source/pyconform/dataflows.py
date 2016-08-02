@@ -59,19 +59,19 @@ class DataArray(numpy.ma.MaskedArray):
     A DataArray is the basic object passed along the edges of a Data Flow graph
     
     Derived from Numpy MaskedArray, the DataArray contains additional information
-    about the array data, including units and dimensions.
+    about the array data, including cfunits and dimensions.
     """
 
-    def __new__(cls, inarray, units=None, dimensions=None):
+    def __new__(cls, inarray, cfunits=None, dimensions=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
-        if units is None:
-            if 'units' not in obj._optinfo:
-                obj._optinfo['units'] = Unit(1)
-        elif isinstance(units, Unit):
-            obj._optinfo['units'] = units
+        if cfunits is None:
+            if 'cfunits' not in obj._optinfo:
+                obj._optinfo['cfunits'] = Unit(1)
+        elif isinstance(cfunits, Unit):
+            obj._optinfo['cfunits'] = cfunits
         else:
-            obj._optinfo['units'] = Unit(units)
+            obj._optinfo['cfunits'] = Unit(cfunits)
 
         if dimensions is None:
             if 'dimensions' not in obj._optinfo:
@@ -88,13 +88,13 @@ class DataArray(numpy.ma.MaskedArray):
         return obj
 
     def __repr__(self):
-        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, units = {!s}, '
+        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, cfunits = {!s}, '
                 'dimensions = {!s})').format(self.__class__.__name__, self.data, self.mask,
-                                             self.fill_value, self.units, self.dimensions)
+                                             self.fill_value, self.cfunits, self.dimensions)
 
     @property
-    def units(self):
-        return self._optinfo['units']
+    def cfunits(self):
+        return self._optinfo['cfunits']
 
     @property
     def dimensions(self):
@@ -153,18 +153,18 @@ class CreateDataNode(DataNode):
     This is a "source" DataNode.
     """
 
-    def __init__(self, label, data, units=None, dimensions=None):
+    def __init__(self, label, data, cfunits=None, dimensions=None):
         """
         Initializer
         
         Parameters:
             label: A label to give the DataNode
             data (array): Data to store in this DataNode
-            units: Units to associate with the data
+            cfunits: Units to associate with the data
             dimensions: Dimensions to associate with the data 
         """
         # Store data
-        self._data = DataArray(data, units=units, dimensions=dimensions)
+        self._data = DataArray(data, cfunits=cfunits, dimensions=dimensions)
 
         # Call base class initializer
         super(CreateDataNode, self).__init__(label)
@@ -237,14 +237,14 @@ class ReadDataNode(DataNode):
             # Get a reference to the variable
             ncvar = ncfile.variables[self.variable]
 
-            # Read the variable units
+            # Read the variable cfunits
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
             try:
-                units = Unit(units_attr, calendar=calendar_attr)
+                cfunits = Unit(units_attr, calendar=calendar_attr)
             except:
-                units = Unit(1)
+                cfunits = Unit(1)
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
@@ -267,7 +267,7 @@ class ReadDataNode(DataNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = DataArray(ncvar[index12], units=units, dimensions=dimensions2)
+            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2)
 
         return data
 
@@ -349,44 +349,30 @@ class EvalDataNode(DataNode):
 
 
 #===================================================================================================
-# VariableDataNode
+# MapDataNode
 #===================================================================================================
-class VariableDataNode(DataNode):
+class MapDataNode(DataNode):
     """
-    DataNode class to map input data from a neighboring DataNode to a new variable for output
+    DataNode class to map input data from a neighboring DataNode to new dimension names and cfunits
     
-    The VariableDataNode takes additional attributes in its initializer that can effect the 
-    behavior of this DataNode's __getitem__ method.  The special attributes are:
-    
-        'valid_min': The minimum value the data should have, if valid
-        'valid_max': The maximum value the data should have, if valid
-        'min_mean_abs': The minimum acceptable value of the mean of the absolute value of the data
-        'max_mean_abs': The maximum acceptable value of the mean of the absolute value of the data
-    
-    If these attributes are supplied to the VariableDataNode at construction time, then the
-    associated validation checks will be made on the data when __getitem__ is called.
-    
-    Some additional special attributes are:
-    
-        'units': The name of the units to assign to this data
-        'calendar': The name of the calendar to use if the units are time-like
-        'dimensions': A tuple of dimension names to associate with the axes of the data
+    The MapDataNode can rename the dimensions of a DataNode's output data.  It does not change the
+    data itself, however.  If the input dimensions cannot be mapped to the specified output
+    dimensions in the order they are specified, then a DimensionsError will be raised.  A
+    transposition should be done to change the order of the data dimensions in such a case.
     
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, variable, indata, dmap={}, dimensions=None, **attributes):
+    def __init__(self, label, indata, dmap={}, dimensions=None):
         """
         Initializer
         
         Parameters:
-            variable: The name of the variable associated with this DataNode
+            label: The label given to the DataNode
             indata (DataNode): DataNode that provides input into this DataNode
             dmap (dict): A dictionary mapping dimension names of the input data to
                 new dimensions names for the output variable
             dimensions (tuple): The output dimensions for the mapped variable
-            attributes: Additional named arguments corresponding to additional attributes
-                to which to associate with the new variable
         """
         # Check DataNode type
         if not isinstance(indata, DataNode):
@@ -394,9 +380,6 @@ class VariableDataNode(DataNode):
 
         # Store the dimension map
         self._dmap = dmap
-
-        # Store the attributes given to the
-        self._attributes = attributes
 
         # Check for dimensions (necessary)
         if dimensions is None:
@@ -406,21 +389,7 @@ class VariableDataNode(DataNode):
         self._dimensions = dimensions
 
         # Call base class initializer
-        super(VariableDataNode, self).__init__(variable, indata)
-
-    @property
-    def variable(self):
-        """
-        Name of the output variable associate with this DataNode
-        """
-        return self.label
-
-    @property
-    def attributes(self):
-        """
-        Attributes dictionary
-        """
-        return self._attributes
+        super(MapDataNode, self).__init__(label, indata)
 
     def __getitem__(self, index):
         """
@@ -432,10 +401,6 @@ class VariableDataNode(DataNode):
 
         # Get the input data dimensions
         in_dims = in_info.dimensions
-
-        # Compute the output units from internal attributes
-        out_units = Unit(self.attributes.get('units', 1),
-                         calendar=self.attributes.get('calendar', None))
 
         # Compute the output dimensions from internal attributes
         out_dims = self._dimensions
@@ -457,8 +422,93 @@ class VariableDataNode(DataNode):
             in_index = dict((self._dmap.get(k, k), v)
                             for k, v in zip(out_dims, numpy.index_exp[index]))
 
-        # Get the data to assign
-        in_data = self._inputs[0][in_index]
+        # Return the mapped data
+        return DataArray(self._inputs[0][in_index], dimensions=out_dims)
+
+
+#===================================================================================================
+# ValidateDataNode
+#===================================================================================================
+class ValidateDataNode(DataNode):
+    """
+    DataNode class to validate input data from a neighboring DataNode
+    
+    The ValidateDataNode takes additional attributes in its initializer that can effect the 
+    behavior of its __getitem__ method.  The special attributes are:
+    
+        'valid_min': The minimum value the data should have, if valid
+        'valid_max': The maximum value the data should have, if valid
+        'min_mean_abs': The minimum acceptable value of the mean of the absolute value of the data
+        'max_mean_abs': The maximum acceptable value of the mean of the absolute value of the data
+    
+    If these attributes are supplied to the ValidateDataNode at construction time, then the
+    associated validation checks will be made on the data when __getitem__ is called.
+    
+    Additional attributes may be added to the ValidateDataNode that do not affect functionality.
+    These attributes may be named however the user wishes and can be retrieved from the DataNode
+    as a dictionary with the 'attributes' property.
+
+    This is a "non-source"/"non-sink" DataNode.
+    """
+
+    def __init__(self, label, indata, cfunits=None, dimensions=None, **attributes):
+        """
+        Initializer
+        
+        Parameters:
+            label: The label associated with this DataNode
+            indata (DataNode): DataNode that provides input into this DataNode
+            dimensions (tuple): The output dimensions to validate against
+            attributes: Additional named arguments corresponding to additional attributes
+                to which to associate with the new variable
+        """
+        # Check DataNode type
+        if not isinstance(indata, DataNode):
+            raise TypeError('MapDataNode can only act on output from another DataNode')
+
+        # Call base class initializer
+        super(ValidateDataNode, self).__init__(label, indata)
+
+        # Check for dimensions (necessary)
+        if dimensions is None:
+            raise DimensionsError('Must supply dimensions to MapDataNode')
+        elif not isinstance(dimensions, tuple):
+            raise TypeError('Dimensions must be a tuple')
+        self._dimensions = dimensions
+
+        # Make attributes consistent with cfunits and store cfunits
+        if cfunits is None:
+            if 'units' in attributes:
+                self._cfunits = Unit(attributes['units'], calendar=attributes.get('calendar', None))
+            else:
+                self._cfunits = Unit(1)
+        else:
+            self._cfunits = Unit(cfunits)
+            attributes['units'] = str(cfunits)
+            if self._cfunits.calendar is not None:
+                attributes['calendar'] = str(self._cfunits.calendar)
+
+        # Store the attributes given to the DataNode
+        self._attributes = attributes
+
+    def __getitem__(self, index):
+        """
+        Compute and retrieve the data associated with this DataNode operation
+        """
+
+        # Request the input information without pulling data
+        in_info = self._inputs[0][None]
+
+        # Check that units match as expected
+        if self._cfunits != in_info.cfunits:
+            raise UnitsError('Units do not match in ValidateDataNode {!r}'.format(self.label))
+
+        # Check that the dimensions match as expected
+        if self._dimensions != in_info.dimensions:
+            raise DimensionsError('Dimensions do not match in ValidateDataNode {!r}'.format(self.label))
+
+        # Get the data to validate
+        in_data = self._inputs[0][index]
 
         # Validate minimum
         if 'valid_min' in self.attributes:
@@ -494,4 +544,4 @@ class VariableDataNode(DataNode):
                          '{} but requires data less than or equal to '
                          '{}').format(self.variable, mean_abs, self.attributes['ok_max_mean_abs']))
 
-        return DataArray(in_data, units=out_units, dimensions=out_dims)
+        return in_data
