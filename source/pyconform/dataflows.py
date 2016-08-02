@@ -349,6 +349,84 @@ class EvalDataNode(DataNode):
 
 
 #===================================================================================================
+# MapDataNode
+#===================================================================================================
+class MapDataNode(DataNode):
+    """
+    DataNode class to map input data from a neighboring DataNode to new dimension names and cfunits
+    
+    The MapDataNode can rename the dimensions of a DataNode's output data.  It does not change the
+    data itself, however.  If the input dimensions cannot be mapped to the specified output
+    dimensions in the order they are specified, then a DimensionsError will be raised.  A
+    transposition should be done to change the order of the data dimensions in such a case.
+    
+    This is a "non-source"/"non-sink" DataNode.
+    """
+
+    def __init__(self, label, indata, dmap={}, dimensions=None):
+        """
+        Initializer
+        
+        Parameters:
+            label: The label given to the DataNode
+            indata (DataNode): DataNode that provides input into this DataNode
+            dmap (dict): A dictionary mapping dimension names of the input data to
+                new dimensions names for the output variable
+            dimensions (tuple): The output dimensions for the mapped variable
+        """
+        # Check DataNode type
+        if not isinstance(indata, DataNode):
+            raise TypeError('MapDataNode can only act on output from another DataNode')
+
+        # Store the dimension map
+        self._dmap = dmap
+
+        # Check for dimensions (necessary)
+        if dimensions is None:
+            raise DimensionsError('Must supply dimensions to MapDataNode')
+        elif not isinstance(dimensions, tuple):
+            raise TypeError('Dimensions must be a tuple')
+        self._dimensions = dimensions
+
+        # Call base class initializer
+        super(MapDataNode, self).__init__(label, indata)
+
+    def __getitem__(self, index):
+        """
+        Compute and retrieve the data associated with this DataNode operation
+        """
+
+        # Request the input information without pulling data
+        in_info = self._inputs[0][None]
+
+        # Get the input data dimensions
+        in_dims = in_info.dimensions
+
+        # Compute the output dimensions from internal attributes
+        out_dims = self._dimensions
+
+        # The input/output dimensions should be the same
+        # OR should be contained in the dimension map
+        for od in out_dims:
+            d = self._dmap.get(od, od)
+            if d not in in_dims:
+                raise DimensionsError(('Output dimension {!r} cannot be mapped to any input '
+                                       'dimension: {}').format(od, in_dims))
+
+        # Compute the input index in terms of input dimensions
+        if index is None:
+            in_index = dict((self._dmap.get(d, d), slice(0, 0)) for d in out_dims)
+        elif isinstance(index, dict):
+            in_index = dict((self._dmap.get(k, k), v) for k, v in index.iteritems())
+        else:
+            in_index = dict((self._dmap.get(k, k), v)
+                            for k, v in zip(out_dims, numpy.index_exp[index]))
+
+        # Return the mapped data
+        return DataArray(self._inputs[0][in_index], dimensions=out_dims)
+
+
+#===================================================================================================
 # ValidateDataNode
 #===================================================================================================
 class ValidateDataNode(DataNode):
@@ -489,78 +567,15 @@ class ValidateDataNode(DataNode):
 
 
 #===================================================================================================
-# MapDataNode
+# WriteDataNode
 #===================================================================================================
-class MapDataNode(DataNode):
+class WriteDataNode(DataNode):
     """
-    DataNode class to map input data from a neighboring DataNode to new dimension names and cfunits
-    
-    The MapDataNode can rename the dimensions of a DataNode's output data.  It does not change the
-    data itself, however.  If the input dimensions cannot be mapped to the specified output
-    dimensions in the order they are specified, then a DimensionsError will be raised.  A
-    transposition should be done to change the order of the data dimensions in such a case.
-    
-    This is a "non-source"/"non-sink" DataNode.
+    DataNode that writes input data to a file
     """
 
-    def __init__(self, label, indata, dmap={}, dimensions=None):
-        """
-        Initializer
-        
-        Parameters:
-            label: The label given to the DataNode
-            indata (DataNode): DataNode that provides input into this DataNode
-            dmap (dict): A dictionary mapping dimension names of the input data to
-                new dimensions names for the output variable
-            dimensions (tuple): The output dimensions for the mapped variable
-        """
-        # Check DataNode type
-        if not isinstance(indata, DataNode):
-            raise TypeError('MapDataNode can only act on output from another DataNode')
-
-        # Store the dimension map
-        self._dmap = dmap
-
-        # Check for dimensions (necessary)
-        if dimensions is None:
-            raise DimensionsError('Must supply dimensions to MapDataNode')
-        elif not isinstance(dimensions, tuple):
-            raise TypeError('Dimensions must be a tuple')
-        self._dimensions = dimensions
-
-        # Call base class initializer
-        super(MapDataNode, self).__init__(label, indata)
+    def __init__(self, filename, *inputs, **attributes):
+        pass
 
     def __getitem__(self, index):
-        """
-        Compute and retrieve the data associated with this DataNode operation
-        """
-
-        # Request the input information without pulling data
-        in_info = self._inputs[0][None]
-
-        # Get the input data dimensions
-        in_dims = in_info.dimensions
-
-        # Compute the output dimensions from internal attributes
-        out_dims = self._dimensions
-
-        # The input/output dimensions should be the same
-        # OR should be contained in the dimension map
-        for od in out_dims:
-            d = self._dmap.get(od, od)
-            if d not in in_dims:
-                raise DimensionsError(('Output dimension {!r} cannot be mapped to any input '
-                                       'dimension: {}').format(od, in_dims))
-
-        # Compute the input index in terms of input dimensions
-        if index is None:
-            in_index = dict((self._dmap.get(d, d), slice(0, 0)) for d in out_dims)
-        elif isinstance(index, dict):
-            in_index = dict((self._dmap.get(k, k), v) for k, v in index.iteritems())
-        else:
-            in_index = dict((self._dmap.get(k, k), v)
-                            for k, v in zip(out_dims, numpy.index_exp[index]))
-
-        # Return the mapped data
-        return DataArray(self._inputs[0][in_index], dimensions=out_dims)
+        pass
