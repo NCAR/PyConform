@@ -88,9 +88,9 @@ class DataArray(numpy.ma.MaskedArray):
         return obj
 
     def __repr__(self):
-        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, cfunits = {!s}, '
+        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, cfunits = {!r}, '
                 'dimensions = {!s})').format(self.__class__.__name__, self.data, self.mask,
-                                             self.fill_value, self.cfunits, self.dimensions)
+                                             self.fill_value, str(self.cfunits), self.dimensions)
 
     @property
     def cfunits(self):
@@ -451,14 +451,16 @@ class ValidateDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, indata, cfunits=None, dimensions=None, **attributes):
+    def __init__(self, label, indata, cfunits=None, dimensions=None, error=False, **attributes):
         """
         Initializer
         
         Parameters:
             label: The label associated with this DataNode
             indata (DataNode): DataNode that provides input into this DataNode
+            cfunits (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
+            error (bool): If True, raise exceptions instead of warnings
             attributes: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
         """
@@ -469,10 +471,11 @@ class ValidateDataNode(DataNode):
         # Call base class initializer
         super(ValidateDataNode, self).__init__(label, indata)
 
+        # Save error flag
+        self._error = bool(error)
+
         # Check for dimensions (necessary)
-        if dimensions is None:
-            raise DimensionsError('Must supply dimensions to MapDataNode')
-        elif not isinstance(dimensions, tuple):
+        if dimensions is not None and not isinstance(dimensions, tuple):
             raise TypeError('Dimensions must be a tuple')
         self._dimensions = dimensions
 
@@ -481,7 +484,7 @@ class ValidateDataNode(DataNode):
             if 'units' in attributes:
                 self._cfunits = Unit(attributes['units'], calendar=attributes.get('calendar', None))
             else:
-                self._cfunits = Unit(1)
+                self._cfunits = None
         else:
             self._cfunits = Unit(cfunits)
             attributes['units'] = str(cfunits)
@@ -500,48 +503,64 @@ class ValidateDataNode(DataNode):
         in_info = self._inputs[0][None]
 
         # Check that units match as expected
-        if self._cfunits != in_info.cfunits:
-            raise UnitsError('Units do not match in ValidateDataNode {!r}'.format(self.label))
+        if self._cfunits is not None and self._cfunits != in_info.cfunits:
+            msg = ('Units {!s} do not match expected units {!r} in ValidateDataNode '
+                   '{!r}').format(self._cfunits, in_info.cfunits, self.label)
+            if self._error:
+                raise UnitsError(msg)
+            else:
+                warning(msg)
 
         # Check that the dimensions match as expected
-        if self._dimensions != in_info.dimensions:
-            raise DimensionsError('Dimensions do not match in ValidateDataNode {!r}'.format(self.label))
+        if self._dimensions is not None and self._dimensions != in_info.dimensions:
+            msg = ('Dimensions {!s} do not match expected units {!r} in ValidateDataNode '
+                   '{!r}').format(self._dimensions, in_info.dimensions, self.label)
+            if self._error:
+                raise DimensionsError(msg)
+            else:
+                warning(msg)
 
         # Get the data to validate
         in_data = self._inputs[0][index]
 
+        # Testing parameters
+        valid_min = self._attributes.get('valid_min', None)
+        valid_max = self._attributes.get('valid_max', None)
+        ok_min_mean_abs = self._attributes.get('ok_min_mean_abs', None)
+        ok_max_mean_abs = self._attributes.get('ok_max_mean_abs', None)
+
         # Validate minimum
-        if 'valid_min' in self.attributes:
+        if valid_min:
             dmin = numpy.min(in_data)
-            if dmin < self.attributes['valid_min']:
+            if dmin < valid_min:
                 warning(('Data from operator {!r} has minimum value '
                          '{} but requires data greater than or equal to '
-                         '{}').format(self.variable, dmin, self.attributes['valid_min']))
+                         '{}').format(self.label, dmin, valid_min))
 
         # Validate maximum
-        if 'valid_max' in self.attributes:
+        if valid_max:
             dmax = numpy.max(in_data)
-            if dmax > self.attributes['valid_max']:
+            if dmax > valid_max:
                 warning(('Data from operator {!r} has maximum value '
                          '{} but requires data less than or equal to '
-                         '{}').format(self.variable, dmax, self.attributes['valid_max']))
+                         '{}').format(self.label, dmax, valid_max))
 
         # Compute mean of the absolute value, if necessary
-        if 'ok_min_mean_abs' in self.attributes or 'ok_max_mean_abs' in self.attributes:
+        if ok_min_mean_abs or ok_max_mean_abs:
             mean_abs = numpy.mean(numpy.abs(in_data))
 
         # Validate minimum mean abs
-        if 'ok_min_mean_abs' in self.attributes:
-            if mean_abs < self.attributes['ok_min_mean_abs']:
+        if ok_min_mean_abs:
+            if mean_abs < ok_min_mean_abs:
                 warning(('Data from operator {!r} has minimum mean_abs value '
                          '{} but requires data greater than or equal to '
-                         '{}').format(self.variable, mean_abs, self.attributes['ok_min_mean_abs']))
+                         '{}').format(self.label, mean_abs, ok_min_mean_abs))
 
         # Validate maximum mean abs
-        if 'ok_max_mean_abs' in self.attributes:
-            if mean_abs > self.attributes['ok_max_mean_abs']:
+        if ok_max_mean_abs:
+            if mean_abs > ok_max_mean_abs:
                 warning(('Data from operator {!r} has maximum mean_abs value '
                          '{} but requires data less than or equal to '
-                         '{}').format(self.variable, mean_abs, self.attributes['ok_max_mean_abs']))
+                         '{}').format(self.label, mean_abs, ok_max_mean_abs))
 
         return in_data

@@ -588,96 +588,234 @@ class ValidateDataNodeTests(unittest.TestCase):
     Unit tests for the dataflows.ValidateDataNode class
     """
 
-    def setUp(self):
-        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), cfunits='km', dimensions=('y',))
-
-    def test_getitem_all(self):
-        testname = 'ValidateDataNode.__getitem__(:)'
-        N = dataflows.ValidateDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), cfunits='km')
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], cfunits='m', dimensions=('x',))
+    def test_nothing(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        testname = 'OK: ValidateDataNode().__getitem__(:)'
+        N1 = dataflows.ValidateDataNode('validate(x)', N0)
+        actual = N1[:]
+        expected = N0[:]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_getitem_slice(self):
-        testname = 'ValidateDataNode.__getitem__(:3)'
-        N = dataflows.ValidateDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), cfunits='m')
-        actual = N[:3]
-        expected = dataflows.DataArray(self.indata[:3], cfunits='m', dimensions=('x',))
-        print_test_message(testname, actual=actual, expected=expected)
+    def test_cfunits_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'cfunits': Unit('m')}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_getitem_none(self):
-        testname = 'ValidateDataNode.__getitem__(None)'
-        N = dataflows.ValidateDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',), cfunits='m')
-        actual = N[None]
-        expected = dataflows.DataArray(numpy.arange(0), cfunits='m', dimensions=('x',))
-        print_test_message(testname, actual=actual, expected=expected)
+    def test_units_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'units': 'm'}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_getitem_slice_no_dmap_error(self):
-        testname = 'ValidateDataNode(dmap={}).__getitem__(:3)'
-        N = dataflows.ValidateDataNode(0, self.indata, dimensions=('x',), cfunits='m')
-        expected = dataflows.DimensionsError
-        print_test_message(testname, expected=expected)
-        self.assertRaises(expected, N.__getitem__, slice(3))
+    def test_time_units_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_getitem_slice_no_dmap(self):
-        testname = 'ValidateDataNode(dmap={}, dimensions=indims).__getitem__(:3)'
-        N = dataflows.ValidateDataNode(0, self.indata, dimensions=('y',), cfunits='m')
-        actual = N[:3]
-        expected = dataflows.DataArray(self.indata[:3], cfunits='m', dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
+    def test_dimensions_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'dimensions': ('x',)}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_ok(self):
-        indata = 0.0
-        testname = 'ValidateDataNode(valid_min={})[:]'.format(indata)
-        N = dataflows.ValidateDataNode('x', self.indata, dimensions=('y',), valid_min=indata)
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], cfunits=1, dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_min_warn(self):
-        indata = 2.0
-        testname = 'ValidateDataNode(valid_min={})[:]'.format(indata)
-        N = dataflows.ValidateDataNode('x', self.indata, dimensions=('y',), valid_min=indata)
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], cfunits=1, dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'valid_min': 0}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_ok(self):
-        indata = 20
-        testname = 'ValidateDataNode(valid_max={})[:]'.format(indata)
-        N = dataflows.ValidateDataNode('x', self.indata, dimensions=('y',), valid_max=indata)
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], cfunits=1, dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'valid_max': 10}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_min_mean_abs_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        indata = {'ok_min_mean_abs': 3}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_max_mean_abs_ok(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        indata = {'ok_max_mean_abs': 5}
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_cfunits_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'cfunits': Unit('km')}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_units_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'units': 'km'}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_time_units_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_time_units_warn_calendar(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_dimensions_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'dimensions': ('y',)}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_min_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'valid_min': 2}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_warn(self):
-        indata = 5.0
-        testname = 'ValidateDataNode(valid_max={})[:]'.format(indata)
-        N = dataflows.ValidateDataNode('x', self.indata, dimensions=('y',), valid_max=indata)
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], cfunits=1, dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        indata = {'valid_max': 8}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_min_mean_abs_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        indata = {'ok_min_mean_abs': 5}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_max_mean_abs_warn(self):
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        indata = {'ok_max_mean_abs': 3}
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
