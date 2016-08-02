@@ -522,65 +522,6 @@ class EvalDataNodeTests(unittest.TestCase):
 
 
 #===================================================================================================
-# MapDataNodeTests
-#===================================================================================================
-class MapDataNodeTests(unittest.TestCase):
-    """
-    Unit tests for the dataflows.MapDataNode class
-    """
-
-    def setUp(self):
-        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), cfunits='km', dimensions=('y',))
-
-    def test_getitem_all(self):
-        testname = 'MapDataNode.__getitem__(:)'
-        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
-        actual = N[:]
-        expected = dataflows.DataArray(self.indata[:], dimensions=('x',))
-        print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_getitem_slice(self):
-        testname = 'MapDataNode.__getitem__(:3)'
-        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
-        actual = N[:3]
-        expected = dataflows.DataArray(self.indata[:3], dimensions=('x',))
-        print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_getitem_none(self):
-        testname = 'MapDataNode.__getitem__(None)'
-        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
-        actual = N[None]
-        expected = dataflows.DataArray(numpy.arange(0), cfunits='km', dimensions=('x',))
-        print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_getitem_slice_no_dmap_error(self):
-        testname = 'MapDataNode(dmap={}).__getitem__(:3)'
-        N = dataflows.MapDataNode(0, self.indata, dimensions=('x',))
-        expected = dataflows.DimensionsError
-        print_test_message(testname, expected=expected)
-        self.assertRaises(expected, N.__getitem__, slice(3))
-
-    def test_getitem_slice_no_dmap(self):
-        testname = 'MapDataNode(dmap={}, dimensions=indims).__getitem__(:3)'
-        N = dataflows.MapDataNode(0, self.indata, dimensions=('y',))
-        actual = N[:3]
-        expected = dataflows.DataArray(self.indata[:3], dimensions=('y',))
-        print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-
-#===================================================================================================
 # ValidateDataNodeTests
 #===================================================================================================
 class ValidateDataNodeTests(unittest.TestCase):
@@ -816,6 +757,65 @@ class ValidateDataNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+
+#===================================================================================================
+# MapDataNodeTests
+#===================================================================================================
+class MapDataNodeTests(unittest.TestCase):
+    """
+    Unit tests for the dataflows.MapDataNode class
+    """
+
+    def setUp(self):
+        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), cfunits='km', dimensions=('y',))
+
+    def test_getitem_all(self):
+        testname = 'MapDataNode.__getitem__(:)'
+        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
+        actual = N[:]
+        expected = dataflows.DataArray(self.indata[:], dimensions=('x',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_getitem_slice(self):
+        testname = 'MapDataNode.__getitem__(:3)'
+        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
+        actual = N[:3]
+        expected = dataflows.DataArray(self.indata[:3], dimensions=('x',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_getitem_none(self):
+        testname = 'MapDataNode.__getitem__(None)'
+        N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'}, dimensions=('x',))
+        actual = N[None]
+        expected = dataflows.DataArray(numpy.arange(0), cfunits='km', dimensions=('x',))
+        print_test_message(testname, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_getitem_slice_no_dmap_error(self):
+        testname = 'MapDataNode(dmap={}).__getitem__(:3)'
+        N = dataflows.MapDataNode(0, self.indata, dimensions=('x',))
+        expected = dataflows.DimensionsError
+        print_test_message(testname, expected=expected)
+        self.assertRaises(expected, N.__getitem__, slice(3))
+
+    def test_getitem_slice_no_dmap(self):
+        testname = 'MapDataNode(dmap={}, dimensions=indims).__getitem__(:3)'
+        N = dataflows.MapDataNode(0, self.indata, dimensions=('y',))
+        actual = N[:3]
+        expected = dataflows.DataArray(self.indata[:3], dimensions=('y',))
+        print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
