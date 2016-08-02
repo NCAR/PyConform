@@ -88,7 +88,7 @@ class ParsedVariable(ParsedFunction):
 
 
 #===============================================================================
-# DefinitionParser
+# Operator Parser Functions
 #===============================================================================
 
 # Negation operator
@@ -103,6 +103,10 @@ def _negop_(tokens):
 def _binop_(tokens):
     left, op, right = tokens[0]
     return ParsedBinOp([[op, left, right]])
+
+#===================================================================================================
+# MAIN PARSER (DEFINED AT MODULE LEVEL TO MAKE A SINGLETON)
+#===================================================================================================
 
 # INTEGERS: Just any word consisting only of numbers
 _INT_ = Word(nums)
@@ -158,13 +162,10 @@ _EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE
                                      (oneOf('* /'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 2, opAssoc.RIGHT, _binop_)])
 
-# Parse a string variable definition
+#===================================================================================================
+# Function to parse a string definition
+#===================================================================================================
+
 def parse_definition(strexpr):
     return _EXPR_PARSER_.parseString(strexpr)[0]
 
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == "__main__":
-    pass
