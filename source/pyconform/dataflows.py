@@ -62,7 +62,7 @@ class DataArray(numpy.ma.MaskedArray):
     about the array data, including cfunits and dimensions.
     """
 
-    def __new__(cls, inarray, cfunits=None, dimensions=None):
+    def __new__(cls, inarray, cfunits=None, dimensions=None, dshape=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         if cfunits is None:
@@ -84,6 +84,18 @@ class DataArray(numpy.ma.MaskedArray):
         else:
             raise TypeError(('Cannot set DataArray object with dimensions of type '
                              '{}').format(type(dimensions)))
+        
+        if dshape is None:
+            if 'dshape' not in obj._optinfo:
+                obj._optinfo['dshape'] = obj.shape
+        elif isinstance(dshape, tuple):
+            if len(dshape) != len(obj.shape):
+                raise ValueError(('Dimension shape {} length does not match DataArray with {} '
+                                  'axes').format(dshape, len(obj.shape)))
+            obj._optinfo['dshape'] = dshape
+        else:
+            raise TypeError(('Cannot set DataArray object with dimension shape of type '
+                             '{}').format(type(dshape)))
 
         return obj
 
@@ -99,6 +111,10 @@ class DataArray(numpy.ma.MaskedArray):
     @property
     def dimensions(self):
         return self._optinfo['dimensions']
+
+    @property
+    def dshape(self):
+        return self._optinfo['dshape']
 
 
 #===================================================================================================
@@ -267,7 +283,7 @@ class ReadDataNode(DataNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2)
+            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2, dshape=shape0)
 
         return data
 
@@ -451,7 +467,7 @@ class PassDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, indata, cfunits=None, dimensions=None, error=False, **attributes):
+    def __init__(self, label, indata, cfunits=None, dimensions=None, error=False, attributes={}):
         """
         Initializer
         
@@ -574,15 +590,87 @@ class WriteDataNode(DataNode):
     DataNode that writes input data to a file
     """
 
-    def __init__(self, filename, *inputs, **attributes):
+    def __init__(self, filename, *inputs, **kwds):
         """
         Initializer
         
         Parameters:
             filename (str): Name of the file to write
-            inputs (tuple/DataNode): A tuple of DataNodes providing input to the
+            inputs (PassDataNode): A tuple of PassDataNodes providing input into the file
+            unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
+                (This parameter is pulled from the kwds argument to the initializer, if given.)
+            attributes (dict): Dictionary of global attributes to write to the file
+                (This parameter is pulled from the kwds argument to the initializer, if given.)
         """
-        pass
+        # Check filename
+        if not isinstance(filename, basestring):
+            raise TypeError('Filename must be of string type')
+        
+        # Check and store input variables
+        for inp in inputs:
+            if not isinstance(inp, PassDataNode):
+                raise TypeError(('WriteDataNode {!r} cannot accept input from type '
+                                 '{}').format(filename, type(inp)))
 
+        # Call base class (label is filename)
+        super(WriteDataNode, self).__init__(filename, *inputs)
+        
+        # Grab the unlimited dimensions parameter and check type
+        unlimited = kwds.pop('unlimited', ())
+        if not isinstance(unlimited, tuple):
+            raise TypeError('Unlimited dimensions must be given as a tuple')
+        self._unlimited = unlimited
+        
+        # Save the global attributes
+        self._attributes = kwds
+        
+        # Set the filehandle
+        self._file = None
+
+    def close(self):
+        """
+        Close the file associated with the WriteDataNode
+        """
+        if self._file is not None:
+            self._file.close()
+        
     def __getitem__(self, index):
-        pass
+        if self._file is None:
+            self._file = Dataset(self.label, 'w')
+        
+        # Write the global attributes
+        self._file.setncatts(self._attributes)
+        
+        # Get info for each input node by name
+        varinfos = dict((node.label, node[None]) for node in self._inputs)
+
+        # Determine the required dimensions from the input variables
+        req_dims = dict()
+        for vinfo in varinfos.itervalues():
+            for dname, dsize in zip(vinfo.dimensions, vinfo.dshape):
+                if dname in req_dims and dsize != req_dims[dname]:
+                    raise DimensionsError(('Dimension {!r} has size {} in one DataNode and size {} '
+                                           'in another').format(dname, dsize, req_dims[dname]))
+                else:
+                    req_dims[dname] = dsize
+            
+        # Create the required dimensions
+        for dname, dsize in req_dims.iteritems():
+            if dname in self._unlimited:
+                self._file.createDimension(dname)
+            else:
+                self._file.createDimension(dname, dsize)
+
+        # Create the variables and write their attributes
+        ncvars = {}
+        for vnode in self._inputs:
+            vname = vnode.label
+            vinfo = varinfos[vname]
+            ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
+            for aname, avalue in vnode._attributes.iteritems():
+                ncvar.setncattr(aname, avalue)
+            ncvars[vname] = ncvar
+
+        # Now perform use the data flows to stream data into the file
+        for vnode in self._inputs:
+            ncvar[vnode.label][index] = vnode[index]
