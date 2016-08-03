@@ -427,13 +427,13 @@ class MapDataNode(DataNode):
 
 
 #===================================================================================================
-# ValidateDataNode
+# PassDataNode
 #===================================================================================================
-class ValidateDataNode(DataNode):
+class PassDataNode(DataNode):
     """
     DataNode class to validate input data from a neighboring DataNode
     
-    The ValidateDataNode takes additional attributes in its initializer that can effect the 
+    The PassDataNode takes additional attributes in its initializer that can effect the 
     behavior of its __getitem__ method.  The special attributes are:
     
         'valid_min': The minimum value the data should have, if valid
@@ -441,10 +441,10 @@ class ValidateDataNode(DataNode):
         'min_mean_abs': The minimum acceptable value of the mean of the absolute value of the data
         'max_mean_abs': The maximum acceptable value of the mean of the absolute value of the data
     
-    If these attributes are supplied to the ValidateDataNode at construction time, then the
+    If these attributes are supplied to the PassDataNode at construction time, then the
     associated validation checks will be made on the data when __getitem__ is called.
     
-    Additional attributes may be added to the ValidateDataNode that do not affect functionality.
+    Additional attributes may be added to the PassDataNode that do not affect functionality.
     These attributes may be named however the user wishes and can be retrieved from the DataNode
     as a dictionary with the 'attributes' property.
 
@@ -469,7 +469,7 @@ class ValidateDataNode(DataNode):
             raise TypeError('MapDataNode can only act on output from another DataNode')
 
         # Call base class initializer
-        super(ValidateDataNode, self).__init__(label, indata)
+        super(PassDataNode, self).__init__(label, indata)
 
         # Save error flag
         self._error = bool(error)
@@ -504,7 +504,7 @@ class ValidateDataNode(DataNode):
 
         # Check that units match as expected
         if self._cfunits is not None and self._cfunits != in_info.cfunits:
-            msg = ('Units {!s} do not match expected units {!r} in ValidateDataNode '
+            msg = ('Units {!s} do not match expected units {!r} in PassDataNode '
                    '{!r}').format(self._cfunits, in_info.cfunits, self.label)
             if self._error:
                 raise UnitsError(msg)
@@ -513,7 +513,7 @@ class ValidateDataNode(DataNode):
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != in_info.dimensions:
-            msg = ('Dimensions {!s} do not match expected units {!r} in ValidateDataNode '
+            msg = ('Dimensions {!s} do not match expected units {!r} in PassDataNode '
                    '{!r}').format(self._dimensions, in_info.dimensions, self.label)
             if self._error:
                 raise DimensionsError(msg)
@@ -575,6 +575,13 @@ class WriteDataNode(DataNode):
     """
 
     def __init__(self, filename, *inputs, **attributes):
+        """
+        Initializer
+        
+        Parameters:
+            filename (str): Name of the file to write
+            inputs (tuple/DataNode): A tuple of DataNodes providing input to the
+        """
         pass
 
     def __getitem__(self, index):
