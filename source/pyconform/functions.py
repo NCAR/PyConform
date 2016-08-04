@@ -7,28 +7,46 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep
 from abc import ABCMeta, abstractmethod
+from pyconform.dataflows import DataArray
 from cf_units import Unit
 from numpy import sqrt, transpose
 
 
+#===================================================================================================
+# UnitsError
+#===================================================================================================
 class UnitsError(ValueError):
-    pass
+    """Exception for when DataArray Units are invalid"""
+    def __init__(self, name, iarg, units):
+        message = 'In {}, argument {} requires conversion to {!s}'.format(name, iarg, units)
+        super(UnitsError, self).__init__(message)
+        self.name = name
+        self.iarg = iarg
+        self.units = units
 
 
+#===================================================================================================
+# DimensionsError
+#===================================================================================================
 class DimensionsError(ValueError):
-    pass
+    """Exception for when DataArray Dimensions are invalid"""
+    def __init__(self, name, iarg, dims):
+        message = 'In {}, argument {} requires dimensions {!s}'.format(name, iarg, dims)
+        super(DimensionsError, self).__init__(message)
+        self.name = name
+        self.iarg = iarg
+        self.dims = dims
 
-
-#===============================================================================
+#===================================================================================================
 # List all available functions or operators
-#===============================================================================
+#===================================================================================================
 def available():
     return available_operators().union(available_functions())
 
 
-#===============================================================================
+#===================================================================================================
 # Find a function or operator based on key and number of arguments
-#===============================================================================
+#===================================================================================================
 def find(key, numargs=2):
     if (key, numargs) in available_operators():
         return find_operator(key, numargs)
@@ -39,44 +57,39 @@ def find(key, numargs=2):
                         'found').format(numargs, key))
 
 
-#===============================================================================
-# FunctionalAbstract - base class for Function and Operator Classes
-#===============================================================================
-class FunctionAbstract(object):
+#===================================================================================================
+# FunctionBase - base class for Function and Operator Classes
+#===================================================================================================
+class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
     numargs = 2
 
-    @abstractmethod
-    def units(self, *arg_units):
-        uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
-        uarg = (None,) * len(self.numargs)
-        return uret, uarg
+    def get_units(self, *args):
+        return tuple(arg.cfunits if isinstance(arg, DataArray) else Unit(1) for arg in args)
+
+    def get_dimensions(self, *args):
+        return tuple(arg.dimensions if isinstance(arg, DataArray) else () for arg in args)
 
     @abstractmethod
-    def dimensions(self, *arg_dims):
-        dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else tuple()
-        darg = (None,) * len(self.numargs)
-        return dret, darg
-    
     def __call__(self, *args):
         return 1
-    
 
-################################################################################
-##### OPERATORS ################################################################
-################################################################################
 
-#===============================================================================
+####################################################################################################
+##### OPERATORS ####################################################################################
+####################################################################################################
+
+#===================================================================================================
 # Get a list of the available functions by function key and number of arguments
-#===============================================================================
+#===================================================================================================
 def available_operators():
     return set(__OPERATORS__.keys())
 
 
-#===============================================================================
+#===================================================================================================
 # Get the function associated with the given key-symbol
-#===============================================================================
+#===================================================================================================
 def find_operator(key, numargs=2):
     if (key, numargs) not in __OPERATORS__:
         raise KeyError(('{0}-arg operator with key {1!r} not '
@@ -84,186 +97,142 @@ def find_operator(key, numargs=2):
     return __OPERATORS__[(key, numargs)]
 
 
-#===============================================================================
+#===================================================================================================
 # Operator - From which all 'X op Y'-pattern operators derive
-#===============================================================================
-class Operator(FunctionAbstract):
+#===================================================================================================
+class Operator(FunctionBase):
     key = '?'
     numargs = 2
 
 
-#===============================================================================
+#===================================================================================================
 # NegationOperator
-#===============================================================================
+#===================================================================================================
 class NegationOperator(Operator):
     key = '-'
     numargs = 1
 
-    @staticmethod
-    def units(unit):
-        uret = unit if isinstance(unit, Unit) else Unit(1)
-        return uret, (None,)
-
-    @staticmethod
-    def dimensions(dims):
-        dret = dims if isinstance(dims, tuple) else ()
-        return dret, (None,)
-    
     def __call__(self, arg):
         return -arg
-    
 
-#===============================================================================
+
+#===================================================================================================
 # AdditionOperator
-#===============================================================================
+#===================================================================================================
 class AdditionOperator(Operator):
     key = '+'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        if ul == ur:
-            return ul, (None, None)
-        elif ur.is_convertible(ul):
-            return ul, (None, ul)
-        else:
-            raise UnitsError(('Data with units {0!s} and {1!s} cannot be '
-                              'added or subtracted').format(ul, ur))
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        dl = ldims if isinstance(ldims, tuple) else ()
-        dr = rdims if isinstance(rdims, tuple) else ()
-        if dl == ():
-            return dr, (None, None)
-        elif dl == dr or dr == ():
-            return dl, (None, None)
-        elif set(dl) == set(dr):
-            return dl, (None, dl)
-        else:
-            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
-                                   'be added or subtracted').format(dl, dr))
-    
     def __call__(self, left, right):
+        lunits, runits = self.get_units(left, right)
+        if lunits != runits:
+            raise UnitsError('+ operator', 1, lunits)
+
+        ldims, rdims = self.get_dimensions(left, right)
+        if ldims != rdims:
+            raise DimensionsError('+ operator', 1, ldims)
+
         return left + right
 
-#===============================================================================
+#===================================================================================================
 # SubtractionOperator
-#===============================================================================
+#===================================================================================================
 class SubtractionOperator(Operator):
     key = '-'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        return AdditionOperator.units(lunit, runit)
-    
-    @staticmethod
-    def dimensions(ldims, rdims):
-        return AdditionOperator.dimensions(ldims, rdims)
-    
     def __call__(self, left, right):
+        lunits, runits = self.get_units(left, right)
+        if lunits != runits:
+            raise UnitsError('- operator', 1, lunits)
+
+        ldims, rdims = self.get_dimensions(left, right)
+        if ldims != rdims:
+            raise DimensionsError('- operator', 1, ldims)
+
         return left - right
 
-#===============================================================================
+#===================================================================================================
 # PowerOperator
-#===============================================================================
+#===================================================================================================
 class PowerOperator(Operator):
     key = '^'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        if not isinstance(runit, (int, float)):
-            raise UnitsError('Exponent in power function must be a '
-                             'unitless scalar')
-        try:
-            upow = lunit ** runit
-        except:
-            raise UnitsError(('Cannot exponentiate units to power '
-                              '{0}').format(runit))
-        uret = upow if isinstance(upow, Unit) else Unit(1)
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        if not isinstance(rdims, (int, float)):
-            raise DimensionsError('Exponent in power function must be a '
-                                  'dimensionless scalar')
-        dret = ldims if isinstance(ldims, tuple) else () 
-        return dret, (None, None)
-    
     def __call__(self, left, right):
-        return left ** right
+        lunits, runits = self.get_units(left, right)
+        ldims, rdims = self.get_dimensions(left, right)
+
+        if runits != Unit(1):
+            raise UnitsError('^ operator', 1, Unit(1))
+        if rdims != ():
+            raise DimensionsError('^ operator', 1, ())
+
+        try:
+            punits = lunits ** right
+        except:
+            raise ValueError('Cannot exponentiate units ({!r} ** {})'.format(lunits, right))
+
+        return DataArray(left ** right, cfunits=punits, dimensions=ldims)
 
 
-#===============================================================================
+#===================================================================================================
 # MultiplicationOperator
-#===============================================================================
+#===================================================================================================
 class MultiplicationOperator(Operator):
     key = '*'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        try:
-            uret = ul * ur
-        except:
-            raise UnitsError(('Cannot multiply or divide units {0} and '
-                              '{1}').format(ul, ur))
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        dl = ldims if isinstance(ldims, tuple) else ()
-        dr = rdims if isinstance(rdims, tuple) else ()
-        if dl == ():
-            return dr, (None, None)
-        elif dl == dr or dr == ():
-            return dl, (None, None)
-        elif set(dl) == set(dr):
-            return dl, (None, dl)
-        else:
-            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
-                                   'be multiplied or divided').format(dl, dr))
-    
     def __call__(self, left, right):
-        return left * right
+        lunits, runits = self.get_units(left, right)
+        ldims, rdims = self.get_dimensions(left, right)
+
+        try:
+            munits = lunits * runits
+        except:
+            raise ValueError('Cannot multiply units ({!r} * {!r})'.format(lunits, runits))
+
+        if ldims == ():
+            mdims = rdims
+        elif ldims == rdims or rdims == ():
+            mdims = ldims
+        else:
+            raise ValueError(('Cannot multiply mismatched dimensions '
+                              '({!r} * {!r})').format(ldims, rdims))
+
+        return DataArray(left * right, cfunits=munits, dimensions=mdims)
 
 
-#===============================================================================
+#===================================================================================================
 # DivisionOperator
-#===============================================================================
+#===================================================================================================
 class DivisionOperator(Operator):
     key = '-'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        try:
-            uret = ul / ur
-        except:
-            raise UnitsError(('Cannot multiply or divide units {0} and '
-                              '{1}').format(ul, ur))
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        return MultiplicationOperator.dimensions(ldims, rdims)
-    
     def __call__(self, left, right):
-        return left / right
+        lunits, runits = self.get_units(left, right)
+        ldims, rdims = self.get_dimensions(left, right)
+
+        try:
+            munits = lunits / runits
+        except:
+            raise ValueError('Cannot divide units ({!r} * {!r})'.format(lunits, runits))
+
+        if ldims == ():
+            mdims = rdims
+        elif ldims == rdims or rdims == ():
+            mdims = ldims
+        else:
+            raise ValueError(('Cannot divide mismatched dimensions '
+                              '({!r} * {!r})').format(ldims, rdims))
+
+        return DataArray(left / right, cfunits=munits, dimensions=mdims)
 
 
-#===============================================================================
+#===================================================================================================
 # Operator map - Fixed to prevent user-redefinition!
-#===============================================================================
+#===================================================================================================
 
 __OPERATORS__ = {('-', 1): NegationOperator(),
                  ('^', 2): PowerOperator(),
@@ -272,20 +241,20 @@ __OPERATORS__ = {('-', 1): NegationOperator(),
                  ('*', 2): MultiplicationOperator(),
                  ('/', 2): DivisionOperator()}
 
-################################################################################
-##### FUNCTIONS ################################################################
-################################################################################
+####################################################################################################
+##### FUNCTIONS ####################################################################################
+####################################################################################################
 
-#===============================================================================
+#===================================================================================================
 # Recursively return all subclasses of a given class
-#===============================================================================
+#===================================================================================================
 def _all_subclasses_(cls):
     return cls.__subclasses__() + [c for s in cls.__subclasses__()
                                    for c in _all_subclasses_(s)]
 
-#===============================================================================
+#===================================================================================================
 # Check that all functions patterns are unique - Needed for User-Defined Funcs
-#===============================================================================
+#===================================================================================================
 def check_functions():
     func_dict = {}
     func_map = [((c.key, c.numargs), c)
@@ -305,16 +274,16 @@ def check_functions():
             err_msg += ['   {0} maps to {1}'.format(func_descr, class_names)]
         raise RuntimeError(linesep.join(err_msg))
 
-#===============================================================================
+#===================================================================================================
 # Get a list of the available functions by function key and number of arguments
-#===============================================================================
+#===================================================================================================
 def available_functions():
     return set((c.key, c.numargs)
                for c in _all_subclasses_(Function))
 
-#===============================================================================
+#===================================================================================================
 # Get the function associated with the given key-symbol
-#===============================================================================
+#===================================================================================================
 def find_function(key, numargs=2):
     func_map = dict(((c.key, c.numargs), c())
                     for c in _all_subclasses_(Function))
@@ -323,83 +292,63 @@ def find_function(key, numargs=2):
                         'found').format(numargs, key))
     return func_map[(key, numargs)]
 
-#===============================================================================
+#===================================================================================================
 # Function - From which all 'func(...)'-pattern functions derive
-#===============================================================================
-class Function(FunctionAbstract):
-    key = 'f'
+#===================================================================================================
+class Function(FunctionBase):
+    key = 'function'
     numargs = 1
 
-#===============================================================================
+#===================================================================================================
 # SquareRoot
-#===============================================================================
+#===================================================================================================
 class SquareRootFunction(Function):
     key = 'sqrt'
     numargs = 1
 
-    @staticmethod
-    def units(unit):
-        u = unit if isinstance(unit, Unit) else Unit(1)
-        try:
-            uret = u.root(2)
-        except:
-            raise UnitsError(('Cannot take square-root of units {0}').format(u))
-        return uret, (None,)
-
-    @staticmethod
-    def dimensions(dims):
-        dret = dims if isinstance(dims, tuple) else ()
-        return dret, (None,)
-    
     def __call__(self, data):
-        return sqrt(data)
+        dunits = self.get_units(data)
+        ddims = self.get_dimensions(data)
 
-#===============================================================================
+        try:
+            sunits = dunits.root(2)
+        except:
+            raise ValueError('Cannot take square-root of units ({!r})'.format(dunits))
+
+        return DataArray(sqrt(data), cfunits=sunits, dimensions=ddims)
+
+#===================================================================================================
 # ConvertFunction
-#===============================================================================
+#===================================================================================================
 class ConvertFunction(Function):
-    key = 'convert'
-    numargs = 3
-
-    @staticmethod
-    def units(data_units, from_units, to_units):
-        ud = data_units if isinstance(data_units, Unit) else Unit(1)
-        uf = from_units if isinstance(from_units, Unit) else Unit(1)
-        ut = to_units if isinstance(to_units, Unit) else Unit(1)
-        if ud != uf:
-            raise UnitsError(('Input units {0} different from expected '
-                              'units {1}').format(ud, uf))
-        if not uf.is_convertible(ut):
-            raise UnitsError(('Ill-formed convert function.  Cannot convert '
-                              'units {0} to {1}').format(uf, ut))
-        uret = ut
-        return uret, (None, None, None)
-
-    @staticmethod
-    def dimensions(data_dims, from_units, to_units):
-        dret = data_dims if isinstance(data_dims, tuple) else ()
-        return dret, (None, None, None)
-    
-    def __call__(self, data, from_units, to_units):
-        return from_units.convert(data, to_units)
-
-#===============================================================================
-# TransposeFunction
-#===============================================================================
-class TransposeFunction(Function):
-    key = 'transpose'
+    key = 'C'
     numargs = 2
 
-    @staticmethod
-    def units(data_units, order):
-        uret = data_units if isinstance(data_units, Unit) else Unit(1)
-        return uret, (None, None)
+    def __call__(self, data, to_units):
+        units1 = self.get_units(data)
+        units2 = Unit(to_units)
 
-    @staticmethod
-    def dimensions(data_dims, order):
-        d = data_dims if isinstance(data_dims, tuple) else ()
-        dret = tuple(d[i] for i in order)
-        return dret, (None, None)
-    
-    def __call__(self, data, order):
-        return transpose(data, order)
+        if not units1.is_convertible(units2):
+            raise ValueError('Cannot convert units ({!r} --> {!r})'.format(units1, units2))
+
+        return DataArray(units1.convert(data, units2, inplace=True),
+                         cfunits=units2, dimensions=self.get_dimensions(data))
+
+#===================================================================================================
+# TransposeFunction
+#===================================================================================================
+class TransposeFunction(Function):
+    key = 'T'
+    numargs = 2
+
+    def __call__(self, data, new_dims):
+        dunits = self.get_units(data)
+
+        old_dims = self.get_dimensions(data)
+        if set(old_dims) != set(new_dims):
+            raise ValueError(('Cannot transpose dimensions '
+                              '({!r} --> {!r})').format(old_dims, new_dims))
+
+        order = tuple(old_dims.index(d) for d in new_dims)
+
+        return DataArray(transpose(data, order), cfunits=dunits, dimensions=new_dims)

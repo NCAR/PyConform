@@ -19,11 +19,17 @@ LICENSE: See the LICENSE.rst file for details
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index
+from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.parsing import parse_definition
+from pyconform.parsing import ParsedVariable, ParsedUniOp, ParsedBinOp, ParsedFunction
+from pyconform.functions import find, UnitsError, DimensionsError, ConvertFunction, TransposeFunction
 from cf_units import Unit
 from inspect import getargspec, isfunction
 from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
+from itertools import cycle as itercycle
+from collections import deque
 
 import numpy
 
@@ -33,22 +39,6 @@ import numpy
 #===============================================================================
 def warning(*objs):
     print("WARNING:", *objs, file=stderr)
-
-
-#===================================================================================================
-# UnitsError
-#===================================================================================================
-class UnitsError(ValueError):
-    """Exception for when DataArray Units are invalid"""
-    pass
-
-
-#===================================================================================================
-# DimensionsError
-#===================================================================================================
-class DimensionsError(ValueError):
-    """Exception for when DataArray Dimensions are invalid"""
-    pass
 
 
 #===================================================================================================
@@ -84,7 +74,7 @@ class DataArray(numpy.ma.MaskedArray):
         else:
             raise TypeError(('Cannot set DataArray object with dimensions of type '
                              '{}').format(type(dimensions)))
-        
+
         if dshape is None:
             if 'dshape' not in obj._optinfo:
                 obj._optinfo['dshape'] = obj.shape
@@ -157,6 +147,13 @@ class DataNode(object):
         The DataNode's label
         """
         return self._label
+
+    @property
+    def inputs(self):
+        """
+        Inputs into this DataNode
+        """
+        return self._inputs
 
 
 #===================================================================================================
@@ -605,7 +602,7 @@ class WriteDataNode(DataNode):
         # Check filename
         if not isinstance(filename, basestring):
             raise TypeError('Filename must be of string type')
-        
+
         # Check and store input variables
         for inp in inputs:
             if not isinstance(inp, PassDataNode):
@@ -614,16 +611,16 @@ class WriteDataNode(DataNode):
 
         # Call base class (label is filename)
         super(WriteDataNode, self).__init__(filename, *inputs)
-        
+
         # Grab the unlimited dimensions parameter and check type
         unlimited = kwds.pop('unlimited', ())
         if not isinstance(unlimited, tuple):
             raise TypeError('Unlimited dimensions must be given as a tuple')
         self._unlimited = unlimited
-        
+
         # Save the global attributes
         self._attributes = kwds
-        
+
         # Set the filehandle
         self._file = None
 
@@ -633,20 +630,20 @@ class WriteDataNode(DataNode):
         """
         if self._file is not None:
             self._file.close()
-        
+
     def __getitem__(self, index):
 
         if self._file is None:
-            
+
             # Open the output file
             self._file = Dataset(self.label, 'w')
-        
+
             # Write the global attributes
             self._file.setncatts(self._attributes)
-            
+
             # Get info for each input node by name
             varinfos = dict((node.label, node[None]) for node in self._inputs)
-    
+
             # Determine the required dimensions from the input variables
             req_dims = dict()
             for vinfo in varinfos.itervalues():
@@ -656,14 +653,14 @@ class WriteDataNode(DataNode):
                                                '{}').format(dname, dsize, req_dims[dname]))
                     else:
                         req_dims[dname] = dsize
-                
+
             # Create the required dimensions
             for dname, dsize in req_dims.iteritems():
                 if dname in self._unlimited:
                     self._file.createDimension(dname)
                 else:
                     self._file.createDimension(dname, dsize)
-    
+
             # Create the variables and write their attributes
             ncvars = {}
             for vnode in self._inputs:
@@ -679,256 +676,164 @@ class WriteDataNode(DataNode):
             ncvar[vnode.label][index] = vnode[index]
 
 
-#===============================================================================
-# FlowFiller
-#===============================================================================
-class FlowFiller(object):
+#===================================================================================================
+# search - Depth(Breadth)-First-Search Generator Function
+#===================================================================================================
+def search(root, depth=True):
     """
-    Object that fills a data flow
+    Depth-First or Breadth-First Search Generator Function
+    
+    Parameters:
+        root: The root object to search from (i.e., a DataNode)
+        depth (bool): Whether to perform a depth-first (True) or breadth-first (False) search
+    """
+    visited = set()
+    stack = deque([root])
+    while stack:
+        if depth:
+            node = stack.pop()
+        else:
+            node = stack.popleft()
+        if node not in visited:
+            yield node
+            visited.add(node)
+            if isinstance(node, DataNode):
+                stack.extend(n for n in node.inputs if n not in visited)
+
+
+#===============================================================================
+# FlowFactory
+#===============================================================================
+class FlowFactory(object):
+    """
+    Object that constructs a data flow
     """
 
-    def __init__(self, inp, cyc=True):
+    def __init__(self, inpds, cycle=True):
         """
         Initializer
         
         Parameters:
-            inp (InputDataset): The input dataset to use as reference when
+            inpds (InputDataset): The input dataset to use as reference when
                 parsing variable definitions
             cyc (bool): If True, cycles which file to read metadata variables
                 from (i.e., variables that exist in all input files).  If False,
                 always reads metadata variables from the first input file.
         """
         # Input dataset
-        if not isinstance(inp, InputDataset):
+        if not isinstance(inpds, InputDataset):
             raise TypeError('Input dataset must be of InputDataset type')
-        self._inputds = inp
+        self._inputds = inpds
 
         # Cyclic iterator over available input filenames
         fnames = [v.filename for v in self._inputds.variables.itervalues()]
-        if cyc:
-            self._infile_cycle = cycle(filter(None, fnames))
+        if cycle:
+            self._infile_cycle = itercycle(filter(None, fnames))
         else:
-            self._infile_cycle = cycle([filter(None, fnames)[0]])
+            self._infile_cycle = itercycle([filter(None, fnames)[0]])
 
-    def from_definitions(self, graph, outds):
+    def from_definitions(self, outds, error=False):
         """
-        Fill an ActionGraph from definitions in an output dataset
+        Construct a data flow from definitions in an output dataset
+        
+        Parameters:
+            outds (OutputDataset): The output dataset defining the output variables and
+                their definitions
+            error (bool): Whether to throw exceptions if validation checks do not pass.
+                Otherwise, just through warnings.
         """
-        # Action Graph
-        if not isinstance(graph, ActionGraph):
-            raise TypeError('Graph must be an ActionGraph object')
 
         # Output dataset
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
 
-        # Separate output variables into preset and defined
-        preset = {}
-        defined = {}
+        # Separate output variables into variables with 'data' or 'definitions'
+        withdata = {}
+        withdefn = {}
         for vname, vinfo in outds.variables.iteritems():
             if vinfo.data is not None:
-                preset[vname] = vinfo
+                withdata[vname] = vinfo
             elif vinfo.definition is not None:
-                defined[vname] = vinfo
+                withdefn[vname] = vinfo
             else:
-                raise ValueError(('Output variable {0} does not have preset '
+                raise ValueError(('Output variable {0} does not have withdata '
                                   'data nor a definition').format(vname))
 
-        # Parse output variables with preset data
-        for vname, vinfo in preset.iteritems():
-            vmin = vinfo.attributes.get('valid_min', None)
-            vmax = vinfo.attributes.get('valid_max', None)
-            vmin_ma = vinfo.attributes.get('ok_min_mean_abs', None)
-            vmax_ma = vinfo.attributes.get('ok_max_mean_abs', None)
-            vdata = array(vinfo.data, dtype=vinfo.datatype)
-            handle = Finalizer(vname, data=vdata, minimum=vmin, maximum=vmax,
-                               min_mean_abs=vmin_ma, max_mean_abs=vmax_ma)
-            handle.units = vinfo.cfunits()
-            handle.dimensions = vinfo.dimensions
-            graph.add(handle)
+        # Create a dictionary to store "source" DataNodes (CreateDataNodes) from 'data' attributes
+        srcnodes = {}
+
+        # Create a dictionary to store validated "output variable" DataNodes (PassDataNodes)
+        outnodes = {}
+
+        # First, parse output variables with 'data'
+        for vname, vinfo in withdata.iteritems():
+            vdata = numpy.array(vinfo.data, dtype=vinfo.datatype)
+            vshape = tuple(outds.dimensions[d] for d in vinfo.dimensions)
+            cdnode = CreateDataNode(vname, vdata, cfunits=vinfo.cfunits(),
+                                    dimensions=vinfo.dimensions, dshape=vshape)
+            srcnodes[vname] = cdnode
+            pdnode = PassDataNode(vname, cdnode, error=error, attributes=vinfo.attributes)
+            outnodes[vname] = pdnode
 
         # Parse the output variable with definitions
-        for vname, vinfo in defined.iteritems():
-            vmin = vinfo.attributes.get('valid_min', None)
-            vmax = vinfo.attributes.get('valid_max', None)
-            handle = Finalizer(vname, minimum=vmin, maximum=vmax)
-            handle.units = vinfo.cfunits()
-            handle.dimensions = vinfo.dimensions
-
+        for vname, vinfo in withdefn.iteritems():
             obj = parse_definition(vinfo.definition)
-            vtx = self._add_to_graph_(graph, obj)
-            graph.connect(vtx, handle)
+            vnode = self._construct_flow_(obj, srcnodes=srcnodes)
+            if not isinstance(vnode, DataNode):
+                raise RuntimeError('Cannot map {} to output variable {!r}'.format(type(vnode), vname))
+            outnodes[vname] = vnode
 
-        # Check to make sure the graph is not cyclic
-        if graph.is_cyclic():
-            raise ValueError('Graph is cyclic.  Cannot continue.')
+        # Compute the dimension map (from input namespace dimensions to output namespace dimensions)
 
-    def _add_to_graph_(self, graph, obj):
-        vtx = self._convert_obj_(graph, obj)
-        graph.add(vtx)
-        if isinstance(obj.args, tuple):
-            for arg in obj.args:
-                if not isinstance(arg, (int, float)):
-                    graph.connect(self._add_to_graph_(graph, arg), vtx)
-        return vtx
 
-    def _convert_obj_(self, graph, obj):
+    def _construct_flow_(self, obj, srcnodes={}):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._inputds.variables:
-                var = self._inputds.variables[vname]
-                if var.filename:
-                    fname = var.filename
+                vinfo = self._inputds.variables[vname]
+                if vinfo.filename:
+                    fname = vinfo.filename
                 else:
                     fname = self._infile_cycle.next()
-                return Reader(fname, vname, slicetuple=obj.args)
+                return ReadDataNode(fname, vname, index=obj.args)
 
+            elif vname in srcnodes:
+                return srcnodes[vname]
             else:
-                preset_dict = dict((f.key, f) for f in graph.presets())
-                if vname in preset_dict:
-                    return preset_dict[vname]
-                else:
-                    raise KeyError('Variable {0!r} not found'.format(vname))
+                raise KeyError('Variable {0!r} not found'.format(vname))
 
-        elif isinstance(obj, (ParsedUniOp, ParsedBinOp, ParsedFunction)):
+        elif isinstance(obj, ParsedFunction):
             name = obj.key
             nargs = len(obj.args)
             func = find(name, numargs=nargs)
-            args = [o if isinstance(o, (int, float)) else None
-                    for o in obj.args]
+            args = [self._construct_flow_(arg, srcnodes) for arg in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            return Evaluator(name, str(obj), func, signature=args)
+            unchecked = True
+            while unchecked:
+                try:
+                    dnode = EvalDataNode(name, func, *args)
+                    dnode[None]
+                except UnitsError as e:
+                    iarg = e.iarg
+                    arg = args[iarg]
+                    req_units = e.units
+                    cname = 'C({!s}, to={!r})'.format(arg, str(req_units))
+                    args[iarg] = EvalDataNode(cname, ConvertFunction, arg, req_units)
+                except DimensionsError as e:
+                    iarg = e.iarg
+                    arg = args[iarg]
+                    req_dims = e.dims
+                    tname = 'T({!s}, to={!r})'.format(arg, req_dims)
+                    args[iarg] = EvalDataNode(tname, TransposeFunction, arg, req_dims)
+                except:
+                    raise
+                else:
+                    unchecked = False
+            return dnode
 
         else:
             return obj
-
-    def match_units(self, graph):
-        """
-        Match units of connected Actions in an ActionGraph
-        
-        This will add new Actions to the ActionGraph, as necessary, to convert
-        units to match the necessary units needed by each Action.
-        
-        Parameters:
-            graph (ActionGraph): The ActionGraph in which to match units 
-        """
-        for handle in graph.handles():
-            GraphFiller._compute_units_(graph, handle)
-
-    @staticmethod
-    def _compute_units_(graph, vtx):
-        nbrs = graph.neighbors_to(vtx)
-        to_units = [GraphFiller._compute_units_(graph, nbr) for nbr in nbrs]
-
-        if isinstance(vtx, Evaluator):
-            arg_units = [to_units.pop(0) if arg is None else arg
-                         for arg in vtx.signature]
-            func = find(vtx.key, numargs=len(arg_units))
-            ret_unit, new_units = func.units(*arg_units)
-            for i, new_unit in enumerate(new_units):
-                if new_unit is not None:
-                    if vtx.signature[i] is not None:
-                        raise UnitsError(('Argument {0} in action {1} requires '
-                                          'units {2}').format(i, vtx, new_unit))
-                    else:
-                        old_unit = arg_units[i]
-                        cvtx = GraphFiller._new_converter_(old_unit, new_unit)
-                        nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
-                                           vtx.signature)[:i])]
-                        cvtx.dimensions = nbr.dimensions
-                        graph.insert(nbr, cvtx, vtx)
-            vtx.units = ret_unit
-
-        elif isinstance(vtx, Finalizer):
-            if len(nbrs) == 0:
-                pass
-            elif len(nbrs) == 1:
-                nbr = nbrs[0]
-                old_unit = to_units[0]
-                if vtx.units != old_unit:
-                    if old_unit.is_convertible(vtx.units):
-                        cvtx = GraphFiller._new_converter_(old_unit, vtx.units)
-                        cvtx.dimensions = vtx.dimensions
-                        graph.insert(nbr, cvtx, vtx)
-                    else:
-                        if old_unit.calendar != vtx.units.calendar:
-                            raise UnitsError(('Cannot convert {0} units to {1} '
-                                              'units.  Calendars must be '
-                                              'same.').format(nbr, vtx))
-                        else:
-                            raise UnitsError(('Cannot convert {0} units '
-                                              '{1!r} to {2} units '
-                                              '{3!r}').format(nbr, old_unit,
-                                                              vtx, vtx.units))
-            else:
-                raise ValueError(('Graph malformed.  Finalizer with more than '
-                                  'one input edge {0}').format(vtx))
-
-        else:
-            if len(to_units) == 1:
-                vtx.units = to_units[0]
-
-        return vtx.units
-
-    @staticmethod
-    def _new_converter_(old_units, new_units):
-        name = 'convert({0!r}->{1!r})'.format(str(old_units), str(new_units))
-        func = find_function('convert', 3)
-        action = Evaluator('convert', name, func,
-                           signature=(None, old_units, new_units))
-        action.units = new_units
-        return action
-
-    def match_dimensions(self, graph):
-        """
-        Match dimensions of connected Actions in an ActionGraph
-        
-        This will add new Actions to the ActionGraph, as necessary, to transpose
-        dimensions to match the necessary dimensions needed by each Action.
-        
-        Parameters:
-            graph (ActionGraph): The ActionGraph in which to match dimensions
-        
-        Returns:
-            dict: A dictionary of output dimension names mapped to their
-                corresponding input dimension names
-        """
-        # Fill the graph with dimensions up to the OutputSliceHandles and
-        # compute the map of input dataset dimensions to output dataset dims
-        dmap = {}
-        handles = sorted(graph.handles(), key=lambda h: len(h.dimensions))
-        for handle in handles:
-            GraphFiller._map_dimensions_(graph, handle, dmap)
-
-        for handle in handles:
-            nbrs = graph.neighbors_to(handle)
-            if len(nbrs) == 0:
-                continue
-            nbr = nbrs[0]
-            for d in nbr.dimensions:
-                if d in dmap:
-                    if (d not in self._inputds.dimensions and
-                        d in handle.dimensions):
-                        dmap.pop(d)
-                else:
-                    if (d in self._inputds.dimensions or
-                        d not in handle.dimensions):
-                        unmapped_dims = tuple(d for d in nbr.dimensions
-                                              if d not in dmap)
-                        raise DimensionsError(('Could not determine complete '
-                                               'dimension map for input dims '
-                                               '{0}').format(unmapped_dims))
-            mapped_dims = tuple(dmap[d] if d in dmap else d
-                                for d in nbr.dimensions)
-            hdims = handle.dimensions
-            if hdims != mapped_dims:
-                if set(hdims) == set(mapped_dims):
-                    tvtx = GraphFiller._new_transpositor_(mapped_dims, hdims)
-                    tvtx.units = nbr.units
-                    graph.insert(nbr, tvtx, handle)
-
-        graph._dim_map = dict((v, k) for (k, v) in dmap.iteritems())
 
     @staticmethod
     def _map_dimensions_(graph, vtx, dmap={}):
@@ -988,12 +893,3 @@ class FlowFiller(object):
                 vtx.dimensions = nbrs_dims[0]
 
         return vtx.dimensions
-
-    @staticmethod
-    def _new_transpositor_(old_dims, new_dims):
-        new_order = [new_dims.index(d) for d in old_dims]
-        name = 'transpose({0}->{1})'.format(old_dims, new_dims)
-        func = find_function('transpose', 2)
-        action = Evaluator('transpose', name, func, signature=(None, new_order))
-        action.dimensions = new_dims
-        return action
