@@ -126,11 +126,11 @@ class AdditionOperator(Operator):
     def __call__(self, left, right):
         lunits, runits = self.get_units(left, right)
         if lunits != runits:
-            raise UnitsError('+ operator', 1, lunits)
+            raise UnitsError(self.__class__.__name__, 1, lunits)
 
         ldims, rdims = self.get_dimensions(left, right)
         if ldims != rdims:
-            raise DimensionsError('+ operator', 1, ldims)
+            raise DimensionsError(self.__class__.__name__, 1, ldims)
 
         return left + right
 
@@ -144,11 +144,11 @@ class SubtractionOperator(Operator):
     def __call__(self, left, right):
         lunits, runits = self.get_units(left, right)
         if lunits != runits:
-            raise UnitsError('- operator', 1, lunits)
+            raise UnitsError(self.__class__.__name__, 1, lunits)
 
         ldims, rdims = self.get_dimensions(left, right)
         if ldims != rdims:
-            raise DimensionsError('- operator', 1, ldims)
+            raise DimensionsError(self.__class__.__name__, 1, ldims)
 
         return left - right
 
@@ -164,9 +164,9 @@ class PowerOperator(Operator):
         ldims, rdims = self.get_dimensions(left, right)
 
         if runits != Unit(1):
-            raise UnitsError('^ operator', 1, Unit(1))
+            raise UnitsError(self.__class__.__name__, 1, Unit(1))
         if rdims != ():
-            raise DimensionsError('^ operator', 1, ())
+            raise DimensionsError(self.__class__.__name__, 1, ())
 
         try:
             punits = lunits ** right
