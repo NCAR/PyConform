@@ -35,7 +35,7 @@ class DimensionsError(ValueError):
         super(DimensionsError, self).__init__(message)
         self.name = name
         self.iarg = iarg
-        self.dims = dims
+        self.dimensions = dims
 
 #===================================================================================================
 # List all available functions or operators
