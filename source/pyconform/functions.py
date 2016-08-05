@@ -17,12 +17,14 @@ from numpy import sqrt, transpose
 #===================================================================================================
 class UnitsError(ValueError):
     """Exception for when DataArray Units are invalid"""
-    def __init__(self, name, iarg, units):
-        message = 'In {}, argument {} requires conversion to {!s}'.format(name, iarg, units)
+    def __init__(self, name, hints={}):
+        msgs = []
+        for iarg, units in hints.iteritems():
+            msgs.append('argument {} requires conversion to {!s}'.format(iarg, str(units)))
+        message = 'In {}: '.format(name) + ', or '.join(msgs)
         super(UnitsError, self).__init__(message)
         self.name = name
-        self.iarg = iarg
-        self.units = units
+        self.hints = hints
 
 
 #===================================================================================================
@@ -30,12 +32,15 @@ class UnitsError(ValueError):
 #===================================================================================================
 class DimensionsError(ValueError):
     """Exception for when DataArray Dimensions are invalid"""
-    def __init__(self, name, iarg, dims):
-        message = 'In {}, argument {} requires dimensions {!s}'.format(name, iarg, dims)
+    def __init__(self, name, hints={}):
+        msgs = []
+        for iarg, dimensions in hints.iteritems():
+            msgs.append('argument {} requires dimensions {!s}'.format(iarg, dimensions))
+        message = 'In {}: '.format(name) + ', or '.join(msgs)
         super(DimensionsError, self).__init__(message)
         self.name = name
-        self.iarg = iarg
-        self.dimensions = dims
+        self.hints = hints
+
 
 #===================================================================================================
 # List all available functions or operators
@@ -126,11 +131,11 @@ class AdditionOperator(Operator):
     def __call__(self, left, right):
         lunits, runits = self.get_units(left, right)
         if lunits != runits:
-            raise UnitsError(self.__class__.__name__, 1, lunits)
+            raise UnitsError(self.__class__.__name__, hints={1: lunits})
 
         ldims, rdims = self.get_dimensions(left, right)
         if ldims != rdims:
-            raise DimensionsError(self.__class__.__name__, 1, ldims)
+            raise DimensionsError(self.__class__.__name__, hints={0: rdims, 1: ldims})
 
         return left + right
 
@@ -144,11 +149,11 @@ class SubtractionOperator(Operator):
     def __call__(self, left, right):
         lunits, runits = self.get_units(left, right)
         if lunits != runits:
-            raise UnitsError(self.__class__.__name__, 1, lunits)
+            raise UnitsError(self.__class__.__name__, hints={1: lunits})
 
         ldims, rdims = self.get_dimensions(left, right)
         if ldims != rdims:
-            raise DimensionsError(self.__class__.__name__, 1, ldims)
+            raise DimensionsError(self.__class__.__name__, hints={0: rdims, 1: ldims})
 
         return left - right
 
@@ -164,9 +169,9 @@ class PowerOperator(Operator):
         ldims, rdims = self.get_dimensions(left, right)
 
         if runits != Unit(1):
-            raise UnitsError(self.__class__.__name__, 1, Unit(1))
+            raise UnitsError(self.__class__.__name__, hints={1: Unit(1)})
         if rdims != ():
-            raise DimensionsError(self.__class__.__name__, 1, ())
+            raise DimensionsError(self.__class__.__name__, hints={1: ()})
 
         try:
             punits = lunits ** right
