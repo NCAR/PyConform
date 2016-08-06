@@ -132,7 +132,7 @@ class DataNode(object):
             inputs (tuple): DataNodes that provide input into this DataNode
         """
         self._label = label
-        self._inputs = inputs
+        self._inputs = list(inputs)
 
     @abstractmethod
     def __getitem__(self, index):
@@ -369,14 +369,14 @@ class MapDataNode(DataNode):
     DataNode class to map input data from a neighboring DataNode to new dimension names and cfunits
     
     The MapDataNode can rename the dimensions of a DataNode's output data.  It does not change the
-    data itself, however.  If the input dimensions cannot be mapped to the specified output
-    dimensions in the order they are specified, then a DimensionsError will be raised.  A
-    transposition should be done to change the order of the data dimensions in such a case.
+    data itself, however.  The input dimension names will be changed according to the dimension
+    map given.  If an input dimension name is not referenced by the map, then the input dimension
+    name does not change.
     
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, indata, dmap={}, dimensions=None):
+    def __init__(self, label, indata, dmap={}):
         """
         Initializer
         
@@ -391,15 +391,15 @@ class MapDataNode(DataNode):
         if not isinstance(indata, DataNode):
             raise TypeError('MapDataNode can only act on output from another DataNode')
 
-        # Store the dimension map
-        self._dmap = dmap
+        # Check dimension map type
+        if not isinstance(dmap, dict):
+            raise TypeError('Dimension map must be a dictionary')
 
-        # Check for dimensions (necessary)
-        if dimensions is None:
-            raise DimensionsError('Must supply dimensions to MapDataNode')
-        elif not isinstance(dimensions, tuple):
-            raise TypeError('Dimensions must be a tuple')
-        self._dimensions = dimensions
+        # Store the dimension input-to-output map
+        self._i2omap = dmap
+
+        # Construct the reverse mapping
+        self._o2imap = dict((v, k) for k, v in dmap)
 
         # Call base class initializer
         super(MapDataNode, self).__init__(label, indata)
@@ -410,33 +410,28 @@ class MapDataNode(DataNode):
         """
 
         # Request the input information without pulling data
-        in_info = self._inputs[0][None]
+        inp_info = self._inputs[0][None]
 
         # Get the input data dimensions
-        in_dims = in_info.dimensions
+        inp_dims = inp_info.dimensions
 
-        # Compute the output dimensions from internal attributes
-        out_dims = self._dimensions
-
-        # The input/output dimensions should be the same
+        # The input/output dimensions will be the same
         # OR should be contained in the dimension map
-        for od in out_dims:
-            d = self._dmap.get(od, od)
-            if d not in in_dims:
-                raise DimensionsError(('Output dimension {!r} cannot be mapped to any input '
-                                       'dimension: {}').format(od, in_dims))
+        out_dims = tuple(self._i2omap.get(d, d) for d in inp_dims)
 
         # Compute the input index in terms of input dimensions
         if index is None:
-            in_index = dict((self._dmap.get(d, d), slice(0, 0)) for d in out_dims)
+            inp_index = dict((d, slice(0, 0)) for d in inp_dims)
+
         elif isinstance(index, dict):
-            in_index = dict((self._dmap.get(k, k), v) for k, v in index.iteritems())
+            inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
+
         else:
-            in_index = dict((self._dmap.get(k, k), v)
-                            for k, v in zip(out_dims, numpy.index_exp[index]))
+            out_index = numpy.index_exp[index]
+            inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
-        return DataArray(self._inputs[0][in_index], dimensions=out_dims)
+        return DataArray(self._inputs[0][inp_index], dimensions=out_dims)
 
 
 #===================================================================================================
@@ -479,7 +474,7 @@ class PassDataNode(DataNode):
         """
         # Check DataNode type
         if not isinstance(indata, DataNode):
-            raise TypeError('MapDataNode can only act on output from another DataNode')
+            raise TypeError('PassDataNode can only act on output from another DataNode')
 
         # Call base class initializer
         super(PassDataNode, self).__init__(label, indata)
@@ -676,31 +671,6 @@ class WriteDataNode(DataNode):
             ncvar[vnode.label][index] = vnode[index]
 
 
-#===================================================================================================
-# search - Depth(Breadth)-First-Search Generator Function
-#===================================================================================================
-def search(root, depth=True):
-    """
-    Depth-First or Breadth-First Search Generator Function
-    
-    Parameters:
-        root: The root object to search from (i.e., a DataNode)
-        depth (bool): Whether to perform a depth-first (True) or breadth-first (False) search
-    """
-    visited = set()
-    stack = deque([root])
-    while stack:
-        if depth:
-            node = stack.pop()
-        else:
-            node = stack.popleft()
-        if node not in visited:
-            yield node
-            visited.add(node)
-            if isinstance(node, DataNode):
-                stack.extend(n for n in node.inputs if n not in visited)
-
-
 #===============================================================================
 # FlowFactory
 #===============================================================================
@@ -732,17 +702,20 @@ class FlowFactory(object):
         else:
             self._infile_cycle = itercycle([filter(None, fnames)[0]])
 
+        # Initialize the dimension map and the inverse dimension map
+        self._i2omap = {}
+        self._o2imap = {}
+
     def from_definitions(self, outds, error=False):
         """
         Construct a data flow from definitions in an output dataset
         
         Parameters:
             outds (OutputDataset): The output dataset defining the output variables and
-                their definitions
-            error (bool): Whether to throw exceptions if validation checks do not pass.
-                Otherwise, just through warnings.
+                their definitions or data
+            error (bool): Whether to throw exceptions if validation checks do not pass,
+                otherwise just show warnings.
         """
-
         # Output dataset
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
@@ -759,32 +732,114 @@ class FlowFactory(object):
                 raise ValueError(('Output variable {0} does not have withdata '
                                   'data nor a definition').format(vname))
 
-        # Create a dictionary to store "source" DataNodes (CreateDataNodes) from 'data' attributes
+        # Create a dictionary to store "source" DataNodes from 'data' attributes
         srcnodes = {}
-
-        # Create a dictionary to store validated "output variable" DataNodes (PassDataNodes)
-        outnodes = {}
 
         # First, parse output variables with 'data'
         for vname, vinfo in withdata.iteritems():
             vdata = numpy.array(vinfo.data, dtype=vinfo.datatype)
-            vshape = tuple(outds.dimensions[d] for d in vinfo.dimensions)
+            vshape = tuple(outds.dimensions[d].size for d in vinfo.dimensions)
             cdnode = CreateDataNode(vname, vdata, cfunits=vinfo.cfunits(),
                                     dimensions=vinfo.dimensions, dshape=vshape)
             srcnodes[vname] = cdnode
-            pdnode = PassDataNode(vname, cdnode, error=error, attributes=vinfo.attributes)
-            outnodes[vname] = pdnode
+
+        # Create a dictionary to store "output variable" DataNodes from 'definition' attributes
+        outnodes = {}
 
         # Parse the output variable with definitions
         for vname, vinfo in withdefn.iteritems():
             obj = parse_definition(vinfo.definition)
-            vnode = self._construct_flow_(obj, srcnodes=srcnodes)
-            if not isinstance(vnode, DataNode):
-                raise RuntimeError('Cannot map {} to output variable {!r}'.format(type(vnode), vname))
-            outnodes[vname] = vnode
+            outnodes[vname] = self._construct_flow_(obj, srcnodes=srcnodes)
 
-        # Compute the dimension map (from input namespace dimensions to output namespace dimensions)
+        # By now, everything should work with the given units and dimensions!
+        # So, let's get the informat for each output variable DataNode's data
+        dinfos = dict((vname, vnode[None]) for vname, vnode in outnodes.iteritems())
 
+        # Each output variable DataNode must be mapped to its output dimensions.
+        # To aid with this, we sort by number of dimensions:
+        nodeorder = zip(*sorted((len(vinfo.dimensions), vname)
+                                for vname, vinfo in outds.variables.iteritems()))[1]
+        for vname in nodeorder:
+            out_dims = outds.variables[vname].dimensions
+            inp_dims = dinfos[vname].dimensions
+
+            unmapped_out = tuple(d for d in out_dims if d not in self._o2imap)
+            mapped_inp = tuple(self._o2imap[d] for d in out_dims if d in self._o2imap)
+            unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
+
+            if len(unmapped_out) != len(unmapped_inp):
+                raise ValueError(('Cannot map dimensions {} to dimensions '
+                                  '{}').format(inp_dims, out_dims))
+            if len(unmapped_out) == 0:
+                continue
+            for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
+                self._o2imap[out_dim] = inp_dim
+                self._i2omap[inp_dim] = out_dim
+
+        # Now append the necessary dimension renaming, unit conversion, transposing, validating
+        for vname in outnodes:
+            dnode = outnodes[vname]
+            dinfo = dinfos[vname]
+
+            # Check and convert units, if necessary
+            out_units = outds.variables[vname].cfunits()
+            if out_units != dinfo.cfunits:
+                if dinfo.cfunits.is_convertible(out_units):
+                    name = 'C({!s}, to={!r})'.format(dnode, str(out_units))
+                    outnodes[vname] = EvalDataNode(name, ConvertFunction, dnode, out_units)
+                else:
+                    raise ValueError('Cannot convert units {} to {}'.format(dinfo.cfunits, out_units))
+
+            # Map dimensions from input namespace to output namespace
+            dnode = outnodes[vname]
+            map_dims = tuple(self._i2omap[d] for d in dinfo[vname].dimensions)
+            name = 'map({!s}, to={})'.format(vname, map_dims)
+            outnodes[vname] = MapDataNode(name, dnode, self._i2omap)
+
+            # Transpose dimensions, if necessary
+            dnode = outnodes[vname]
+            out_dims = outds.variables[vname].dimensions
+            if out_dims != map_dims:
+                if set(out_dims) == set(map_dims):
+                    name = 'T({!s}, to={!r})'.format(dnode, out_dims)
+                    outnodes[vname] = EvalDataNode(name, TransposeFunction, dnode, out_dims)
+
+            # Validate the result
+            dnode = outnodes[vname]
+
+        # Now loop through all of the variables and create PassNodes for validation
+        varnodes = {}
+        for vname, vinfo in outds.variables.iteritems():
+            if vname in srcnodes:
+                vnode = srcnodes[vname]
+            elif vname in outnodes:
+                vnode = outnodes[vname]
+
+            vunits = vinfo.cfunits()
+            vdims = vinfo.dimensions
+            vattrs = vinfo.attributes
+            varnodes[vname] = PassDataNode(vname, vnode, cfunits=vunits, dimensions=vdims,
+                                           error=error, attributes=vattrs)
+
+        # Now determine which output variables have their own output file
+        tsvnames = tuple(vname for vname, vinfo in outds.variables.iteritems()
+                         if vinfo.filename is not None)
+        mvnames = tuple(vname for vname, vinfo in outds.variables.iteritems()
+                        if vinfo.filename is None)
+
+        # Create the WriteDataNodes for each time-series output file
+        writenodes = {}
+        for tsvname in tsvnames:
+            tsvinfo = outds.variables[tsvname]
+            filename = tsvinfo.filename
+            vnodes = tuple(varnodes[n] for n in mvnames) + (varnodes[tsvname],)
+            unlimited = tuple(dname for dname, dinfo in outds.dimensions.iteritems()
+                              if dinfo.unlimited)
+            attribs = dict((k, v) for k, v in outds.attributes.iteritems())
+            attribs['unlimited'] = unlimited
+            writenodes[tsvname] = WriteDataNode(filename, *vnodes, **attribs)
+
+        return writenodes
 
     def _construct_flow_(self, obj, srcnodes={}):
         if isinstance(obj, ParsedVariable):
@@ -799,8 +854,9 @@ class FlowFactory(object):
 
             elif vname in srcnodes:
                 return srcnodes[vname]
+
             else:
-                raise KeyError('Variable {0!r} not found'.format(vname))
+                raise KeyError('Variable {0!r} not found or cannot be used as input'.format(vname))
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
@@ -809,87 +865,61 @@ class FlowFactory(object):
             args = [self._construct_flow_(arg, srcnodes) for arg in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
-            unchecked = True
-            while unchecked:
-                try:
-                    dnode = EvalDataNode(name, func, *args)
-                    dnode[None]
-                except UnitsError as e:
-                    iarg = e.iarg
-                    arg = args[iarg]
-                    req_units = e.units
-                    cname = 'C({!s}, to={!r})'.format(arg, str(req_units))
-                    args[iarg] = EvalDataNode(cname, ConvertFunction, arg, req_units)
-                except DimensionsError as e:
-                    iarg = e.iarg
-                    arg = args[iarg]
-                    req_dims = e.dims
-                    tname = 'T({!s}, to={!r})'.format(arg, req_dims)
-                    args[iarg] = EvalDataNode(tname, TransposeFunction, arg, req_dims)
-                except:
-                    raise
-                else:
-                    unchecked = False
-            return dnode
+            return self._try_fix_(EvalDataNode(name, func, *args))
 
         else:
             return obj
 
-    @staticmethod
-    def _map_dimensions_(graph, vtx, dmap={}):
-        nbrs = graph.neighbors_to(vtx)
-        nbrs_dims = [GraphFiller._map_dimensions_(graph, nbr, dmap)
-                   for nbr in nbrs]
-        if isinstance(vtx, Evaluator):
-            arg_dims = [nbrs_dims.pop(0) if arg is None else arg
-                        for arg in vtx.signature]
-            func = find(vtx.key, numargs=len(arg_dims))
-            ret_dims, new_dims = func.dimensions(*arg_dims)
-            for i, new_dim in enumerate(new_dims):
-                if new_dim is not None:
-                    if vtx.signature[i] is not None:
-                        raise DimensionsError(('Argument {0} in action {1} '
-                                               'requires dimensions '
-                                               '{2}').format(i, vtx, new_dim))
-                    else:
-                        old_dim = arg_dims[i]
-                        tvtx = GraphFiller._new_transpositor_(old_dim, new_dim)
-                        nbr = nbrs[sum(map(lambda k: 1 if k is None else 0,
-                                           vtx.signature)[:i])]
-                        tvtx.units = nbr.units
-                        graph.insert(nbr, tvtx, vtx)
-            vtx.dimensions = ret_dims
+    def _try_fix_(self, dnode):
+        """
+        Try to fix a DataNode's units and dimensions
+        """
+        try:
+            dnode[None]
 
-        if isinstance(vtx, Finalizer):
-            if len(nbrs) == 0:
-                pass
-            elif len(nbrs) == 1:
-                nbr = nbrs[0]
-                nbr_dims = nbrs_dims[0]
-                if len(nbr_dims) != len(vtx.dimensions):
-                    raise DimensionsError(('Action {0} with dimensions {1} '
-                                           'inconsistent with required output '
-                                           'variable {2} dimensions '
-                                           '{3}').format(nbr, nbr_dims, vtx,
-                                                         vtx.dimensions))
+        except UnitsError as e:
+            if not e.hints:
+                raise ValueError('UnitsError without hints')
+
+            iarg, req_units = e.hints.popitem()
+            arg = dnode.inputs[iarg]
+            name = 'C({!s}, to={!r})'.format(arg, str(req_units))
+            dnode.inputs[iarg] = EvalDataNode(name, ConvertFunction, arg, req_units)
+            self._try_fix_(dnode)
+
+        except DimensionsError as e:
+            for iarg, req_dims in e.hints.iteritems():
+                if not all(d in self._inputds.dimensions for d in req_dims):
+                    continue
+                arg = dnode.inputs[iarg]
+
+                if isinstance(arg, CreateDataNode):
+                    arg_dims = arg._data.dimensions
+                    if len(arg_dims) != len(req_dims):
+                        raise ValueError(('Dimensions {} cannot be mapped to '
+                                          '{}').format(req_dims, arg_dims))
+                    rdmap = {}
+                    for out_dim, inp_dim in zip(arg_dims, req_dims):
+                        if out_dim not in self._dmap:
+                            rdmap[inp_dim] = out_dim
+                            self._dmap[out_dim] = inp_dim
+                        elif self._dmap[out_dim] != inp_dim:
+                            raise ValueError(('Output dimension {!r} appears to '
+                                              'map to input dimensions {!r} and '
+                                              '{!r}').format(out_dim, inp_dim, self._dmap[out_dim]))
+                    name = 'map({!s}, to={})'.format(arg, req_dims)
+                    dnode.inputs[iarg] = MapDataNode(name, arg, rdmap, req_dims)
+                    self._try_fix_(dnode)
+
                 else:
-                    unmapped_nbr_dims = [d for d in nbr_dims if d not in dmap]
-                    if len(unmapped_nbr_dims) > 1:
-                        raise DimensionsError(('Cannot map input dimensions '
-                                               '{0} to output '
-                                               'dimension').format(unmapped_nbr_dims))
-                    elif len(unmapped_nbr_dims) == 1:
-                        unmapped_nbr_dim = unmapped_nbr_dims[0]
-                        unmapped_vtx_dims = [d for d in vtx.dimensions
-                                             if d not in dmap.values()]
-                        unmapped_vtx_dim = unmapped_vtx_dims[0]
-                        dmap[unmapped_nbr_dim] = unmapped_vtx_dim
-            else:
-                raise ValueError(('Graph malformed.  Finalizer with more than '
-                                  'one input edge {0}').format(vtx))
+                    name = 'T({!s}, to={!r})'.format(arg, req_dims)
+                    dnode.inputs[iarg] = EvalDataNode(name, TransposeFunction, arg, req_dims)
+                    self._try_fix_(dnode)
+
+            raise ValueError('Dimensions cannot be mapped or transposed')
+
+        except:
+            raise
 
         else:
-            if len(nbrs_dims) == 1:
-                vtx.dimensions = nbrs_dims[0]
-
-        return vtx.dimensions
+            break
