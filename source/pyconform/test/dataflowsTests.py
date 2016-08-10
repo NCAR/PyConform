@@ -580,17 +580,17 @@ class MapDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 #===================================================================================================
-# PassDataNodeTests
+# ValidateDataNodeTests
 #===================================================================================================
-class PassDataNodeTests(unittest.TestCase):
+class ValidateDataNodeTests(unittest.TestCase):
     """
-    Unit tests for the dataflows.PassDataNode class
+    Unit tests for the dataflows.ValidateDataNode class
     """
 
     def test_nothing(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
-        testname = 'OK: PassDataNode().__getitem__(:)'
-        N1 = dataflows.PassDataNode('validate(x)', N0)
+        testname = 'OK: ValidateDataNode().__getitem__(:)'
+        N1 = dataflows.ValidateDataNode('validate(x)', N0)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, actual=actual, expected=expected)
@@ -601,9 +601,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_cfunits_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'cfunits': Unit('m')}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -614,9 +614,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_units_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'units': 'm'}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -627,9 +627,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_time_units_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -640,9 +640,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_dimensions_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'dimensions': ('x',)}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -653,9 +653,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_min_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'valid_min': 0}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -666,9 +666,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_max_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'valid_max': 10}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -679,9 +679,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_min_mean_abs_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 3}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -692,9 +692,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_max_mean_abs_ok(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 5}
-        testname = ('OK: PassDataNode({}).__getitem__(:)'
+        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -705,9 +705,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_cfunits_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'cfunits': Unit('km')}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -718,9 +718,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_units_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'units': 'km'}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -731,9 +731,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_time_units_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -744,9 +744,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_time_units_warn_calendar(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -757,9 +757,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_dimensions_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'dimensions': ('y',)}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -770,9 +770,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_min_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'valid_min': 2}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -783,9 +783,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_max_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
         indata = {'valid_max': 8}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -796,9 +796,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_min_mean_abs_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 5}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -809,9 +809,9 @@ class PassDataNodeTests(unittest.TestCase):
     def test_max_mean_abs_warn(self):
         N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 3}
-        testname = ('WARN: PassDataNode({}).__getitem__(:)'
+        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.PassDataNode('validate(x)', N0, **indata)
+        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)

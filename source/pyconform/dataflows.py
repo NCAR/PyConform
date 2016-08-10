@@ -18,10 +18,10 @@ LICENSE: See the LICENSE.rst file for details
 
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
-from pyconform.indexing import index_str, join, align_index
+from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.parsing import parse_definition
-from pyconform.parsing import ParsedVariable, ParsedUniOp, ParsedBinOp, ParsedFunction
+from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
+from pyconform.dataarrays import DataArray
 from pyconform.functions import find, UnitsError, DimensionsError, ConvertFunction, TransposeFunction
 from cf_units import Unit
 from inspect import getargspec, isfunction
@@ -29,7 +29,6 @@ from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
 from itertools import cycle as itercycle
-from collections import deque
 
 import numpy
 
@@ -39,72 +38,6 @@ import numpy
 #===============================================================================
 def warning(*objs):
     print("WARNING:", *objs, file=stderr)
-
-
-#===================================================================================================
-# DataArray
-#===================================================================================================
-class DataArray(numpy.ma.MaskedArray):
-    """
-    A DataArray is the basic object passed along the edges of a Data Flow graph
-    
-    Derived from Numpy MaskedArray, the DataArray contains additional information
-    about the array data, including cfunits and dimensions.
-    """
-
-    def __new__(cls, inarray, cfunits=None, dimensions=None, dshape=None):
-        obj = numpy.ma.asarray(inarray).view(cls)
-
-        if cfunits is None:
-            if 'cfunits' not in obj._optinfo:
-                obj._optinfo['cfunits'] = Unit(1)
-        elif isinstance(cfunits, Unit):
-            obj._optinfo['cfunits'] = cfunits
-        else:
-            obj._optinfo['cfunits'] = Unit(cfunits)
-
-        if dimensions is None:
-            if 'dimensions' not in obj._optinfo:
-                obj._optinfo['dimensions'] = tuple([None] * len(obj.shape))
-        elif isinstance(dimensions, tuple):
-            if len(dimensions) != len(obj.shape):
-                raise ValueError(('Dimensions {} length does not match DataArray with {} '
-                                  'axes').format(dimensions, len(obj.shape)))
-            obj._optinfo['dimensions'] = dimensions
-        else:
-            raise TypeError(('Cannot set DataArray object with dimensions of type '
-                             '{}').format(type(dimensions)))
-
-        if dshape is None:
-            if 'dshape' not in obj._optinfo:
-                obj._optinfo['dshape'] = obj.shape
-        elif isinstance(dshape, tuple):
-            if len(dshape) != len(obj.shape):
-                raise ValueError(('Dimension shape {} length does not match DataArray with {} '
-                                  'axes').format(dshape, len(obj.shape)))
-            obj._optinfo['dshape'] = dshape
-        else:
-            raise TypeError(('Cannot set DataArray object with dimension shape of type '
-                             '{}').format(type(dshape)))
-
-        return obj
-
-    def __repr__(self):
-        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, cfunits = {!r}, '
-                'dimensions = {!s})').format(self.__class__.__name__, self.data, self.mask,
-                                             self.fill_value, str(self.cfunits), self.dimensions)
-
-    @property
-    def cfunits(self):
-        return self._optinfo['cfunits']
-
-    @property
-    def dimensions(self):
-        return self._optinfo['dimensions']
-
-    @property
-    def dshape(self):
-        return self._optinfo['dshape']
 
 
 #===================================================================================================
@@ -186,7 +119,7 @@ class CreateDataNode(DataNode):
         """
         Compute and retrieve the data associated with this DataNode operation
         """
-        return self._data[align_index(index, self._data.dimensions)]
+        return self._data[index]
 
 
 #===================================================================================================
@@ -229,10 +162,7 @@ class ReadDataNode(DataNode):
         self._variable = variable
 
         # Parse the reading index
-        if isinstance(index, dict):
-            self._index = index
-        else:
-            self._index = numpy.index_exp[index]
+        self._index = index
 
         # Call the base class initializer
         super(ReadDataNode, self).__init__('{0}{1}'.format(variable, index_str(index)))
@@ -346,18 +276,11 @@ class EvalDataNode(DataNode):
         if len(self._inputs) == 0:
             data = self._function()
             if isinstance(data, DataArray):
-                return data[align_index(index, data.dimensions)]
+                return data[index]
             else:
                 return data
         else:
-            args = []
-            for d in self._inputs:
-                if isinstance(d, DataNode):
-                    args.append(d[index])
-                elif isinstance(d, DataArray):
-                    args.append(d[align_index(index, d.dimensions)])
-                else:
-                    args.append(d)
+            args = [d[index] if isinstance(d, (DataArray, DataNode)) else d for d in self._inputs]
             return self._function(*args)
 
 
@@ -376,19 +299,19 @@ class MapDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, indata, dmap={}):
+    def __init__(self, label, dnode, dmap={}):
         """
         Initializer
         
         Parameters:
             label: The label given to the DataNode
-            indata (DataNode): DataNode that provides input into this DataNode
+            dnode (DataNode): DataNode that provides input into this DataNode
             dmap (dict): A dictionary mapping dimension names of the input data to
                 new dimensions names for the output variable
             dimensions (tuple): The output dimensions for the mapped variable
         """
         # Check DataNode type
-        if not isinstance(indata, DataNode):
+        if not isinstance(dnode, DataNode):
             raise TypeError('MapDataNode can only act on output from another DataNode')
 
         # Check dimension map type
@@ -402,7 +325,7 @@ class MapDataNode(DataNode):
         self._o2imap = dict((v, k) for k, v in dmap)
 
         # Call base class initializer
-        super(MapDataNode, self).__init__(label, indata)
+        super(MapDataNode, self).__init__(label, dnode)
 
     def __getitem__(self, index):
         """
@@ -416,7 +339,7 @@ class MapDataNode(DataNode):
         inp_dims = inp_info.dimensions
 
         # The input/output dimensions will be the same
-        # OR should be contained in the dimension map
+        # OR should be contained in the input-to-output dimension map
         out_dims = tuple(self._i2omap.get(d, d) for d in inp_dims)
 
         # Compute the input index in terms of input dimensions
@@ -427,7 +350,7 @@ class MapDataNode(DataNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
 
         else:
-            out_index = numpy.index_exp[index]
+            out_index = index_tuple(index, len(inp_dims))
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
@@ -435,13 +358,13 @@ class MapDataNode(DataNode):
 
 
 #===================================================================================================
-# PassDataNode
+# ValidateDataNode
 #===================================================================================================
-class PassDataNode(DataNode):
+class ValidateDataNode(DataNode):
     """
     DataNode class to validate input data from a neighboring DataNode
     
-    The PassDataNode takes additional attributes in its initializer that can effect the 
+    The ValidateDataNode takes additional attributes in its initializer that can effect the 
     behavior of its __getitem__ method.  The special attributes are:
     
         'valid_min': The minimum value the data should have, if valid
@@ -449,23 +372,23 @@ class PassDataNode(DataNode):
         'min_mean_abs': The minimum acceptable value of the mean of the absolute value of the data
         'max_mean_abs': The maximum acceptable value of the mean of the absolute value of the data
     
-    If these attributes are supplied to the PassDataNode at construction time, then the
+    If these attributes are supplied to the ValidateDataNode at construction time, then the
     associated validation checks will be made on the data when __getitem__ is called.
     
-    Additional attributes may be added to the PassDataNode that do not affect functionality.
+    Additional attributes may be added to the ValidateDataNode that do not affect functionality.
     These attributes may be named however the user wishes and can be retrieved from the DataNode
     as a dictionary with the 'attributes' property.
 
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, indata, cfunits=None, dimensions=None, error=False, attributes={}):
+    def __init__(self, label, dnode, cfunits=None, dimensions=None, error=False, attributes={}):
         """
         Initializer
         
         Parameters:
             label: The label associated with this DataNode
-            indata (DataNode): DataNode that provides input into this DataNode
+            dnode (DataNode): DataNode that provides input into this DataNode
             cfunits (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             error (bool): If True, raise exceptions instead of warnings
@@ -473,11 +396,11 @@ class PassDataNode(DataNode):
                 to which to associate with the new variable
         """
         # Check DataNode type
-        if not isinstance(indata, DataNode):
-            raise TypeError('PassDataNode can only act on output from another DataNode')
+        if not isinstance(dnode, DataNode):
+            raise TypeError('ValidateDataNode can only act on output from another DataNode')
 
         # Call base class initializer
-        super(PassDataNode, self).__init__(label, indata)
+        super(ValidateDataNode, self).__init__(label, dnode)
 
         # Save error flag
         self._error = bool(error)
@@ -507,29 +430,26 @@ class PassDataNode(DataNode):
         Compute and retrieve the data associated with this DataNode operation
         """
 
-        # Request the input information without pulling data
-        in_info = self._inputs[0][None]
+        # Get the data to validate
+        indata = self._inputs[0][index]
 
         # Check that units match as expected
-        if self._cfunits is not None and self._cfunits != in_info.cfunits:
-            msg = ('Units {!s} do not match expected units {!r} in PassDataNode '
-                   '{!r}').format(self._cfunits, in_info.cfunits, self.label)
+        if self._cfunits is not None and self._cfunits != indata.cfunits:
+            msg = ('Units {!s} do not match expected units {!r} in ValidateDataNode '
+                   '{!r}').format(self._cfunits, indata.cfunits, self.label)
             if self._error:
                 raise UnitsError(msg)
             else:
                 warning(msg)
 
         # Check that the dimensions match as expected
-        if self._dimensions is not None and self._dimensions != in_info.dimensions:
-            msg = ('Dimensions {!s} do not match expected units {!r} in PassDataNode '
-                   '{!r}').format(self._dimensions, in_info.dimensions, self.label)
+        if self._dimensions is not None and self._dimensions != indata.dimensions:
+            msg = ('Dimensions {!s} do not match expected units {!r} in ValidateDataNode '
+                   '{!r}').format(self._dimensions, indata.dimensions, self.label)
             if self._error:
                 raise DimensionsError(msg)
             else:
                 warning(msg)
-
-        # Get the data to validate
-        in_data = self._inputs[0][index]
 
         # Testing parameters
         valid_min = self._attributes.get('valid_min', None)
@@ -539,7 +459,7 @@ class PassDataNode(DataNode):
 
         # Validate minimum
         if valid_min:
-            dmin = numpy.min(in_data)
+            dmin = numpy.min(indata)
             if dmin < valid_min:
                 warning(('Data from operator {!r} has minimum value '
                          '{} but requires data greater than or equal to '
@@ -547,7 +467,7 @@ class PassDataNode(DataNode):
 
         # Validate maximum
         if valid_max:
-            dmax = numpy.max(in_data)
+            dmax = numpy.max(indata)
             if dmax > valid_max:
                 warning(('Data from operator {!r} has maximum value '
                          '{} but requires data less than or equal to '
@@ -555,7 +475,7 @@ class PassDataNode(DataNode):
 
         # Compute mean of the absolute value, if necessary
         if ok_min_mean_abs or ok_max_mean_abs:
-            mean_abs = numpy.mean(numpy.abs(in_data))
+            mean_abs = numpy.mean(numpy.abs(indata))
 
         # Validate minimum mean abs
         if ok_min_mean_abs:
@@ -571,7 +491,7 @@ class PassDataNode(DataNode):
                          '{} but requires data less than or equal to '
                          '{}').format(self.label, mean_abs, ok_max_mean_abs))
 
-        return in_data
+        return indata
 
 
 #===================================================================================================
@@ -579,7 +499,7 @@ class PassDataNode(DataNode):
 #===================================================================================================
 class WriteDataNode(DataNode):
     """
-    DataNode that writes input data to a file
+    DataNode that writes validated data to a file
     """
 
     def __init__(self, filename, *inputs, **kwds):
@@ -588,7 +508,7 @@ class WriteDataNode(DataNode):
         
         Parameters:
             filename (str): Name of the file to write
-            inputs (PassDataNode): A tuple of PassDataNodes providing input into the file
+            inputs (ValidateDataNode): A tuple of ValidateDataNodes providing input into the file
             unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
                 (This parameter is pulled from the kwds argument to the initializer, if given.)
             attributes (dict): Dictionary of global attributes to write to the file
@@ -600,7 +520,7 @@ class WriteDataNode(DataNode):
 
         # Check and store input variables
         for inp in inputs:
-            if not isinstance(inp, PassDataNode):
+            if not isinstance(inp, ValidateDataNode):
                 raise TypeError(('WriteDataNode {!r} cannot accept input from type '
                                  '{}').format(filename, type(inp)))
 
@@ -666,7 +586,7 @@ class WriteDataNode(DataNode):
                     ncvar.setncattr(aname, avalue)
                 ncvars[vname] = ncvar
 
-        # Now perform use the data flows to stream data into the file
+        # Now perform the data flows to stream data into the file
         for vnode in self._inputs:
             ncvar[vnode.label][index] = vnode[index]
 
@@ -818,7 +738,7 @@ class FlowFactory(object):
             vunits = vinfo.cfunits()
             vdims = vinfo.dimensions
             vattrs = vinfo.attributes
-            varnodes[vname] = PassDataNode(vname, vnode, cfunits=vunits, dimensions=vdims,
+            varnodes[vname] = ValidateDataNode(vname, vnode, cfunits=vunits, dimensions=vdims,
                                            error=error, attributes=vattrs)
 
         # Now determine which output variables have their own output file
@@ -920,6 +840,3 @@ class FlowFactory(object):
 
         except:
             raise
-
-        else:
-            break
