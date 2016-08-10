@@ -72,7 +72,7 @@ def index_str(index):
 #===================================================================================================
 def index_tuple(index, ndims):
     """
-    Generate an index tuple from a given index expression and array shape tuple
+    Generate an index tuple from a given index expression and number of dimensions
     """
     idx = index_exp[index]
 
