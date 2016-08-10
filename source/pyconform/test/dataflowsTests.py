@@ -598,6 +598,42 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
+#===================================================================================================
+# WriteDataNodeTests
+#===================================================================================================
+class WriteDataNodeTests(unittest.TestCase):
+    """
+    Unit tests for the dataflows.WriteDataNode class
+    """
+
+    def setUp(self):
+        x = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        self.vx = dataflows.ValidateDataNode('x', x, a1='attribute 1', a2='attribute 2')
+        self.filename = 'vx.nc'
+
+    def tearDown(self):
+        if exists(self.filename):
+            remove(self.filename)
+
+    def test_init(self):
+        testname = 'WriteDataNode.__init__({})'.format(self.filename)
+        N = dataflows.WriteDataNode(self.filename, self.vx, ga='global attribute')
+        actual = type(N)
+        expected = dataflows.WriteDataNode
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertIsInstance(N, expected, '{} failed'.format(testname))
+
+    def test_simple(self):
+        testname = 'WriteDataNode({})[:]'.format(self.filename)
+        N = dataflows.WriteDataNode(self.filename, self.vx, ga='global attribute')
+        N[:]
+        N.close()
+        actual = exists(self.filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+
 #===============================================================================
 # Command-Line Operation
 #===============================================================================

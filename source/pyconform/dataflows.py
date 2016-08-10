@@ -536,7 +536,7 @@ class WriteDataNode(DataNode):
         self._unlimited = unlimited
 
         # Save the global attributes
-        self._attributes = kwds
+        self._attributes = {str(a): str(v) for a, v in kwds.iteritems()}
 
         # Set the filehandle
         self._file = None
@@ -550,46 +550,47 @@ class WriteDataNode(DataNode):
 
     def __getitem__(self, index):
 
-        if self._file is None:
-
-            # Open the output file
-            self._file = Dataset(self.label, 'w')
-
-            # Write the global attributes
-            self._file.setncatts(self._attributes)
-
-            # Get info for each input node by name
-            varinfos = dict((node.label, node[None]) for node in self._inputs)
-
-            # Determine the required dimensions from the input variables
-            req_dims = dict()
-            for vinfo in varinfos.itervalues():
-                for dname, dsize in zip(vinfo.dimensions, vinfo.dshape):
-                    if dname in req_dims and dsize != req_dims[dname]:
-                        raise DimensionsError(('Dimension {!r} has incompatable sizes {} and '
-                                               '{}').format(dname, dsize, req_dims[dname]))
-                    else:
-                        req_dims[dname] = dsize
-
-            # Create the required dimensions
-            for dname, dsize in req_dims.iteritems():
-                if dname in self._unlimited:
-                    self._file.createDimension(dname)
-                else:
-                    self._file.createDimension(dname, dsize)
-
-            # Create the variables and write their attributes
-            ncvars = {}
-            for vnode in self._inputs:
-                vname = vnode.label
-                vinfo = varinfos[vname]
-                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
-                for aname, avalue in vnode._attributes.iteritems():
-                    ncvar.setncattr(aname, avalue)
-                ncvars[vname] = ncvar
-
         # Now perform the data flows to stream data into the file
         for vnode in self._inputs:
+
+            if self._file is None:
+
+                # Open the output file
+                self._file = Dataset(self.label, 'w')
+
+                # Write the global attributes
+                self._file.setncatts(self._attributes)
+
+                # Get info for each input node by name
+                varinfos = dict((node.label, node[None]) for node in self._inputs)
+
+                # Determine the required dimensions from the input variables
+                req_dims = dict()
+                for vinfo in varinfos.itervalues():
+                    for dname, dsize in zip(vinfo.dimensions, vinfo.dshape):
+                        if dname in req_dims and dsize != req_dims[dname]:
+                            raise DimensionsError(('Dimension {!r} has incompatable sizes {} and '
+                                                   '{}').format(dname, dsize, req_dims[dname]))
+                        else:
+                            req_dims[dname] = dsize
+
+                # Create the required dimensions
+                for dname, dsize in req_dims.iteritems():
+                    if dname in self._unlimited:
+                        self._file.createDimension(dname)
+                    else:
+                        self._file.createDimension(dname, dsize)
+
+                # Create the variables and write their attributes
+                ncvars = {}
+                for vnode in self._inputs:
+                    vname = vnode.label
+                    vinfo = varinfos[vname]
+                    ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
+                    for aname, avalue in vnode._attributes.iteritems():
+                        ncvar.setncattr(aname, avalue)
+                    ncvars[vname] = ncvar
+
             ncvar[vnode.label][index] = vnode[index]
 
 

@@ -66,10 +66,6 @@ class DataArray(numpy.ma.MaskedArray):
     def dimensions(self):
         return self._optinfo['dimensions']
 
-    @property
-    def dshape(self):
-        return self._optinfo['dshape']
-
     def __getitem__(self, index):
         if index == () and self.dimensions == ():
             return self
