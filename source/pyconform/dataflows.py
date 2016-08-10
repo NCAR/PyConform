@@ -210,7 +210,7 @@ class ReadDataNode(DataNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2, dshape=shape0)
+            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2)
 
         return data
 
@@ -322,7 +322,7 @@ class MapDataNode(DataNode):
         self._i2omap = dmap
 
         # Construct the reverse mapping
-        self._o2imap = dict((v, k) for k, v in dmap)
+        self._o2imap = dict((v, k) for k, v in dmap.iteritems())
 
         # Call base class initializer
         super(MapDataNode, self).__init__(label, dnode)
@@ -382,7 +382,7 @@ class ValidateDataNode(DataNode):
     This is a "non-source"/"non-sink" DataNode.
     """
 
-    def __init__(self, label, dnode, cfunits=None, dimensions=None, error=False, attributes={}):
+    def __init__(self, label, dnode, **attribs):
         """
         Initializer
         
@@ -392,7 +392,7 @@ class ValidateDataNode(DataNode):
             cfunits (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             error (bool): If True, raise exceptions instead of warnings
-            attributes: Additional named arguments corresponding to additional attributes
+            attribs: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
         """
         # Check DataNode type
@@ -403,27 +403,29 @@ class ValidateDataNode(DataNode):
         super(ValidateDataNode, self).__init__(label, dnode)
 
         # Save error flag
-        self._error = bool(error)
+        self._error = bool(attribs.pop('error', False))
 
-        # Check for dimensions (necessary)
+        # Check for dimensions
+        dimensions = attribs.pop('dimensions', None)
         if dimensions is not None and not isinstance(dimensions, tuple):
             raise TypeError('Dimensions must be a tuple')
         self._dimensions = dimensions
 
         # Make attributes consistent with cfunits and store cfunits
+        cfunits = attribs.pop('cfunits', None)
         if cfunits is None:
-            if 'units' in attributes:
-                self._cfunits = Unit(attributes['units'], calendar=attributes.get('calendar', None))
+            if 'units' in attribs:
+                self._cfunits = Unit(attribs['units'], calendar=attribs.get('calendar', None))
             else:
                 self._cfunits = None
         else:
             self._cfunits = Unit(cfunits)
-            attributes['units'] = str(cfunits)
+            attribs['units'] = str(cfunits)
             if self._cfunits.calendar is not None:
-                attributes['calendar'] = str(self._cfunits.calendar)
+                attribs['calendar'] = str(self._cfunits.calendar)
 
         # Store the attributes given to the DataNode
-        self._attributes = attributes
+        self._attributes = {str(a): str(v) for a, v in attribs.iteritems()}
 
     def __getitem__(self, index):
         """
@@ -435,8 +437,8 @@ class ValidateDataNode(DataNode):
 
         # Check that units match as expected
         if self._cfunits is not None and self._cfunits != indata.cfunits:
-            msg = ('Units {!s} do not match expected units {!r} in ValidateDataNode '
-                   '{!r}').format(self._cfunits, indata.cfunits, self.label)
+            msg = ('Units {!r} do not match expected units {!r} in ValidateDataNode '
+                   '{!r}').format(str(self._cfunits), str(indata.cfunits), self.label)
             if self._error:
                 raise UnitsError(msg)
             else:
@@ -444,8 +446,8 @@ class ValidateDataNode(DataNode):
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
-            msg = ('Dimensions {!s} do not match expected units {!r} in ValidateDataNode '
-                   '{!r}').format(self._dimensions, indata.dimensions, self.label)
+            msg = ('Dimensions {!s} do not match expected dimensions {!s} in ValidateDataNode '
+                   '{!r}').format(self._dimensions, str(indata.dimensions), self.label)
             if self._error:
                 raise DimensionsError(msg)
             else:
