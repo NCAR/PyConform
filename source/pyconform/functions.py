@@ -6,39 +6,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.dataarrays import DataArray
+from pyconform.physicalarrays import PhysicalArray, UnitsError, DimensionsError
 from cf_units import Unit
 from numpy import sqrt, transpose
-
-
-#===================================================================================================
-# UnitsError
-#===================================================================================================
-class UnitsError(ValueError):
-    """Exception for when DataArray Units are invalid"""
-    def __init__(self, name, hints={}):
-        msgs = []
-        for iarg, units in hints.iteritems():
-            msgs.append('argument {} requires conversion to {!s}'.format(iarg, str(units)))
-        message = 'In {}: '.format(name) + ', or '.join(msgs)
-        super(UnitsError, self).__init__(message)
-        self.name = name
-        self.hints = hints
-
-
-#===================================================================================================
-# DimensionsError
-#===================================================================================================
-class DimensionsError(ValueError):
-    """Exception for when DataArray Dimensions are invalid"""
-    def __init__(self, name, hints={}):
-        msgs = []
-        for iarg, dimensions in hints.iteritems():
-            msgs.append('argument {} requires dimensions {!s}'.format(iarg, dimensions))
-        message = 'In {}: '.format(name) + ', or '.join(msgs)
-        super(DimensionsError, self).__init__(message)
-        self.name = name
-        self.hints = hints
 
 
 #===================================================================================================
@@ -71,22 +41,6 @@ class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
     numargs = 2
-
-    def get_units(self, *args):
-        if len(args) == 0:
-            return None
-        elif len(args) == 1:
-            return args[0].cfunits if isinstance(args[0], DataArray) else Unit(1)
-        else:
-            return tuple(arg.cfunits if isinstance(arg, DataArray) else Unit(1) for arg in args)
-
-    def get_dimensions(self, *args):
-        if len(args) == 0:
-            return None
-        elif len(args) == 1:
-            return args[0].dimensions if isinstance(args[0], DataArray) else ()
-        else:
-            return tuple(arg.dimensions if isinstance(arg, DataArray) else () for arg in args)
 
     @abstractmethod
     def __call__(self, *args):
@@ -135,9 +89,9 @@ class NegationOperator(Operator):
     numargs = 1
 
     def __call__(self, arg):
-        units = self.get_units(arg)
-        dims = self.get_dimensions(arg)
-        return DataArray(-arg, cfunits=units, dimensions=dims)
+        units = PhysicalArray.cfunitsof(arg)
+        dims = PhysicalArray.dimensionsof(arg)
+        return PhysicalArray(-arg, cfunits=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -148,15 +102,10 @@ class AdditionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        lunits, runits = self.get_units(left, right)
-        if lunits != runits:
-            raise UnitsError(self.__class__.__name__, hints={1: lunits})
+        units = PhysicalArray.cfunitsof(left)
+        dims = PhysicalArray.dimensionsof(right)
+        return PhysicalArray(left + right, cfunits=units, dimensions=dims)
 
-        ldims, rdims = self.get_dimensions(left, right)
-        if ldims != rdims:
-            raise DimensionsError(self.__class__.__name__, hints={0: rdims, 1: ldims})
-
-        return DataArray(left + right, cfunits=lunits, dimensions=ldims)
 
 #===================================================================================================
 # SubtractionOperator
@@ -166,15 +115,10 @@ class SubtractionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        lunits, runits = self.get_units(left, right)
-        if lunits != runits:
-            raise UnitsError(self.__class__.__name__, hints={1: lunits})
+        units = PhysicalArray.cfunitsof(left)
+        dims = PhysicalArray.dimensionsof(right)
+        return PhysicalArray(left - right, cfunits=units, dimensions=dims)
 
-        ldims, rdims = self.get_dimensions(left, right)
-        if ldims != rdims:
-            raise DimensionsError(self.__class__.__name__, hints={0: rdims, 1: ldims})
-
-        return DataArray(left - right, cfunits=lunits, dimensions=ldims)
 
 #===================================================================================================
 # PowerOperator
@@ -184,20 +128,9 @@ class PowerOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        lunits, runits = self.get_units(left, right)
-        ldims, rdims = self.get_dimensions(left, right)
-
-        if runits != Unit(1):
-            raise UnitsError(self.__class__.__name__, hints={1: Unit(1)})
-        if rdims != ():
-            raise DimensionsError(self.__class__.__name__, hints={1: ()})
-
-        try:
-            punits = lunits ** right
-        except:
-            raise ValueError('Cannot exponentiate units ({!r} ** {})'.format(lunits, right))
-
-        return DataArray(left ** right, cfunits=punits, dimensions=ldims)
+        units = PhysicalArray.cfunitsof(left)
+        dims = PhysicalArray.dimensionsof(right)
+        return PhysicalArray(left ** right, cfunits=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -208,23 +141,7 @@ class MultiplicationOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        lunits, runits = self.get_units(left, right)
-        ldims, rdims = self.get_dimensions(left, right)
-
-        try:
-            munits = lunits * runits
-        except:
-            raise ValueError('Cannot multiply units ({!r} * {!r})'.format(lunits, runits))
-
-        if ldims == ():
-            mdims = rdims
-        elif ldims == rdims or rdims == ():
-            mdims = ldims
-        else:
-            raise ValueError(('Cannot multiply mismatched dimensions '
-                              '({!r} * {!r})').format(ldims, rdims))
-
-        return DataArray(left * right, cfunits=munits, dimensions=mdims)
+        return left * right
 
 
 #===================================================================================================
@@ -235,23 +152,7 @@ class DivisionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        lunits, runits = self.get_units(left, right)
-        ldims, rdims = self.get_dimensions(left, right)
-
-        try:
-            munits = lunits / runits
-        except:
-            raise ValueError('Cannot divide units ({!r} * {!r})'.format(lunits, runits))
-
-        if ldims == ():
-            mdims = rdims
-        elif ldims == rdims or rdims == ():
-            mdims = ldims
-        else:
-            raise ValueError(('Cannot divide mismatched dimensions '
-                              '({!r} * {!r})').format(ldims, rdims))
-
-        return DataArray(left / right, cfunits=munits, dimensions=mdims)
+        return left / right
 
 
 #===================================================================================================
@@ -318,16 +219,16 @@ class SquareRootFunction(Function):
     numargs = 1
 
     def __call__(self, data):
-        dunits = self.get_units(data)
-        ddims = self.get_dimensions(data)
+        dunits = PhysicalArray.cfunitsof(data)
+        ddims = PhysicalArray.dimensionsof(data)
 
         try:
-            sunits = dunits.root(2)
+            squnits = dunits.root(2)
         except:
             print dunits
-            raise ValueError('Cannot take square-root of {!r}'.format(dunits))
+            raise UnitsError('Cannot take square-root of {!r}'.format(dunits))
 
-        return DataArray(sqrt(data), cfunits=sunits, dimensions=ddims)
+        return PhysicalArray(sqrt(data), cfunits=squnits, dimensions=ddims)
 
 
 #===================================================================================================
@@ -338,14 +239,14 @@ class ConvertFunction(Function):
     numargs = 2
 
     def __call__(self, data, to_units):
-        units1 = self.get_units(data)
+        units1 = PhysicalArray.cfunitsof(data)
         units2 = Unit(to_units)
 
         if not units1.is_convertible(units2):
-            raise ValueError('Cannot convert units ({!r} --> {!r})'.format(units1, units2))
+            raise UnitsError('Cannot convert units: {!r} to {!r}'.format(units1, units2))
 
-        return DataArray(units1.convert(data, units2, inplace=True),
-                         cfunits=units2, dimensions=self.get_dimensions(data))
+        return PhysicalArray(units1.convert(data, units2, inplace=True),
+                             cfunits=units2, dimensions=PhysicalArray.dimensionsof(data))
 
 
 #===================================================================================================
@@ -356,13 +257,13 @@ class TransposeFunction(Function):
     numargs = 2
 
     def __call__(self, data, new_dims):
-        dunits = self.get_units(data)
+        dunits = PhysicalArray.cfunitsof(data)
 
-        old_dims = self.get_dimensions(data)
+        old_dims = PhysicalArray.dimensionsof(data)
         if set(old_dims) != set(new_dims):
-            raise ValueError(('Cannot transpose dimensions '
-                              '({!r} --> {!r})').format(old_dims, new_dims))
+            raise DimensionsError(('Cannot transpose dimensions: '
+                                   '{!r} to {!r}').format(old_dims, new_dims))
 
         order = tuple(old_dims.index(d) for d in new_dims)
 
-        return DataArray(transpose(data, order), cfunits=dunits, dimensions=new_dims)
+        return PhysicalArray(transpose(data, order), cfunits=dunits, dimensions=new_dims)

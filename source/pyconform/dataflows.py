@@ -21,8 +21,8 @@ from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
-from pyconform.dataarrays import DataArray
-from pyconform.functions import find, UnitsError, DimensionsError, ConvertFunction, TransposeFunction
+from pyconform.physicalarrays import PhysicalArray, UnitsError, DimensionsError
+from pyconform.functions import find, ConvertFunction, TransposeFunction
 from cf_units import Unit
 from inspect import getargspec, isfunction
 from os.path import exists
@@ -51,7 +51,7 @@ class DataNode(object):
     edges meet.  It represents a functional operation on the DataArrays coming into it from
     its adjacent DataNodes.  The DataNode itself outputs the result of this operation
     through the __getitem__ interface (i.e., DataNode[item]), returning a slice of a
-    DataArray.
+    PhysicalArray.
     """
 
     __metaclass__ = ABCMeta
@@ -110,7 +110,7 @@ class CreateDataNode(DataNode):
             dimensions: Dimensions to associate with the data 
         """
         # Store data
-        self._data = DataArray(data, cfunits=cfunits, dimensions=dimensions)
+        self._data = PhysicalArray(data, cfunits=cfunits, dimensions=dimensions)
 
         # Call base class initializer
         super(CreateDataNode, self).__init__(label)
@@ -151,17 +151,17 @@ class ReadDataNode(DataNode):
             raise OSError('File path not found: {!r}'.format(filepath))
         self._filepath = filepath
 
-        # Attempt to open the NetCDF file to parse the variable name
+        # Check variable name type and existence in the file
+        if not isinstance(variable, basestring):
+            raise TypeError('Unrecognized variable name object of type '
+                            '{!r}: {!r}'.format(type(variable), variable))
         with Dataset(self._filepath, 'r') as ncfile:
-            if not isinstance(variable, basestring):
-                raise TypeError('Unrecognized variable name object of type '
-                                '{!r}: {!r}'.format(type(variable), variable))
             if variable not in ncfile.variables:
                 raise OSError('Variable {!r} not found in NetCDF file: '
                               '{!r}'.format(variable, self._filepath))
         self._variable = variable
 
-        # Parse the reading index
+        # Store the reading index
         self._index = index
 
         # Call the base class initializer
@@ -173,7 +173,7 @@ class ReadDataNode(DataNode):
 
     def __getitem__(self, index):
         """
-        Read DataArray from file
+        Read PhysicalArray from file
         """
         with Dataset(self._filepath, 'r') as ncfile:
 
@@ -184,13 +184,13 @@ class ReadDataNode(DataNode):
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-            try:
-                cfunits = Unit(units_attr, calendar=calendar_attr)
-            except:
-                cfunits = Unit(1)
+            cfunits = Unit(units_attr, calendar=calendar_attr)
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
+
+            # Read the original variable shape
+            shape0 = ncvar.shape
 
             # Align the read-indices on dimensions
             index1 = align_index(self._index, dimensions0)
@@ -198,19 +198,23 @@ class ReadDataNode(DataNode):
             # Get the dimensions after application of the first index
             dimensions1 = tuple(d for d, i in zip(dimensions0, index1) if isinstance(i, slice))
 
+            # Compute the original shape after potential dimension reduction
+            shape1 = tuple(s for s, i in zip(shape0, index1) if isinstance(i, slice))
+
             # Align the second index on the intermediate dimensions
             index2 = align_index(index, dimensions1)
 
             # Get the dimensions after application of the second index
             dimensions2 = tuple(d for d, i in zip(dimensions1, index2) if isinstance(i, slice))
 
-            # Get the shape of the original variable
-            shape0 = ncvar.shape
+            # Compute the original shape after potential dimension reduction
+            shape2 = tuple(s for s, i in zip(shape1, index2) if isinstance(i, slice))
 
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = DataArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2)
+            data = PhysicalArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2,
+                                 initialshape=shape2)
 
         return data
 
@@ -275,12 +279,12 @@ class EvalDataNode(DataNode):
         """
         if len(self._inputs) == 0:
             data = self._function()
-            if isinstance(data, DataArray):
+            if isinstance(data, PhysicalArray):
                 return data[index]
             else:
                 return data
         else:
-            args = [d[index] if isinstance(d, (DataArray, DataNode)) else d for d in self._inputs]
+            args = [d[index] if isinstance(d, (PhysicalArray, DataNode)) else d for d in self._inputs]
             return self._function(*args)
 
 
@@ -354,7 +358,7 @@ class MapDataNode(DataNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
-        return DataArray(self._inputs[0][inp_index], dimensions=out_dims)
+        return PhysicalArray(self._inputs[0][inp_index], dimensions=out_dims)
 
 
 #===================================================================================================
@@ -512,9 +516,9 @@ class WriteDataNode(DataNode):
             filename (str): Name of the file to write
             inputs (ValidateDataNode): A tuple of ValidateDataNodes providing input into the file
             unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
-                (This parameter is pulled from the kwds argument to the initializer, if given.)
+                (This parameter is pulled from the 'kwds' argument, if given.)
             attributes (dict): Dictionary of global attributes to write to the file
-                (This parameter is pulled from the kwds argument to the initializer, if given.)
+                (This parameter is pulled from the 'kwds' argument, if given.)
         """
         # Check filename
         if not isinstance(filename, basestring):
@@ -550,48 +554,47 @@ class WriteDataNode(DataNode):
 
     def __getitem__(self, index):
 
+        if self._file is None:
+
+            # Open the output file
+            self._file = Dataset(self.label, 'w')
+
+            # Write the global attributes
+            self._file.setncatts(self._attributes)
+
+            # Generate and collect information for each input data object
+            vinfos = {i.label: i[None] for i in self.inputs}
+
+            # Collect the dimension sizes from the initialshape parameter of the input data
+            req_dims = {}
+            for vinfo in vinfos.itervalues():
+                for dname, dsize in zip(vinfo.dimensions, vinfo.initialshape):
+                    if dname not in req_dims:
+                        req_dims[dname] = dsize
+                    elif req_dims[dname] != dsize:
+                        raise RuntimeError(('Dimension {!r} has inconsistent size: '
+                                            '{}, {}').format(dname, req_dims[dname], dsize))
+
+            # Create the required dimensions for the variable
+            for dname, dsize in req_dims.iteritems():
+                if dname in self._unlimited:
+                    self._file.createDimension(dname)
+                else:
+                    self._file.createDimension(dname, dsize)
+
+            # Create the variables and write their attributes
+            ncvars = {}
+            for vnode in self._inputs:
+                vname = vnode.label
+                vinfo = vinfos[vname]
+                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
+                for aname, avalue in vnode._attributes.iteritems():
+                    ncvar.setncattr(aname, avalue)
+                ncvars[vname] = ncvar
+
         # Now perform the data flows to stream data into the file
         for vnode in self._inputs:
-
-            if self._file is None:
-
-                # Open the output file
-                self._file = Dataset(self.label, 'w')
-
-                # Write the global attributes
-                self._file.setncatts(self._attributes)
-
-                # Get info for each input node by name
-                varinfos = dict((node.label, node[None]) for node in self._inputs)
-
-                # Determine the required dimensions from the input variables
-                req_dims = dict()
-                for vinfo in varinfos.itervalues():
-                    for dname, dsize in zip(vinfo.dimensions, vinfo.dshape):
-                        if dname in req_dims and dsize != req_dims[dname]:
-                            raise DimensionsError(('Dimension {!r} has incompatable sizes {} and '
-                                                   '{}').format(dname, dsize, req_dims[dname]))
-                        else:
-                            req_dims[dname] = dsize
-
-                # Create the required dimensions
-                for dname, dsize in req_dims.iteritems():
-                    if dname in self._unlimited:
-                        self._file.createDimension(dname)
-                    else:
-                        self._file.createDimension(dname, dsize)
-
-                # Create the variables and write their attributes
-                ncvars = {}
-                for vnode in self._inputs:
-                    vname = vnode.label
-                    vinfo = varinfos[vname]
-                    ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
-                    for aname, avalue in vnode._attributes.iteritems():
-                        ncvar.setncattr(aname, avalue)
-                    ncvars[vname] = ncvar
-
-            ncvar[vnode.label][index] = vnode[index]
+            ncvars[vnode.label][index] = vnode[index]
 
 
 #===============================================================================
