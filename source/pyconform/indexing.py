@@ -96,11 +96,11 @@ def index_tuple(index, ndims):
 
 
 #===================================================================================================
-# align_index - Align index tuple along dimensions
+# align_index - Align index tuple/dictionary along dimensions
 #===================================================================================================
 def align_index(index, dimensions):
     """
-    Compute an index tuple with indices aligned according to dimension name
+    Compute an index tuple or dictionary with indices aligned according to dimension name
     
     Parameters:
         index: An index or a dictionary of indices keyed by dimension name
