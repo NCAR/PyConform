@@ -583,18 +583,17 @@ class WriteDataNode(DataNode):
                     self._file.createDimension(dname, dsize)
 
             # Create the variables and write their attributes
-            ncvars = {}
             for vnode in self._inputs:
                 vname = vnode.label
                 vinfo = vinfos[vname]
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
                 for aname, avalue in vnode._attributes.iteritems():
                     ncvar.setncattr(aname, avalue)
-                ncvars[vname] = ncvar
 
         # Now perform the data flows to stream data into the file
         for vnode in self._inputs:
-            ncvars[vnode.label][index] = vnode[index]
+            ncvar = self._file.variables[vnode.label]
+            ncvar[align_index(index, ncvar.dimensions)] = vnode[index]
 
 
 #===============================================================================

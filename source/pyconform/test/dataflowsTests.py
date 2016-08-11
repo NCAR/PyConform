@@ -608,8 +608,13 @@ class WriteDataNodeTests(unittest.TestCase):
 
     def setUp(self):
         x = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
-        self.vx = dataflows.ValidateDataNode('x', x, a1='attribute 1', a2='attribute 2')
-        self.filename = 'vx.nc'
+        self.x = dataflows.ValidateDataNode('x', x, xa1='x attribute 1', xa2='x attribute 2')
+        y = dataflows.CreateDataNode('y', numpy.arange(0, 8), cfunits='m', dimensions=('y',))
+        self.y = dataflows.ValidateDataNode('y', y, ya1='y attribute 1', ya2='y attribute 2')
+        v = dataflows.CreateDataNode('v', numpy.ones((15, 8)), cfunits='K', dimensions=('x', 'y'))
+        self.v = dataflows.ValidateDataNode('v', v, va1='v attribute 1', va2='v attribute 2')
+        self.vars = [self.x, self.y, self.v]
+        self.filename = 'vxy.nc'
 
     def tearDown(self):
         if exists(self.filename):
@@ -617,7 +622,7 @@ class WriteDataNodeTests(unittest.TestCase):
 
     def test_init(self):
         testname = 'WriteDataNode.__init__({})'.format(self.filename)
-        N = dataflows.WriteDataNode(self.filename, self.vx, ga='global attribute')
+        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
         actual = type(N)
         expected = dataflows.WriteDataNode
         print_test_message(testname, actual=actual, expected=expected)
@@ -625,14 +630,30 @@ class WriteDataNodeTests(unittest.TestCase):
 
     def test_simple(self):
         testname = 'WriteDataNode({})[:]'.format(self.filename)
-        N = dataflows.WriteDataNode(self.filename, self.vx, ga='global attribute')
+        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
         N[:]
         N.close()
         actual = exists(self.filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print
+        with netCDF4.Dataset(self.filename, 'r') as ncf:
+            print ncf
 
+    def test_chunk(self):
+        testname = 'WriteDataNode({})[chunk]'.format(self.filename)
+        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
+        for ix in range(15):
+            N[{'x': ix}]
+        N.close()
+        actual = exists(self.filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print
+        with netCDF4.Dataset(self.filename, 'r') as ncf:
+            print ncf
 
 #===============================================================================
 # Command-Line Operation
