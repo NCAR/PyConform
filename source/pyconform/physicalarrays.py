@@ -43,8 +43,14 @@ class PhysicalArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, cfunits=None, dimensions=None, initialshape=None):
+    def __new__(cls, inarray, name=None, cfunits=None, dimensions=None, initialshape=None):
         obj = numpy.ma.asarray(inarray).view(cls)
+
+        if name is None:
+            if 'name' not in obj._optinfo:
+                raise ValueError('PhysicalArray must have a name')
+        else:
+            obj.name = name
 
         if cfunits is None:
             if 'cfunits' not in obj._optinfo:
@@ -64,14 +70,28 @@ class PhysicalArray(numpy.ma.MaskedArray):
         else:
             obj.initialshape = initialshape
 
+        if 'provenance' not in obj._optinfo:
+            obj._optinfo['provenance'] = []
 
         return obj
 
     def __repr__(self):
-        return ('{!s}(data = {!s}, mask = {!s}, fill_value = {!s}, cfunits = {!r}, '
-                'dimensions = {!s})').format(self.__class__.__name__, self.data, self.mask,
-                                             self.fill_value, str(self.cfunits), self.dimensions)
+        return ('{!s}(name={!r}, data={!s}, mask={!s}, fill_value={!s}, cfunits={!r}, '
+                'dimensions={!s})').format(self.__class__.__name__, self.data, self.mask,
+                                           self.fill_value, str(self.cfunits), self.dimensions)
 
+    @property
+    def name(self):
+        """String name for the data"""
+        return self._optinfo['name']
+
+    @name.setter
+    def name(self, nm):
+        """String name for the data"""
+        if not isinstance(nm, basestring):
+            raise TypeError('PhysicalArray name must be string')
+        self._optinfo['name'] = nm
+        
     @property
     def cfunits(self):
         """CF-Convention Units of the data"""
@@ -112,6 +132,11 @@ class PhysicalArray(numpy.ma.MaskedArray):
             raise ValueError('Initial shape must have same length as shape')
         self._optinfo['initialshape'] = ishape
 
+    @property
+    def provenance(self):
+        """List of historical changes to the data"""
+        return self._optinfo['provenance']
+    
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
         if len(idx) == 0:
@@ -139,10 +164,12 @@ class PhysicalArray(numpy.ma.MaskedArray):
             return tuple([None] * len(numpy.shape(obj)))
 
     @staticmethod
-    def _match_add_(left, right):
+    def _match_units_(left, right):
         lunits = PhysicalArray.cfunitsof(left)
         runits = PhysicalArray.cfunitsof(right)
-        if lunits != runits:
+        if lunits == runits:
+            return lunits
+        elif 
             raise UnitsError('Units mismatch: {}, {}'.format(lunits, runits))
 
         ldims = PhysicalArray.dimensionsof(left)
@@ -151,31 +178,31 @@ class PhysicalArray(numpy.ma.MaskedArray):
             raise DimensionsError('Dimensions mismatch: {}, {}'.format(ldims, rdims))
 
     def __add__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return PhysicalArray(super(PhysicalArray, self).__add__(other),
                              cfunits=self.cfunits, dimensions=self.dimensions)
 
     def __radd__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return PhysicalArray(super(PhysicalArray, self).__radd__(other),
                              cfunits=self.cfunits, dimensions=self.dimensions)
 
     def __iadd__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return super(PhysicalArray, self).__iadd__(other)
 
     def __sub__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return PhysicalArray(super(PhysicalArray, self).__sub__(other),
                              cfunits=self.cfunits, dimensions=self.dimensions)
 
     def __rsub__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return PhysicalArray(super(PhysicalArray, self).__rsub__(other),
                              cfunits=self.cfunits, dimensions=self.dimensions)
 
     def __isub__(self, other):
-        PhysicalArray._match_add_(self, other)
+        PhysicalArray._match_units_(self, other)
         return super(PhysicalArray, self).__isub__(other)
 
     @staticmethod
