@@ -618,8 +618,8 @@ class WriteDataNodeTests(unittest.TestCase):
         with netCDF4.Dataset(filename, 'r') as ncf:
             print ncf
 
-    def test_chunk(self):
-        filename = 'v_x_y_chunk.nc'
+    def test_chunk_int(self):
+        filename = 'v_x_y_chunk_int.nc'
         testname = 'WriteDataNode({})[chunk]'.format(filename)
         N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
         for ix in range(15):
@@ -632,6 +632,37 @@ class WriteDataNodeTests(unittest.TestCase):
         print
         with netCDF4.Dataset(filename, 'r') as ncf:
             print ncf
+
+    def test_chunk_slice_step1(self):
+        filename = 'v_x_y_chunk_slice.nc'
+        testname = 'WriteDataNode({})[chunk]'.format(filename)
+        N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
+        for ix in range(15):
+            N[{'x': slice(ix,ix+1)}]
+        N.close()
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print
+        with netCDF4.Dataset(filename, 'r') as ncf:
+            print ncf
+
+    def test_chunk_slice_step2(self):
+        filename = 'v_x_y_chunk_slice.nc'
+        testname = 'WriteDataNode({})[chunk]'.format(filename)
+        N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
+        for ix in range(0, 15, 2):
+            N[{'x': slice(ix,ix+2)}]
+        N.close()
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print
+        with netCDF4.Dataset(filename, 'r') as ncf:
+            print ncf
+
 
 #===============================================================================
 # Command-Line Operation
