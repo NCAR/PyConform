@@ -271,9 +271,10 @@ class UnitsTests(unittest.TestCase):
         indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('km')))
         testname = 'AdditionOperator().units'
         func = functions.AdditionOperator()
-        expected = functions.UnitsError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(expected, func, *indata)
+        actual = func(*indata).units
+        expected = Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_mul_m_m(self):
         indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('m')))
