@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform import functions
-from pyconform.physicalarrays import PhysicalArray
+from pyconform.physarrays import PhysArray
 from cf_units import Unit
 from testutils import print_test_message
 
@@ -223,11 +223,11 @@ class EvaluationTests(unittest.TestCase):
 
     def test_func_transpose_array(self):
         key = 'T'
-        indata = (PhysicalArray(np.array([[1, 2, 3], [4, 5, 6]]), dimensions=('x', 'y')), ('y', 'x'))
+        indata = (PhysArray(np.array([[1, 2, 3], [4, 5, 6]]), dimensions=('x', 'y')), ('y', 'x'))
         testname = '{}({}, to={})'.format(key, *indata)
         func = functions.find(key)
         actual = func(*indata)
-        expected = PhysicalArray(np.array([[1, 4], [2, 5], [3, 6]]), dimensions=('x', 'y'))
+        expected = PhysArray(np.array([[1, 4], [2, 5], [3, 6]]), dimensions=('x', 'y'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         np.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
 
@@ -250,7 +250,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_neg_m(self):
-        indata = PhysicalArray(5.0, cfunits=Unit('m'))
+        indata = PhysArray(5.0, cfunits=Unit('m'))
         testname = 'NegationOperator().cfunits'
         func = functions.NegationOperator()
         actual = func(indata).cfunits
@@ -259,7 +259,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_m(self):
-        indata = (PhysicalArray(1.0, cfunits=Unit('m')), PhysicalArray(2.0, cfunits=Unit('m')))
+        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('m')))
         testname = 'AdditionOperator().cfunits'
         func = functions.AdditionOperator()
         actual = func(*indata).cfunits
@@ -268,7 +268,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_km(self):
-        indata = (PhysicalArray(1.0, cfunits=Unit('m')), PhysicalArray(2.0, cfunits=Unit('km')))
+        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('km')))
         testname = 'AdditionOperator().cfunits'
         func = functions.AdditionOperator()
         expected = functions.UnitsError
@@ -276,7 +276,7 @@ class UnitsTests(unittest.TestCase):
         self.assertRaises(expected, func, *indata)
 
     def test_units_mul_m_m(self):
-        indata = (PhysicalArray(1.0, cfunits=Unit('m')), PhysicalArray(2.0, cfunits=Unit('m')))
+        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('m')))
         testname = 'MultiplicationOperator().cfunits'
         func = functions.MultiplicationOperator()
         actual = func(*indata).cfunits
@@ -285,7 +285,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_mul_1_m(self):
-        indata = (1, PhysicalArray(1.0, cfunits=Unit('m')))
+        indata = (1, PhysArray(1.0, cfunits=Unit('m')))
         testname = 'MultiplicationOperator().cfunits'
         func = functions.MultiplicationOperator()
         actual = func(*indata).cfunits
@@ -294,7 +294,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_div_1_m(self):
-        indata = (1, PhysicalArray(1.0, cfunits=Unit('m')))
+        indata = (1, PhysArray(1.0, cfunits=Unit('m')))
         testname = 'DivisionOperator().cfunits'
         func = functions.DivisionOperator()
         actual = func(*indata).cfunits
@@ -303,7 +303,7 @@ class UnitsTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_sqrt_m2(self):
-        indata = (PhysicalArray(4.0, cfunits=Unit('m^2')),)
+        indata = (PhysArray(4.0, cfunits=Unit('m^2')),)
         testname = 'SquareRootFunction().cfunits'
         func = functions.SquareRootFunction()
         actual = func(*indata).cfunits

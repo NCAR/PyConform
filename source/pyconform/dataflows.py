@@ -21,7 +21,7 @@ from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
-from pyconform.physicalarrays import PhysicalArray, UnitsError, DimensionsError
+from pyconform.physarrays import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import find, ConvertFunction, TransposeFunction
 from cf_units import Unit
 from inspect import getargspec, isfunction
@@ -51,7 +51,7 @@ class DataNode(object):
     edges meet.  It represents a functional operation on the DataArrays coming into it from
     its adjacent DataNodes.  The DataNode itself outputs the result of this operation
     through the __getitem__ interface (i.e., DataNode[item]), returning a slice of a
-    PhysicalArray.
+    PhysArray.
     """
 
     __metaclass__ = ABCMeta
@@ -110,7 +110,7 @@ class CreateDataNode(DataNode):
             dimensions: Dimensions to associate with the data 
         """
         # Store data
-        self._data = PhysicalArray(data, cfunits=cfunits, dimensions=dimensions)
+        self._data = PhysArray(data, cfunits=cfunits, dimensions=dimensions)
 
         # Call base class initializer
         super(CreateDataNode, self).__init__(label)
@@ -173,7 +173,7 @@ class ReadDataNode(DataNode):
 
     def __getitem__(self, index):
         """
-        Read PhysicalArray from file
+        Read PhysArray from file
         """
         with Dataset(self._filepath, 'r') as ncfile:
 
@@ -213,7 +213,7 @@ class ReadDataNode(DataNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = PhysicalArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2,
+            data = PhysArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2,
                                  initialshape=shape2)
 
         return data
@@ -279,12 +279,12 @@ class EvalDataNode(DataNode):
         """
         if len(self._inputs) == 0:
             data = self._function()
-            if isinstance(data, PhysicalArray):
+            if isinstance(data, PhysArray):
                 return data[index]
             else:
                 return data
         else:
-            args = [d[index] if isinstance(d, (PhysicalArray, DataNode)) else d for d in self._inputs]
+            args = [d[index] if isinstance(d, (PhysArray, DataNode)) else d for d in self._inputs]
             return self._function(*args)
 
 
@@ -358,7 +358,7 @@ class MapDataNode(DataNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
-        return PhysicalArray(self._inputs[0][inp_index], dimensions=out_dims)
+        return PhysArray(self._inputs[0][inp_index], dimensions=out_dims)
 
 
 #===================================================================================================
