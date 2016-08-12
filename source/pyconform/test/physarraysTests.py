@@ -231,6 +231,54 @@ class PhysArrayTests(unittest.TestCase):
         print_test_message(testname, expected=expected, X=X, Y=Y)
         self.assertRaises(expected, X.__mul__, Y)
 
+    def test_mul_dimensions_diff_transposable(self):
+        X = physarrays.PhysArray([[1, 2, 3], [4, 5, 6]], dimensions=('x', 'y'))
+        Y = physarrays.PhysArray([[1, 2], [3, 4], [5, 6]], dimensions=('y', 'x'))
+        testname = 'X.__mul__(Y).dimensions'
+        Z = X * Y
+        actual = Z.dimensions
+        expected = X.dimensions
+        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_div_units(self):
+        X = physarrays.PhysArray([4, 5, 6], units='km')
+        Y = physarrays.PhysArray([1, 2, 3], units='m')
+        testname = 'X.__div__(Y).units'
+        Z = X / Y
+        actual = Z.units
+        expected = X.units / Y.units
+        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_div_dimensions_same(self):
+        X = physarrays.PhysArray([4, 5, 6], dimensions=('x',))
+        Y = physarrays.PhysArray([1, 2, 3], dimensions=('x',))
+        testname = 'X.__div__(Y).dimensions'
+        Z = X / Y
+        actual = Z.dimensions
+        expected = X.dimensions
+        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_div_dimensions_diff(self):
+        X = physarrays.PhysArray([4, 5, 6], dimensions=('x',))
+        Y = physarrays.PhysArray([1, 2, 3], dimensions=('y',))
+        testname = 'X.__div__(Y).dimensions'
+        expected = physarrays.DimensionsError
+        print_test_message(testname, expected=expected, X=X, Y=Y)
+        self.assertRaises(expected, X.__div__, Y)
+
+    def test_div_dimensions_diff_transposable(self):
+        X = physarrays.PhysArray([[1, 2], [3, 4], [5, 6]], dimensions=('x', 'y'))
+        Y = physarrays.PhysArray([[1, 2, 3], [4, 5, 6]], dimensions=('y', 'x'))
+        testname = 'X.__mul__(Y).dimensions'
+        Z = X / Y
+        actual = Z.dimensions
+        expected = X.dimensions
+        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
     def test_add_units_same(self):
         X = physarrays.PhysArray([1, 2, 3], units='m')
         Y = physarrays.PhysArray([4, 5, 6], units='m')
@@ -245,9 +293,11 @@ class PhysArrayTests(unittest.TestCase):
         X = physarrays.PhysArray([1, 2, 3], units='m')
         Y = physarrays.PhysArray([4, 5, 6], units='km')
         testname = 'X.__add__(Y).units'
-        expected = physarrays.UnitsError
-        print_test_message(testname, expected=expected, X=X, Y=Y)
-        self.assertRaises(expected, X.__add__, Y)
+        Z = X + Y
+        actual = Z.units
+        expected = X.units
+        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_add_dimensions_same(self):
         X = physarrays.PhysArray([1, 2, 3], dimensions=('x',))
@@ -267,41 +317,11 @@ class PhysArrayTests(unittest.TestCase):
         print_test_message(testname, expected=expected, X=X, Y=Y)
         self.assertRaises(expected, X.__add__, Y)
 
-    def test_ufunc_add_units(self):
-        X = physarrays.PhysArray([1, 2, 3], units='m')
-        Y = physarrays.PhysArray([4, 5, 6], units='km')
-        testname = 'add(X, Y).units'
-        Z = numpy.add(X, Y)
-        actual = Z.units
-        expected = X.units
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_ufunc_multiply_units(self):
-        X = physarrays.PhysArray([1, 2, 3], units='m')
-        Y = physarrays.PhysArray([4, 5, 6], units='km')
-        testname = 'multiply(X, Y).units'
-        Z = numpy.multiply(X, Y)
-        actual = Z.units
-        expected = X.units
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_ufunc_add_dimensions(self):
-        X = physarrays.PhysArray([1, 2, 3], dimensions=('x',))
-        Y = physarrays.PhysArray([4, 5, 6], dimensions=('y',))
-        testname = 'add(X, Y).dimensions'
-        Z = numpy.add(X, Y)
-        actual = Z.dimensions
-        expected = X.dimensions
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_ufunc_multiply_dimensions(self):
-        X = physarrays.PhysArray([1, 2, 3], dimensions=('x',))
-        Y = physarrays.PhysArray([4, 5, 6], dimensions=('y',))
-        testname = 'multiply(X, Y).dimensions'
-        Z = numpy.multiply(X, Y)
+    def test_add_dimensions_diff_transposable(self):
+        X = physarrays.PhysArray([[1, 2, 3], [4, 5, 6]], dimensions=('x', 'y'))
+        Y = physarrays.PhysArray([[1, 2], [3, 4], [5, 6]], dimensions=('y', 'x'))
+        testname = 'X.__add__(Y).dimensions'
+        Z = X + Y
         actual = Z.dimensions
         expected = X.dimensions
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y, Z=Z)

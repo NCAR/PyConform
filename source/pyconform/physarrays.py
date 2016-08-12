@@ -10,7 +10,6 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from __future__ import print_function
 from pyconform.indexing import align_index
 from cf_units import Unit
 from operator import mul, div
@@ -161,55 +160,43 @@ class PhysArray(numpy.ma.MaskedArray):
             return tuple(i for i in xrange(len(numpy.shape(obj))))
 
     @staticmethod
-    def _match_units_(left, right):
+    def _match_right_(left, right):
         lunits = PhysArray.interpret_units(left)
         runits = PhysArray.interpret_units(right)
-        if lunits == runits:
-            return lunits
-        else: 
-            raise UnitsError('Units mismatch: {}, {}'.format(lunits, runits))
-
-    @staticmethod
-    def _match_dimensions_(left, right):
+        if lunits != runits:
+            if runits.is_convertible(lunits):
+                right = runits.convert(right, lunits)
+            else:
+                raise UnitsError('Nonconvertible units: {}, {}'.format(lunits, runits))
         ldims = PhysArray.interpret_dimensions(left)
         rdims = PhysArray.interpret_dimensions(right)
-        if ldims == rdims:
-            return ldims
-        else:
-            raise DimensionsError('Dimensions mismatch: {}, {}'.format(ldims, rdims))
+        if ldims != rdims:
+            if set(ldims) == set(rdims):
+                right = numpy.transpose(right, axes=tuple(rdims.index(d) for d in ldims))
+            else:
+                raise DimensionsError('Nontransposable dimensions: {}, {}'.format(ldims, rdims))
+        return right
 
     def __add__(self, other):
-        units = PhysArray._match_units_(self, other)
-        dimensions = PhysArray._match_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__add__(other), units=units, dimensions=dimensions)
+        return PhysArray(super(PhysArray, self).__add__(PhysArray._match_right_(self, other)))
 
     def __radd__(self, other):
-        units = PhysArray._match_units_(self, other)
-        dimensions = PhysArray._match_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__radd__(other), units=units, dimensions=dimensions)
+        return PhysArray(super(PhysArray, self).__radd__(PhysArray._match_right_(self, other)))
 
     def __iadd__(self, other):
-        self.units = PhysArray._match_units_(self, other)
-        self.dimensions = PhysArray._match_dimensions_(self, other)
-        return super(PhysArray, self).__iadd__(other)
+        return super(PhysArray, self).__iadd__(PhysArray._match_right_(self, other))
 
     def __sub__(self, other):
-        units = PhysArray._match_units_(self, other)
-        dimensions = PhysArray._match_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__sub__(other), units=units, dimensions=dimensions)
+        return PhysArray(super(PhysArray, self).__sub__(PhysArray._match_right_(self, other)))
 
     def __rsub__(self, other):
-        units = PhysArray._match_units_(self, other)
-        dimensions = PhysArray._match_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__rsub__(other), units=units, dimensions=dimensions)
+        return PhysArray(super(PhysArray, self).__rsub__(PhysArray._match_right_(self, other)))
 
     def __isub__(self, other):
-        self.units = PhysArray._match_units_(self, other)
-        self.dimensions = PhysArray._match_dimensions_(self, other)
-        return super(PhysArray, self).__isub__(other)
+        return super(PhysArray, self).__isub__(PhysArray._match_right_(self, other))
 
     @staticmethod
-    def _binop_units_(op, left, right):
+    def _mul_div_units_(op, left, right):
         lunits = PhysArray.interpret_units(left)
         runits = PhysArray.interpret_units(right)
         try:
@@ -218,75 +205,98 @@ class PhysArray(numpy.ma.MaskedArray):
             nm = 'multiply' if op == mul else 'divide'
             raise UnitsError('Cannot {} with units: {}, {}'.format(nm, lunits, runits))
         return munits
-
+    
     @staticmethod
-    def _binop_dimensions_(op, left, right):
-        ldims = PhysArray.interpret_dimensions(left)
-        rdims = PhysArray.interpret_dimensions(right)
-        if ldims == ():
-            mdims = rdims
-        elif ldims == rdims or rdims == ():
-            mdims = ldims
+    def _mul_div_dimensions_(op, self, other):    
+        sdims = PhysArray.interpret_dimensions(self)
+        odims = PhysArray.interpret_dimensions(other)
+        if sdims == ():
+            mdims = odims
+        elif sdims == odims or odims == ():
+            mdims = sdims
+        elif set(sdims) == set(odims):
+            other = numpy.transpose(other, axes=tuple(odims.index(d) for d in sdims))
+            mdims = sdims
         else:
             nm = 'multiply' if op == mul else 'divide'
-            raise DimensionsError(('Cannot {} with dimensions: {}, {}').format(nm, ldims, rdims))
-        return mdims
+            raise DimensionsError(('Cannot {} with dimensions: {}, {}').format(nm, sdims, odims))
+        return other, mdims
+    
+    def __mul__(self, other):
+        units = PhysArray._mul_div_units_(mul, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(mul, self, other)
+        return PhysArray(super(PhysArray, self).__mul__(other), units=units, dimensions=dims)
+
+    def __rmul__(self, other):
+        units = PhysArray._mul_div_units_(mul, other, self)
+        other, dims = PhysArray._mul_div_dimensions_(mul, self, other)
+        return PhysArray(super(PhysArray, self).__rmul__(other), units=units, dimensions=dims)
+
+    def __imul__(self, other):
+        self.units = PhysArray._mul_div_units_(mul, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(mul, self, other)
+        self.dimensions = dims
+        return super(PhysArray, self).__imul__(other)
 
     def __div__(self, other):
-        units = PhysArray._binop_units_(div, self, other)
-        dimensions = PhysArray._binop_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__div__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__div__(other), units=units, dimensions=dims)
 
     def __rdiv__(self, other):
-        units = PhysArray._binop_units_(div, other, self)
-        dimensions = PhysArray._binop_dimensions_(div, other, self)
-        return PhysArray(super(PhysArray, self).__rdiv__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, other, self)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__rdiv__(other), units=units, dimensions=dims)
 
     def __idiv__(self, other):
-        self.units = PhysArray._binop_units_(div, self, other)
-        self.dimensions = PhysArray._binop_dimensions_(div, self, other)
+        self.units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        self.dimensions = dims
         return super(PhysArray, self).__idiv__(other)
 
     def __floordiv__(self, other):
-        units = PhysArray._binop_units_(div, self, other)
-        dimensions = PhysArray._binop_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__floordiv__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__floordiv__(other), units=units, dimensions=dims)
 
     def __rfloordiv__(self, other):
-        units = PhysArray._binop_units_(div, other, self)
-        dimensions = PhysArray._binop_dimensions_(div, other, self)
-        return PhysArray(super(PhysArray, self).__rfloordiv__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, other, self)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__rfloordiv__(other), units=units, dimensions=dims)
 
     def __ifloordiv__(self, other):
-        self.units = PhysArray._binop_units_(div, self, other)
-        self.dimensions = PhysArray._binop_dimensions_(div, self, other)
+        self.units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        self.dimensions = dims
         return super(PhysArray, self).__ifloordiv__(other)
 
     def __truediv__(self, other):
-        units = PhysArray._binop_units_(div, self, other)
-        dimensions = PhysArray._binop_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__truediv__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__truediv__(other), units=units, dimensions=dims)
 
     def __rtruediv__(self, other):
-        units = PhysArray._binop_units_(div, other, self)
-        dimensions = PhysArray._binop_dimensions_(div, other, self)
-        return PhysArray(super(PhysArray, self).__rtruediv__(other), units=units, dimensions=dimensions)
+        units = PhysArray._mul_div_units_(div, other, self)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__rtruediv__(other), units=units, dimensions=dims)
 
     def __itruediv__(self, other):
-        self.units = PhysArray._binop_units_(div, self, other)
-        self.dimensions = PhysArray._binop_dimensions_(div, self, other)
+        self.units = PhysArray._mul_div_units_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        self.dimensions = dims
         return super(PhysArray, self).__itruediv__(other)
 
     def __mod__(self, other):
-        dimensions = PhysArray._binop_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__mod__(other), units=self.units, dimensions=dimensions)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims)
 
     def __rmod__(self, other):
-        dimensions = PhysArray._binop_dimensions_(div, other, self)
-        return PhysArray(super(PhysArray, self).__rmod__(other), units=self.units, dimensions=dimensions)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        return PhysArray(super(PhysArray, self).__rmod__(other), dimensions=dims)
 
     def __imod__(self, other):
-        self.dimensions = PhysArray._binop_dimensions_(div, self, other)
+        other, dims = PhysArray._mul_div_dimensions_(div, self, other)
+        self.dimensions = dims
         return super(PhysArray, self).__imod__(other)
 
     def __divmod__(self, other):
@@ -294,21 +304,6 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __rdivmod__(self, other):
         return (self.__rfloordiv__(other), self.__rmod__(other))
-
-    def __mul__(self, other):
-        units = PhysArray._binop_units_(mul, self, other)
-        dimensions = PhysArray._binop_dimensions_(mul, self, other)
-        return PhysArray(super(PhysArray, self).__mul__(other), units=units, dimensions=dimensions)
-
-    def __rmul__(self, other):
-        units = PhysArray._binop_units_(mul, other, self)
-        dimensions = PhysArray._binop_dimensions_(mul, other, self)
-        return PhysArray(super(PhysArray, self).__rmul__(other), units=units, dimensions=dimensions)
-
-    def __imul__(self, other):
-        self.units = PhysArray._binop_units_(mul, self, other)
-        self.dimensions = PhysArray._binop_dimensions_(mul, self, other)
-        return super(PhysArray, self).__imul__(other)
 
     @staticmethod
     def _pow_units_(left, right):

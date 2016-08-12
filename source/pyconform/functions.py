@@ -89,9 +89,9 @@ class NegationOperator(Operator):
     numargs = 1
 
     def __call__(self, arg):
-        units = PhysArray.cfunitsof(arg)
+        units = PhysArray.interpret_units(arg)
         dims = PhysArray.interpret_dimensions(arg)
-        return PhysArray(-arg, cfunits=units, dimensions=dims)
+        return PhysArray(-arg, units=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -102,9 +102,9 @@ class AdditionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.cfunitsof(left)
+        units = PhysArray.interpret_units(left)
         dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left + right, cfunits=units, dimensions=dims)
+        return PhysArray(left + right, units=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -115,9 +115,9 @@ class SubtractionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.cfunitsof(left)
+        units = PhysArray.interpret_units(left)
         dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left - right, cfunits=units, dimensions=dims)
+        return PhysArray(left - right, units=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -128,9 +128,9 @@ class PowerOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.cfunitsof(left)
+        units = PhysArray.interpret_units(left)
         dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left ** right, cfunits=units, dimensions=dims)
+        return PhysArray(left ** right, units=units, dimensions=dims)
 
 
 #===================================================================================================
@@ -219,7 +219,7 @@ class SquareRootFunction(Function):
     numargs = 1
 
     def __call__(self, data):
-        dunits = PhysArray.cfunitsof(data)
+        dunits = PhysArray.interpret_units(data)
         ddims = PhysArray.interpret_dimensions(data)
 
         try:
@@ -228,36 +228,36 @@ class SquareRootFunction(Function):
             print dunits
             raise UnitsError('Cannot take square-root of {!r}'.format(dunits))
 
-        return PhysArray(sqrt(data), cfunits=squnits, dimensions=ddims)
+        return PhysArray(sqrt(data), units=squnits, dimensions=ddims)
 
 
 #===================================================================================================
 # ConvertFunction
 #===================================================================================================
 class ConvertFunction(Function):
-    key = 'C'
+    key = 'convert'
     numargs = 2
 
     def __call__(self, data, to_units):
-        units1 = PhysArray.cfunitsof(data)
+        units1 = PhysArray.interpret_units(data)
         units2 = Unit(to_units)
 
         if not units1.is_convertible(units2):
             raise UnitsError('Cannot convert units: {!r} to {!r}'.format(units1, units2))
 
         return PhysArray(units1.convert(data, units2, inplace=True),
-                             cfunits=units2, dimensions=PhysArray.interpret_dimensions(data))
+                             units=units2, dimensions=PhysArray.interpret_dimensions(data))
 
 
 #===================================================================================================
 # TransposeFunction
 #===================================================================================================
 class TransposeFunction(Function):
-    key = 'T'
+    key = 'transpose'
     numargs = 2
 
     def __call__(self, data, new_dims):
-        dunits = PhysArray.cfunitsof(data)
+        dunits = PhysArray.interpret_units(data)
 
         old_dims = PhysArray.interpret_dimensions(data)
         if set(old_dims) != set(new_dims):
@@ -266,4 +266,4 @@ class TransposeFunction(Function):
 
         order = tuple(old_dims.index(d) for d in new_dims)
 
-        return PhysArray(transpose(data, order), cfunits=dunits, dimensions=new_dims)
+        return PhysArray(transpose(data, order), units=dunits, dimensions=new_dims)

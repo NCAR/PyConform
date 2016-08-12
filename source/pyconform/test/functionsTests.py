@@ -212,7 +212,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_convert_float(self):
-        key = 'C'
+        key = 'convert'
         indata = (0.1, Unit(0.1))
         testname = '{}({}, to={})'.format(key, *indata)
         func = functions.find(key)
@@ -222,7 +222,7 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_transpose_array(self):
-        key = 'T'
+        key = 'transpose'
         indata = (PhysArray(np.array([[1, 2, 3], [4, 5, 6]]), dimensions=('x', 'y')), ('y', 'x'))
         testname = '{}({}, to={})'.format(key, *indata)
         func = functions.find(key)
@@ -242,71 +242,71 @@ class UnitsTests(unittest.TestCase):
 
     def test_units_neg_1(self):
         indata = 1
-        testname = 'NegationOperator().cfunits'
+        testname = 'NegationOperator().units'
         func = functions.NegationOperator()
-        actual = func(indata).cfunits
+        actual = func(indata).units
         expected = Unit(1)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_neg_m(self):
-        indata = PhysArray(5.0, cfunits=Unit('m'))
-        testname = 'NegationOperator().cfunits'
+        indata = PhysArray(5.0, units=Unit('m'))
+        testname = 'NegationOperator().units'
         func = functions.NegationOperator()
-        actual = func(indata).cfunits
-        expected = indata.cfunits
+        actual = func(indata).units
+        expected = indata.units
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_m(self):
-        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('m')))
-        testname = 'AdditionOperator().cfunits'
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('m')))
+        testname = 'AdditionOperator().units'
         func = functions.AdditionOperator()
-        actual = func(*indata).cfunits
+        actual = func(*indata).units
         expected = Unit('m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_km(self):
-        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('km')))
-        testname = 'AdditionOperator().cfunits'
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('km')))
+        testname = 'AdditionOperator().units'
         func = functions.AdditionOperator()
         expected = functions.UnitsError
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(expected, func, *indata)
 
     def test_units_mul_m_m(self):
-        indata = (PhysArray(1.0, cfunits=Unit('m')), PhysArray(2.0, cfunits=Unit('m')))
-        testname = 'MultiplicationOperator().cfunits'
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('m')))
+        testname = 'MultiplicationOperator().units'
         func = functions.MultiplicationOperator()
-        actual = func(*indata).cfunits
+        actual = func(*indata).units
         expected = Unit('m^2')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_mul_1_m(self):
-        indata = (1, PhysArray(1.0, cfunits=Unit('m')))
-        testname = 'MultiplicationOperator().cfunits'
+        indata = (1, PhysArray(1.0, units=Unit('m')))
+        testname = 'MultiplicationOperator().units'
         func = functions.MultiplicationOperator()
-        actual = func(*indata).cfunits
+        actual = func(*indata).units
         expected = Unit('m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_div_1_m(self):
-        indata = (1, PhysArray(1.0, cfunits=Unit('m')))
-        testname = 'DivisionOperator().cfunits'
+        indata = (1, PhysArray(1.0, units=Unit('m')))
+        testname = 'DivisionOperator().units'
         func = functions.DivisionOperator()
-        actual = func(*indata).cfunits
+        actual = func(*indata).units
         expected = Unit(1) / Unit('m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_sqrt_m2(self):
-        indata = (PhysArray(4.0, cfunits=Unit('m^2')),)
-        testname = 'SquareRootFunction().cfunits'
+        indata = (PhysArray(4.0, units=Unit('m^2')),)
+        testname = 'SquareRootFunction().units'
         func = functions.SquareRootFunction()
-        actual = func(*indata).cfunits
+        actual = func(*indata).units
         expected = Unit('m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
