@@ -99,18 +99,18 @@ class CreateDataNode(DataNode):
     This is a "source" DataNode.
     """
 
-    def __init__(self, label, data, cfunits=None, dimensions=None):
+    def __init__(self, label, data, units=None, dimensions=None):
         """
         Initializer
         
         Parameters:
             label: A label to give the DataNode
             data (array): Data to store in this DataNode
-            cfunits: Units to associate with the data
+            units (Unit): Units to associate with the data
             dimensions: Dimensions to associate with the data 
         """
         # Store data
-        self._data = PhysArray(data, cfunits=cfunits, dimensions=dimensions)
+        self._data = PhysArray(data, units=units, dimensions=dimensions)
 
         # Call base class initializer
         super(CreateDataNode, self).__init__(label)
@@ -180,11 +180,11 @@ class ReadDataNode(DataNode):
             # Get a reference to the variable
             ncvar = ncfile.variables[self.variable]
 
-            # Read the variable cfunits
+            # Read the variable units
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-            cfunits = Unit(units_attr, calendar=calendar_attr)
+            units = Unit(units_attr, calendar=calendar_attr)
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
@@ -207,14 +207,11 @@ class ReadDataNode(DataNode):
             # Get the dimensions after application of the second index
             dimensions2 = tuple(d for d, i in zip(dimensions1, index2) if isinstance(i, slice))
 
-            # Compute the original shape after potential dimension reduction
-            shape2 = tuple(s for s, i in zip(shape1, index2) if isinstance(i, slice))
-
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = PhysArray(ncvar[index12], cfunits=cfunits, dimensions=dimensions2,
-                                 initialshape=shape2)
+            data = PhysArray(ncvar[index12], units=units, dimensions=dimensions2,
+                                 _shape=shape1, _dimensions=dimensions1)
 
         return data
 
@@ -293,7 +290,7 @@ class EvalDataNode(DataNode):
 #===================================================================================================
 class MapDataNode(DataNode):
     """
-    DataNode class to map input data from a neighboring DataNode to new dimension names and cfunits
+    DataNode class to map input data from a neighboring DataNode to new dimension names and units
     
     The MapDataNode can rename the dimensions of a DataNode's output data.  It does not change the
     data itself, however.  The input dimension names will be changed according to the dimension
@@ -393,7 +390,7 @@ class ValidateDataNode(DataNode):
         Parameters:
             label: The label associated with this DataNode
             dnode (DataNode): DataNode that provides input into this DataNode
-            cfunits (Unit): CF units to validate against
+            units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             error (bool): If True, raise exceptions instead of warnings
             attribs: Additional named arguments corresponding to additional attributes
@@ -415,18 +412,19 @@ class ValidateDataNode(DataNode):
             raise TypeError('Dimensions must be a tuple')
         self._dimensions = dimensions
 
-        # Make attributes consistent with cfunits and store cfunits
-        cfunits = attribs.pop('cfunits', None)
-        if cfunits is None:
-            if 'units' in attribs:
-                self._cfunits = Unit(attribs['units'], calendar=attribs.get('calendar', None))
-            else:
-                self._cfunits = None
+        # Make attributes consistent with units and store units
+        units = attribs.pop('units', None)
+        if units is None:
+            self._units = None
+        elif isinstance(units, Unit):
+            self._units = units
+            attribs['units'] = str(units)
+            if units.calendar is not None:
+                attribs['calendar'] = str(units.calendar)
         else:
-            self._cfunits = Unit(cfunits)
-            attribs['units'] = str(cfunits)
-            if self._cfunits.calendar is not None:
-                attribs['calendar'] = str(self._cfunits.calendar)
+            attribs['units'] = str(units)
+            calendar = attribs.get('calendar', None)
+            self._units = Unit(attribs['units'], calendar=calendar)
 
         # Store the attributes given to the DataNode
         self._attributes = {str(a): str(v) for a, v in attribs.iteritems()}
@@ -440,9 +438,9 @@ class ValidateDataNode(DataNode):
         indata = self._inputs[0][index]
 
         # Check that units match as expected
-        if self._cfunits is not None and self._cfunits != indata.cfunits:
+        if self._units is not None and self._units != indata.units:
             msg = ('Units {!r} do not match expected units {!r} in ValidateDataNode '
-                   '{!r}').format(str(self._cfunits), str(indata.cfunits), self.label)
+                   '{!r}').format(str(self._units), str(indata.units), self.label)
             if self._error:
                 raise UnitsError(msg)
             else:
@@ -568,7 +566,7 @@ class WriteDataNode(DataNode):
             # Collect the dimension sizes from the initialshape parameter of the input data
             req_dims = {}
             for vinfo in vinfos.itervalues():
-                for dname, dsize in zip(vinfo.dimensions, vinfo.initialshape):
+                for dname, dsize in zip(vinfo.dimensions, vinfo._shape):
                     if dname not in req_dims:
                         req_dims[dname] = dsize
                     elif req_dims[dname] != dsize:
@@ -664,7 +662,7 @@ class FlowFactory(object):
         for vname, vinfo in withdata.iteritems():
             vdata = numpy.array(vinfo.data, dtype=vinfo.datatype)
             vshape = tuple(outds.dimensions[d].size for d in vinfo.dimensions)
-            cdnode = CreateDataNode(vname, vdata, cfunits=vinfo.cfunits(),
+            cdnode = CreateDataNode(vname, vdata, units=vinfo.units(),
                                     dimensions=vinfo.dimensions, dshape=vshape)
             srcnodes[vname] = cdnode
 
@@ -707,13 +705,13 @@ class FlowFactory(object):
             dinfo = dinfos[vname]
 
             # Check and convert units, if necessary
-            out_units = outds.variables[vname].cfunits()
-            if out_units != dinfo.cfunits:
-                if dinfo.cfunits.is_convertible(out_units):
+            out_units = outds.variables[vname].units()
+            if out_units != dinfo.units:
+                if dinfo.units.is_convertible(out_units):
                     name = 'C({!s}, to={!r})'.format(dnode, str(out_units))
                     outnodes[vname] = EvalDataNode(name, ConvertFunction, dnode, out_units)
                 else:
-                    raise ValueError('Cannot convert units {} to {}'.format(dinfo.cfunits, out_units))
+                    raise ValueError('Cannot convert units {} to {}'.format(dinfo.units, out_units))
 
             # Map dimensions from input namespace to output namespace
             dnode = outnodes[vname]
@@ -740,10 +738,10 @@ class FlowFactory(object):
             elif vname in outnodes:
                 vnode = outnodes[vname]
 
-            vunits = vinfo.cfunits()
+            vunits = vinfo.units()
             vdims = vinfo.dimensions
             vattrs = vinfo.attributes
-            varnodes[vname] = ValidateDataNode(vname, vnode, cfunits=vunits, dimensions=vdims,
+            varnodes[vname] = ValidateDataNode(vname, vnode, units=vunits, dimensions=vdims,
                                            error=error, attributes=vattrs)
 
         # Now determine which output variables have their own output file

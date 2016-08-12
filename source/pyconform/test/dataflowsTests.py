@@ -10,6 +10,7 @@ from testutils import print_test_message
 from cf_units import Unit
 from os.path import exists
 from os import remove
+from glob import glob
 
 import unittest
 import numpy
@@ -77,35 +78,35 @@ class CreateDataNodeTests(unittest.TestCase):
     def test_getitem_all(self):
         indata = numpy.arange(10)
         testname = 'CreateDataNode.__getitem__(:)'
-        N = dataflows.CreateDataNode(0, indata, cfunits='m', dimensions=('x',))
+        N = dataflows.CreateDataNode(0, indata, units='m', dimensions=('x',))
         actual = N[:]
-        expected = dataflows.PhysArray(indata, cfunits='m', dimensions=('x',))
+        expected = dataflows.PhysArray(indata, units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
         indata = numpy.arange(10)
         testname = 'CreateDataNode.__getitem__(:5)'
-        N = dataflows.CreateDataNode(0, indata, cfunits='m', dimensions=('x',))
+        N = dataflows.CreateDataNode(0, indata, units='m', dimensions=('x',))
         actual = N[:5]
-        expected = dataflows.PhysArray(indata[:5], cfunits='m', dimensions=('x',))
+        expected = dataflows.PhysArray(indata[:5], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
         indata = numpy.arange(10)
         indict = {'a': 4, 'x': slice(1, 5, 2)}
         testname = 'CreateDataNode.__getitem__({})'.format(indict)
-        N = dataflows.CreateDataNode(0, indata, cfunits='m', dimensions=('x',))
+        N = dataflows.CreateDataNode(0, indata, units='m', dimensions=('x',))
         actual = N[indict]
-        expected = dataflows.PhysArray(indata[indict['x']], cfunits='m', dimensions=('x',))
+        expected = dataflows.PhysArray(indata[indict['x']], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
@@ -123,12 +124,12 @@ class ReadDataNodeTests(unittest.TestCase):
         self.dimensions = ('x', 'y')
         self.shape = {'x': 5, 'y': 10}
         self.vardata = {'x': dataflows.PhysArray(numpy.arange(self.shape['x'], dtype='f'),
-                                                 cfunits='m', dimensions=('x',)),
+                                                 units='m', dimensions=('x',)),
                         'y': dataflows.PhysArray(numpy.arange(self.shape['y'], dtype='f'),
-                                                 cfunits='km', dimensions=('y',)),
+                                                 units='km', dimensions=('y',)),
                         'v': dataflows.PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
                                                               dtype='d').reshape(self.shape['x'], self.shape['y']),
-                                                 cfunits='K', dimensions=self.dimensions)}
+                                                 units='K', dimensions=self.dimensions)}
 
         with netCDF4.Dataset(self.filename, 'w') as ncfile:
             for d in self.dimensions:
@@ -136,7 +137,7 @@ class ReadDataNodeTests(unittest.TestCase):
 
             for v in self.vardata:
                 ncv = ncfile.createVariable(v, 'f', self.vardata[v].dimensions)
-                ncv.setncatts({'units': str(self.vardata[v].cfunits)})
+                ncv.setncatts({'units': str(self.vardata[v].units)})
                 ncv[:] = self.vardata[v]
 
     def tearDown(self):
@@ -150,7 +151,7 @@ class ReadDataNodeTests(unittest.TestCase):
         expected = self.vardata[self.varname]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
@@ -160,7 +161,7 @@ class ReadDataNodeTests(unittest.TestCase):
         expected = self.vardata[self.varname][:2]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_none(self):
@@ -168,11 +169,11 @@ class ReadDataNodeTests(unittest.TestCase):
         N = dataflows.ReadDataNode(self.filename, self.varname)
         actual = N[None]
         expected = dataflows.PhysArray(numpy.empty((0,) * len(self.shape), dtype='d'),
-                                       cfunits=self.vardata[self.varname].cfunits,
+                                       units=self.vardata[self.varname].units,
                                        dimensions=self.vardata[self.varname].dimensions)
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_tuple(self):
@@ -183,7 +184,7 @@ class ReadDataNodeTests(unittest.TestCase):
         expected = dataflows.PhysArray(self.vardata[self.varname][intuple], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
@@ -194,7 +195,7 @@ class ReadDataNodeTests(unittest.TestCase):
         expected = self.vardata[self.varname][slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict_2(self):
@@ -205,7 +206,7 @@ class ReadDataNodeTests(unittest.TestCase):
         expected = self.vardata[self.varname][:, slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
@@ -218,53 +219,53 @@ class EvalDataNodeTests(unittest.TestCase):
     """
 
     def test_getitem_all(self):
-        indata = dataflows.PhysArray(range(10), cfunits='m', dimensions=('x',))
+        indata = dataflows.PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalDataNode.__getitem__(:)'
         N = dataflows.EvalDataNode(0, lambda x: x, indata)
         actual = N[:]
         expected = indata
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_none(self):
-        indata = dataflows.PhysArray(range(10), cfunits='m', dimensions=('x',))
+        indata = dataflows.PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalDataNode.__getitem__(None)'
         N = dataflows.EvalDataNode(0, lambda x: x, indata)
         actual = N[None]
         expected = dataflows.PhysArray(numpy.empty((0,), dtype=indata.dtype),
-                                       cfunits='m', dimensions=('x',))
+                                       units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
-        indata = dataflows.PhysArray(range(10), cfunits='m', dimensions=('x',))
+        indata = dataflows.PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalDataNode.__getitem__(:5)'
         N = dataflows.EvalDataNode(0, lambda x: x, indata)
         actual = N[:5]
         expected = indata[:5]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
-        indata = dataflows.PhysArray(range(10), cfunits='m', dimensions=('x',))
+        indata = dataflows.PhysArray(range(10), units='m', dimensions=('x',))
         testname = "EvalDataNode.__getitem__({'x': slice(5, None), 'y': 6})"
         N = dataflows.EvalDataNode(0, lambda x: x, indata)
         actual = N[{'x': slice(5, None), 'y': 6}]
         expected = indata[slice(5, None)]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add(self):
-        d1 = dataflows.PhysArray(numpy.arange(1, 5), cfunits='m', dimensions=('x',))
-        d2 = dataflows.PhysArray(numpy.arange(5, 9), cfunits='m', dimensions=('x',))
+        d1 = dataflows.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = dataflows.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
         N1 = dataflows.EvalDataNode(1, lambda x: x, d1)
         N2 = dataflows.EvalDataNode(2, lambda x: x, d2)
         N3 = dataflows.EvalDataNode(3, lambda a, b: a + b, N1, N2)
@@ -273,12 +274,12 @@ class EvalDataNodeTests(unittest.TestCase):
         expected = d1 + d2
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_slice(self):
-        d1 = dataflows.PhysArray(numpy.arange(1, 5), cfunits='m', dimensions=('x',))
-        d2 = dataflows.PhysArray(numpy.arange(5, 9), cfunits='m', dimensions=('x',))
+        d1 = dataflows.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = dataflows.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
         N1 = dataflows.EvalDataNode(1, lambda x: x, d1)
         N2 = dataflows.EvalDataNode(2, lambda x: x, d2)
         N3 = dataflows.EvalDataNode(3, lambda a, b: a + b, N1, N2)
@@ -287,21 +288,21 @@ class EvalDataNodeTests(unittest.TestCase):
         expected = d1[:2] + d2[:2]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_none(self):
-        d1 = dataflows.PhysArray(numpy.arange(1, 5), cfunits='m', dimensions=('x',))
-        d2 = dataflows.PhysArray(numpy.arange(5, 9), cfunits='m', dimensions=('x',))
+        d1 = dataflows.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = dataflows.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
         N1 = dataflows.EvalDataNode(1, lambda x: x, d1)
         N2 = dataflows.EvalDataNode(2, lambda x: x, d2)
         N3 = dataflows.EvalDataNode(3, lambda a, b: a + b, N1, N2)
         testname = 'EvalDataNode.__getitem__(None)'
         actual = N3[None]
-        expected = dataflows.PhysArray(numpy.arange(0), cfunits='m', dimensions=('x',))
+        expected = dataflows.PhysArray(numpy.arange(0), units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
@@ -314,7 +315,7 @@ class MapDataNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), cfunits='km', dimensions=('x',))
+        self.indata = dataflows.CreateDataNode(0, numpy.arange(10), units='km', dimensions=('x',))
 
     def test_getitem_all(self):
         testname = 'MapDataNode.__getitem__(:)'
@@ -323,7 +324,7 @@ class MapDataNodeTests(unittest.TestCase):
         expected = dataflows.PhysArray(self.indata[:], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
@@ -333,17 +334,17 @@ class MapDataNodeTests(unittest.TestCase):
         expected = dataflows.PhysArray(self.indata[:3], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_none(self):
         testname = 'MapDataNode.__getitem__(None)'
         N = dataflows.MapDataNode(0, self.indata, dmap={'x': 'y'})
         actual = N[None]
-        expected = dataflows.PhysArray(numpy.arange(0), cfunits='km', dimensions=('y',))
+        expected = dataflows.PhysArray(numpy.arange(0), units='km', dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice_no_dmap(self):
@@ -353,7 +354,7 @@ class MapDataNodeTests(unittest.TestCase):
         expected = dataflows.PhysArray(self.indata[:3], dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
@@ -366,32 +367,19 @@ class ValidateDataNodeTests(unittest.TestCase):
     """
 
     def test_nothing(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         testname = 'OK: ValidateDataNode().__getitem__(:)'
         N1 = dataflows.ValidateDataNode('validate(x)', N0)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_cfunits_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
-        indata = {'cfunits': Unit('m')}
-        testname = ('OK: ValidateDataNode({}).__getitem__(:)'
-                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
-        actual = N1[:]
-        expected = N0[:]
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
-        indata = {'units': 'm'}
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        indata = {'units': Unit('m')}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
@@ -399,11 +387,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -412,11 +400,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'dimensions': ('x',)}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -425,11 +413,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_min': 0}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -438,11 +426,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_max': 10}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -451,11 +439,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 3}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -464,11 +452,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_ok(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 5}
         testname = ('OK: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -477,25 +465,12 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-
-    def test_cfunits_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
-        indata = {'cfunits': Unit('km')}
-        testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
-                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
-        actual = N1[:]
-        expected = N0[:]
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
-        indata = {'units': 'km'}
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        indata = {'units': Unit('km')}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = dataflows.ValidateDataNode('validate(x)', N0, **indata)
@@ -503,11 +478,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -516,11 +491,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn_calendar(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -529,11 +504,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'dimensions': ('y',)}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -542,11 +517,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_min': 2}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -555,11 +530,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_max': 8}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -568,11 +543,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 5}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -581,11 +556,11 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_warn(self):
-        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        N0 = dataflows.CreateDataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 3}
         testname = ('WARN: ValidateDataNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -594,7 +569,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.cfunits, expected.cfunits, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
 
@@ -607,52 +582,55 @@ class WriteDataNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        x = dataflows.CreateDataNode('x', numpy.arange(-5, 10), cfunits='m', dimensions=('x',))
+        x = dataflows.CreateDataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         self.x = dataflows.ValidateDataNode('x', x, xa1='x attribute 1', xa2='x attribute 2')
-        y = dataflows.CreateDataNode('y', numpy.arange(0, 8), cfunits='m', dimensions=('y',))
+        y = dataflows.CreateDataNode('y', numpy.arange(0, 8), units='m', dimensions=('y',))
         self.y = dataflows.ValidateDataNode('y', y, ya1='y attribute 1', ya2='y attribute 2')
-        v = dataflows.CreateDataNode('v', numpy.ones((15, 8)), cfunits='K', dimensions=('x', 'y'))
+        vdata = numpy.arange(15*8, dtype=numpy.float64).reshape((15,8))
+        v = dataflows.CreateDataNode('v', vdata, units='K', dimensions=('x', 'y'))
         self.v = dataflows.ValidateDataNode('v', v, va1='v attribute 1', va2='v attribute 2')
         self.vars = [self.x, self.y, self.v]
-        self.filename = 'vxy.nc'
 
     def tearDown(self):
-        if exists(self.filename):
-            remove(self.filename)
+        for fname in glob('*.nc'):
+            remove(fname)
 
     def test_init(self):
-        testname = 'WriteDataNode.__init__({})'.format(self.filename)
-        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
+        filename = 'test.nc'
+        testname = 'WriteDataNode.__init__({})'.format(filename)
+        N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
         actual = type(N)
         expected = dataflows.WriteDataNode
         print_test_message(testname, actual=actual, expected=expected)
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
     def test_simple(self):
-        testname = 'WriteDataNode({})[:]'.format(self.filename)
-        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
+        filename = 'v_x_y_simple.nc'
+        testname = 'WriteDataNode({})[:]'.format(filename)
+        N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
         N[:]
         N.close()
-        actual = exists(self.filename)
+        actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
-        with netCDF4.Dataset(self.filename, 'r') as ncf:
+        with netCDF4.Dataset(filename, 'r') as ncf:
             print ncf
 
     def test_chunk(self):
-        testname = 'WriteDataNode({})[chunk]'.format(self.filename)
-        N = dataflows.WriteDataNode(self.filename, *self.vars, ga='global attribute')
+        filename = 'v_x_y_chunk.nc'
+        testname = 'WriteDataNode({})[chunk]'.format(filename)
+        N = dataflows.WriteDataNode(filename, *self.vars, ga='global attribute')
         for ix in range(15):
             N[{'x': ix}]
         N.close()
-        actual = exists(self.filename)
+        actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
-        with netCDF4.Dataset(self.filename, 'r') as ncf:
+        with netCDF4.Dataset(filename, 'r') as ncf:
             print ncf
 
 #===============================================================================
