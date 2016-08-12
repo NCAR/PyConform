@@ -110,7 +110,7 @@ class CreateDataNode(DataNode):
             dimensions: Dimensions to associate with the data 
         """
         # Store data
-        self._data = PhysArray(data, units=units, dimensions=dimensions)
+        self._data = PhysArray(data, name=str(label), units=units, dimensions=dimensions)
 
         # Call base class initializer
         super(CreateDataNode, self).__init__(label)
@@ -165,7 +165,7 @@ class ReadDataNode(DataNode):
         self._index = index
 
         # Call the base class initializer
-        super(ReadDataNode, self).__init__('{0}{1}'.format(variable, index_str(index)))
+        super(ReadDataNode, self).__init__('{0}[{1}]'.format(variable, index_str(index)))
 
     @property
     def variable(self):
@@ -210,8 +210,8 @@ class ReadDataNode(DataNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = PhysArray(ncvar[index12], units=units, dimensions=dimensions2,
-                                 _shape=shape1, _dimensions=dimensions1)
+            data = PhysArray(ncvar[index12], name=self.label, units=units,
+                             dimensions=dimensions2, _shape=shape1, _dimensions=dimensions1)
 
         return data
 
@@ -355,7 +355,8 @@ class MapDataNode(DataNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
-        return PhysArray(self._inputs[0][inp_index], dimensions=out_dims)
+        name = 'map({}, to={})'.format(inp_info.name, out_dims)
+        return PhysArray(self._inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
 #===================================================================================================
@@ -652,7 +653,7 @@ class FlowFactory(object):
             elif vinfo.definition is not None:
                 withdefn[vname] = vinfo
             else:
-                raise ValueError(('Output variable {0} does not have withdata '
+                raise ValueError(('Output variable {0} does not have '
                                   'data nor a definition').format(vname))
 
         # Create a dictionary to store "source" DataNodes from 'data' attributes

@@ -124,12 +124,12 @@ class ReadDataNodeTests(unittest.TestCase):
         self.dimensions = ('x', 'y')
         self.shape = {'x': 5, 'y': 10}
         self.vardata = {'x': dataflows.PhysArray(numpy.arange(self.shape['x'], dtype='f'),
-                                                 units='m', dimensions=('x',)),
+                                                 units='m', dimensions=('x',), name='x'),
                         'y': dataflows.PhysArray(numpy.arange(self.shape['y'], dtype='f'),
-                                                 units='km', dimensions=('y',)),
+                                                 units='km', dimensions=('y',), name='x'),
                         'v': dataflows.PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
                                                               dtype='d').reshape(self.shape['x'], self.shape['y']),
-                                                 units='K', dimensions=self.dimensions)}
+                                                 units='K', dimensions=self.dimensions, name='v')}
 
         with netCDF4.Dataset(self.filename, 'w') as ncfile:
             for d in self.dimensions:
