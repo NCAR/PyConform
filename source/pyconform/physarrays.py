@@ -330,8 +330,9 @@ class PhysArray(numpy.ma.MaskedArray):
                          name='({}%{})'.format(self.name, oname))
 
     def __rmod__(self, other):
+        units = PhysArray.interpret_units(other)
         other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__rmod__(other), dimensions=dims,
+        return PhysArray(super(PhysArray, self).__rmod__(other), units=units, dimensions=dims,
                          name='({}%{})'.format(oname, self.name))
 
     def __imod__(self, other):
@@ -348,15 +349,20 @@ class PhysArray(numpy.ma.MaskedArray):
 
     @staticmethod
     def _pow_units_(left, right):
+        rname = PhysArray.interpret_name(right)
         lunits = PhysArray.interpret_units(left)
         runits = PhysArray.interpret_units(right)
         if runits != Unit(1):
-            raise UnitsError('Exponents must be scalar: {}'.format(right))
+            if runits.is_convertible(lunits):
+                right = runits.convert(right, Unit(1))
+                rname = 'convert({}, to={})'.format(rname, Unit(1))
+            else:
+                raise UnitsError('Exponents must be scalar: {}'.format(right))
         try:
             punits = lunits ** right
         except:
             raise UnitsError('Cannot exponentiate with units: {!r}, {}'.format(lunits, right))
-        return punits
+        return punits, rname
 
     @staticmethod
     def _pow_dimensions_(left, right):
@@ -367,20 +373,21 @@ class PhysArray(numpy.ma.MaskedArray):
         return ldims
 
     def __pow__(self, other):
-        units = PhysArray._pow_units_(self, other)
+        units, oname = PhysArray._pow_units_(self, other)
         dimensions = PhysArray._pow_dimensions_(self, other)
         return PhysArray(super(PhysArray, self).__pow__(other),  units=units, dimensions=dimensions,
-                         name='({}**{})'.format(self.name, PhysArray.interpret_name(other)))
+                         name='({}**{})'.format(self.name, oname))
 
     def __rpow__(self, other):
-        units = PhysArray._pow_units_(self, other)
+        units, sname = PhysArray._pow_units_(other, self)
         dimensions = PhysArray._pow_dimensions_(self, other)
         return PhysArray(super(PhysArray, self).__rpow__(other), units=units, dimensions=dimensions,
-                         name='({}**{})'.format(PhysArray.interpret_name(other), self.name))
+                         name='({}**{})'.format(PhysArray.interpret_name(other), sname))
 
     def __ipow__(self, other):
-        self.name = '({}**{})'.format(self.name, PhysArray.interpret_name(other))
-        self.units = PhysArray._pow_units_(self, other)
+        units, oname = PhysArray._pow_units_(self, other)
+        self.units = units
         self.dimensions = PhysArray._pow_dimensions_(self, other)
+        self.name = '({}**{})'.format(self.name, oname)
         return super(PhysArray, self).__ipow__(other)
 
