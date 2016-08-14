@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarrays import PhysArray, UnitsError, DimensionsError
 from cf_units import Unit
-from inspect import getargspec, isfunction
+from inspect import getargspec, isfunction, ismethod
 from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
@@ -230,14 +230,19 @@ class EvalNode(FlowNode):
             args (tuple): Arguments to the function given by 'func'
         """
         # Check func parameter
+        fpntr = func
         if callable(func):
-            if hasattr(func, '__call__') and isfunction(func.__call__):
-                argspec = getargspec(func.__call__)
+            if hasattr(func, '__call__'):
+                fpntr = func.__call__
             else:
-                argspec = getargspec(func)
+                fpntr = func
         else:
             raise TypeError('Function argument to FlowNode {} is not callable'.format(label))
 
+        argspec = getargspec(fpntr)
+        if ismethod(fpntr) and 'self' in argspec.args:
+            argspec.args.remove('self')
+        
         # Check the function arguments
         max_len = len(argspec.args)
         if argspec.defaults is None:

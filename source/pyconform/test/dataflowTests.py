@@ -1,5 +1,5 @@
 """
-Dataset Unit Tests
+DataFlow Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -7,30 +7,22 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import remove
 from os.path import exists
-from pyconform import conform, datasets
+from pyconform import dataflow, datasets
+from testutils import print_test_message
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
-from testutils import print_test_message
 
-import json
-import numpy
 import unittest
-
-class NDArrayEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray) and obj.ndim == 1:
-                return obj.tolist()
-        elif isinstance(obj, numpy.generic):
-            return obj.item()
-        return json.JSONEncoder.default(self, obj)
+import numpy
 
 
-#=========================================================================
-# ConformTests - Tests for the setup module
-#=========================================================================
-class ConformTests(unittest.TestCase):
+
+#===================================================================================================
+# DataFlowTests
+#===================================================================================================
+class DataFlowTests(unittest.TestCase):
     """
-    Unit Tests for the pyconform.dataset module
+    Unit tests for the flownodes.FlowNode class
     """
 
     def setUp(self):
@@ -193,26 +185,17 @@ class ConformTests(unittest.TestCase):
             if exists(fname):
                 remove(fname)
 
-    def test_setup(self):
-        with open('conform.spec', 'w') as fp:
-            json.dump(self.outds.get_dict(), fp, indent=4, cls=NDArrayEncoder)
-        actual = conform.setup(self.inpds, self.outds)
-        expected = None
-        print_test_message('setup()', actual=actual, expected=expected)
-        # self.assertEqual(actual, expected, 'setup() failed')
-
-    def test_run(self):
-        with open('conform.spec', 'w') as fp:
-            json.dump(self.outds.get_dict(), fp, indent=4, cls=NDArrayEncoder)
-        agraph = conform.setup(self.inpds, self.outds)
-        actual = conform.run(self.inpds, self.outds, agraph)
-        expected = None
-        print_test_message('run()', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'run() failed')
+    def test_init(self):
+        testname = 'DataFlow.__init__()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = type(df)
+        expected = dataflow.DataFlow
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertIsInstance(df, expected, '{} failed'.format(testname))
 
 
 #===============================================================================
-# Command-Line Execution
+# Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
