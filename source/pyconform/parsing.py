@@ -70,16 +70,12 @@ class ParsedVariable(ParsedFunction):
         super(ParsedVariable, self).__init__(tokens)
         self.args = index_exp[self.args] if len(self.args) > 0 else ()
     def __repr__(self):
-        return "<{0} {1}{2} ('{3}') at {4}>".format(self.__class__.__name__,
-                                                    self.key,
-                                                    self.args,
-                                                    str(self),
-                                                    hex(id(self)))
+        return "<{0} '{1}' at {2}>".format(self.__class__.__name__, str(self), hex(id(self)))
     def __str__(self):
-        if len(self.args) > 0:
-            strargs = str(list(self.args))
-        else:
+        if len(self.args) == 0:
             strargs = ''
+        else:
+            strargs = str(list(self.args))
         return "{0}{1}".format(self.key, strargs)
 
 
