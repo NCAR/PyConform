@@ -8,7 +8,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from slicetuple import SliceTuple
+from numpy import index_exp
 from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence
 from pyparsing import Word, Combine, Forward, Suppress, Group, Optional
 from pyparsing import Literal, CaselessLiteral, QuotedString
@@ -68,18 +68,18 @@ class ParsedVariable(ParsedFunction):
     """
     def __init__(self, tokens):
         super(ParsedVariable, self).__init__(tokens)
-        self.args = SliceTuple(self.args) if len(self.args) > 0 else SliceTuple()
+        self.args = index_exp[self.args] if len(self.args) > 0 else ()
     def __repr__(self):
         return "<{0} {1}{2} ('{3}') at {4}>".format(self.__class__.__name__,
                                                     self.key,
-                                                    self.args.index,
+                                                    self.args,
                                                     str(self),
                                                     hex(id(self)))
     def __str__(self):
-        if str(self.args) == '(::)':
-            strargs = ''
+        if len(self.args) > 0:
+            strargs = str(list(self.args))
         else:
-            strargs = str(self.args).replace('(', '[').replace(')', ']')
+            strargs = ''
         return "{0}{1}".format(self.key, strargs)
 
 
