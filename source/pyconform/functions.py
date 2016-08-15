@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.physarrays import PhysArray, UnitsError, DimensionsError
+from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from cf_units import Unit
 from numpy import sqrt, transpose
 

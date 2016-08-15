@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 from __future__ import print_function
 from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
-from pyconform.physarrays import PhysArray, UnitsError, DimensionsError
+from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from cf_units import Unit
 from inspect import getargspec, isfunction, ismethod
 from os.path import exists

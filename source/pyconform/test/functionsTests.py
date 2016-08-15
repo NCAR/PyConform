@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform import functions
-from pyconform.physarrays import PhysArray
+from pyconform.physarray import PhysArray
 from cf_units import Unit
 from testutils import print_test_message
 
