@@ -219,6 +219,7 @@ class SquareRootFunction(Function):
     numargs = 1
 
     def __call__(self, data):
+        dname = PhysArray.interpret_name(data)
         dunits = PhysArray.interpret_units(data)
         ddims = PhysArray.interpret_dimensions(data)
 
@@ -228,42 +229,5 @@ class SquareRootFunction(Function):
             print dunits
             raise UnitsError('Cannot take square-root of {!r}'.format(dunits))
 
-        return PhysArray(sqrt(data), units=squnits, dimensions=ddims)
+        return PhysArray(sqrt(data), units=squnits, dimensions=ddims, name='sqrt({})'.format(dname))
 
-
-#===================================================================================================
-# ConvertFunction
-#===================================================================================================
-class ConvertFunction(Function):
-    key = 'convert'
-    numargs = 2
-
-    def __call__(self, data, to_units):
-        units1 = PhysArray.interpret_units(data)
-        units2 = Unit(to_units)
-
-        if not units1.is_convertible(units2):
-            raise UnitsError('Cannot convert units: {!r} to {!r}'.format(units1, units2))
-
-        return PhysArray(units1.convert(data, units2, inplace=True),
-                             units=units2, dimensions=PhysArray.interpret_dimensions(data))
-
-
-#===================================================================================================
-# TransposeFunction
-#===================================================================================================
-class TransposeFunction(Function):
-    key = 'transpose'
-    numargs = 2
-
-    def __call__(self, data, new_dims):
-        dunits = PhysArray.interpret_units(data)
-
-        old_dims = PhysArray.interpret_dimensions(data)
-        if set(old_dims) != set(new_dims):
-            raise DimensionsError(('Cannot transpose dimensions: '
-                                   '{!r} to {!r}').format(old_dims, new_dims))
-
-        order = tuple(old_dims.index(d) for d in new_dims)
-
-        return PhysArray(transpose(data, order), units=dunits, dimensions=new_dims)

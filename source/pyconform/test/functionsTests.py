@@ -211,26 +211,6 @@ class EvaluationTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_func_convert_float(self):
-        key = 'convert'
-        indata = (0.1, Unit(0.1))
-        testname = '{}({}, to={})'.format(key, *indata)
-        func = functions.find(key)
-        actual = func(*indata)
-        expected = 1.0
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_func_transpose_array(self):
-        key = 'transpose'
-        indata = (PhysArray(np.array([[1, 2, 3], [4, 5, 6]]), dimensions=('x', 'y')), ('y', 'x'))
-        testname = '{}({}, to={})'.format(key, *indata)
-        func = functions.find(key)
-        actual = func(*indata)
-        expected = PhysArray(np.array([[1, 4], [2, 5], [3, 6]]), dimensions=('x', 'y'))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-
 
 #===============================================================================
 # UnitsTests
