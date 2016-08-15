@@ -83,7 +83,7 @@ class PhysArray(numpy.ma.MaskedArray):
             if not isinstance(_dimensions, tuple):
                 raise TypeError('Initial dimensions must be a tuple')
             obj._optinfo['_dimensions'] = _dimensions
-            
+
         return obj
 
     def __repr__(self):
@@ -102,7 +102,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if not isinstance(nm, basestring):
             raise TypeError('PhysArray name must be string')
         self._optinfo['name'] = nm
-        
+
     @property
     def units(self):
         """Units of the data"""
@@ -181,7 +181,9 @@ class PhysArray(numpy.ma.MaskedArray):
                 raise UnitsError('Nonconvertible units: {}, {}'.format(lunits, runits))
         ldims = PhysArray.interpret_dimensions(left)
         rdims = PhysArray.interpret_dimensions(right)
-        if ldims != rdims:
+        if ldims == () or rdims == ():
+            return right, rname
+        elif ldims != rdims:
             if set(ldims) == set(rdims):
                 right = numpy.transpose(right, axes=tuple(rdims.index(d) for d in ldims))
                 rname = 'transpose({}, to={})'.format(rname, ldims)
@@ -229,9 +231,9 @@ class PhysArray(numpy.ma.MaskedArray):
             nm = 'multiply' if op == mul else 'divide'
             raise UnitsError('Cannot {} with units: {}, {}'.format(nm, lunits, runits))
         return munits
-    
+
     @staticmethod
-    def _mul_div_dimensions_(op, self, other):    
+    def _mul_div_dimensions_(op, self, other):
         oname = PhysArray.interpret_name(other)
         sdims = PhysArray.interpret_dimensions(self)
         odims = PhysArray.interpret_dimensions(other)
@@ -247,7 +249,7 @@ class PhysArray(numpy.ma.MaskedArray):
             nm = 'multiply' if op == mul else 'divide'
             raise DimensionsError(('Cannot {} with dimensions: {}, {}').format(nm, sdims, odims))
         return other, mdims, oname
-    
+
     def __mul__(self, other):
         units = PhysArray._mul_div_units_(mul, self, other)
         other, dims, oname = PhysArray._mul_div_dimensions_(mul, self, other)
@@ -353,7 +355,7 @@ class PhysArray(numpy.ma.MaskedArray):
         lunits = PhysArray.interpret_units(left)
         runits = PhysArray.interpret_units(right)
         if runits != Unit(1):
-            if runits.is_convertible(lunits):
+            if runits.is_convertible(Unit(1)):
                 right = runits.convert(right, Unit(1))
                 rname = 'convert({}, to={})'.format(rname, Unit(1))
             else:
@@ -362,7 +364,7 @@ class PhysArray(numpy.ma.MaskedArray):
             punits = lunits ** right
         except:
             raise UnitsError('Cannot exponentiate with units: {!r}, {}'.format(lunits, right))
-        return punits, rname
+        return punits, rname, right
 
     @staticmethod
     def _pow_dimensions_(left, right):
@@ -373,19 +375,20 @@ class PhysArray(numpy.ma.MaskedArray):
         return ldims
 
     def __pow__(self, other):
-        units, oname = PhysArray._pow_units_(self, other)
+        units, oname, other = PhysArray._pow_units_(self, other)
         dimensions = PhysArray._pow_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__pow__(other),  units=units, dimensions=dimensions,
+        return PhysArray(super(PhysArray, self).__pow__(other), units=units, dimensions=dimensions,
                          name='({}**{})'.format(self.name, oname))
 
     def __rpow__(self, other):
-        units, sname = PhysArray._pow_units_(other, self)
-        dimensions = PhysArray._pow_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__rpow__(other), units=units, dimensions=dimensions,
+        right = self.copy()
+        units, sname, right = PhysArray._pow_units_(other, right)
+        dimensions = PhysArray._pow_dimensions_(other, right)
+        return PhysArray(super(PhysArray, right).__rpow__(other), units=units, dimensions=dimensions,
                          name='({}**{})'.format(PhysArray.interpret_name(other), sname))
 
     def __ipow__(self, other):
-        units, oname = PhysArray._pow_units_(self, other)
+        units, oname, other = PhysArray._pow_units_(self, other)
         self.units = units
         self.dimensions = PhysArray._pow_dimensions_(self, other)
         self.name = '({}**{})'.format(self.name, oname)
