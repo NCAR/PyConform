@@ -12,7 +12,7 @@ from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from cf_units import Unit
-from inspect import getargspec, isfunction, ismethod
+from inspect import getargspec, ismethod, isfunction
 from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
@@ -24,6 +24,7 @@ import numpy
 # warning - Helper function
 #===============================================================================
 def warning(*objs):
+    """Prints a warning message to standard error"""
     print("WARNING:", *objs, file=stderr)
 
 
@@ -63,16 +64,12 @@ class FlowNode(object):
 
     @property
     def label(self):
-        """
-        The FlowNode's label
-        """
+        """The FlowNode's label"""
         return self._label
 
     @property
     def inputs(self):
-        """
-        Inputs into this FlowNode
-        """
+        """Inputs into this FlowNode"""
         return self._inputs
 
 
@@ -154,10 +151,6 @@ class ReadNode(FlowNode):
         # Call the base class initializer
         super(ReadNode, self).__init__('{0}[{1}]'.format(variable, index_str(index)))
 
-    @property
-    def variable(self):
-        return self._variable
-
     def __getitem__(self, index):
         """
         Read PhysArray from file
@@ -165,7 +158,7 @@ class ReadNode(FlowNode):
         with Dataset(self._filepath, 'r') as ncfile:
 
             # Get a reference to the variable
-            ncvar = ncfile.variables[self.variable]
+            ncvar = ncfile.variables[self._variable]
 
             # Read the variable units
             attrs = ncvar.ncattrs()
@@ -232,7 +225,7 @@ class EvalNode(FlowNode):
         # Check func parameter
         fpntr = func
         if callable(func):
-            if hasattr(func, '__call__'):
+            if hasattr(func, '__call__') and isfunction(func.__call__):
                 fpntr = func.__call__
             else:
                 fpntr = func
@@ -242,7 +235,7 @@ class EvalNode(FlowNode):
         argspec = getargspec(fpntr)
         if ismethod(fpntr) and 'self' in argspec.args:
             argspec.args.remove('self')
-        
+
         # Check the function arguments
         max_len = len(argspec.args)
         if argspec.defaults is None:

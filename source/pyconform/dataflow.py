@@ -16,7 +16,6 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from __future__ import print_function
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
@@ -55,6 +54,7 @@ class DataFlow(object):
         # Output dataset
         if not isinstance(outds, OutputDataset):
             raise TypeError('Output dataset must be of OutputDataset type')
+        self._outputds = outds
 
         # Cyclic iterator over available input filenames
         fnames = [v.filename for v in self._inputds.variables.itervalues()]
@@ -70,7 +70,7 @@ class DataFlow(object):
         # Separate output variables into variables with 'data' or 'definitions'
         datavars = {}
         defnvars = {}
-        for vname, vinfo in outds.variables.iteritems():
+        for vname, vinfo in self._outputds.variables.iteritems():
             if vinfo.data is not None:
                 datavars[vname] = vinfo
             elif vinfo.definition is not None:
@@ -91,7 +91,7 @@ class DataFlow(object):
         # Create a dictionary to store "output variable" DataNodes from 'definition' attributes
         defnodes = {}
 
-        # Parse the output variable with definitions
+        # Parse the output variable definitions
         for vname, vinfo in defnvars.iteritems():
             obj = parse_definition(vinfo.definition)
             defnodes[vname] = self._construct_flow_(obj, datanodes=datanodes)
@@ -102,9 +102,12 @@ class DataFlow(object):
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
         nodeorder = zip(*sorted((len(vinfo.dimensions), vname)
-                                for vname, vinfo in outds.variables.iteritems()))[1]
+                                for vname, vinfo in self._outputds.variables.iteritems()))[1]
         for vname in nodeorder:
-            out_dims = outds.variables[vname].dimensions
+            if vname not in defnodes:
+                continue
+
+            out_dims = self._outputds.variables[vname].dimensions
             inp_dims = definfos[vname].dimensions
 
             unmapped_out = tuple(d for d in out_dims if d not in self._o2imap)
@@ -112,8 +115,8 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                raise ValueError(('Cannot map dimensions {} to dimensions '
-                                  '{}').format(inp_dims, out_dims))
+                err_msg = 'Cannot map dimensions {} to dimensions {}'.format(inp_dims, out_dims)
+                raise ValueError(err_msg)
             if len(unmapped_out) == 0:
                 continue
             for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
@@ -126,13 +129,13 @@ class DataFlow(object):
             dinfo = definfos[vname]
 
             # Map dimensions from input namespace to output namespace
-            map_dims = tuple(self._i2omap[d] for d in dinfo[vname].dimensions)
+            map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
             defnodes[vname] = MapNode(name, dnode, self._i2omap)
 
         # Now loop through ALL of the variables and create ValidateNodes for validation
         varnodes = {}
-        for vname, vinfo in outds.variables.iteritems():
+        for vname, vinfo in self._outputds.variables.iteritems():
             if vname in datanodes:
                 vnode = datanodes[vname]
             elif vname in defnodes:
@@ -145,24 +148,24 @@ class DataFlow(object):
                                            attributes=vattrs, error=error)
 
         # Now determine which output variables have no output file (metadata variables)
-        tsvnames = tuple(vname for vname, vinfo in outds.variables.iteritems()
+        tsvnames = tuple(vname for vname, vinfo in self._outputds.variables.iteritems()
                         if vinfo.filename is not None)
-        mvnames = tuple(vname for vname, vinfo in outds.variables.iteritems()
+        mvnames = tuple(vname for vname, vinfo in self._outputds.variables.iteritems()
                         if vinfo.filename is None)
 
         # Create the WriteDataNodes for each time-series output file
         writenodes = {}
         for tsvname in tsvnames:
-            tsvinfo = outds.variables[tsvname]
+            tsvinfo = self._outputds.variables[tsvname]
             filename = tsvinfo.filename
             vnodes = tuple(varnodes[n] for n in mvnames) + (varnodes[tsvname],)
-            unlimited = tuple(dname for dname, dinfo in outds.dimensions.iteritems()
-                              if dinfo.unlimited)
-            attribs = dict((k, v) for k, v in outds.attributes.iteritems())
+            unlimited = tuple(self._i2omap[d] for d in self._inputds.dimensions
+                              if self._inputds.dimensions[d].unlimited)
+            attribs = dict((k, v) for k, v in self._outputds.attributes.iteritems())
             attribs['unlimited'] = unlimited
             writenodes[tsvname] = WriteNode(filename, *vnodes, **attribs)
 
-        return writenodes
+        self._writenodes = writenodes
 
     def _construct_flow_(self, obj, datanodes={}):
         if isinstance(obj, ParsedVariable):
