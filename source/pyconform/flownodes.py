@@ -225,7 +225,7 @@ class EvalNode(FlowNode):
         # Check func parameter
         fpntr = func
         if callable(func):
-            if hasattr(func, '__call__') and isfunction(func.__call__):
+            if hasattr(func, '__call__') and (isfunction(func.__call__) or ismethod(func.__call__)):
                 fpntr = func.__call__
             else:
                 fpntr = func
