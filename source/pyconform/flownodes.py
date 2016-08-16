@@ -191,7 +191,7 @@ class ReadNode(FlowNode):
             index12 = join(shape0, index1, index2)
 
             data = PhysArray(ncvar[index12], name=self.label, units=units,
-                             dimensions=dimensions2, _shape=shape1, _dimensions=dimensions1)
+                             dimensions=dimensions2, _shape=shape1)
 
         return data
 
@@ -425,21 +425,27 @@ class ValidateNode(FlowNode):
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
-            msg = ('Units {!r} do not match expected units {!r} in ValidateNode '
-                   '{!r}').format(str(self._units), str(indata.units), self.label)
-            if self._error:
-                raise UnitsError(msg)
-            else:
-                warning(msg)
+            try:
+                indata = indata.convert(self._units)
+            except UnitsError:
+                msg = ('Units {!r} do not match expected units {!r} in ValidateNode '
+                       '{!r}').format(str(self._units), str(indata.units), self.label)
+                if self._error:
+                    raise UnitsError(msg)
+                else:
+                    warning(msg)
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
-            msg = ('Dimensions {!s} do not match expected dimensions {!s} in ValidateNode '
-                   '{!r}').format(self._dimensions, str(indata.dimensions), self.label)
-            if self._error:
-                raise DimensionsError(msg)
-            else:
-                warning(msg)
+            try:
+                indata = indata.transpose(self._dimensions)
+            except DimensionsError:
+                msg = ('Dimensions {!s} do not match expected dimensions {!s} in ValidateNode '
+                       '{!r}').format(self._dimensions, str(indata.dimensions), self.label)
+                if self._error:
+                    raise DimensionsError(msg)
+                else:
+                    warning(msg)
 
         # Testing parameters
         valid_min = self._attributes.get('valid_min', None)
