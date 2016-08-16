@@ -405,10 +405,15 @@ class PhysArray(numpy.ma.MaskedArray):
         if len(dims) == 1 and isinstance(dims[0], tuple):
             dims = dims[0]
         if set(dims) == set(self.dimensions):
+            new_dims = dims
+            new_shp0 = tuple(self._shape[self.dimensions.index(d)] for d in dims)
             axes = tuple(self.dimensions.index(d) for d in dims)
         elif set(dims) == set(range(self.ndim)):
+            new_dims = tuple(self.dimensions[i] for i in dims)
+            new_shp0 = tuple(self._shape[i] for i in dims)
             axes = dims
         else:
             raise DimensionsError('Cannot transpose to dimensions/axes {}'.format(dims))
-        return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=dims,
-                         name='transpose({}, to={})'.format(self.name, dims))
+        return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
+                         name='transpose({}, to={})'.format(self.name, new_dims),
+                         _shape=new_shp0)
