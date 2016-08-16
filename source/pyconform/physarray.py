@@ -42,7 +42,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None, _shape=None, _dimensions=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None, _shape=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -74,15 +74,6 @@ class PhysArray(numpy.ma.MaskedArray):
             if not isinstance(_shape, tuple):
                 raise TypeError('Initial shape must be a tuple')
             obj._optinfo['_shape'] = _shape
-
-        # Initial dimensions
-        if _dimensions is None:
-            if '_dimensions' not in obj._optinfo:
-                obj._optinfo['_dimensions'] = obj.dimensions
-        else:
-            if not isinstance(_dimensions, tuple):
-                raise TypeError('Initial dimensions must be a tuple')
-            obj._optinfo['_dimensions'] = _dimensions
 
         return obj
 
@@ -134,11 +125,6 @@ class PhysArray(numpy.ma.MaskedArray):
         """Initial size of each dimension of the data"""
         return self._optinfo['_shape']
 
-    @property
-    def _dimensions(self):
-        """Initial dimensions names"""
-        return self._optinfo['_dimensions']
-
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
         if len(idx) == 0:
@@ -146,7 +132,9 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             dimensions = tuple(d for i, d in zip(idx, self.dimensions) if isinstance(i, slice))
             if dimensions != self.dimensions:
-                return PhysArray(super(PhysArray, self).__getitem__(idx), dimensions=dimensions)
+                shape0 = tuple(s for i, s in zip(idx, self._shape) if isinstance(i, slice))
+                return PhysArray(super(PhysArray, self).__getitem__(idx),
+                                 dimensions=dimensions, _shape=shape0)
             else:
                 return super(PhysArray, self).__getitem__(idx)
 
@@ -394,3 +382,33 @@ class PhysArray(numpy.ma.MaskedArray):
         self.name = '({}**{})'.format(self.name, oname)
         return super(PhysArray, self).__ipow__(other)
 
+    def convert(self, units):
+        """
+        Return a new PhysArray with new units
+        
+        Parameters:
+            units (Unit): The new units to which to convert the PhysArray
+        """
+        if self.units.is_convertible(units):
+            return PhysArray(self.units.convert(self, units), units=Unit(units),
+                             name='convert({}, to={})'.format(self.name, units))
+        else:
+            raise UnitsError('Cannot convert to units {}'.format(units))
+
+    def transpose(self, *dims):
+        """
+        Return a new PhysArray with dimensions transposed in the order given
+        
+        Parameters:
+            dims (tuple): Tuple of dimension names in the new order
+        """
+        if len(dims) == 1 and isinstance(dims[0], tuple):
+            dims = dims[0]
+        if set(dims) == set(self.dimensions):
+            axes = tuple(self.dimensions.index(d) for d in dims)
+        elif set(dims) == set(range(self.ndim)):
+            axes = dims
+        else:
+            raise DimensionsError('Cannot transpose to dimensions/axes {}'.format(dims))
+        return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=dims,
+                         name='transpose({}, to={})'.format(self.name, dims))
