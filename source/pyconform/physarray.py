@@ -394,7 +394,7 @@ class PhysArray(numpy.ma.MaskedArray):
             units (Unit): The new units to which to convert the PhysArray
         """
         if self.units.is_convertible(units):
-            print '1111: {!r}'.format(units)
+            print '1111: {!r}, {!r}'.format(self.units, units)
             data = PhysArray(self.units.convert(self, units), units=units,
                              name='convert({}, to={})'.format(self.name, units))
             print '2222: {!r}'.format(data.units)
