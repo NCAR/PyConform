@@ -138,11 +138,10 @@ class DataFlow(object):
             elif vname in self._defnodes:
                 vnode = self._defnodes[vname]
 
-            vunits = vinfo.units()
-            vdims = vinfo.dimensions
-            vattrs = vinfo.attributes
-            self._varnodes[vname] = ValidateNode(vname, vnode, units=vunits, dimensions=vdims,
-                                                 attributes=vattrs, error=error)
+            self._varnodes[vname] = ValidateNode(vname, vnode, units=vinfo.cfunits(),
+                                                 dimensions=vinfo.dimensions,
+                                                 attributes=vinfo.attributes,
+                                                 error=error)
 
         # Now determine which output variables have no output file (metadata variables)
         tsvnames = tuple(vname for vname, vinfo in self._ods.variables.iteritems()
@@ -158,7 +157,7 @@ class DataFlow(object):
             vnodes = tuple(self._varnodes[n] for n in mvnames) + (self._varnodes[tsvname],)
             unlimited = tuple(self._i2omap[d] for d in self._ids.dimensions
                               if self._ids.dimensions[d].unlimited)
-            attribs = dict((k, v) for k, v in self._ods.attributes.iteritems())
+            attribs = OrderedDict((k, v) for k, v in self._ods.attributes.iteritems())
             attribs['unlimited'] = unlimited
             writenodes[tsvname] = WriteNode(filename, *vnodes, **attribs)
 

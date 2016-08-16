@@ -56,6 +56,8 @@ class PhysArray(numpy.ma.MaskedArray):
         if units is None:
             if 'units' not in obj._optinfo:
                 obj.units = Unit(1)
+        elif isinstance(units, Unit):
+            obj.units = units
         else:
             obj.units = Unit(units)
 
@@ -73,6 +75,8 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             if not isinstance(_shape, tuple):
                 raise TypeError('Initial shape must be a tuple')
+            if len(_shape) != len(dimensions):
+                raise ValueError('Initial shape must match dimension length')
             obj._optinfo['_shape'] = _shape
 
         return obj
@@ -390,10 +394,14 @@ class PhysArray(numpy.ma.MaskedArray):
             units (Unit): The new units to which to convert the PhysArray
         """
         if self.units.is_convertible(units):
-            return PhysArray(self.units.convert(self, units), units=Unit(units),
+            print '1111: {!r}'.format(units)
+            data = PhysArray(self.units.convert(self, units), units=units,
                              name='convert({}, to={})'.format(self.name, units))
+            print '2222: {!r}'.format(data.units)
+            return data
         else:
-            raise UnitsError('Cannot convert to units {}'.format(units))
+            print 'FAIL!!!'
+            raise UnitsError('Cannot convert units from {!r} to {!r}'.format(self.units, units))
 
     def transpose(self, *dims):
         """

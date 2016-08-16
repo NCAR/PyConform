@@ -16,6 +16,7 @@ from inspect import getargspec, ismethod, isfunction
 from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
+from collections import OrderedDict
 
 import numpy
 
@@ -149,7 +150,12 @@ class ReadNode(FlowNode):
         self._index = index
 
         # Call the base class initializer
-        super(ReadNode, self).__init__('{0}[{1}]'.format(variable, index_str(index)))
+        str_index = index_str(index)
+        if str_index == '':
+            label = variable
+        else:
+            label = '{}[{}]'.format(variable, str_index)
+        super(ReadNode, self).__init__(label)
 
     def __getitem__(self, index):
         """
@@ -187,11 +193,14 @@ class ReadNode(FlowNode):
             # Get the dimensions after application of the second index
             dimensions2 = tuple(d for d, i in zip(dimensions1, index2) if isinstance(i, slice))
 
+            # Compute the original shape after potential dimension reduction
+            shape2 = tuple(s for s, i in zip(shape1, index2) if isinstance(i, slice))
+
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
             data = PhysArray(ncvar[index12], name=self.label, units=units,
-                             dimensions=dimensions2, _shape=shape1)
+                             dimensions=dimensions2, _shape=shape2)
 
         return data
 
@@ -369,7 +378,7 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, **attribs):
+    def __init__(self, label, dnode, units=None, dimensions=None, error=False, attributes={}):
         """
         Initializer
         
@@ -379,7 +388,7 @@ class ValidateNode(FlowNode):
             units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             error (bool): If True, raise exceptions instead of warnings
-            attribs: Additional named arguments corresponding to additional attributes
+            attributes: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
         """
         # Check FlowNode type
@@ -390,30 +399,20 @@ class ValidateNode(FlowNode):
         super(ValidateNode, self).__init__(label, dnode)
 
         # Save error flag
-        self._error = bool(attribs.pop('error', False))
+        self._error = bool(error)
 
         # Check for dimensions
-        dimensions = attribs.pop('dimensions', None)
         if dimensions is not None and not isinstance(dimensions, tuple):
             raise TypeError('Dimensions must be a tuple')
         self._dimensions = dimensions
 
-        # Make attributes consistent with units and store units
-        units = attribs.pop('units', None)
-        if units is None:
-            self._units = None
-        elif isinstance(units, Unit):
-            self._units = units
-            attribs['units'] = str(units)
-            if units.calendar is not None:
-                attribs['calendar'] = str(units.calendar)
-        else:
-            attribs['units'] = str(units)
-            calendar = attribs.get('calendar', None)
-            self._units = Unit(attribs['units'], calendar=calendar)
+        # Check for units
+        if units is not None and not isinstance(units, Unit):
+            raise TypeError('Units must be a Unit object')
+        self._units = units
 
         # Store the attributes given to the FlowNode
-        self._attributes = {str(a): str(v) for a, v in attribs.iteritems()}
+        self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
 
     def __getitem__(self, index):
         """
@@ -429,7 +428,7 @@ class ValidateNode(FlowNode):
                 indata = indata.convert(self._units)
             except UnitsError:
                 msg = ('Units {!r} do not match expected units {!r} in ValidateNode '
-                       '{!r}').format(str(self._units), str(indata.units), self.label)
+                       '{!r}').format(indata.units, self._units, self.label)
                 if self._error:
                     raise UnitsError(msg)
                 else:
@@ -441,7 +440,7 @@ class ValidateNode(FlowNode):
                 indata = indata.transpose(self._dimensions)
             except DimensionsError:
                 msg = ('Dimensions {!s} do not match expected dimensions {!s} in ValidateNode '
-                       '{!r}').format(self._dimensions, str(indata.dimensions), self.label)
+                       '{!r}').format(indata.dimensions, self._dimensions, self.label)
                 if self._error:
                     raise DimensionsError(msg)
                 else:
@@ -535,15 +534,10 @@ class WriteNode(FlowNode):
         # Set the filehandle
         self._file = None
 
-    def close(self):
+    def open(self):
         """
-        Close the file associated with the WriteNode
+        Open the file for writing, if not open already
         """
-        if self._file is not None:
-            self._file.close()
-
-    def __getitem__(self, index):
-
         if self._file is None:
 
             # Open the output file
@@ -579,6 +573,18 @@ class WriteNode(FlowNode):
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
                 for aname, avalue in vnode._attributes.iteritems():
                     ncvar.setncattr(aname, avalue)
+
+    def close(self):
+        """
+        Close the file associated with the WriteNode
+        """
+        if self._file is not None:
+            self._file.close()
+
+    def __getitem__(self, index):
+
+        # Make sure the file is open and ready for writing
+        self.open()
 
         # Now perform the data flows to stream data into the file
         for vnode in self._inputs:
