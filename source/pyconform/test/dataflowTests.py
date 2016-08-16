@@ -16,7 +16,6 @@ import unittest
 import numpy
 
 
-
 #===================================================================================================
 # DataFlowTests
 #===================================================================================================
@@ -171,9 +170,9 @@ class DataFlowTests(unittest.TestCase):
 
         self._clear_output_()
 
-    def tearDown(self):
-        self._clear_input_()
-        self._clear_output_()
+#     def tearDown(self):
+#         self._clear_input_()
+#         self._clear_output_()
 
     def _clear_input_(self):
         for fname in self.filenames.itervalues():
@@ -192,6 +191,37 @@ class DataFlowTests(unittest.TestCase):
         expected = dataflow.DataFlow
         print_test_message(testname, actual=actual, expected=expected)
         self.assertIsInstance(df, expected, '{} failed'.format(testname))
+
+    def test_dimension_map(self):
+        testname = 'DataFlow().dimension_map'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = df.dimension_map
+        expected = {'lat': 'y', 'lon': 'x', 'time': 't'}
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_chunk_iter(self):
+        testname = 'DataFlow()._chunk_iter_'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        chunks = OrderedDict([('x', 10), ('y', 8)])
+        sizes = {'x': 22, 'y': 11, 'z': 4}
+        actual = [chunk for chunk in df._chunk_iter_(sizes, chunks)]
+        expected = [{'x': slice(0, 10), 'y': slice(0, 8)},
+                    {'x': slice(10, 20), 'y': slice(0, 8)},
+                    {'x': slice(20, None), 'y': slice(0, 8)},
+                    {'x': slice(0, 10), 'y': slice(8, None)},
+                    {'x': slice(10, 20), 'y': slice(8, None)},
+                    {'x': slice(20, None), 'y': slice(8, None)}]
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_execute_all(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = df.execute()
+        expected = None
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
 #===============================================================================
