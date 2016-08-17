@@ -571,6 +571,7 @@ class WriteNode(FlowNode):
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
                 for aname, avalue in vnode._attributes.iteritems():
                     ncvar.setncattr(aname, avalue)
+                ncvar.setncattr('provenance', vinfo.name)
 
     def close(self):
         """
