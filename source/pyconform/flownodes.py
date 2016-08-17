@@ -24,9 +24,9 @@ import numpy
 #===============================================================================
 # warning - Helper function
 #===============================================================================
-def warning(*objs):
+def warning(*args):
     """Prints a warning message to standard error"""
-    print("WARNING:", *objs, file=stderr)
+    print("WARNING:", *args, file=stderr)
 
 
 #===================================================================================================
@@ -339,7 +339,7 @@ class MapNode(FlowNode):
 
         # Compute the input index in terms of input dimensions
         if index is None:
-            inp_index = dict((d, slice(0, 0)) for d in inp_dims)
+            inp_index = dict((d, slice(0, 1)) for d in inp_dims)
 
         elif isinstance(index, dict):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
@@ -426,13 +426,11 @@ class ValidateNode(FlowNode):
         if self._units is not None and self._units != indata.units:
             try:
                 indata = indata.convert(self._units)
-            except UnitsError:
-                msg = ('Units {!r} do not match expected units {!r} in ValidateNode '
-                       '{!r}').format(indata.units, self._units, self.label)
+            except UnitsError as err:
                 if self._error:
-                    raise UnitsError(msg)
+                    raise err
                 else:
-                    warning(msg)
+                    warning(*err.args)
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:

@@ -161,13 +161,29 @@ class PhysArray(numpy.ma.MaskedArray):
             return tuple(i for i in xrange(len(numpy.shape(obj))))
 
     @staticmethod
+    def _safe_convert_(obj, units1, units2):
+        # Because netcdftime datetime conversion always returns an NDArray, even if the
+        # original object is a subclass of NDArray, we have to wrap the convert function
+        # to safely preserve the object type...  sigh.
+        if isinstance(obj, PhysArray):
+            new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2),
+                                             mask=obj.mask, dtype=obj.dtype)
+            return PhysArray(new_array, name='convert({}, to={})'.format(obj.name, units2),
+                             units=units2, dimensions=obj.dimensions, _shape=obj._shape)
+        elif isinstance(obj, numpy.ma.MaskedArray):
+            return numpy.ma.MaskedArray(units1.convert(obj.data, units2),
+                                        mask=obj.mask, dtype=obj.dtype)
+        else:
+            return units1.convert(obj, units2)
+
+    @staticmethod
     def _match_right_(left, right):
         rname = PhysArray.interpret_name(right)
         lunits = PhysArray.interpret_units(left)
         runits = PhysArray.interpret_units(right)
         if lunits != runits:
             if runits.is_convertible(lunits):
-                right = runits.convert(right, lunits)
+                right = PhysArray._safe_convert_(right, runits, lunits)
                 rname = 'convert({}, to={})'.format(rname, lunits)
             else:
                 raise UnitsError('Nonconvertible units: {}, {}'.format(lunits, runits))
@@ -394,13 +410,8 @@ class PhysArray(numpy.ma.MaskedArray):
             units (Unit): The new units to which to convert the PhysArray
         """
         if self.units.is_convertible(units):
-            print '1111: {!r}, {!r}'.format(self.units, units)
-            data = PhysArray(self.units.convert(self, units), units=units,
-                             name='convert({}, to={})'.format(self.name, units))
-            print '2222: {!r}'.format(data.units)
-            return data
+            return PhysArray._safe_convert_(self, self.units, units)
         else:
-            print 'FAIL!!!'
             raise UnitsError('Cannot convert units from {!r} to {!r}'.format(self.units, units))
 
     def transpose(self, *dims):
