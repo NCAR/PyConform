@@ -75,7 +75,7 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             if not isinstance(_shape, tuple):
                 raise TypeError('Initial shape must be a tuple')
-            if len(_shape) != len(dimensions):
+            if len(_shape) != len(obj.dimensions):
                 raise ValueError('Initial shape must match dimension length')
             obj._optinfo['_shape'] = _shape
 
