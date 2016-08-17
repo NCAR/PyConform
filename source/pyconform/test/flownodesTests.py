@@ -5,7 +5,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import flownodes
+from pyconform import flownodes, physarray
 from testutils import print_test_message
 from cf_units import Unit
 from os.path import exists
@@ -477,7 +477,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = Unit('m').convert(N0[:], Unit('km'))
-        expected.name = 'convert({}, to={})'.format('x', 'km')
+        expected.name = physarray.PhysArray._convert_name_('x', Unit('km'))
         expected.units = Unit('km')
         expected.mask = False
         print_test_message(testname, indata=indata, actual=actual, expected=expected)

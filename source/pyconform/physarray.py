@@ -161,6 +161,18 @@ class PhysArray(numpy.ma.MaskedArray):
             return tuple(i for i in xrange(len(numpy.shape(obj))))
 
     @staticmethod
+    def _convert_name_(name, units1, units2):
+        u1_str = '{}'.format(units1) + ('|{}'.format(units1.calendar) if units1.calendar else '')
+        u2_str = '{}'.format(units2) + ('|{}'.format(units2.calendar) if units2.calendar else '')
+        return "convert({}, from={}, to={})".format(name, u1_str, u2_str)
+
+    @staticmethod
+    def _transpose_name_(name, idims, odims):
+        idim_str = ','.join(idims)
+        odim_str = ','.join(odims)
+        return 'transpose({}, from=[{}], to=[{}])'.format(name, idim_str, odim_str)
+
+    @staticmethod
     def _safe_convert_(obj, units1, units2):
         # Because netcdftime datetime conversion always returns an NDArray, even if the
         # original object is a subclass of NDArray, we have to wrap the convert function
@@ -168,8 +180,9 @@ class PhysArray(numpy.ma.MaskedArray):
         if isinstance(obj, PhysArray):
             new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                              mask=obj.mask, dtype=obj.dtype)
-            return PhysArray(new_array, name='convert({}, to={})'.format(obj.name, units2),
-                             units=units2, dimensions=obj.dimensions, _shape=obj._shape)
+            new_name = PhysArray._convert_name_(obj.name, units1, units2)
+            return PhysArray(new_array, name=new_name, units=units2,
+                             dimensions=obj.dimensions, _shape=obj._shape)
         elif isinstance(obj, numpy.ma.MaskedArray):
             return numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                         mask=obj.mask, dtype=obj.dtype)
@@ -184,7 +197,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if lunits != runits:
             if runits.is_convertible(lunits):
                 right = PhysArray._safe_convert_(right, runits, lunits)
-                rname = 'convert({}, to={})'.format(rname, lunits)
+                rname = PhysArray._convert_name_(rname, runits, lunits)
             else:
                 raise UnitsError('Nonconvertible units: {}, {}'.format(lunits, runits))
         ldims = PhysArray.interpret_dimensions(left)
@@ -194,7 +207,7 @@ class PhysArray(numpy.ma.MaskedArray):
         elif ldims != rdims:
             if set(ldims) == set(rdims):
                 right = numpy.transpose(right, axes=tuple(rdims.index(d) for d in ldims))
-                rname = 'transpose({}, to={})'.format(rname, ldims)
+                rname = PhysArray._transpose_name_(rname, rdims, ldims)
             else:
                 raise DimensionsError('Nontransposable dimensions: {}, {}'.format(ldims, rdims))
         return right, rname
@@ -251,7 +264,7 @@ class PhysArray(numpy.ma.MaskedArray):
             mdims = sdims
         elif set(sdims) == set(odims):
             other = numpy.transpose(other, axes=tuple(odims.index(d) for d in sdims))
-            oname = 'transpose({}, to={})'.format(oname, sdims)
+            oname = PhysArray._transpose_name_(oname, odims, sdims)
             mdims = sdims
         else:
             nm = 'multiply' if op == mul else 'divide'
@@ -365,7 +378,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if runits != Unit(1):
             if runits.is_convertible(Unit(1)):
                 right = runits.convert(right, Unit(1))
-                rname = 'convert({}, to={})'.format(rname, Unit(1))
+                rname = PhysArray._convert_name_(rname, runits, Unit(1))
             else:
                 raise UnitsError('Exponents must be scalar: {}'.format(right))
         try:
@@ -434,5 +447,5 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             raise DimensionsError('Cannot transpose to dimensions/axes {}'.format(dims))
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
-                         name='transpose({}, to={})'.format(self.name, new_dims),
+                         name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims),
                          _shape=new_shp0)

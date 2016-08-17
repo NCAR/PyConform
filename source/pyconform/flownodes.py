@@ -349,7 +349,9 @@ class MapNode(FlowNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
         # Return the mapped data
-        name = 'map({}, to={})'.format(inp_info.name, out_dims)
+        idims_str = ','.join(inp_dims)
+        odims_str = ','.join(out_dims)
+        name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
         return PhysArray(self._inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
