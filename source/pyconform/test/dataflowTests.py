@@ -223,6 +223,13 @@ class DataFlowTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+    def test_execute_chunks(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = df.execute({'x': 4})
+        expected = None
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 #===============================================================================
 # Command-Line Operation

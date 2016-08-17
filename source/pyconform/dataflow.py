@@ -232,7 +232,7 @@ class DataFlow(object):
                 raise TypeError('Chunk size invalid: {}'.format(odsize))
 
         # Compute the full data sizes for each chunked dimension
-        sizes = {od: self._ids.dimensions[self._o2imap[od]] for od in chunks}
+        sizes = {od: self._ids.dimensions[self._o2imap[od]].size for od in chunks}
 
         # Loop over chunks and write each output file
         for vname, wnode in self._writenodes.iteritems():
