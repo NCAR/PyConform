@@ -171,9 +171,9 @@ class DataFlowTests(unittest.TestCase):
 
         self._clear_output_()
 
-#     def tearDown(self):
-#         self._clear_input_()
-#         self._clear_output_()
+    def tearDown(self):
+        self._clear_input_()
+        self._clear_output_()
 
     def _clear_input_(self):
         for fname in self.filenames.itervalues():
