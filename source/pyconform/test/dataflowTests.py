@@ -28,7 +28,9 @@ class DataFlowTests(unittest.TestCase):
     def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'),
                                       ('u2', 'u2.nc')])
-        self._clear_input_()
+        for fname in self.filenames.itervalues():
+            if exists(fname):
+                remove(fname)
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
@@ -169,18 +171,6 @@ class DataFlowTests(unittest.TestCase):
         self.outfiles = dict((vname, vdict['filename']) for vname, vdict
                              in vdicts.iteritems() if 'filename' in vdict)
 
-        self._clear_output_()
-
-    def tearDown(self):
-        self._clear_input_()
-        self._clear_output_()
-
-    def _clear_input_(self):
-        for fname in self.filenames.itervalues():
-            if exists(fname):
-                remove(fname)
-
-    def _clear_output_(self):
         for fname in self.outfiles.itervalues():
             if exists(fname):
                 remove(fname)
