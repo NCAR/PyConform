@@ -14,6 +14,7 @@ from netCDF4 import Dataset as NCDataset
 
 import unittest
 import numpy
+from scipy.stats._continuous_distns import ncf
 
 
 #===================================================================================================
@@ -218,18 +219,42 @@ class DataFlowTests(unittest.TestCase):
     def test_execute_all(self):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
-        actual = df.execute()
-        expected = None
+        df.execute()
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
 
-    def test_execute_chunks(self):
+    def test_execute_chunks_1D(self):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
-        actual = df.execute({'x': 4})
-        expected = None
+        df.execute({'x': 4})
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
+
+    def test_execute_chunks_2D(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute(chunks=OrderedDict([('x', 4), ('y', 3)]))
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
+
 
 #===============================================================================
 # Command-Line Operation
