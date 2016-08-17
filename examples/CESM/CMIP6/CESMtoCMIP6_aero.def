@@ -1,0 +1,41 @@
+loaddust: dst_a1+dst_a3
+concsoa: soa_a1+soa_a2 on model levels
+concdust: dst_a1+dst_a3 on model levels
+drybc: bc_a1DDF
+concss: ncl_a1+ncl_a2+ncl_a3 on model levels
+emiss: SFncl_a1+SFncl_a2+SFncl_a3
+concbc: bc_a1 on model levels
+dryso4: so4_a1DDF+so4_a2DDF+so4_a3DDF
+wetso2: WD_SO2
+wetso4: so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
+dryso2: DF_SO2
+concaerh2o: wat_a1+wat_a2+wat_a3 on model levels
+wetbc: bc_a1SFWET+bc_c1SFWET
+loadbc: bc_a1
+abs550aer: AODABS
+emidms: SFDMS
+emidust: SFdst_a1+SFdst_a3
+cdnc: CDNUMC on model levels
+od550aer: AODVIS
+emiso2: SFSO2+SO2_CLXF
+loadss: ncl_a1+ncl_a2+ncl_a3
+loadso4: so4_a1+so4_a2+so4_a3
+drypoa: pom_a1DDF
+reffclwtop: AREL
+emiso4: so4_a1_CLXF convert molec/cm2/s to kg m-2 s-1
+concoa: soa_a1+soa_a2+pom_a1 on model levels
+dryss: ncl_a1DDF+ncl_a2DDF+ncl_a3DDF
+concso2: SO2 on model levels
+concso4: so4_a1+so4_a2+so4_a3 on model levels
+conccn: num_a1+num_a2+num_a3 on model levels
+conccmcn: num_a3 on model levels
+concdms: DMS on model levels
+wetdust: dst_a1SFWET+dst_a3SFWET+dst_c1SFWET+dst_c3SFWET
+loadsoa: soa_a1+soa_a2
+emibc: SFbc_a1+bc_a1_CLXF
+dryoa: pomff_a1DDF+soa_a1DDF+soa_a2DDF
+loadpoa: pom_a1
+wetss: ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
+drydust: DSTSFDRY
+wetoa: pom_a1SFWET+pom_c1SFWET+soa_a1SFWET+soa_a2SFWET+soa_c1SFWET+soa_c2SFWET
+ps: PS
