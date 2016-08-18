@@ -34,7 +34,7 @@ class DataFlowTests(unittest.TestCase):
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 8), ('lat', 7), ('lon', 6)])
+        self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',

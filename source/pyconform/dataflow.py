@@ -222,3 +222,4 @@ class DataFlow(object):
             wnode.execute(chunks=chunks)
 
         print 'All output variables written.'
+        print
