@@ -17,18 +17,35 @@ from collections import OrderedDict
 from argparse import ArgumentParser
 
 from pyconform.datasets import InputDataset, OutputDataset
-from pyconform.conform import setup, run
+from pyconform.dataflow import DataFlow
+
+
+#===================================================================================================
+# chunk
+#===================================================================================================
+def chunk(arg):
+    try:
+        name, size_str = arg.split(',')
+        size = int(size_str)
+        return name, size
+    except:
+        raise argparse.ArgumentTypeError("Chunks must be formatted as 'name,size'")
 
 
 #==============================================================================
 # Command-line Interface
 #==============================================================================
 def cli(argv=None):
-    desc = """This tool is designed to run the PyConform command-line tool,
-              taking input from the command-line and a predefined output
+    desc = """This is the PyConform command-line tool.  This scripts takes
+              input from the command-line and a predefined output
               specification file (specfile)."""
 
     parser = ArgumentParser(description=desc)
+    parser.add_argument('-c', '--chunk', dest='chunks', default=[],
+                        metavar='NAME,SIZE', action='append', type=chunk,
+                        help='Chunk sizes for each dimension specified in the '
+                             'output specification file.  Data will be read/written '
+                             'in sizes given by these chunks. [No chunking]')
     parser.add_argument('-i', '--infile', dest='infiles', default=[],
                         metavar='INFILE', action='append', type=str,
                         help='Input file path or globstring specifying input '
@@ -36,14 +53,20 @@ def cli(argv=None):
                              'files are specified, then PyConform will validate '
                              'the output specification file only, and then '
                              'exit.  [No default]')
+    parser.add_argument('-e', '--error', default=False,
+                        action='store_true', dest='error',
+                        help='Whether to error when validation checks do not pass '
+                             ' (True) or simply print a warning message (False)'
+                             '[Default: False]')
+    parser.add_argument('-n', '--nocycle', default=False,
+                        action='store_true', dest='nocycle',
+                        help='Whether to cycle over input files for metadata (False)'
+                             ' or read all metadata from the first input file (True)'
+                             '[Default: False]')
     parser.add_argument('-s', '--serial', default=False,
                         action='store_true', dest='serial',
                         help='Whether to run in serial (True) or parallel '
                              '(False). [Default: False]')
-    parser.add_argument('-v', '--verbosity', default=1, type=int,
-                        help='Verbosity level for level of output.  A value '
-                             'of 0 means no output, and a value greater than '
-                             '0 means more output detail. [Default: 1]')
     parser.add_argument('specfile', default=None, metavar='SPECFILE', type=str,
                         help='JSON-formatted output specification file '
                              '[REQUIRED]')
@@ -56,24 +79,25 @@ def cli(argv=None):
 #==============================================================================
 def main(argv=None):
     args = cli(argv)
-    
+
     infiles = []
     for infile in args.infiles:
         infiles.extend(glob(infile))
-    
+
     if not exists(args.specfile):
         raise OSError(('Output specification file {!r} not '
                        'found').format(args.specfile))
     dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
-    
+
+    # Parse the input/output Datasets
     inpds = InputDataset(filenames=infiles)
     outds = OutputDataset(dsdict=dsdict)
 
-    # Setup the PyConform problem
-    agraph = setup(inpds, outds)
-    
-    # Run PyConform
-    run(inpds, outds, agraph)
+    # Setup the PyConform data flow
+    dataflow = DataFlow(inpds, outds, cycle=(not args.nocycle), error=args.error)
+
+    # Execute the data flow (write to files)
+    dataflow.execute(chunks=dict(args.chunks), serial=args.serial)
 
 #==============================================================================
 # Command-line Operation

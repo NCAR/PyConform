@@ -215,7 +215,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, scomm=None):
+    def execute(self, chunks={}, serial=False):
         """
         Execute the Data Flow
         
@@ -225,7 +225,7 @@ class DataFlow(object):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
-            scomm (SimpleComm): A SimpleComm object for parallel execution
+            serial (bool): Whether to run in serial (True) or parallel (False)
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -238,11 +238,8 @@ class DataFlow(object):
             if not isinstance(odsize, int):
                 raise TypeError('Chunk size invalid: {}'.format(odsize))
 
-        # Check the communicator type
-        if scomm is None:
-            scomm = simplecomm.create_comm(serial=True)
-        if not isinstance(scomm, simplecomm.SimpleComm):
-            raise TypeError('Communicator must be an instance of SimpleComm')
+        # Create the simple communicator
+        scomm = simplecomm.create_comm(serial=bool(serial))
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
             print 'Beginning execution of data flow...'
