@@ -75,9 +75,9 @@ class FlowNode(object):
 
 
 #===================================================================================================
-# CreateNode
+# DataNode
 #===================================================================================================
-class CreateNode(FlowNode):
+class DataNode(FlowNode):
     """
     FlowNode class to create data in memory
     
@@ -98,7 +98,7 @@ class CreateNode(FlowNode):
         self._data = PhysArray(data, name=str(label), units=units, dimensions=dimensions)
 
         # Call base class initializer
-        super(CreateNode, self).__init__(label)
+        super(DataNode, self).__init__(label)
 
     def __getitem__(self, index):
         """
