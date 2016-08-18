@@ -163,7 +163,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['standard_name'] = 'variable 4'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 100.0
+        vattribs['valid_max'] = 20.0
         vdicts['V4']['attributes'] = vattribs
 
         self.outds = datasets.OutputDataset('outds', self.dsdict)
