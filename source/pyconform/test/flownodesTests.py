@@ -72,13 +72,13 @@ class FlowNodeTests(unittest.TestCase):
 #===================================================================================================
 class CreateDataNodeTests(unittest.TestCase):
     """
-    Unit tests for the flownodes.CreateNode class
+    Unit tests for the flownodes.DataNode class
     """
 
     def test_getitem_all(self):
         indata = numpy.arange(10)
-        testname = 'CreateNode.__getitem__(:)'
-        N = flownodes.CreateNode(0, indata, units='m', dimensions=('x',))
+        testname = 'DataNode.__getitem__(:)'
+        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
         actual = N[:]
         expected = flownodes.PhysArray(indata, units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
@@ -88,8 +88,8 @@ class CreateDataNodeTests(unittest.TestCase):
 
     def test_getitem_slice(self):
         indata = numpy.arange(10)
-        testname = 'CreateNode.__getitem__(:5)'
-        N = flownodes.CreateNode(0, indata, units='m', dimensions=('x',))
+        testname = 'DataNode.__getitem__(:5)'
+        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
         actual = N[:5]
         expected = flownodes.PhysArray(indata[:5], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
@@ -100,8 +100,8 @@ class CreateDataNodeTests(unittest.TestCase):
     def test_getitem_dict(self):
         indata = numpy.arange(10)
         indict = {'a': 4, 'x': slice(1, 5, 2)}
-        testname = 'CreateNode.__getitem__({})'.format(indict)
-        N = flownodes.CreateNode(0, indata, units='m', dimensions=('x',))
+        testname = 'DataNode.__getitem__({})'.format(indict)
+        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
         actual = N[indict]
         expected = flownodes.PhysArray(indata[indict['x']], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
@@ -315,7 +315,7 @@ class MapDataNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.indata = flownodes.CreateNode(0, numpy.arange(10), units='km', dimensions=('x',))
+        self.indata = flownodes.DataNode(0, numpy.arange(10), units='km', dimensions=('x',))
 
     def test_getitem_all(self):
         testname = 'MapNode.__getitem__(:)'
@@ -367,7 +367,7 @@ class ValidateDataNodeTests(unittest.TestCase):
     """
 
     def test_nothing(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         testname = 'OK: ValidateNode().__getitem__(:)'
         N1 = flownodes.ValidateNode('validate(x)', N0)
         actual = N1[:]
@@ -378,7 +378,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'units': Unit('m')}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -391,7 +391,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00',
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00',
                                   dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
@@ -405,7 +405,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'dimensions': ('x',)}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -418,7 +418,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_min': 0}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -431,7 +431,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_max': 10}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -444,7 +444,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 3}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -457,7 +457,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_ok(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 5}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -470,7 +470,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_convert(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10, dtype=numpy.float64), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10, dtype=numpy.float64), units='m', dimensions=('x',))
         indata = {'units': Unit('km')}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -486,7 +486,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -499,7 +499,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn_calendar(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -512,7 +512,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'dimensions': ('y',)}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -525,7 +525,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_min': 2}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -538,7 +538,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'valid_max': 8}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -551,7 +551,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_min_mean_abs': 5}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -564,7 +564,7 @@ class ValidateDataNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_warn(self):
-        N0 = flownodes.CreateNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         indata = {'ok_max_mean_abs': 3}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
@@ -586,12 +586,12 @@ class WriteDataNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        x = flownodes.CreateNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        x = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
         self.x = flownodes.ValidateNode('x', x, attributes={'xa1': 'x attribute 1', 'xa2': 'x attribute 2'})
-        y = flownodes.CreateNode('y', numpy.arange(0, 8), units='m', dimensions=('y',))
+        y = flownodes.DataNode('y', numpy.arange(0, 8), units='m', dimensions=('y',))
         self.y = flownodes.ValidateNode('y', y, attributes={'ya1': 'y attribute 1', 'ya2': 'y attribute 2'})
         vdata = numpy.arange(15 * 8, dtype=numpy.float64).reshape((15, 8))
-        v = flownodes.CreateNode('v', vdata, units='K', dimensions=('x', 'y'))
+        v = flownodes.DataNode('v', vdata, units='K', dimensions=('x', 'y'))
         self.v = flownodes.ValidateNode('v', v, attributes={'va1': 'v attribute 1', 'va2': 'v attribute 2'})
         self.vars = [self.x, self.y, self.v]
 

@@ -19,7 +19,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
-from pyconform.flownodes import CreateNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
+from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from itertools import cycle as itercycle
 from collections import OrderedDict
 
@@ -86,7 +86,7 @@ class DataFlow(object):
         # First, parse output variables with 'data'
         for vname, vinfo in datavars.iteritems():
             vdata = numpy.array(vinfo.data, dtype=vinfo.datatype)
-            cdnode = CreateNode(vname, vdata, units=vinfo.cfunits(), dimensions=vinfo.dimensions)
+            cdnode = DataNode(vname, vdata, units=vinfo.cfunits(), dimensions=vinfo.dimensions)
             self._datnodes[vname] = cdnode
 
         # Create a dictionary to store "output variable" DataNodes from 'definition' attributes
