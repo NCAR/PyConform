@@ -8,7 +8,6 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from __future__ import print_function
-from abc import ABCMeta, abstractmethod
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from cf_units import Unit
@@ -43,8 +42,6 @@ class FlowNode(object):
     PhysArray.
     """
 
-    __metaclass__ = ABCMeta
-
     def __init__(self, label, *inputs):
         """
         Initializer
@@ -55,13 +52,6 @@ class FlowNode(object):
         """
         self._label = label
         self._inputs = list(inputs)
-
-    @abstractmethod
-    def __getitem__(self, index):
-        """
-        Compute and retrieve the data associated with this FlowNode operation
-        """
-        pass
 
     @property
     def label(self):
@@ -494,7 +484,15 @@ class ValidateNode(FlowNode):
 #===================================================================================================
 class WriteNode(FlowNode):
     """
-    FlowNode that writes validated data to a file
+    FlowNode that writes validated data to a file.
+    
+    This is a "sink" node, meaning that the __getitem__ (i.e., [index]) interface does not return
+    anything.  Rather, the data "retrieved" through the __getitem__ interface is sent directly to
+    file.
+    
+    For this reason, it is possible to "retrieve" data multiple times, resulting in writing and
+    overwriting of data.  To eliminate this inefficiency, it is advised that you use the 'execute'
+    method to write data efficiently once (and only once).
     """
 
     def __init__(self, filename, *inputs, **kwds):
@@ -547,11 +545,11 @@ class WriteNode(FlowNode):
             self._file.setncatts(self._attributes)
 
             # Generate and collect information for each input data object
-            vinfos = {i.label: i[None] for i in self.inputs}
+            self._vinfos = {i.label: i[None] for i in self.inputs}
 
             # Collect the dimension sizes from the initialshape parameter of the input data
             req_dims = {}
-            for vinfo in vinfos.itervalues():
+            for vinfo in self._vinfos.itervalues():
                 for dname, dsize in zip(vinfo.dimensions, vinfo._shape):
                     if dname not in req_dims:
                         req_dims[dname] = dsize
@@ -569,7 +567,7 @@ class WriteNode(FlowNode):
             # Create the variables and write their attributes
             for vnode in self._inputs:
                 vname = vnode.label
-                vinfo = vinfos[vname]
+                vinfo = self._vinfos[vname]
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
                 for aname, avalue in vnode._attributes.iteritems():
                     ncvar.setncattr(aname, avalue)
@@ -581,13 +579,70 @@ class WriteNode(FlowNode):
         """
         if self._file is not None:
             self._file.close()
+            self._vinfos = {}
+            self._file = None
 
-    def __getitem__(self, index):
+    @staticmethod
+    def _chunk_iter_(dims, sizes, chunks={}):
+        if not isinstance(dims, tuple):
+            raise TypeError('Dimensions must be a tuple')
+        if not isinstance(sizes, tuple):
+            raise TypeError('Dimension sizes must be a tuple')
+        if not isinstance(chunks, dict):
+            raise TypeError('Dimension chunks must be a dictionary')
+        if len(dims) != len(sizes):
+            raise ValueError('Dimensions and sizes must be same length')
 
-        # Make sure the file is open and ready for writing
+        chunks_ = {d:c for d, c in chunks.iteritems() if d in dims}
+        if len(chunks_) == 0:
+            yield slice(None)
+        else:
+            dsizes = OrderedDict((d, s) for d, s in zip(dims, sizes))
+            nchunks = OrderedDict((d, s) for d, s in dsizes.iteritems() if d in chunks_)
+            for d in chunks_:
+                nchunks[d] = dsizes[d] / chunks_[d] + int(dsizes[d] % chunks_[d] > 0)
+            ntotal = numpy.prod(nchunks.values())
+            index = {d: 0 for d in sizes}
+            for n in xrange(ntotal):
+                for d, m in nchunks.iteritems():
+                    n, index[d] = divmod(n, m)
+                bnds = {d: (index[d] * c, (index[d] + 1) * c) for d, c in chunks_.iteritems()}
+                yield {d: (slice(lb, ub) if ub < dsizes[d] else slice(lb, None))
+                       for d, (lb, ub) in bnds.iteritems()}
+
+    def execute(self, chunks={}):
+        """
+        Execute the writing of the WriteNode file at once
+        
+        This method efficiently writes all of the data for each file only once, chunking
+        the data according to the 'chunks' parameter, as needed.
+        
+        Parameters:
+            chunks (dict): A dictionary of output dimension names and chunk sizes for each
+                dimension given.  Output dimensions not included in the dictionary will not be
+                chunked.  (Use OrderedDict to preserve order of dimensions, where the first
+                dimension will be assumed to correspond to the fastest-varying index and the last
+                dimension will be assumed to correspond to the slowest-varying index.)
+        """
+
+        # Open the file and write the header information
         self.open()
 
-        # Now perform the data flows to stream data into the file
+        # Loop over all variable nodes
         for vnode in self._inputs:
-            ncvar = self._file.variables[vnode.label]
-            ncvar[align_index(index, ncvar.dimensions)] = vnode[index]
+
+            # Get the name of the variable node
+            vname = vnode.label
+
+            # Get the header information for this variable node
+            vinfo = self._vinfos[vname]
+
+            # Get the NetCDF variable object
+            ncvar = self._file.variables[vname]
+
+            # Loop over all chunks for the given variable's dimensions
+            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo._shape, chunks):
+                ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
+
+        # Close the file after completion
+        self.close()
