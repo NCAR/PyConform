@@ -163,14 +163,26 @@ class DataFlow(object):
             writenodes[tsvname] = WriteNode(filename, *vnodes, **attribs)
         self._writenodes = writenodes
 
-        # Compute the estimated data sizes of each output file
-        bytesizes = {vname: self._ods.get_bytesize(vname) for vname in self._ods.variables}
+        # Construct the output dimension sizes
+        odsizes = {}
+        for dname, dinfo in self._ods.dimensions.iteritems():
+            if dinfo is None:
+                odsizes[dname] = self._ids.dimensions[self._o2imap[dname]].size
+            else:
+                odsizes[dname] = dinfo.size
+
+        # Compute the bytesizes of each output variable
+        bytesizes = {}
+        for vname, vinfo in self._ods.variables.iteritems():
+            vsize = sum(odsizes[d] for d in vinfo.dimensions)
+            if vsize == 0:
+                vsize = 1
+            bytesizes[vname] = vsize * numpy.dtype(vinfo.datatype).itemsize
+
+        # Compute the file sizes for each output file
         self._filesizes = {}
         for tsvname, wnode in self._writenodes.iteritems():
-            self._filesizes[tsvname] = 0
-            for vnode in wnode.inputs:
-                vname = vnode.label
-                self._filesizes[tsvname] += bytesizes[vname]
+            self._filesizes[tsvname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
 
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
@@ -236,7 +248,7 @@ class DataFlow(object):
             print 'Beginning execution of data flow...'
 
         # Partition the output files/variables over available parallel (MPI) ranks
-        vnames = scomm.partition(self._filesizes.items(), func=partition.WeightBalanced)
+        vnames = scomm.partition(self._filesizes.items(), func=partition.WeightBalanced(), involved=True)
         print '{}: Writing files for variables: {}'.format(prefix, ', '.format(vnames))
 
         # Loop over output files and write using given chunking
