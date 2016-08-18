@@ -20,6 +20,7 @@ from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
+from asaptools import simplecomm, partition
 from itertools import cycle as itercycle
 from collections import OrderedDict
 
@@ -160,8 +161,16 @@ class DataFlow(object):
             attribs = OrderedDict((k, v) for k, v in self._ods.attributes.iteritems())
             attribs['unlimited'] = unlimited
             writenodes[tsvname] = WriteNode(filename, *vnodes, **attribs)
-
         self._writenodes = writenodes
+
+        # Compute the estimated data sizes of each output file
+        bytesizes = {vname: self._ods.get_bytesize(vname) for vname in self._ods.variables}
+        self._filesizes = {}
+        for tsvname, wnode in self._writenodes.iteritems():
+            self._filesizes[tsvname] = 0
+            for vnode in wnode.inputs:
+                vname = vnode.label
+                self._filesizes[tsvname] += bytesizes[vname]
 
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
@@ -194,7 +203,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}):
+    def execute(self, chunks={}, scomm=None):
         """
         Execute the Data Flow
         
@@ -204,6 +213,7 @@ class DataFlow(object):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
+            scomm (SimpleComm): A SimpleComm object for parallel execution
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -216,10 +226,24 @@ class DataFlow(object):
             if not isinstance(odsize, int):
                 raise TypeError('Chunk size invalid: {}'.format(odsize))
 
-        # Loop over output files and write using given chunking
-        for vname, wnode in self._writenodes.iteritems():
-            print 'Writing output variable {!r} to file'.format(vname)
-            wnode.execute(chunks=chunks)
+        # Check the communicator type
+        if scomm is None:
+            scomm = simplecomm.create_comm(serial=True)
+        if not isinstance(scomm, simplecomm.SimpleComm):
+            raise TypeError('Communicator must be an instance of SimpleComm')
+        prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
+        if scomm.is_manager():
+            print 'Beginning execution of data flow...'
 
-        print 'All output variables written.'
-        print
+        # Partition the output files/variables over available parallel (MPI) ranks
+        vnames = scomm.partition(self._filesizes.items(), func=partition.WeightBalanced)
+        print '{}: Writing files for variables: {}'.format(prefix, ', '.format(vnames))
+
+        # Loop over output files and write using given chunking
+        for vname in vnames:
+            print '{}: Writing output variable {!r} to file'.format(prefix, vname)
+            self._writenodes[vname].execute(chunks=chunks)
+
+        if scomm.is_manager():
+            print 'All output variables written.'
+            print
