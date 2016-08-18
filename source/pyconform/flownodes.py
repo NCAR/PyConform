@@ -538,8 +538,11 @@ class WriteNode(FlowNode):
         """
         if self._file is None:
 
-            # Open the output file
-            self._file = Dataset(self.label, 'w')
+            # Try to pen the output file
+            try:
+                self._file = Dataset(self.label, 'w')
+            except:
+                raise IOError('Failed to open output file {!r}'.format(self.label))
 
             # Write the global attributes
             self._file.setncatts(self._attributes)
