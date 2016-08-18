@@ -45,9 +45,9 @@
             "datatype": "float32",
             "definition": "U+V",
             "dimensions": [
-                "x", "y", "t"
+                "X", "Y", "T"
             ],
-            "filename": "output_data/u.nc"
+            "filename": "output/u.nc"
         },
         "v": {
             "attributes": {
@@ -57,9 +57,9 @@
             "datatype": "float32",
             "definition": "U-V",
             "dimensions": [
-                "x", "y", "t"
+                "X", "Y", "T"
             ],
-            "filename": "output_data/v.nc"
-        },
+            "filename": "output/v.nc"
+        }
     }
 }

@@ -99,8 +99,8 @@ class VariableInfo(object):
             filename (str): Filename for read/write of variable
         """
         self._name = str(name)
-        self._datatype = '{!s}'.format(dtype(datatype))
-        self._dimensions = dimensions
+        self._datatype = str(dtype(datatype))
+        self._dimensions = tuple(dimensions)
         self._attributes = attributes
         self._definition = definition
         self._data = data

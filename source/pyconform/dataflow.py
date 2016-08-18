@@ -20,7 +20,8 @@ from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
-from asaptools import simplecomm, partition
+from asaptools.simplecomm import create_comm
+from asaptools.partition import WeightBalanced
 from itertools import cycle as itercycle
 from collections import OrderedDict
 
@@ -239,14 +240,14 @@ class DataFlow(object):
                 raise TypeError('Chunk size invalid: {}'.format(odsize))
 
         # Create the simple communicator
-        scomm = simplecomm.create_comm(serial=bool(serial))
+        scomm = create_comm(serial=bool(serial))
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
             print 'Beginning execution of data flow...'
 
         # Partition the output files/variables over available parallel (MPI) ranks
-        vnames = scomm.partition(self._filesizes.items(), func=partition.WeightBalanced(), involved=True)
-        print '{}: Writing files for variables: {}'.format(prefix, ', '.format(vnames))
+        vnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
+        print '{}: Writing files for variables: {}'.format(prefix, ', '.join(vnames))
 
         # Loop over output files and write using given chunking
         for vname in vnames:
