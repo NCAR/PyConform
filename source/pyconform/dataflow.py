@@ -194,21 +194,6 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    @staticmethod
-    def _chunk_iter_(sizes, steps):
-        if len(steps) == 0:
-            yield slice(None)
-        else:
-            nums = OrderedDict((d, sizes[d] / steps[d] + int(sizes[d] % steps[d] > 0)) for d in steps)
-            tlen = numpy.prod(nums.values())
-            index = {d: 0 for d in sizes}
-            for n in xrange(tlen):
-                for d, m in nums.iteritems():
-                    n, index[d] = divmod(n, m)
-                bnds = {d: (index[d] * st, (index[d] + 1) * st) for d, st in steps.iteritems()}
-                yield {d: (slice(lb, ub) if ub < sizes[d] else slice(lb, None))
-                       for d, (lb, ub) in bnds.iteritems()}
-
     def execute(self, chunks={}):
         """
         Execute the Data Flow
@@ -231,14 +216,9 @@ class DataFlow(object):
             if not isinstance(odsize, int):
                 raise TypeError('Chunk size invalid: {}'.format(odsize))
 
-        # Compute the full data sizes for each chunked dimension
-        sizes = {od: self._ids.dimensions[self._o2imap[od]].size for od in chunks}
-
-        # Loop over chunks and write each output file
+        # Loop over output files and write using given chunking
         for vname, wnode in self._writenodes.iteritems():
             print 'Writing output variable {!r} to file'.format(vname)
-            for chunk in DataFlow._chunk_iter_(sizes, chunks):
-                wnode[chunk]
-            wnode.close()
+            wnode.execute(chunks=chunks)
 
         print 'All output variables written.'
