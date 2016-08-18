@@ -45,7 +45,7 @@ def cli(argv=None):
                         metavar='NAME,SIZE', action='append', type=chunk,
                         help='Chunk sizes for each dimension specified in the '
                              'output specification file.  Data will be read/written '
-                             'in sizes given by these chunks. [No chunking]')
+                             'in sizes given by these chunks. [Default: no chunking]')
     parser.add_argument('-i', '--infile', dest='infiles', default=[],
                         metavar='INFILE', action='append', type=str,
                         help='Input file path or globstring specifying input '
