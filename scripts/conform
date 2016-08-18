@@ -56,12 +56,12 @@ def cli(argv=None):
     parser.add_argument('-e', '--error', default=False,
                         action='store_true', dest='error',
                         help='Whether to error when validation checks do not pass '
-                             ' (True) or simply print a warning message (False)'
+                             '(True) or simply print a warning message (False) '
                              '[Default: False]')
     parser.add_argument('-n', '--nocycle', default=False,
                         action='store_true', dest='nocycle',
-                        help='Whether to cycle over input files for metadata (False)'
-                             ' or read all metadata from the first input file (True)'
+                        help='Whether to cycle over input files for metadata (False) '
+                             'or read all metadata from the first input file (True) '
                              '[Default: False]')
     parser.add_argument('-s', '--serial', default=False,
                         action='store_true', dest='serial',
