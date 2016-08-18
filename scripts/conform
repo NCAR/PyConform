@@ -89,9 +89,15 @@ def main(argv=None):
                        'found').format(args.specfile))
     dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
 
-    # Parse the input/output Datasets
-    inpds = InputDataset(filenames=infiles)
+    # Parse the output Dataset
     outds = OutputDataset(dsdict=dsdict)
+
+    # If no input files, stop here
+    if len(infiles) == 0:
+        return
+
+    # Parse the input Dataset
+    inpds = InputDataset(filenames=infiles)
 
     # Setup the PyConform data flow
     dataflow = DataFlow(inpds, outds, cycle=(not args.nocycle), error=args.error)
