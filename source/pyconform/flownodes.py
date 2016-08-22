@@ -84,8 +84,13 @@ class DataNode(FlowNode):
             units (Unit): Units to associate with the data
             dimensions: Dimensions to associate with the data 
         """
+        # Determine type and upcast, if necessary
+        array = numpy.asarray(data)
+        if numpy.can_cast(array.dtype, numpy.float64, casting='same_kind'):
+            array = array.astype(numpy.float64)
+
         # Store data
-        self._data = PhysArray(data, name=str(label), units=units, dimensions=dimensions)
+        self._data = PhysArray(array, name=str(label), units=units, dimensions=dimensions)
 
         # Call base class initializer
         super(DataNode, self).__init__(label)
@@ -189,8 +194,13 @@ class ReadNode(FlowNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            data = PhysArray(ncvar[index12], name=self.label, units=units,
-                             dimensions=dimensions2, _shape=shape2)
+            # Determine type and upcast, if necessary
+            if numpy.can_cast(ncvar.dtype, numpy.float64, casting='same_kind'):
+                data = PhysArray(ncvar[index12].astype(numpy.float64), name=self.label,
+                                 units=units, dimensions=dimensions2, _shape=shape2)
+            else:
+                data = PhysArray(ncvar[index12], name=self.label, units=units,
+                                 dimensions=dimensions2, _shape=shape2)
 
         return data
 
@@ -370,7 +380,8 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, error=False, attributes={}):
+    def __init__(self, label, dnode, units=None, dimensions=None,
+                 dtype=numpy.float32, error=False, attributes={}):
         """
         Initializer
         
@@ -380,6 +391,7 @@ class ValidateNode(FlowNode):
             units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             error (bool): If True, raise exceptions instead of warnings
+            dtype (dtype): The Numpy dtype of the data to return
             attributes: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
         """
@@ -392,6 +404,9 @@ class ValidateNode(FlowNode):
 
         # Save error flag
         self._error = bool(error)
+
+        # Save the data type
+        self._dtype = numpy.dtype(dtype)
 
         # Check for dimensions
         if dimensions is not None and not isinstance(dimensions, tuple):
@@ -476,7 +491,17 @@ class ValidateNode(FlowNode):
                          '{} but requires data less than or equal to '
                          '{}').format(self.label, mean_abs, ok_max_mean_abs))
 
-        return indata
+        # Check datatype, and cast as necessary
+        if numpy.can_cast(indata.dtype, self._dtype, casting='same_kind'):
+            return indata.astype(self._dtype)
+        else:
+            msg = ('Cannot cast datatype {!s} to {!s} in ValidateNode '
+                   '{!r}').format(indata.dtype, self._dtype, self.label)
+            if self._error:
+                raise DimensionsError(msg)
+            else:
+                warning(msg)
+            return indata
 
 
 #===================================================================================================

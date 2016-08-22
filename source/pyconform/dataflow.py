@@ -143,7 +143,7 @@ class DataFlow(object):
             self._varnodes[vname] = ValidateNode(vname, vnode, units=vinfo.cfunits(),
                                                  dimensions=vinfo.dimensions,
                                                  attributes=vinfo.attributes,
-                                                 error=error)
+                                                 error=error, dtype=vinfo.datatype)
 
         # Now determine which output variables have no output file (metadata variables)
         tsvnames = tuple(vname for vname, vinfo in self._ods.variables.iteritems()
