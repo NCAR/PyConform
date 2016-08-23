@@ -15,9 +15,11 @@ from glob import glob
 from json import load as json_load
 from collections import OrderedDict
 from argparse import ArgumentParser
+from warnings import simplefilter
 
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.dataflow import DataFlow
+from pyconform.flownodes import ValidationWarning
 
 
 #===================================================================================================
@@ -99,8 +101,12 @@ def main(argv=None):
     # Parse the input Dataset
     inpds = InputDataset(filenames=infiles)
 
+    # Check for warn/error
+    if args.error:
+        simplefilter("error", ValidationWarning)
+
     # Setup the PyConform data flow
-    dataflow = DataFlow(inpds, outds, cycle=(not args.nocycle), error=args.error)
+    dataflow = DataFlow(inpds, outds, cycle=(not args.nocycle))
 
     # Execute the data flow (write to files)
     dataflow.execute(chunks=dict(args.chunks), serial=args.serial)

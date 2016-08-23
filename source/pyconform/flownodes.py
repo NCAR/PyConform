@@ -380,7 +380,7 @@ class ValidateNode(FlowNode):
     """
 
     def __init__(self, label, dnode, units=None, dimensions=None,
-                 dtype=numpy.float32, error=False, attributes={}):
+                 dtype=numpy.float32, attributes={}):
         """
         Initializer
         
@@ -389,7 +389,6 @@ class ValidateNode(FlowNode):
             dnode (FlowNode): FlowNode that provides input into this FlowNode
             units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
-            error (bool): If True, raise exceptions instead of warnings
             dtype (dtype): The Numpy dtype of the data to return
             attributes: Additional named arguments corresponding to additional attributes
                 to which to associate with the new variable
@@ -400,9 +399,6 @@ class ValidateNode(FlowNode):
 
         # Call base class initializer
         super(ValidateNode, self).__init__(label, dnode)
-
-        # Save error flag
-        self._error = bool(error)
 
         # Save the data type
         self._dtype = numpy.dtype(dtype)

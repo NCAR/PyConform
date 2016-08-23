@@ -40,7 +40,9 @@
         "u": {
             "attributes": {
                 "standard_name": "variable sum",
-                "units": "grams"
+                "units": "grams",
+                "valid_min": -1.0,
+                "valid_max": 1.0
             },
             "datatype": "float32",
             "definition": "U+V",

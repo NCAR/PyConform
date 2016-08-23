@@ -36,7 +36,7 @@ class DataFlow(object):
     An object describing the flow of data from input to output
     """
 
-    def __init__(self, inpds, outds, cycle=True, error=False):
+    def __init__(self, inpds, outds, cycle=True):
         """
         Initializer
         
@@ -143,7 +143,7 @@ class DataFlow(object):
             self._varnodes[vname] = ValidateNode(vname, vnode, units=vinfo.cfunits(),
                                                  dimensions=vinfo.dimensions,
                                                  attributes=vinfo.attributes,
-                                                 error=error, dtype=vinfo.datatype)
+                                                 dtype=vinfo.datatype)
 
         # Now determine which output variables have no output file (metadata variables)
         tsvnames = tuple(vname for vname, vinfo in self._ods.variables.iteritems()

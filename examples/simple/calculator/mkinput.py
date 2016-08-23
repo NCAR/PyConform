@@ -29,7 +29,7 @@ for name, datatype in datatypes.iteritems():
         data[name] = np.arange(dimsizes[name], dtype=datatype)
     elif name in vardims:
         vshape = tuple(dimsizes[d] for d in vardims[name])
-        data[name] = np.random.rand(*vshape).astype(datatype)
+        data[name] = 200.0 * np.random.rand(*vshape).astype(datatype) - 100.0
     else:
         raise "Variable {!r} not found".format(name)
 
