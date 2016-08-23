@@ -14,7 +14,6 @@ from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
 from os.path import exists
 from netCDF4 import Dataset
-from sys import stderr
 from collections import OrderedDict
 from warnings import warn
 
