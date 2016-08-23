@@ -9,23 +9,23 @@ LICENSE: See the LICENSE.rst file for details
 
 from __future__ import print_function
 from pyconform.indexing import index_str, join, align_index, index_tuple
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
+from pyconform.physarray import PhysArray
 from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
 from os.path import exists
 from netCDF4 import Dataset
 from sys import stderr
 from collections import OrderedDict
+from warnings import warn
 
 import numpy
 
 
-#===============================================================================
-# warning - Helper function
-#===============================================================================
-def warning(*args):
-    """Prints a warning message to standard error"""
-    print("WARNING:", *args, file=stderr)
+#===================================================================================================
+# ValidationWarning
+#===================================================================================================
+class ValidationWarning(Warning):
+    """Warning for validation errors"""
 
 
 #===================================================================================================
@@ -431,25 +431,11 @@ class ValidateNode(FlowNode):
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
-            try:
-                indata = indata.convert(self._units)
-            except UnitsError as err:
-                if self._error:
-                    raise err
-                else:
-                    warning(*err.args)
+            indata = indata.convert(self._units)
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
-            try:
-                indata = indata.transpose(self._dimensions)
-            except DimensionsError:
-                msg = ('Dimensions {!s} do not match expected dimensions {!s} in ValidateNode '
-                       '{!r}').format(indata.dimensions, self._dimensions, self.label)
-                if self._error:
-                    raise DimensionsError(msg)
-                else:
-                    warning(msg)
+            indata = indata.transpose(self._dimensions)
 
         # Testing parameters
         valid_min = self._attributes.get('valid_min', None)
@@ -461,17 +447,15 @@ class ValidateNode(FlowNode):
         if valid_min:
             dmin = numpy.min(indata)
             if dmin < valid_min:
-                warning(('Data from operator {!r} has minimum value '
-                         '{} but requires data greater than or equal to '
-                         '{}').format(self.label, dmin, valid_min))
+                msg = 'valid_min: {} < {} ({!r})'.format(dmin, valid_min, self.label)
+                warn(msg, ValidationWarning)
 
         # Validate maximum
         if valid_max:
             dmax = numpy.max(indata)
             if dmax > valid_max:
-                warning(('Data from operator {!r} has maximum value '
-                         '{} but requires data less than or equal to '
-                         '{}').format(self.label, dmax, valid_max))
+                msg = 'valid_max: {} > {} ({!r})'.format(dmax, valid_max, self.label)
+                warn(msg, ValidationWarning)
 
         # Compute mean of the absolute value, if necessary
         if ok_min_mean_abs or ok_max_mean_abs:
@@ -480,28 +464,21 @@ class ValidateNode(FlowNode):
         # Validate minimum mean abs
         if ok_min_mean_abs:
             if mean_abs < ok_min_mean_abs:
-                warning(('Data from operator {!r} has minimum mean_abs value '
-                         '{} but requires data greater than or equal to '
-                         '{}').format(self.label, mean_abs, ok_min_mean_abs))
+                msg = 'ok_min_mean_abs: {} < {} ({!r})'.format(mean_abs, ok_min_mean_abs, self.label)
+                warn(msg, ValidationWarning)
 
         # Validate maximum mean abs
         if ok_max_mean_abs:
             if mean_abs > ok_max_mean_abs:
-                warning(('Data from operator {!r} has maximum mean_abs value '
-                         '{} but requires data less than or equal to '
-                         '{}').format(self.label, mean_abs, ok_max_mean_abs))
+                msg = 'ok_max_mean_abs: {} > {} ({!r})'.format(mean_abs, ok_max_mean_abs, self.label)
+                warn(msg, ValidationWarning)
 
         # Check datatype, and cast as necessary
         if numpy.can_cast(indata.dtype, self._dtype, casting='same_kind'):
             return indata.astype(self._dtype)
         else:
-            msg = ('Cannot cast datatype {!s} to {!s} in ValidateNode '
-                   '{!r}').format(indata.dtype, self._dtype, self.label)
-            if self._error:
-                raise DimensionsError(msg)
-            else:
-                warning(msg)
-            return indata
+            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
+                            '{!r}').format(indata.dtype, self._dtype, self.label)
 
 
 #===================================================================================================

@@ -11,7 +11,6 @@ from cf_units import Unit
 from os.path import exists
 from os import remove
 from glob import glob
-from collections import OrderedDict
 
 import unittest
 import numpy
@@ -472,7 +471,7 @@ class ValidateNodeTests(unittest.TestCase):
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
-        expected = Unit('m').convert(N0[:], Unit('km'))
+        expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float32)
         expected.name = physarray.PhysArray._convert_name_('x', Unit('m'), Unit('km'))
         expected.units = Unit('km')
         expected.mask = False
@@ -507,18 +506,15 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_dimensions_warn(self):
+    def test_dimensions_error(self):
         N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
         indata = {'dimensions': ('y',)}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
-        actual = N1[:]
-        expected = N0[:]
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        expected = physarray.DimensionsError
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, N1.__getitem__, slice(None))
 
     def test_min_warn(self):
         N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
