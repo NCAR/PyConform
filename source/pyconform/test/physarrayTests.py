@@ -226,9 +226,9 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5, 6], [7, 8]], name='Y', units='km', dimensions=('v', 'u'))
         testname = 'X.__add__(Y)'
         actual = X + Y
-        new_name = "({}+transpose(convert({}, to={}), to={}))".format(X.name, Y.name,
-                                                                      X.units, X.dimensions)
-        expected = physarray.PhysArray([[5001., 7002.], [6003., 8004.]], units=X.units,
+        new_name = ("({}+transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
+                    "").format(X.name, Y.name, Y.units, X.units)
+        expected = physarray.PhysArray([[5001, 7002], [6003, 8004]], units=X.units,
                                        name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -242,7 +242,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5, 6], [7, 8]], name='Y', units='0.1', dimensions=('v', 'u'))
         testname = 'X.__radd__(Y)'
         actual = X + Y
-        expected = physarray.PhysArray([[15., 16.], [17., 18.]], name='(convert(1, to=0.1)+Y)',
+        expected = physarray.PhysArray([[15., 16.], [17., 18.]], name='(convert(1, from=1, to=0.1)+Y)',
                                        units=Y.units, dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -256,7 +256,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = 1
         testname = 'X.__add__(Y)'
         actual = X + Y
-        expected = physarray.PhysArray([[15., 16.], [17., 18.]], name='(X+convert(1, to=0.1))',
+        expected = physarray.PhysArray([[15., 16.], [17., 18.]], name='(X+convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -273,8 +273,8 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__iadd__(Y)'
         actual = X.copy()
         actual += Y
-        new_name = "({}+transpose(convert({}, to={}), to={}))".format(X.name, Y.name,
-                                                                      X.units, X.dimensions)
+        new_name = ("({}+transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
+                    "").format(X.name, Y.name, Y.units, X.units)
         expected = physarray.PhysArray([[5001., 7002.], [6003., 8004.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -289,8 +289,8 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5, 6], [7, 8]], name='Y', units='km', dimensions=('v', 'u'))
         testname = 'X.__sub__(Y)'
         actual = X - Y
-        new_name = "({}-transpose(convert({}, to={}), to={}))".format(X.name, Y.name,
-                                                                      X.units, X.dimensions)
+        new_name = ("({}-transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
+                    "").format(X.name, Y.name, Y.units, X.units)
         expected = physarray.PhysArray([[-4999., -6998.], [-5997., -7996.]], units=X.units,
                                        name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -305,7 +305,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5, 6], [7, 8]], name='Y', units='0.1', dimensions=('v', 'u'))
         testname = 'X.__rsub_(Y)'
         actual = X - Y
-        expected = physarray.PhysArray([[5., 4.], [3., 2.]], name='(convert(1, to=0.1)-Y)',
+        expected = physarray.PhysArray([[5., 4.], [3., 2.]], name='(convert(1, from=1, to=0.1)-Y)',
                                        units=Y.units, dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -319,7 +319,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = 1
         testname = 'X.__sub__(Y)'
         actual = X - Y
-        expected = physarray.PhysArray([[-5., -4.], [-3., -2.]], name='(X-convert(1, to=0.1))',
+        expected = physarray.PhysArray([[-5., -4.], [-3., -2.]], name='(X-convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -336,8 +336,8 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__isub__(Y)'
         actual = X.copy()
         actual -= Y
-        new_name = "({}-transpose(convert({}, to={}), to={}))".format(X.name, Y.name,
-                                                                      X.units, X.dimensions)
+        new_name = ("({}-transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
+                    "").format(X.name, Y.name, Y.units, X.units)
         expected = physarray.PhysArray([[-4999., -6998.], [-5997., -7996.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -352,7 +352,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5, 6], [7, 8]], name='Y', units='km', dimensions=('v', 'u'))
         testname = 'X.__mul__(Y)'
         actual = X * Y
-        new_name = "({}*transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}*transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         new_units = Unit('m') * Unit('km')
         expected = physarray.PhysArray([[5, 14], [18, 32]], units=new_units,
                                        name=new_name, dimensions=X.dimensions)
@@ -399,7 +399,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__imul__(Y)'
         actual = X.copy()
         actual *= Y
-        new_name = "({}*transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}*transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         new_units = Unit('m') * Unit('km')
         expected = physarray.PhysArray([[5, 14], [18, 32]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
@@ -415,7 +415,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5., 6.], [7., 8.]], name='Y', units='m', dimensions=('v', 'u'))
         testname = 'X.__div__(Y)'
         actual = X / Y
-        new_name = "({}/transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}/transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name, X.dimensions)
         new_units = Unit('km') / Unit('m')
         expected = physarray.PhysArray([[1 / 5., 2 / 7.], [3 / 6., 4 / 8.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
@@ -462,7 +462,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__idiv__(Y)'
         actual = X.copy()
         actual /= Y
-        new_name = "({}/transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}/transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         new_units = Unit('m') / Unit('km')
         expected = physarray.PhysArray([[1. / 5, 2. / 7], [3. / 6, 4. / 8]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
@@ -478,7 +478,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5., 6.], [7., 8.]], name='Y', units='m', dimensions=('v', 'u'))
         testname = 'X.__floordiv__(Y)'
         actual = X // Y
-        new_name = "({}//transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}//transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         new_units = Unit('km') / Unit('m')
         expected = physarray.PhysArray([[1 // 5., 2 // 7.], [3 // 6., 4 // 8.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
@@ -525,7 +525,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__ifloordiv__(Y)'
         actual = X.copy()
         actual //= Y
-        new_name = "({}//transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}//transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         new_units = Unit('m') / Unit('km')
         expected = physarray.PhysArray([[5 // 1., 6 // 3.], [7 // 2., 8 // 4.]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
@@ -541,7 +541,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray([[5., 6.], [7., 8.]], name='Y', units='m', dimensions=('v', 'u'))
         testname = 'X.__mod__(Y)'
         actual = X % Y
-        new_name = "({}%transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}%transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         expected = physarray.PhysArray([[1 % 5., 2 % 7.], [3 % 6., 4 % 8.]],
                                        units=X.units, name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -587,7 +587,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__imod__(Y)'
         actual = X.copy()
         actual %= Y
-        new_name = "({}%transpose({}, to={}))".format(X.name, Y.name, X.dimensions)
+        new_name = "({}%transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
         expected = physarray.PhysArray([[1. % 5, 2. % 7], [3. % 6, 4. % 8]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -602,7 +602,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray(2., name='Y', units='2')
         testname = 'X.__pow__(Y)'
         actual = X ** Y
-        new_name = "({}**convert({}, to=1))".format(X.name, Y.name)
+        new_name = "({}**convert({}, from=2, to=1))".format(X.name, Y.name)
         new_units = X.units ** 4
         expected = physarray.PhysArray([[1 ** 4., 2 ** 4.], [3 ** 4., 4 ** 4.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
@@ -618,7 +618,7 @@ class PhysArrayTests(unittest.TestCase):
         Y = physarray.PhysArray(2.0, name='Y', units='2')
         testname = 'X.__rpow__(Y)'
         actual = X ** Y
-        expected = physarray.PhysArray(2. ** 4, name='(2.0**convert(Y, to=1))',
+        expected = physarray.PhysArray(2. ** 4, name='(2.0**convert(Y, from=2, to=1))',
                                        units='1', dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -649,7 +649,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.__ipow__(Y)'
         actual = X.copy()
         actual **= Y
-        new_name = "({}**convert({}, to=1))".format(X.name, Y.name)
+        new_name = "({}**convert({}, from=2, to=1))".format(X.name, Y.name)
         expected = physarray.PhysArray([[1. ** 4, 2. ** 4], [3. ** 4, 4. ** 4]], name=new_name,
                                        units=X.units ** 4, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
@@ -664,8 +664,8 @@ class PhysArrayTests(unittest.TestCase):
         X = physarray.PhysArray(xdata, name='X', units='km')
         indata = 'm'
         testname = 'X.convert({})'.format(indata)
-        actual = X.convert(indata)
-        new_name = "convert({}, to={})".format(X.name, indata)
+        actual = X.convert(Unit(indata))
+        new_name = "convert({}, from={}, to={})".format(X.name, X.units, indata)
         expected = physarray.PhysArray(2000., name=new_name, units=indata)
         print_test_message(testname, actual=actual, expected=expected, X=X)
         numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
@@ -689,7 +689,7 @@ class PhysArrayTests(unittest.TestCase):
         indata = ('v', 'u')
         testname = 'X.transpose({}, {})'.format(*indata)
         actual = X.transpose(*indata)
-        new_name = "transpose({}, to={})".format(X.name, indata)
+        new_name = "transpose({}, from=[u,v], to=[v,u])".format(X.name, indata)
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=indata)
         print_test_message(testname, actual=actual, expected=expected, X=X)
@@ -706,7 +706,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.transpose({}, {})'.format(*indata)
         actual = X.transpose(*indata)
         new_dims = ('v', 'u')
-        new_name = "transpose({}, to={})".format(X.name, new_dims)
+        new_name = "transpose({}, from=[u,v], to=[v,u])".format(X.name, new_dims)
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=new_dims)
         print_test_message(testname, actual=actual, expected=expected, X=X)
@@ -723,7 +723,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'X.transpose({})'.format(indata)
         actual = X.transpose(indata)
         new_dims = ('v', 'u')
-        new_name = "transpose({}, to={})".format(X.name, new_dims)
+        new_name = "transpose({}, from=[u,v], to=[v,u])".format(X.name, new_dims)
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=new_dims)
         print_test_message(testname, actual=actual, expected=expected, X=X)

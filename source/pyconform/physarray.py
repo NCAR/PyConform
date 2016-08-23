@@ -425,7 +425,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if self.units.is_convertible(units):
             return PhysArray._safe_convert_(self, self.units, units)
         else:
-            raise UnitsError('Cannot convert units from {!r} to {!r}'.format(self.units, units))
+            raise UnitsError('Cannot convert units {!r} to {!r}'.format(self.units, units))
 
     def transpose(self, *dims):
         """
@@ -445,7 +445,8 @@ class PhysArray(numpy.ma.MaskedArray):
             new_shp0 = tuple(self._shape[i] for i in dims)
             axes = dims
         else:
-            raise DimensionsError('Cannot transpose to dimensions/axes {}'.format(dims))
+            raise DimensionsError(('Cannot transpose dimensions/axes {} to '
+                                   '{}').format(self.dimensions, dims))
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
                          name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims),
                          _shape=new_shp0)
