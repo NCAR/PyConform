@@ -88,8 +88,6 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
     else:
         ripfg = ''
     table = identifier
-    attributes['experiment_id'] = table
-    attributes['experiment'] = table
     today = datetime.datetime.now()
     version = 'v'+str(today.year).zfill(4)+str(today.month).zfill(2)+str(today.day).zfill(2) 
 
@@ -135,8 +133,8 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
             if 'dimensions' in variables[v].keys():
                 var["dimensions"] = variables[v]['dimensions'].split('|')
             var_list[f_id] = var
-        else:
-            print id, ':', v, ' is being requested by the experiment, but a definition has not been supplied.'
+######        else:
+######            print id, ':', v, ' is being requested by the experiment, but a definition has not been supplied.'
 
     # Add axes into the variable list
     for v,d in axes.iteritems():
@@ -229,8 +227,5 @@ def main(argv=None):
     for t in exp_dict.keys():
         create_output(exp_dict[t], t, definitions, attributes, args.outputpath, args)
 
-    for t in sorted(exp_dict.keys()):
-        print t, len(exp_dict[t]['variables'])
- 
 if __name__ == '__main__':
     main()
