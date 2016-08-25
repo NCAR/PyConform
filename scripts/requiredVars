@@ -2,7 +2,8 @@
 
 import os, argparse
 import xlsxwriter
-import dreq
+from dreqPy import dreq
+import cf_units
 
 def parseArgs(argv = None):
 
@@ -49,16 +50,19 @@ def write_xls(fn, total_request, definitions):
         worksheet.set_column(0, 0, 20)
         worksheet.set_column(1, 1, 60)
         worksheet.set_column(2, 2, 15)
-        worksheet.set_column(3, 4, 40)
-        worksheet.set_column(5, 5, 80)
+        worksheet.set_column(3, 3, 40)
+        worksheet.set_column(4, 4, 20)
+        worksheet.set_column(5, 5, 40)
+        worksheet.set_column(6, 6, 80)
         worksheet.write('A1', mt, header)
         worksheet.write('B1', ' # of Variables: '+str(len(total_request[mt])), bold)
         worksheet.write('A2', 'Variable', bold)
         worksheet.write('B2', 'Title', bold)
         worksheet.write('C2', 'Units', bold)
         worksheet.write('D2', 'Dimensions', bold)
-        worksheet.write('E2', 'Requested By', bold)
-        worksheet.write('F2', 'Model->CMIP Definition', bold)
+        worksheet.write('E2', 'Modeling Realm', bold)
+        worksheet.write('F2', 'Requested By', bold)
+        worksheet.write('G2', 'Model->CMIP Definition', bold)
         cr = 3
         # For each variable requested, add it's name, official title, 
         # and supply a def if we have one already
@@ -67,12 +71,13 @@ def write_xls(fn, total_request, definitions):
             worksheet.write('B'+str(cr), total_request[mt][v]['description'], format)
             worksheet.write('C'+str(cr), total_request[mt][v]['units'], format)
             worksheet.write('D'+str(cr), total_request[mt][v]['dimensions'], format)
+            worksheet.write('E'+str(cr), total_request[mt][v]['modeling_realm'],format)
             request = ' ,'.join(total_request[mt][v]['req_by'])
-            worksheet.write('E'+str(cr), request, format)
+            worksheet.write('F'+str(cr), request, format)
             if v in definitions.keys():
-                worksheet.write('F'+str(cr), definitions[v], format)
+                worksheet.write('G'+str(cr), definitions[v], format)
             else: # We don't have a definition, create a border around a blank cell
-                worksheet.write('F'+str(cr), '', format)
+                worksheet.write('G'+str(cr), '', format)
             cr = cr + 1
 
     workbook.close()
@@ -105,7 +110,12 @@ def main(argv=None):
                 total_request[tab][v.label] = {'req_by':[]}
 
             if v.prov not in total_request[tab][v.label]['req_by']:
-                total_request[tab][v.label]['req_by'].append(v.prov)
+                requests = dq.inx.requestVar.label[v.label]
+                for r in requests:
+                    m = dq.inx.uid[r].mip
+                    if 'unset' not in m and 'CMIP5' not in m:
+                        total_request[tab][v.label]['req_by'].append(m)
+            total_request[tab][v.label]['modeling_realm'] = v.modeling_realm
 
             v_id = v.uid
             c_var = dq.inx.uid[v_id]
@@ -137,8 +147,11 @@ def main(argv=None):
                 total_request[tab][v.label]['description'] = total_request[tab][v.label]['description'] + ': ' + c_var.description
             if hasattr(v_var,'units'):
                 total_request[tab][v.label]['units'] = v_var.units
-                if 'ch4global' in v.label:
-                    print v_var.units
+                try:
+                    cf_units.Unit(v_var.units)
+                except ValueError:
+                    print v_var.units, ' is not a cf-compliant unit'
+                    total_request[tab][v.label]['units'] = total_request[tab][v.label]['units'] + '(not cf-compliant)'
             else:
                 total_request[tab][v.label]['units'] = 'No units listed'
             if hasattr(sp_var, 'dimensions'):
