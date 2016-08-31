@@ -85,8 +85,8 @@ class DataNode(FlowNode):
         """
         # Determine type and upcast, if necessary
         array = numpy.asarray(data)
-        if numpy.can_cast(array.dtype, numpy.float64, casting='same_kind'):
-            array = array.astype(numpy.float64)
+        if issubclass(array.dtype.type, numpy.float) and array.dtype.itemsize < 8:
+            array = data.astype(numpy.float64)
 
         # Store data
         self._data = PhysArray(array, name=str(label), units=units, dimensions=dimensions)
@@ -195,14 +195,14 @@ class ReadNode(FlowNode):
 
             # Retrieve the data from file, unpacking if necessary
             if 'scale_factor' in attrs or 'add_offset' in attrs:
-                scale_factor = attrs.get('scale_factor', 1.0)
-                add_offset = attrs.get('add_offset', 0.0)
+                scale_factor = attrs.get('scale_factor', 1)
+                add_offset = attrs.get('add_offset', 0)
                 data = scale_factor * ncvar[index12] + add_offset
             else:
                 data = ncvar[index12]
 
             # Upconvert, if possible
-            if numpy.can_cast(ncvar.dtype, numpy.float64, casting='same_kind'):
+            if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
 
         return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, _shape=shape2)
