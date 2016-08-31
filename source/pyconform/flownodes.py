@@ -193,15 +193,19 @@ class ReadNode(FlowNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            # Determine type and upcast, if necessary
-            if numpy.can_cast(ncvar.dtype, numpy.float64, casting='same_kind'):
-                data = PhysArray(ncvar[index12].astype(numpy.float64), name=self.label,
-                                 units=units, dimensions=dimensions2, _shape=shape2)
+            # Retrieve the data from file, unpacking if necessary
+            if 'scale_factor' in attrs or 'add_offset' in attrs:
+                scale_factor = attrs.get('scale_factor', 1.0)
+                add_offset = attrs.get('add_offset', 0.0)
+                data = scale_factor * ncvar[index12] + add_offset
             else:
-                data = PhysArray(ncvar[index12], name=self.label, units=units,
-                                 dimensions=dimensions2, _shape=shape2)
+                data = ncvar[index12]
 
-        return data
+            # Upconvert, if possible
+            if numpy.can_cast(ncvar.dtype, numpy.float64, casting='same_kind'):
+                data = data.astype(numpy.float64)
+
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, _shape=shape2)
 
 
 #===================================================================================================
