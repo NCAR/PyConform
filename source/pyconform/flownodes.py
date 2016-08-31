@@ -140,15 +140,23 @@ class ReadNode(FlowNode):
                               '{!r}'.format(variable, self._filepath))
         self._variable = variable
 
+        # Check if the index means "all"
+        is_all = False
+        if isinstance(index, slice) and index == slice(None):
+            is_all = True
+        elif isinstance(index, tuple) and all(i == slice(None) for i in index):
+            is_all = True
+        elif isinstance(index, dict) and all(v == slice(None) for v in index.itervalues()):
+            is_all = True
+
         # Store the reading index
         self._index = index
 
         # Call the base class initializer
-        str_index = index_str(index)
-        if str_index == '':
+        if is_all:
             label = variable
         else:
-            label = '{}[{}]'.format(variable, str_index)
+            label = '{}[{}]'.format(variable, index_str(index))
         super(ReadNode, self).__init__(label)
 
     def __getitem__(self, index):
@@ -383,8 +391,7 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None,
-                 dtype=numpy.float32, attributes={}):
+    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
         """
         Initializer
         
@@ -405,7 +412,7 @@ class ValidateNode(FlowNode):
         super(ValidateNode, self).__init__(label, dnode)
 
         # Save the data type
-        self._dtype = numpy.dtype(dtype)
+        self._dtype = dtype
 
         # Check for dimensions
         if dimensions is not None and not isinstance(dimensions, tuple):
@@ -427,6 +434,12 @@ class ValidateNode(FlowNode):
 
         # Get the data to validate
         indata = self._inputs[0][index]
+
+        # Check the datatype
+        if self._dtype is None:
+            odtype = indata.dtype
+        else:
+            odtype = self._dtype
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
@@ -473,11 +486,11 @@ class ValidateNode(FlowNode):
                 warn(msg, ValidationWarning)
 
         # Check datatype, and cast as necessary
-        if numpy.can_cast(indata.dtype, self._dtype, casting='same_kind'):
-            return indata.astype(self._dtype)
+        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
+            return indata.astype(odtype)
         else:
             raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
-                            '{!r}').format(indata.dtype, self._dtype, self.label)
+                            '{!r}').format(indata.dtype, odtype, self.label)
 
 
 #===================================================================================================

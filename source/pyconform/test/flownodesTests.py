@@ -471,7 +471,7 @@ class ValidateNodeTests(unittest.TestCase):
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
-        expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float32)
+        expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float64)
         expected.name = physarray.PhysArray._convert_name_('x', Unit('m'), Unit('km'))
         expected.units = Unit('km')
         expected.mask = False
