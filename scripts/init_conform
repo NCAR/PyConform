@@ -25,13 +25,11 @@ def parseArgs(argv=None):
 
     desc = 'This tool creates a specification file that is needed to run PyConform.'
 
-    parser = argparse.ArgumentParser(prog='createOutputSpecs',
-                                     description=desc)
-    parser.add_argument('-d', '--defFile', default=None, type=str,
-                        help='A file listing the variable definitions.', required=True)
+    parser = argparse.ArgumentParser(prog='createOutputSpecs', description=desc)
+    parser.add_argument('-d', '--defFile', default=None, type=str, required=True,
+                        help='A file listing the variable definitions.')
     parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
-                        help='A file listing the global attributes that '
-                             'are common to all files.')
+                        help='A file listing the global attributes that are common to all files.')
     parser.add_argument('-e', '--exp', default=None, type=str,
                         help='The name of the experiment.')
     parser.add_argument('-m', '--mipTable', default=None, type=str,
