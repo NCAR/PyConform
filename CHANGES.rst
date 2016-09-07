@@ -1,7 +1,7 @@
 PyConform ChangeLog
 ===================
 
-Copyright 2015, University Corporation for Atmospheric Research
+Copyright 2016, University Corporation for Atmospheric Research
 See the LICENSE.rst file for details
 
 VERSION 0.0.1
@@ -24,3 +24,21 @@ VERSION 0.0.1
 
 30 Oct 2015:
  - Working repository created.  Template in place.
+
+VERSION 0.1.0
+-------------
+
+17 Aug 2016:
+ - Pre-release of Version 0.1.0
+ - Many improvements and features
+ - Demo with CMIP5 Amon table with the b40.rcp4_5-1deg.006 experiment data
+
+VERSION 0.2.0
+-------------
+
+18 Aug 2016:
+ - Major refactor of the graph data structure and dependent objects
+ - Includes allowances for 'chunking' (serialization) of the data
+ - Uses the SimpleComm interface for parallelism
+ - Many other improvements and simplifications
+
