@@ -33,90 +33,90 @@ def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_t
     # Standardized identifiers for variable fields
     # Format: standardName: [synonym list]
     table_var_fields = {
-			'cell_measures': ['cell_measures'],
-			'cell_methods': ['cell_methods'],
-			'cf_standard_name': ['CF Standard Name','CF_Standard_Name','cf_standard_name','standard_name'],
-			'comment': ['comment'],
-			'deflate': ['deflate'],
-			'deflate_level': ['deflate_level'],
-			'description': ['description'],
-			'dimensions': ['dimensions'],
-			'ext_cell_measures': ['ext_cell_measures'],
-			'flag_meanings': ['flag_meanings'],
-			'flag_values': ['flag_values'],
-			'frequency': ['frequency'],
-			'id': ['id','label','variable_entry'],
-			'long_name': ['long_name'],
-			'modeling_realm': ['modeling_realm'],
-			'ok_min_mean_abs': ['ok_min_mean_abs'],
-			'ok_max_mean_abs': ['ok_max_mean_abs'],
-			'out_name': ['out_name'],
-			'positive': ['positive'],
-			'prov': ['prov'],
-			'provNote': ['provNote'],
-			'required': ['required'],
-			'shuffle': ['shuffle'],
-			'title': ['title'],
-			'type': ['type'],
-			'units': ['units'],
-			'valid_max': ['valid_max'],
-			'valid_min': ['valid_min']
+                        'cell_measures': ['cell_measures'],
+                        'cell_methods': ['cell_methods'],
+                        'cf_standard_name': ['CF Standard Name','CF_Standard_Name','cf_standard_name','standard_name'],
+                        'comment': ['comment'],
+                        'deflate': ['deflate'],
+                        'deflate_level': ['deflate_level'],
+                        'description': ['description'],
+                        'dimensions': ['dimensions'],
+                        'ext_cell_measures': ['ext_cell_measures'],
+                        'flag_meanings': ['flag_meanings'],
+                        'flag_values': ['flag_values'],
+                        'frequency': ['frequency'],
+                        'id': ['id','label','variable_entry'],
+                        'long_name': ['long_name'],
+                        'modeling_realm': ['modeling_realm'],
+                        'ok_min_mean_abs': ['ok_min_mean_abs'],
+                        'ok_max_mean_abs': ['ok_max_mean_abs'],
+                        'out_name': ['out_name'],
+                        'positive': ['positive'],
+                        'prov': ['prov'],
+                        'provNote': ['provNote'],
+                        'required': ['required'],
+                        'shuffle': ['shuffle'],
+                        'title': ['title'],
+                        'type': ['type'],
+                        'units': ['units'],
+                        'valid_max': ['valid_max'],
+                        'valid_min': ['valid_min']
     }
 
     # Standardized identifiers for axes fields
     # Format: standardName: [synonym list]
     table_axes_fields = {
-			 'axis': ['axis'],
-			 'bounds_values': ['bounds_values'],
-			 'climatology': ['climatology'],
-			 'convert_to': ['convert_to'],
-			 'coords_attrib': ['coords_attrib'],
-			 'formula': ['formula'],
-			 'id': ['id'],
-			 'index_only': ['index_only'],
-			 'long_name': ['long_name'],
-			 'must_call_cmor_grid': ['must_call_cmor_grid'],
-			 'must_have_bounds': ['must_have_bounds'],
-			 'out_name': ['out_name'],
-			 'positive': ['positive'],
-			 'requested': ['requested'],
-			 'requested_bounds': ['bounds_requested','requested_bounds'],
-			 'required': ['required'],
-			 'standard_name': ['standard_name'],
-			 'stored_direction': ['stored_direction'],
-			 'tolerance': ['tolerance'],
-			 'tol_on_requests': ['tol_on_requests'],
-			 'type': ['type'],
-			 'units': ['units'],
-			 'valid_max': ['valid_max'],
-			 'valid_min': ['valid_min'],
-			 'value': ['value'],
-			 'z_bounds_factors': ['z_bounds_factors'],
-			 'z_factors': ['z_factors']
+                         'axis': ['axis'],
+                         'bounds_values': ['bounds_values'],
+                         'climatology': ['climatology'],
+                         'convert_to': ['convert_to'],
+                         'coords_attrib': ['coords_attrib'],
+                         'formula': ['formula'],
+                         'id': ['id'],
+                         'index_only': ['index_only'],
+                         'long_name': ['long_name'],
+                         'must_call_cmor_grid': ['must_call_cmor_grid'],
+                         'must_have_bounds': ['must_have_bounds'],
+                         'out_name': ['out_name'],
+                         'positive': ['positive'],
+                         'requested': ['requested'],
+                         'requested_bounds': ['bounds_requested','requested_bounds'],
+                         'required': ['required'],
+                         'standard_name': ['standard_name'],
+                         'stored_direction': ['stored_direction'],
+                         'tolerance': ['tolerance'],
+                         'tol_on_requests': ['tol_on_requests'],
+                         'type': ['type'],
+                         'units': ['units'],
+                         'valid_max': ['valid_max'],
+                         'valid_min': ['valid_min'],
+                         'value': ['value'],
+                         'z_bounds_factors': ['z_bounds_factors'],
+                         'z_factors': ['z_factors']
     }
 
     # Standardized identifiers for table information fields
     # Format: standardName: [synonym list]
     table_fields = {
-			'approx_interval': ['approx_interval'],
-			'approx_interval_error': ['approx_interval_error'],
-			'approx_interval_warning': ['approx_interval_warning'],
-			'baseURL': ['baseURL'],
-			'cf_version': ['cf_version'],
-			'cmor_version': ['cmor_version'],
-			'expt_id_ok': ['expt_id_ok'],
-			'forcings': ['forcings'],
-			'frequency': ['frequency'],
-			'generic_levels': ['generic_levels'],
-			'magic_number': ['magic_number'],
-			'missing_value': ['missing_value'],
-			'modeling_realm': ['modeling_realm'],
-			'product': ['product'],
-			'project_id': ['project_id'],
-			'required_global_attributes': ['required_global_attributes'],
-			'table_date': ['table_date'],
-			'table_id': ['table_id'],
-			'tracking_prefix': ['tracking_prefix']
+                        'approx_interval': ['approx_interval'],
+                        'approx_interval_error': ['approx_interval_error'],
+                        'approx_interval_warning': ['approx_interval_warning'],
+                        'baseURL': ['baseURL'],
+                        'cf_version': ['cf_version'],
+                        'cmor_version': ['cmor_version'],
+                        'expt_id_ok': ['expt_id_ok'],
+                        'forcings': ['forcings'],
+                        'frequency': ['frequency'],
+                        'generic_levels': ['generic_levels'],
+                        'magic_number': ['magic_number'],
+                        'missing_value': ['missing_value'],
+                        'modeling_realm': ['modeling_realm'],
+                        'product': ['product'],
+                        'project_id': ['project_id'],
+                        'required_global_attributes': ['required_global_attributes'],
+                        'table_date': ['table_date'],
+                        'table_id': ['table_id'],
+                        'tracking_prefix': ['tracking_prefix']
     }
 
     # Set the type of table and return a dictionary that contains the read information.
@@ -148,10 +148,10 @@ def _get_key(key, table, user_table):
     """
     for k,v in table.iteritems():
         if key in v: # Search for field name in standard dictionary.
-	    return k
-	elif k in user_table.keys(): # Search for field name in user created dictionary.
-	    if key in user_table[k]:
-	        return k
+            return k
+        elif k in user_table.keys(): # Search for field name in user created dictionary.
+            if key in user_table[k]:
+                return k
     # field name is not recognized.  Exit the program with an error.
     print('Error: ',key,' is not a valid field name at this time.  Please define and resubmit.')
     sys.exit(1)
@@ -198,51 +198,51 @@ class ParseExcel(object):
         """
         import csv
 
-	table_dict = {}
+        table_dict = {}
 
-	output_var_keys = table_var_fields['id']
-	variables = {}
-	key = None
-	longest = 0
-	found = False
-	fieldnames = []
+        output_var_keys = table_var_fields['id']
+        variables = {}
+        key = None
+        longest = 0
+        found = False
+        fieldnames = []
 
         # First time reading the file:  Read the file and determine the longest line (first is recorded).
         # This line is assumed to contain the field names.
-	f = open(table_name, 'rU')
-	reader = (f.read().splitlines()) 
-	for row in reader:
-	    r = row.split('\t')
-	    i = 0 
-	    l = len(r)
-	    for g in r:
-		if g == '':
-		    l = l-1
-		i = i+1
-	    if l > longest:
-		fieldnames = list(r)   
-		longest = l 
+        f = open(table_name, 'rU')
+        reader = (f.read().splitlines()) 
+        for row in reader:
+            r = row.split('\t')
+            i = 0 
+            l = len(r)
+            for g in r:
+                if g == '':
+                    l = l-1
+                i = i+1
+            if l > longest:
+                fieldnames = list(r)   
+                longest = l 
 
         # Second time reading the file:  Parse the file into a dictionary that uses the field
         # names found in the first read as the keys.
-	reader = csv.DictReader(open(table_name, 'rU'), delimiter='\t',fieldnames=fieldnames)
+        reader = csv.DictReader(open(table_name, 'rU'), delimiter='\t',fieldnames=fieldnames)
 
         # Standardize the field  names and store in a final dictionary.
-	for row in reader:
-	    fields = {}
-	    for k in row.keys():
-	       if k in output_var_keys:
-		   key = row[k]
-	    for k,v in row.iteritems():
-		if v != '':
-		    var_key = _get_key(k, table_var_fields, user_vars)
-		    fields[var_key] = v
+        for row in reader:
+            fields = {}
+            for k in row.keys():
+               if k in output_var_keys:
+                   key = row[k]
+            for k,v in row.iteritems():
+                if v != '':
+                    var_key = _get_key(k, table_var_fields, user_vars)
+                    fields[var_key] = v
 
-	    variables[key] = fields
+            variables[key] = fields
 
-	table_dict['variables'] = variables
+        table_dict['variables'] = variables
 
-	return table_dict
+        return table_dict
 
 
 #=============================================
@@ -308,124 +308,124 @@ class ParseCmorTable(object):
         """
 
         # Initialize needed dictionaries
-	table_dict = {}
-	table_info = {}
-	expt_id_ok = {}
-	axes = {}
-	variables = {}
-	subroutines = {}
-	mapping = {}
+        table_dict = {}
+        table_info = {}
+        expt_id_ok = {}
+        axes = {}
+        variables = {}
+        subroutines = {}
+        mapping = {}
         axis = {}
         var = {}
         sub = {}
         map = {} 
 
         # Status Variables
-	current_axis = None
-	current_var = None
-	current_sub = None
-	current_mapping = None
-	in_axis = False
-	in_var = False
-	in_sub = False
-	in_mapping = False
+        current_axis = None
+        current_var = None
+        current_sub = None
+        current_mapping = None
+        in_axis = False
+        in_var = False
+        in_sub = False
+        in_mapping = False
 
         # Open table file
         mip_file = open(table_name)
 
-	for l in mip_file:
-	    # if comment - don't proceed
-	    #print l
-	    l_no_comment = l.split('!')
-	    l = l_no_comment[0].strip()
-	    if len(l) > 0 and ':' in l:
-		# remove anything after a comment character
-		# parse the key from the value
-		parts = l.split(':')
-		if len(parts) > 2:
-		    parts[1] = ''.join(parts[1:])
-		key = parts[0].strip()
-		value = parts[1].strip()
-		#print l,'->',parts
+        for l in mip_file:
+            # if comment - don't proceed
+            #print l
+            l_no_comment = l.split('!')
+            l = l_no_comment[0].strip()
+            if len(l) > 0 and ':' in l:
+                # remove anything after a comment character
+                # parse the key from the value
+                parts = l.split(':')
+                if len(parts) > 2:
+                    parts[1] = ''.join(parts[1:])
+                key = parts[0].strip()
+                value = parts[1].strip()
+                #print l,'->',parts
 
-		# add to table_info dictionary
+                # add to table_info dictionary
                 # Start an entry for 'expt_id_ok'
-		if 'expt_id_ok' in key:
-		    equiv = value.split("\' \'")
-		    if len(equiv) == 2:
-		       expt_id_ok[equiv[0]] = equiv[1]
-		    elif len(equiv) == 1:
-		       expt_id_ok[equiv[0]] = None
+                if 'expt_id_ok' in key:
+                    equiv = value.split("\' \'")
+                    if len(equiv) == 2:
+                       expt_id_ok[equiv[0]] = equiv[1]
+                    elif len(equiv) == 1:
+                       expt_id_ok[equiv[0]] = None
                 # Start an entry for 'axis_entry'
-		elif 'axis_entry' in key:
-		    if in_var == True:
-			in_var,var,variables = self.reset(in_var,var,variables,current_var)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_axis,axis,axes,current_axis = self._new_entry(in_axis,axis,axes,current_axis,key,value)
+                elif 'axis_entry' in key:
+                    if in_var == True:
+                        in_var,var,variables = self.reset(in_var,var,variables,current_var)
+                    if in_sub == True:
+                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
+                    if in_mapping == True:
+                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
+                    in_axis,axis,axes,current_axis = self._new_entry(in_axis,axis,axes,current_axis,key,value)
                 # Start an entry for 'variable_entry'
-		elif 'variable_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_var,var,variables,current_var = self._new_entry(in_var,var,variables,current_var,key,value)
+                elif 'variable_entry' in key:
+                    if in_axis == True:
+                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                    if in_sub == True:
+                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
+                    if in_mapping == True:
+                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
+                    in_var,var,variables,current_var = self._new_entry(in_var,var,variables,current_var,key,value)
                 # Start an entry for 'subroutine_entry'
-		elif 'subroutine_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_var == True:
-			in_var,var,variables = self._reset(in_var,var,variables,current_var)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_sub,sub,subroutines,current_sub = self._new_entry(in_sub,sub,subroutines,current_sub,key,value)
+                elif 'subroutine_entry' in key:
+                    if in_axis == True:
+                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                    if in_var == True:
+                        in_var,var,variables = self._reset(in_var,var,variables,current_var)
+                    if in_mapping == True:
+                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
+                    in_sub,sub,subroutines,current_sub = self._new_entry(in_sub,sub,subroutines,current_sub,key,value)
                 # Start an entry for 'mapping_entry'
-		elif 'mapping_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_var == True:
-			in_var,var,variables = self._reset(in_var,var,variables,current_var)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    in_mapping,map,maping,current_mapping = self._new_entry(in_mapping,map,mapping,current_mapping,key,value)
+                elif 'mapping_entry' in key:
+                    if in_axis == True:
+                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                    if in_var == True:
+                        in_var,var,variables = self._reset(in_var,var,variables,current_var)
+                    if in_sub == True:
+                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
+                    in_mapping,map,maping,current_mapping = self._new_entry(in_mapping,map,mapping,current_mapping,key,value)
                 # The new entry has been started.  If this point has been reached, parse this line into the correct standardized
                 # field name under the current activated entry.
-		else:
-		    if (in_axis): #field added to axes variable
-			axis_key = _get_key(key, table_axes_fields, user_axes) 
-			axis[axis_key] = value
-		    elif (in_var): #field added to variable
-			var_key = _get_key(key, table_var_fields, user_vars)
-			var[var_key] = value
-		    elif (in_sub): #field added to subroutine
-			sub[key] = value
-		    elif (in_mapping): #field added to mapping
-			map[key] = value
-		    else: #field added to table information
-			mip_key = _get_key(key, table_fields, user_tableInfo)
-			table_info[mip_key] = value
+                else:
+                    if (in_axis): #field added to axes variable
+                        axis_key = _get_key(key, table_axes_fields, user_axes) 
+                        axis[axis_key] = value
+                    elif (in_var): #field added to variable
+                        var_key = _get_key(key, table_var_fields, user_vars)
+                        var[var_key] = value
+                    elif (in_sub): #field added to subroutine
+                        sub[key] = value
+                    elif (in_mapping): #field added to mapping
+                        map[key] = value
+                    else: #field added to table information
+                        mip_key = _get_key(key, table_fields, user_tableInfo)
+                        table_info[mip_key] = value
 
         # Add final entry into its group dictionary
-	if in_var == True:
-	    variables[current_var] = var
-	if in_axis == True:
-	    axes[current_axis] = axis
-	if in_sub == True:
-	    subroutines[current_sub] = sub
-	if in_mapping == True:
-	    mapping[current_mapping] = map
+        if in_var == True:
+            variables[current_var] = var
+        if in_axis == True:
+            axes[current_axis] = axis
+        if in_sub == True:
+            subroutines[current_sub] = sub
+        if in_mapping == True:
+            mapping[current_mapping] = map
 
         # Combine three separate dictionaries into the table summary dictionary
-	table_dict['variables'] = variables
-	table_dict['axes'] = axes
-	table_dict['subroutines'] = subroutines
-	table_dict['table_info'] = table_info
+        table_dict['variables'] = variables
+        table_dict['axes'] = axes
+        table_dict['subroutines'] = subroutines
+        table_dict['table_info'] = table_info
 
-	return table_dict 
+        return table_dict 
 
 #=============================================
 #  Parse the XML format
@@ -504,63 +504,63 @@ class ParseXML(object):
             vars = dq.inx.iref_by_sect[rl.refid].a
             axes_list = [] 
             for rv in vars['requestVar']:
-	        var = {}
-	        v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
-	        c_var = dq.inx.uid[v_id]
-	        # Set what we can from the CMORvar section
+                var = {}
+                v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
+                c_var = dq.inx.uid[v_id]
+                # Set what we can from the CMORvar section
                 if hasattr(c_var,'deflate'):
-	            var['deflate']= c_var.deflate
+                    var['deflate']= c_var.deflate
                 if hasattr(c_var,'deflate_level'):
-	            var['deflate_level']= c_var.deflate_level
+                    var['deflate_level']= c_var.deflate_level
                 if hasattr(c_var,'description'):
                     var['description']= c_var.description
-	        #var['flag_meanings']= c_var.flag_meanings
-	        #var['flag_values']= c_var.flag_values
-	        if hasattr(c_var,'frequency'):
+                #var['flag_meanings']= c_var.flag_meanings
+                #var['flag_values']= c_var.flag_values
+                if hasattr(c_var,'frequency'):
                     var['frequency']= c_var.frequency
                     table_info['frequency']= c_var.frequency
-	        if hasattr(c_var,'label'):
+                if hasattr(c_var,'label'):
                     var['id']= c_var.label
                     var['out_name'] = c_var.label
                     l = dq.inx.var.label[c_var.label]
                     if len(l)>0:
                         var['standard_name'] = dq.inx.var.uid[l[0]].sn 
-	        if hasattr(c_var,'modeling_realm'):
+                if hasattr(c_var,'modeling_realm'):
                     var['modeling_realm']= c_var.modeling_realm
-	        if hasattr(c_var,'ok_min_mean_abs'):
+                if hasattr(c_var,'ok_min_mean_abs'):
                     var['ok_min_mean_abs']= c_var.ok_min_mean_abs
-	        if hasattr(c_var,'ok_max_mean_abs'):
+                if hasattr(c_var,'ok_max_mean_abs'):
                     var['ok_max_mean_abs']= c_var.ok_max_mean_abs
-	        if hasattr(c_var,'out_name'):
+                if hasattr(c_var,'out_name'):
                     var['out_name']= c_var.label #?
-	        if hasattr(c_var,'positive'):
+                if hasattr(c_var,'positive'):
                     var['positive']= c_var.positive
-	        if hasattr(c_var,'prov'):
+                if hasattr(c_var,'prov'):
                     var['prov']= c_var.prov
-	        if hasattr(c_var,'procNote'):
+                if hasattr(c_var,'procNote'):
                     var['provcNote']= c_var.procNote
-	        if hasattr(c_var,'shuffle'):
+                if hasattr(c_var,'shuffle'):
                     var['shuffle']= c_var.shuffle
-	        if hasattr(c_var,'title'):
+                if hasattr(c_var,'title'):
                     var['title']= c_var.title
                     var['long_name']= c_var.title
                 if hasattr(c_var,'description'):
                     var['comment']= c_var.description
-	        if hasattr(c_var,'type'):
+                if hasattr(c_var,'type'):
                     var['type']= c_var.type
-	        if hasattr(c_var,'valid_max'):
+                if hasattr(c_var,'valid_max'):
                     if isinstance(c_var.valid_max, (int, long, float, complex)):
                         var['valid_max']= c_var.valid_max
-	        if hasattr(c_var,'valid_min'):
+                if hasattr(c_var,'valid_min'):
                     if isinstance(c_var.valid_min, (int, long, float, complex)): 
                         var['valid_min']= c_var.valid_min
  
-  	        # Set what we can from the standard section
+                # Set what we can from the standard section
                 if hasattr(c_var,'stid'):
-	            s_var = dq.inx.uid[c_var.stid]
-	            if hasattr(s_var,'cell_measures'):
+                    s_var = dq.inx.uid[c_var.stid]
+                    if hasattr(s_var,'cell_measures'):
                         var['cell_measures']= s_var.cell_measures
-	            if hasattr(s_var,'cell_methods'):
+                    if hasattr(s_var,'cell_methods'):
                         var['cell_methods']= s_var.cell_methods
 
                 # Set what we can from the time section
@@ -576,10 +576,10 @@ class ParseXML(object):
                     if hasattr(t_var,'title'):
                         var['time_title'] = t_var.title
  
-	        # Set what we can from the spatial section
+                # Set what we can from the spatial section
                 if hasattr(s_var, 'spid'):
-	            sp_var = dq.inx.uid[s_var.spid]
-	            if hasattr(sp_var,'dimensions'):
+                    sp_var = dq.inx.uid[s_var.spid]
+                    if hasattr(sp_var,'dimensions'):
                         if 'dimensions' in var.keys():
                             var['dimensions'] = var['dimensions']+sp_var.dimensions
                         else:
@@ -589,24 +589,24 @@ class ParseXML(object):
                                 if d not in axes_list and d != '' and d != 'None':
                                     axes_list.append(d) 
 
-	        # Set what we can from the variable section
+                # Set what we can from the variable section
                 if hasattr(c_var, 'vid'):
                     v_var = dq.inx.uid[c_var.vid]
-	            if hasattr(v_var,'cf_standard_name'):
+                    if hasattr(v_var,'cf_standard_name'):
                         var['cf_standard_name']= v_var.sn
-	            if hasattr(v_var,'long_name'):
+                    if hasattr(v_var,'long_name'):
                         var['long_name']= v_var.sn
-	            if hasattr(v_var,'units'):
+                    if hasattr(v_var,'units'):
                         if v_var.units == "":
                             var['units']= '1'
                         else:
                             var['units']= v_var.units
 
-	        #var['ext_cell_measures']=
-	        #var['required']=
+                #var['ext_cell_measures']=
+                #var['required']=
 
                 # Add variable to variable dictionary
-	        variables[c_var.label] = var
+                variables[c_var.label] = var
 
             for a in axes_list:
                 id = dq.inx.grids.label[a]
