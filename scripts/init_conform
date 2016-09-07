@@ -228,7 +228,8 @@ def main(argv=None):
 
     # Open/Read the MIP table
     if args.mipTableType != None and args.exp != None:
-        exp_dict = miptableparser.mip_table_parser(args.exp, args.mipTable, type=args.mipTableType)
+        exp_dict = miptableparser.mip_table_parser(args.exp, args.mipTable,
+                                                   table_type=args.mipTableType)
 
     # Write the spec files out to disk
     for t in exp_dict:
