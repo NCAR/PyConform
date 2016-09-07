@@ -1,12 +1,21 @@
+"""
+MIP Table Parsers and functions
+
+COPYRIGHT: 2016, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
 import sys
 
-#=============================================
-# Parse and Standardize the MIP table.
-# Return a dcitionary that contains the parsed
-# information.
-#=============================================
-def  mip_table_parser(exp, table_name, type=None, user_vars={}, user_axes={}, user_tableInfo={}):
+
+#===================================================================================================
+# mip_table_parser - Parse and Standardize the MIP table.
+#===================================================================================================
+def  mip_table_parser(exp, table_name, table_type=None,
+                      user_vars={}, user_axes={}, user_tableInfo={}):
     """
+    Parse and standardize a MIP table
+    
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
     After the table has been parsed, the information is standardized into the three dictionaries 
     and combined into one final dictionary.  The three dictionaries are keyed with 'variables',  
@@ -20,22 +29,26 @@ def  mip_table_parser(exp, table_name, type=None, user_vars={}, user_axes={}, us
     Parameters:
         exp (str): Name of the experiment.
         table_name (str):  Full path to a table.  Or in the case of XML, the experiment name.
-        type (str): One of 3 keys that identify table type: 'excel', 'cmor', or 'xml'.
-        user_var (dict): Allows users to add another synonym for one of the standard variable field keys.
-        user_axes (dict): Allows users to add another synonym for one of the standard axes field keys.
-        user_tableInfo (dict): Allows users to add another synonym for one of the standard table field keys. 
+        table_type (str): One of 3 keys that identify table type: 'excel', 'cmor', or 'xml'.
+        user_var (dict): Allows users to add another synonym for one of the
+            standard variable field keys.
+        user_axes (dict): Allows users to add another synonym for one of the
+            standard axes field keys.
+        user_tableInfo (dict): Allows users to add another synonym for one of the
+            standard table field keys. 
 
     Returns:
-        table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
-        'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-        each variable has a value of a dictionary keyed with the standard field names.        
+        table_dict (dict): A dictionary that holds all of the parsed table information.
+            Contains the keys: 'variables', 'axes', and 'table_info'.  Each of these are
+            dictionaries, keyed with variable names and each variable has a value of a
+            dictionary keyed with the standard field names.        
     """
     # Standardized identifiers for variable fields
     # Format: standardName: [synonym list]
-    table_var_fields = {
-                        'cell_measures': ['cell_measures'],
+    table_var_fields = {'cell_measures': ['cell_measures'],
                         'cell_methods': ['cell_methods'],
-                        'cf_standard_name': ['CF Standard Name', 'CF_Standard_Name', 'cf_standard_name', 'standard_name'],
+                        'cf_standard_name': ['CF Standard Name', 'CF_Standard_Name',
+                                             'cf_standard_name', 'standard_name'],
                         'comment': ['comment'],
                         'deflate': ['deflate'],
                         'deflate_level': ['deflate_level'],
@@ -60,13 +73,11 @@ def  mip_table_parser(exp, table_name, type=None, user_vars={}, user_axes={}, us
                         'type': ['type'],
                         'units': ['units'],
                         'valid_max': ['valid_max'],
-                        'valid_min': ['valid_min']
-    }
+                        'valid_min': ['valid_min']}
 
     # Standardized identifiers for axes fields
     # Format: standardName: [synonym list]
-    table_axes_fields = {
-                         'axis': ['axis'],
+    table_axes_fields = {'axis': ['axis'],
                          'bounds_values': ['bounds_values'],
                          'climatology': ['climatology'],
                          'convert_to': ['convert_to'],
@@ -92,46 +103,43 @@ def  mip_table_parser(exp, table_name, type=None, user_vars={}, user_axes={}, us
                          'valid_min': ['valid_min'],
                          'value': ['value'],
                          'z_bounds_factors': ['z_bounds_factors'],
-                         'z_factors': ['z_factors']
-    }
+                         'z_factors': ['z_factors']}
 
     # Standardized identifiers for table information fields
     # Format: standardName: [synonym list]
-    table_fields = {
-                        'approx_interval': ['approx_interval'],
-                        'approx_interval_error': ['approx_interval_error'],
-                        'approx_interval_warning': ['approx_interval_warning'],
-                        'baseURL': ['baseURL'],
-                        'cf_version': ['cf_version'],
-                        'cmor_version': ['cmor_version'],
-                        'expt_id_ok': ['expt_id_ok'],
-                        'forcings': ['forcings'],
-                        'frequency': ['frequency'],
-                        'generic_levels': ['generic_levels'],
-                        'magic_number': ['magic_number'],
-                        'missing_value': ['missing_value'],
-                        'modeling_realm': ['modeling_realm'],
-                        'product': ['product'],
-                        'project_id': ['project_id'],
-                        'required_global_attributes': ['required_global_attributes'],
-                        'table_date': ['table_date'],
-                        'table_id': ['table_id'],
-                        'tracking_prefix': ['tracking_prefix']
-    }
+    table_fields = {'approx_interval': ['approx_interval'],
+                    'approx_interval_error': ['approx_interval_error'],
+                    'approx_interval_warning': ['approx_interval_warning'],
+                    'baseURL': ['baseURL'],
+                    'cf_version': ['cf_version'],
+                    'cmor_version': ['cmor_version'],
+                    'expt_id_ok': ['expt_id_ok'],
+                    'forcings': ['forcings'],
+                    'frequency': ['frequency'],
+                    'generic_levels': ['generic_levels'],
+                    'magic_number': ['magic_number'],
+                    'missing_value': ['missing_value'],
+                    'modeling_realm': ['modeling_realm'],
+                    'product': ['product'],
+                    'project_id': ['project_id'],
+                    'required_global_attributes': ['required_global_attributes'],
+                    'table_date': ['table_date'],
+                    'table_id': ['table_id'],
+                    'tracking_prefix': ['tracking_prefix']}
 
     # Set the type of table and return a dictionary that contains the read information.
-    if type == 'excel':
+    if table_type == 'excel':
         p = ParseExcel()
-    elif type == 'cmor':
+    elif table_type == 'cmor':
         p = ParseCmorTable()
-    elif type == 'xml':
+    elif table_type == 'xml':
         p = ParseXML()
     return p.parse_table(exp, table_name, table_var_fields, table_axes_fields, table_fields,
-                        user_vars, user_axes, user_tableInfo)
+                         user_vars, user_axes, user_tableInfo)
 
-#=============================================
-#  Find the standardization key to use
-#=============================================
+#===================================================================================================
+# _get_key - Find the standardization key to use
+#===================================================================================================
 def _get_key(key, table, user_table):
     """
     Find the standardization key to use.
@@ -143,8 +151,8 @@ def _get_key(key, table, user_table):
                             the table argument, values are the new field names used in the table.
  
     Returns:
-        k (str): The key to use that matches the standardization.  Program will exit if no matching 
-                 key is found. 
+        k (str): The key to use that matches the standardization.
+            Program will exit if no matching key is found. 
     """
     for k, v in table.iteritems():
         if key in v:  # Search for field name in standard dictionary.
@@ -157,20 +165,15 @@ def _get_key(key, table, user_table):
     sys.exit(1)
 
 
-#=============================================
-#  Parse Excel Spreadsheets that have been
-#  reformatted to tab deliminated fields.
-#=============================================
+#===================================================================================================
+# ParseExcel - Parse Excel Spreadsheets that have been reformatted to tab deliminated fields.
+#===================================================================================================
 class ParseExcel(object):
 
-    #=============================================
-    # Parse the tab deliminated table file
-    #=============================================
     def parse_table(self, exp, table_name, table_var_fields, table_axes_fields, table_fields,
                     user_vars, user_axes, user_tableInfo):
         """
-        Function will parse a tab deliminated file and return a dictionary containing
-        the parsed fields.
+        Function will parse a tab deliminated file and return the parsed field dictionary.
 
         Parameter:
             exp (str):  The name of the experiment.
@@ -189,9 +192,10 @@ class ParseExcel(object):
                                    Values should be a list of acceptable field names.  
 
         Returns:
-            table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
-            'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-            each variable has a value of a dictionary keyed with the standard field names.           
+            table_dict (dict): A dictionary that holds all of the parsed table information.
+                Contains the keys: 'variables', 'axes', and 'table_info'.  Each of these are
+                dictionaries, keyed with variable names and each variable has a value of a
+                dictionary keyed with the standard field names.           
         """
         import csv
 
@@ -203,7 +207,8 @@ class ParseExcel(object):
         longest = 0
         fieldnames = []
 
-        # First time reading the file:  Read the file and determine the longest line (first is recorded).
+        # First time reading the file:
+        # Read the file and determine the longest line (first is recorded).
         # This line is assumed to contain the field names.
         f = open(table_name, 'rU')
         reader = (f.read().splitlines())
@@ -219,7 +224,8 @@ class ParseExcel(object):
                 fieldnames = list(r)
                 longest = l
 
-        # Second time reading the file:  Parse the file into a dictionary that uses the field
+        # Second time reading the file:
+        # Parse the file into a dictionary that uses the field
         # names found in the first read as the keys.
         reader = csv.DictReader(open(table_name, 'rU'), delimiter='\t', fieldnames=fieldnames)
 
@@ -241,25 +247,21 @@ class ParseExcel(object):
         return table_dict
 
 
-#=============================================
-# Parses standard CMOR table files
-#=============================================
+#===================================================================================================
+# ParseCmorTable - Parses standard CMOR table files
+#===================================================================================================
 class ParseCmorTable(object):
 
-    #=============================================
-    #  Reset and get ready for a new variable set
-    #=============================================
     def _reset(self, status, part, whole, name):
+        """Reset and get ready for a new variable set"""
 
         whole[name] = part
         part = {}
         status = False
         return status, part, whole
 
-    #=============================================
-    #  Setup for the new entry group found
-    #=============================================
     def _new_entry(self, status, part, whole, name, key, value):
+        """Setup for the new entry group found"""
 
         if len(part.keys()) > 0:
             whole[name] = part
@@ -269,14 +271,10 @@ class ParseCmorTable(object):
         status = True
         return status, part, whole, name
 
-    #=============================================
-    #  Parse a CMOR text file
-    #=============================================
     def parse_table(self, exp, table_name, table_var_fields, table_axes_fields, table_fields,
                     user_vars, user_axes, user_tableInfo):
         """
-        Function will parse a CMOR table text file and return a dictionary containing
-        the parsed fields.
+        Function will parse a CMOR table text file and return a parsed field dictionary
 
         Parameter:
             exp (str):  The name of the experiment.
@@ -295,9 +293,10 @@ class ParseCmorTable(object):
                                    Values should be a list of acceptable field names.  
 
         Returns:
-            table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
-            'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-            each variable has a value of a dictionary keyed with the standard field names.           
+            table_dict (dict): A dictionary that holds all of the parsed table information.
+                Contains the keys: 'variables', 'axes', and 'table_info'.  Each of these are
+                dictionaries, keyed with variable names and each variable has a value of a
+                dictionary keyed with the standard field names.           
         """
 
         # Initialize needed dictionaries
@@ -311,7 +310,7 @@ class ParseCmorTable(object):
         axis = {}
         var = {}
         sub = {}
-        map = {}
+        nmap = {}
 
         # Status Variables
         current_axis = None
@@ -356,7 +355,7 @@ class ParseCmorTable(object):
                     if in_sub == True:
                         in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
                     if in_mapping == True:
-                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                        in_mapping, nmap, mapping = self._reset(in_mapping, nmap, mapping, current_mapping)
                     in_axis, axis, axes, current_axis = self._new_entry(in_axis, axis, axes, current_axis, key, value)
                 # Start an entry for 'variable_entry'
                 elif 'variable_entry' in key:
@@ -365,7 +364,7 @@ class ParseCmorTable(object):
                     if in_sub == True:
                         in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
                     if in_mapping == True:
-                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                        in_mapping, nmap, mapping = self._reset(in_mapping, nmap, mapping, current_mapping)
                     in_var, var, variables, current_var = self._new_entry(in_var, var, variables, current_var, key, value)
                 # Start an entry for 'subroutine_entry'
                 elif 'subroutine_entry' in key:
@@ -374,7 +373,7 @@ class ParseCmorTable(object):
                     if in_var == True:
                         in_var, var, variables = self._reset(in_var, var, variables, current_var)
                     if in_mapping == True:
-                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                        in_mapping, nmap, mapping = self._reset(in_mapping, nmap, mapping, current_mapping)
                     in_sub, sub, subroutines, current_sub = self._new_entry(in_sub, sub, subroutines, current_sub, key, value)
                 # Start an entry for 'mapping_entry'
                 elif 'mapping_entry' in key:
@@ -384,7 +383,7 @@ class ParseCmorTable(object):
                         in_var, var, variables = self._reset(in_var, var, variables, current_var)
                     if in_sub == True:
                         in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
-                    in_mapping, map, maping, current_mapping = self._new_entry(in_mapping, map, mapping, current_mapping, key, value)
+                    in_mapping, nmap, mapping, current_mapping = self._new_entry(in_mapping, nmap, mapping, current_mapping, key, value)
                 # The new entry has been started.  If this point has been reached, parse this line into the correct standardized
                 # field name under the current activated entry.
                 else:
@@ -397,7 +396,7 @@ class ParseCmorTable(object):
                     elif (in_sub):  # field added to subroutine
                         sub[key] = value
                     elif (in_mapping):  # field added to mapping
-                        map[key] = value
+                        nmap[key] = value
                     else:  # field added to table information
                         mip_key = _get_key(key, table_fields, user_tableInfo)
                         table_info[mip_key] = value
@@ -410,7 +409,7 @@ class ParseCmorTable(object):
         if in_sub == True:
             subroutines[current_sub] = sub
         if in_mapping == True:
-            mapping[current_mapping] = map
+            mapping[current_mapping] = nmap
 
         # Combine three separate dictionaries into the table summary dictionary
         table_dict['variables'] = variables
@@ -471,7 +470,6 @@ class ParseXML(object):
 #        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
         # Get a list of mips for the experiment
-        e_mip = []
         e_id = dq.inx.experiment.label[exp]
         e_vars = dq.inx.iref_by_sect[e_id[0]].a
         total_request = {}
@@ -481,7 +479,6 @@ class ParseXML(object):
             variables = {}
             axes = {}
             table_info = {}
-            data = {}
 
             table_info['experiment'] = exp
             table_info['experiment_id'] = exp
@@ -491,9 +488,9 @@ class ParseXML(object):
 
 
             rl = dq.inx.requestLink.uid[dr.rlid]
-            vars = dq.inx.iref_by_sect[rl.refid].a
+            tvars = dq.inx.iref_by_sect[rl.refid].a
             axes_list = []
-            for rv in vars['requestVar']:
+            for rv in tvars['requestVar']:
                 var = {}
                 v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
                 c_var = dq.inx.uid[v_id]
@@ -599,10 +596,10 @@ class ParseXML(object):
                 variables[c_var.label] = var
 
             for a in axes_list:
-                id = dq.inx.grids.label[a]
+                v_id = dq.inx.grids.label[a]
                 ax = {}
-                if len(id) > 0:
-                    v = dq.inx.grids.uid[id[0]]
+                if len(v_id) > 0:
+                    v = dq.inx.grids.uid[v_id[0]]
                 if hasattr(v, 'units'):
                     if v.units == "":
                         ax['units'] = '1'
