@@ -5,7 +5,7 @@ import sys
 # Return a dcitionary that contains the parsed
 # information.
 #=============================================
-def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_tableInfo={}):
+def  mip_table_parser(exp, table_name, type=None, user_vars={}, user_axes={}, user_tableInfo={}):
     """
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
     After the table has been parsed, the information is standardized into the three dictionaries 
@@ -35,7 +35,7 @@ def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_t
     table_var_fields = {
                         'cell_measures': ['cell_measures'],
                         'cell_methods': ['cell_methods'],
-                        'cf_standard_name': ['CF Standard Name','CF_Standard_Name','cf_standard_name','standard_name'],
+                        'cf_standard_name': ['CF Standard Name', 'CF_Standard_Name', 'cf_standard_name', 'standard_name'],
                         'comment': ['comment'],
                         'deflate': ['deflate'],
                         'deflate_level': ['deflate_level'],
@@ -45,7 +45,7 @@ def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_t
                         'flag_meanings': ['flag_meanings'],
                         'flag_values': ['flag_values'],
                         'frequency': ['frequency'],
-                        'id': ['id','label','variable_entry'],
+                        'id': ['id', 'label', 'variable_entry'],
                         'long_name': ['long_name'],
                         'modeling_realm': ['modeling_realm'],
                         'ok_min_mean_abs': ['ok_min_mean_abs'],
@@ -80,7 +80,7 @@ def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_t
                          'out_name': ['out_name'],
                          'positive': ['positive'],
                          'requested': ['requested'],
-                         'requested_bounds': ['bounds_requested','requested_bounds'],
+                         'requested_bounds': ['bounds_requested', 'requested_bounds'],
                          'required': ['required'],
                          'standard_name': ['standard_name'],
                          'stored_direction': ['stored_direction'],
@@ -126,9 +126,9 @@ def  mip_table_parser(exp, table_name,type=None,user_vars={},user_axes={},user_t
         p = ParseCmorTable()
     elif type == 'xml':
         p = ParseXML()
-    return p.parse_table(exp,table_name,table_var_fields,table_axes_fields,table_fields,
-                        user_vars,user_axes,user_tableInfo)
- 
+    return p.parse_table(exp, table_name, table_var_fields, table_axes_fields, table_fields,
+                        user_vars, user_axes, user_tableInfo)
+
 #=============================================
 #  Find the standardization key to use
 #=============================================
@@ -146,20 +146,20 @@ def _get_key(key, table, user_table):
         k (str): The key to use that matches the standardization.  Program will exit if no matching 
                  key is found. 
     """
-    for k,v in table.iteritems():
-        if key in v: # Search for field name in standard dictionary.
+    for k, v in table.iteritems():
+        if key in v:  # Search for field name in standard dictionary.
             return k
-        elif k in user_table.keys(): # Search for field name in user created dictionary.
+        elif k in user_table.keys():  # Search for field name in user created dictionary.
             if key in user_table[k]:
                 return k
     # field name is not recognized.  Exit the program with an error.
-    print('Error: ',key,' is not a valid field name at this time.  Please define and resubmit.')
+    print('Error: ', key, ' is not a valid field name at this time.  Please define and resubmit.')
     sys.exit(1)
 
 
 #=============================================
 #  Parse Excel Spreadsheets that have been
-#  reformatted to tab deliminated fields. 
+#  reformatted to tab deliminated fields.
 #=============================================
 class ParseExcel(object):
 
@@ -169,8 +169,8 @@ class ParseExcel(object):
     #=============================================
     # Parse the tab deliminated table file
     #=============================================
-    def parse_table(self,exp,table_name,table_var_fields,table_axes_fields,table_fields,
-                    user_vars,user_axes,user_tableInfo):
+    def parse_table(self, exp, table_name, table_var_fields, table_axes_fields, table_fields,
+                    user_vars, user_axes, user_tableInfo):
         """
         Function will parse a tab deliminated file and return a dictionary containing
         the parsed fields.
@@ -204,36 +204,35 @@ class ParseExcel(object):
         variables = {}
         key = None
         longest = 0
-        found = False
         fieldnames = []
 
         # First time reading the file:  Read the file and determine the longest line (first is recorded).
         # This line is assumed to contain the field names.
         f = open(table_name, 'rU')
-        reader = (f.read().splitlines()) 
+        reader = (f.read().splitlines())
         for row in reader:
             r = row.split('\t')
-            i = 0 
+            i = 0
             l = len(r)
             for g in r:
                 if g == '':
-                    l = l-1
-                i = i+1
+                    l = l - 1
+                i = i + 1
             if l > longest:
-                fieldnames = list(r)   
-                longest = l 
+                fieldnames = list(r)
+                longest = l
 
         # Second time reading the file:  Parse the file into a dictionary that uses the field
         # names found in the first read as the keys.
-        reader = csv.DictReader(open(table_name, 'rU'), delimiter='\t',fieldnames=fieldnames)
+        reader = csv.DictReader(open(table_name, 'rU'), delimiter='\t', fieldnames=fieldnames)
 
         # Standardize the field  names and store in a final dictionary.
         for row in reader:
             fields = {}
             for k in row.keys():
-               if k in output_var_keys:
-                   key = row[k]
-            for k,v in row.iteritems():
+                if k in output_var_keys:
+                    key = row[k]
+            for k, v in row.iteritems():
                 if v != '':
                     var_key = _get_key(k, table_var_fields, user_vars)
                     fields[var_key] = v
@@ -250,12 +249,12 @@ class ParseExcel(object):
 #=============================================
 class ParseCmorTable(object):
 
-    def _init_():
+    def __init__(self):
         super(ParseCmorTable, self).__init__()
 
     #=============================================
-    #  Reset and get ready for a new variable set 
-    #=============================================  
+    #  Reset and get ready for a new variable set
+    #=============================================
     def _reset(self, status, part, whole, name):
 
         whole[name] = part
@@ -279,8 +278,8 @@ class ParseCmorTable(object):
     #=============================================
     #  Parse a CMOR text file
     #=============================================
-    def parse_table(self, exp,table_name,table_var_fields,table_axes_fields,table_fields,
-                    user_vars,user_axes,user_tableInfo):
+    def parse_table(self, exp, table_name, table_var_fields, table_axes_fields, table_fields,
+                    user_vars, user_axes, user_tableInfo):
         """
         Function will parse a CMOR table text file and return a dictionary containing
         the parsed fields.
@@ -318,7 +317,7 @@ class ParseCmorTable(object):
         axis = {}
         var = {}
         sub = {}
-        map = {} 
+        map = {}
 
         # Status Variables
         current_axis = None
@@ -335,7 +334,7 @@ class ParseCmorTable(object):
 
         for l in mip_file:
             # if comment - don't proceed
-            #print l
+            # print l
             l_no_comment = l.split('!')
             l = l_no_comment[0].strip()
             if len(l) > 0 and ':' in l:
@@ -346,66 +345,66 @@ class ParseCmorTable(object):
                     parts[1] = ''.join(parts[1:])
                 key = parts[0].strip()
                 value = parts[1].strip()
-                #print l,'->',parts
+                # print l,'->',parts
 
                 # add to table_info dictionary
                 # Start an entry for 'expt_id_ok'
                 if 'expt_id_ok' in key:
                     equiv = value.split("\' \'")
                     if len(equiv) == 2:
-                       expt_id_ok[equiv[0]] = equiv[1]
+                        expt_id_ok[equiv[0]] = equiv[1]
                     elif len(equiv) == 1:
-                       expt_id_ok[equiv[0]] = None
+                        expt_id_ok[equiv[0]] = None
                 # Start an entry for 'axis_entry'
                 elif 'axis_entry' in key:
                     if in_var == True:
-                        in_var,var,variables = self.reset(in_var,var,variables,current_var)
+                        in_var, var, variables = self.reset(in_var, var, variables, current_var)
                     if in_sub == True:
-                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
+                        in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
                     if in_mapping == True:
-                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-                    in_axis,axis,axes,current_axis = self._new_entry(in_axis,axis,axes,current_axis,key,value)
+                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                    in_axis, axis, axes, current_axis = self._new_entry(in_axis, axis, axes, current_axis, key, value)
                 # Start an entry for 'variable_entry'
                 elif 'variable_entry' in key:
                     if in_axis == True:
-                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                        in_axis, axis, axes = self._reset(in_axis, axis, axes, current_axis)
                     if in_sub == True:
-                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
+                        in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
                     if in_mapping == True:
-                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-                    in_var,var,variables,current_var = self._new_entry(in_var,var,variables,current_var,key,value)
+                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                    in_var, var, variables, current_var = self._new_entry(in_var, var, variables, current_var, key, value)
                 # Start an entry for 'subroutine_entry'
                 elif 'subroutine_entry' in key:
                     if in_axis == True:
-                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                        in_axis, axis, axes = self._reset(in_axis, axis, axes, current_axis)
                     if in_var == True:
-                        in_var,var,variables = self._reset(in_var,var,variables,current_var)
+                        in_var, var, variables = self._reset(in_var, var, variables, current_var)
                     if in_mapping == True:
-                        in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-                    in_sub,sub,subroutines,current_sub = self._new_entry(in_sub,sub,subroutines,current_sub,key,value)
+                        in_mapping, map, maping = self._reset(in_mapping, map, mapping, current_mapping)
+                    in_sub, sub, subroutines, current_sub = self._new_entry(in_sub, sub, subroutines, current_sub, key, value)
                 # Start an entry for 'mapping_entry'
                 elif 'mapping_entry' in key:
                     if in_axis == True:
-                        in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
+                        in_axis, axis, axes = self._reset(in_axis, axis, axes, current_axis)
                     if in_var == True:
-                        in_var,var,variables = self._reset(in_var,var,variables,current_var)
+                        in_var, var, variables = self._reset(in_var, var, variables, current_var)
                     if in_sub == True:
-                        in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-                    in_mapping,map,maping,current_mapping = self._new_entry(in_mapping,map,mapping,current_mapping,key,value)
+                        in_sub, sub, subroutines = self._reset(in_sub, sub, subroutines, current_sub)
+                    in_mapping, map, maping, current_mapping = self._new_entry(in_mapping, map, mapping, current_mapping, key, value)
                 # The new entry has been started.  If this point has been reached, parse this line into the correct standardized
                 # field name under the current activated entry.
                 else:
-                    if (in_axis): #field added to axes variable
-                        axis_key = _get_key(key, table_axes_fields, user_axes) 
+                    if (in_axis):  # field added to axes variable
+                        axis_key = _get_key(key, table_axes_fields, user_axes)
                         axis[axis_key] = value
-                    elif (in_var): #field added to variable
+                    elif (in_var):  # field added to variable
                         var_key = _get_key(key, table_var_fields, user_vars)
                         var[var_key] = value
-                    elif (in_sub): #field added to subroutine
+                    elif (in_sub):  # field added to subroutine
                         sub[key] = value
-                    elif (in_mapping): #field added to mapping
+                    elif (in_mapping):  # field added to mapping
                         map[key] = value
-                    else: #field added to table information
+                    else:  # field added to table information
                         mip_key = _get_key(key, table_fields, user_tableInfo)
                         table_info[mip_key] = value
 
@@ -425,21 +424,21 @@ class ParseCmorTable(object):
         table_dict['subroutines'] = subroutines
         table_dict['table_info'] = table_info
 
-        return table_dict 
+        return table_dict
 
 #=============================================
 #  Parse the XML format
 #=============================================
 class ParseXML(object):
 
-    def _init_():
-        super(ParseXML, self, miptable,table_var_fields,table_axes_fields,table_fields).__init__()
+    def __init__(self):
+        super(ParseXML, self).__init__()
 
     #=============================================
     # Parse the XML format using dreqPy
     #=============================================
-    def parse_table(self,exp,miptable,table_var_fields,table_axes_fields,table_fields,
-                    user_vars,user_axes,user_tableInfo):
+    def parse_table(self, exp, miptable, table_var_fields, table_axes_fields, table_fields,
+                    user_vars, user_axes, user_tableInfo):
         """
         Function will parse an XML file using dreqPy and return a dictionary containing
         the parsed fields.
@@ -471,12 +470,12 @@ class ParseXML(object):
 
         # Get table id
 #        if len(g_id) == 0:
-#            print 'ERROR: Variable group/table ',table_name, ' not supported.'  
+#            print 'ERROR: Variable group/table ',table_name, ' not supported.'
 #            print 'Please select from the following: '
 #            print dq.inx.requestVarGroup.label.keys()
 #            print '\nIf your selected table is listed, it may not be supported in this verison of dreqpy.'
 #            print '\nEXITING. \n'
-#            sys.exit(1) 
+#            sys.exit(1)
 #        # Get the id's of the variables in this table
 #        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
@@ -502,108 +501,108 @@ class ParseXML(object):
 
             rl = dq.inx.requestLink.uid[dr.rlid]
             vars = dq.inx.iref_by_sect[rl.refid].a
-            axes_list = [] 
+            axes_list = []
             for rv in vars['requestVar']:
                 var = {}
                 v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
                 c_var = dq.inx.uid[v_id]
                 # Set what we can from the CMORvar section
-                if hasattr(c_var,'deflate'):
-                    var['deflate']= c_var.deflate
-                if hasattr(c_var,'deflate_level'):
-                    var['deflate_level']= c_var.deflate_level
-                if hasattr(c_var,'description'):
-                    var['description']= c_var.description
-                #var['flag_meanings']= c_var.flag_meanings
-                #var['flag_values']= c_var.flag_values
-                if hasattr(c_var,'frequency'):
-                    var['frequency']= c_var.frequency
-                    table_info['frequency']= c_var.frequency
-                if hasattr(c_var,'label'):
-                    var['id']= c_var.label
+                if hasattr(c_var, 'deflate'):
+                    var['deflate'] = c_var.deflate
+                if hasattr(c_var, 'deflate_level'):
+                    var['deflate_level'] = c_var.deflate_level
+                if hasattr(c_var, 'description'):
+                    var['description'] = c_var.description
+                # var['flag_meanings']= c_var.flag_meanings
+                # var['flag_values']= c_var.flag_values
+                if hasattr(c_var, 'frequency'):
+                    var['frequency'] = c_var.frequency
+                    table_info['frequency'] = c_var.frequency
+                if hasattr(c_var, 'label'):
+                    var['id'] = c_var.label
                     var['out_name'] = c_var.label
                     l = dq.inx.var.label[c_var.label]
-                    if len(l)>0:
-                        var['standard_name'] = dq.inx.var.uid[l[0]].sn 
-                if hasattr(c_var,'modeling_realm'):
-                    var['modeling_realm']= c_var.modeling_realm
-                if hasattr(c_var,'ok_min_mean_abs'):
-                    var['ok_min_mean_abs']= c_var.ok_min_mean_abs
-                if hasattr(c_var,'ok_max_mean_abs'):
-                    var['ok_max_mean_abs']= c_var.ok_max_mean_abs
-                if hasattr(c_var,'out_name'):
-                    var['out_name']= c_var.label #?
-                if hasattr(c_var,'positive'):
-                    var['positive']= c_var.positive
-                if hasattr(c_var,'prov'):
-                    var['prov']= c_var.prov
-                if hasattr(c_var,'procNote'):
-                    var['provcNote']= c_var.procNote
-                if hasattr(c_var,'shuffle'):
-                    var['shuffle']= c_var.shuffle
-                if hasattr(c_var,'title'):
-                    var['title']= c_var.title
-                    var['long_name']= c_var.title
-                if hasattr(c_var,'description'):
-                    var['comment']= c_var.description
-                if hasattr(c_var,'type'):
-                    var['type']= c_var.type
-                if hasattr(c_var,'valid_max'):
+                    if len(l) > 0:
+                        var['standard_name'] = dq.inx.var.uid[l[0]].sn
+                if hasattr(c_var, 'modeling_realm'):
+                    var['modeling_realm'] = c_var.modeling_realm
+                if hasattr(c_var, 'ok_min_mean_abs'):
+                    var['ok_min_mean_abs'] = c_var.ok_min_mean_abs
+                if hasattr(c_var, 'ok_max_mean_abs'):
+                    var['ok_max_mean_abs'] = c_var.ok_max_mean_abs
+                if hasattr(c_var, 'out_name'):
+                    var['out_name'] = c_var.label  # ?
+                if hasattr(c_var, 'positive'):
+                    var['positive'] = c_var.positive
+                if hasattr(c_var, 'prov'):
+                    var['prov'] = c_var.prov
+                if hasattr(c_var, 'procNote'):
+                    var['provcNote'] = c_var.procNote
+                if hasattr(c_var, 'shuffle'):
+                    var['shuffle'] = c_var.shuffle
+                if hasattr(c_var, 'title'):
+                    var['title'] = c_var.title
+                    var['long_name'] = c_var.title
+                if hasattr(c_var, 'description'):
+                    var['comment'] = c_var.description
+                if hasattr(c_var, 'type'):
+                    var['type'] = c_var.type
+                if hasattr(c_var, 'valid_max'):
                     if isinstance(c_var.valid_max, (int, long, float, complex)):
-                        var['valid_max']= c_var.valid_max
-                if hasattr(c_var,'valid_min'):
-                    if isinstance(c_var.valid_min, (int, long, float, complex)): 
-                        var['valid_min']= c_var.valid_min
- 
+                        var['valid_max'] = c_var.valid_max
+                if hasattr(c_var, 'valid_min'):
+                    if isinstance(c_var.valid_min, (int, long, float, complex)):
+                        var['valid_min'] = c_var.valid_min
+
                 # Set what we can from the standard section
-                if hasattr(c_var,'stid'):
+                if hasattr(c_var, 'stid'):
                     s_var = dq.inx.uid[c_var.stid]
-                    if hasattr(s_var,'cell_measures'):
-                        var['cell_measures']= s_var.cell_measures
-                    if hasattr(s_var,'cell_methods'):
-                        var['cell_methods']= s_var.cell_methods
+                    if hasattr(s_var, 'cell_measures'):
+                        var['cell_measures'] = s_var.cell_measures
+                    if hasattr(s_var, 'cell_methods'):
+                        var['cell_methods'] = s_var.cell_methods
 
                 # Set what we can from the time section
                 if hasattr(s_var, 'tmid'):
                     t_var = dq.inx.uid[s_var.tmid]
-                    if hasattr(t_var,'dimensions'):
+                    if hasattr(t_var, 'dimensions'):
                         t = t_var.dimensions
                         if t != '' and t != 'None':
                             var['time'] = t
-                            var['dimensions'] = t+'|'
-                    if hasattr(t_var,'label'):
+                            var['dimensions'] = t + '|'
+                    if hasattr(t_var, 'label'):
                         var['time_label'] = t_var.label
-                    if hasattr(t_var,'title'):
+                    if hasattr(t_var, 'title'):
                         var['time_title'] = t_var.title
- 
+
                 # Set what we can from the spatial section
                 if hasattr(s_var, 'spid'):
                     sp_var = dq.inx.uid[s_var.spid]
-                    if hasattr(sp_var,'dimensions'):
+                    if hasattr(sp_var, 'dimensions'):
                         if 'dimensions' in var.keys():
-                            var['dimensions'] = var['dimensions']+sp_var.dimensions
+                            var['dimensions'] = var['dimensions'] + sp_var.dimensions
                         else:
                             var['dimensions'] = sp_var.dimensions
                             dims = var['dimensions'].split('|')
                             for d in dims:
                                 if d not in axes_list and d != '' and d != 'None':
-                                    axes_list.append(d) 
+                                    axes_list.append(d)
 
                 # Set what we can from the variable section
                 if hasattr(c_var, 'vid'):
                     v_var = dq.inx.uid[c_var.vid]
-                    if hasattr(v_var,'cf_standard_name'):
-                        var['cf_standard_name']= v_var.sn
-                    if hasattr(v_var,'long_name'):
-                        var['long_name']= v_var.sn
-                    if hasattr(v_var,'units'):
+                    if hasattr(v_var, 'cf_standard_name'):
+                        var['cf_standard_name'] = v_var.sn
+                    if hasattr(v_var, 'long_name'):
+                        var['long_name'] = v_var.sn
+                    if hasattr(v_var, 'units'):
                         if v_var.units == "":
-                            var['units']= '1'
+                            var['units'] = '1'
                         else:
-                            var['units']= v_var.units
+                            var['units'] = v_var.units
 
-                #var['ext_cell_measures']=
-                #var['required']=
+                # var['ext_cell_measures']=
+                # var['required']=
 
                 # Add variable to variable dictionary
                 variables[c_var.label] = var
@@ -613,41 +612,41 @@ class ParseXML(object):
                 ax = {}
                 if len(id) > 0:
                     v = dq.inx.grids.uid[id[0]]
-                if hasattr(v,'units'):
+                if hasattr(v, 'units'):
                     if v.units == "":
                         ax['units'] = '1'
-                    else: 
+                    else:
                         ax['units'] = v.units
-                if hasattr(v,'axis'):
+                if hasattr(v, 'axis'):
                     ax['axis'] = v.axis
-                if hasattr(v,'valid_max'):
-                    if isinstance(v.valid_max, (int, long, float, complex)):        
+                if hasattr(v, 'valid_max'):
+                    if isinstance(v.valid_max, (int, long, float, complex)):
                         ax['valid_max'] = v.valid_max
-                if hasattr(v,'valid_min'):
+                if hasattr(v, 'valid_min'):
                     if isinstance(v.valid_min, (int, long, float, complex)):
                         ax['valid_min'] = v.valid_min
-                if hasattr(v,'cf_standard_name'):
+                if hasattr(v, 'cf_standard_name'):
                     ax['cf_standard_name'] = v.standardName
-                if hasattr(v,'type'):
+                if hasattr(v, 'type'):
                     ax['type'] = v.type
-                if hasattr(v,'id'):
+                if hasattr(v, 'id'):
                     ax['id'] = v.label
-                if hasattr(v,'positive'):
+                if hasattr(v, 'positive'):
                     ax['positive'] = v.positive
-                if hasattr(v,'title'):
+                if hasattr(v, 'title'):
                     ax['title'] = v.title
-                if hasattr(v,'bounds'):
+                if hasattr(v, 'bounds'):
                     ax['bounds'] = v.bounds
-                if hasattr(v,'requested'):
+                if hasattr(v, 'requested'):
                     ax['requested'] = v.requested
-                if hasattr(v,'boundsValues'):
+                if hasattr(v, 'boundsValues'):
                     ax['boundsValues'] = v.boundsValues
-                if hasattr(v,'coords'):
+                if hasattr(v, 'coords'):
                     ax['coords'] = v.coords
                 axes[a] = ax
-      
+
             table_dict['variables'] = variables
-            table_dict['axes'] = axes 
+            table_dict['axes'] = axes
             table_dict['table_info'] = table_info
             if '!' in dr.tab:
                 tab = dr.tab.split('!')[-1]
@@ -656,8 +655,8 @@ class ParseXML(object):
             else:
                 tab = dr.tab
             table_info['table_id'] = tab
-            total_request[dr.mip+'_'+tab] = table_dict
-        print 'Total in request:',len(total_request)
+            total_request[dr.mip + '_' + tab] = table_dict
+        print 'Total in request:', len(total_request)
         for k in sorted(total_request.keys()):
             v = total_request[k]
             print k, len(v['variables'])
