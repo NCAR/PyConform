@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import argparse, os
 import json
-import mip_table_parser
+from pyconform import miptableparser
 from dateutil.parser import parse
 import datetime
 
