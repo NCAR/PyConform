@@ -9,9 +9,9 @@ import sys
 
 
 #===================================================================================================
-# mip_table_parser - Parse and Standardize the MIP table.
+# parse_mip_table - Parse and Standardize the MIP table.
 #===================================================================================================
-def  mip_table_parser(exp, table_name, table_type=None,
+def  parse_mip_table(exp, table_name, table_type=None,
                       user_vars={}, user_axes={}, user_tableInfo={}):
     """
     Parse and standardize a MIP table
@@ -22,9 +22,9 @@ def  mip_table_parser(exp, table_name, table_type=None,
     'axes', and 'table_info'.  The standardization methods found in the three dictionaries 
     resemble the identifiers used in the CMOR code.  Variables are indexed by their string
     id/label/variable_entry name.
-    Usage examples - table_dict = mip_table_parser('6hrLev','xml')
-                     table_dict = mip_table_parser('Tables/CMIP5_Amon','cmor')
-                     table_dict = mip_table_parser('Tables/CMIP6_MIP_tables.txt','excel')
+    Usage examples - table_dict = parse_mip_table('6hrLev','xml')
+                     table_dict = parse_mip_table('Tables/CMIP5_Amon','cmor')
+                     table_dict = parse_mip_table('Tables/CMIP6_MIP_tables.txt','excel')
 
     Parameters:
         exp (str): Name of the experiment.
