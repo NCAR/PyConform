@@ -5,53 +5,27 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os import linesep, remove
+from os import remove
 from os.path import exists
 from pyconform import datasets
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 from cf_units import Unit
+from testutils import print_test_message
 
 import numpy as np
 import numpy.testing as npt
 import unittest
 
 
-#=========================================================================
-# print_test_message - Helper function
-#=========================================================================
-def print_test_message(testname, indata=None, actual=None, expected=None):
-    """
-    Pretty-print a test message
-
-    Parameters:
-        testname: String name of the test
-        indata: Input data for testing (if any)
-        actual: Actual return value/result
-        expected: Expected return value/result
-    """
-    indent = linesep + ' ' * 14
-    print '{}:'.format(testname)
-    if indata:
-        s_indata = str(indata).replace(linesep, indent)
-        print '    input:    {}'.format(s_indata)
-    if actual:
-        s_actual = str(actual).replace(linesep, indent)
-        print '    actual:   {}'.format(s_actual)
-    if expected:
-        s_expected = str(expected).replace(linesep, indent)
-        print '    expected: {}'.format(s_expected)
-    print
-
-
 #===============================================================================
-# InfoObjTests
+# DimensionInfoTests
 #===============================================================================
-class InfoObjTests(unittest.TestCase):
+class DimensionInfoTests(unittest.TestCase):
     """
-    Unit tests for Info objects
+    Unit tests for DimensionInfo objects
     """
-    
+
     def test_dinfo_type(self):
         dinfo = datasets.DimensionInfo('x')
         actual = type(dinfo)
@@ -147,6 +121,15 @@ class InfoObjTests(unittest.TestCase):
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
                             'Differently limited DimensionInfo objects equal')
+
+
+#===============================================================================
+# VariableInfoTests
+#===============================================================================
+class VariableInfoTests(unittest.TestCase):
+    """
+    Unit tests for VariableInfo objects
+    """
 
     def test_vinfo_type(self):
         vinfo = datasets.VariableInfo('x')
@@ -252,7 +235,7 @@ class InfoObjTests(unittest.TestCase):
                          'Default VariableInfo.definition is not {!r}'.format(indata))
 
     def test_vinfo_data(self):
-        indata = (1,2,3,4,5,6)
+        indata = (1, 2, 3, 4, 5, 6)
         vinfo = datasets.VariableInfo('x', data=indata)
         actual = vinfo.data
         expected = indata
@@ -270,7 +253,7 @@ class InfoObjTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Default VariableInfo.filename is not {!r}'.format(indata))
-        
+
     def test_vinfo_equals_same(self):
         kwargs = {'datatype': 'd', 'dimensions': ('a', 'b'),
                   'attributes': {'a1': 'at1', 'a2': 'at2'},
@@ -376,7 +359,7 @@ class InfoObjTests(unittest.TestCase):
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
                          'Default VariableInfo.cfunits() not {}'.format(expected))
-        
+
     def test_vinfo_standard_name(self):
         indata = 'X var'
         vinfo = datasets.VariableInfo('x', attributes={'standard_name': indata})
@@ -395,7 +378,7 @@ class InfoObjTests(unittest.TestCase):
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
                             'Default VariableInfo.standard_name() not None')
-        
+
 
 #=========================================================================
 # DatasetTests - Tests for the datasets module
@@ -408,7 +391,7 @@ class DatasetTests(unittest.TestCase):
     def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
         self._clear_()
-        
+
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
         self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
@@ -432,7 +415,7 @@ class DatasetTests(unittest.TestCase):
                            endpoint=False, dtype=self.dtypes['lon'])
         tdat = np.linspace(0, self.dims['time'], num=self.dims['time'],
                            endpoint=False, dtype=self.dtypes['time'])
-        ulen = reduce(lambda x,y: x*y, self.dims.itervalues(), 1)
+        ulen = reduce(lambda x, y: x * y, self.dims.itervalues(), 1)
         ushape = tuple(d for d in self.dims.itervalues())
         u1dat = np.linspace(0, ulen, num=ulen, endpoint=False,
                             dtype=self.dtypes['u1']).reshape(ushape)
@@ -446,7 +429,7 @@ class DatasetTests(unittest.TestCase):
             ncf.setncatts(self.fattribs)
             ncvars = {}
             for dname, dvalue in self.dims.iteritems():
-                dsize = dvalue if dname!='time' else None
+                dsize = dvalue if dname != 'time' else None
                 ncf.createDimension(dname, dsize)
                 ncvars[dname] = ncf.createVariable(dname, 'd', (dname,))
             ncvars[vname] = ncf.createVariable(vname, 'd', self.vdims[vname])
@@ -469,7 +452,7 @@ class DatasetTests(unittest.TestCase):
         vattribs['standard_name'] = 'something'
         vattribs['units'] = '1'
         vdicts['W']['attributes'] = vattribs
-            
+
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'float64'
         vdicts['X']['dimensions'] = ('x',)
@@ -517,10 +500,10 @@ class DatasetTests(unittest.TestCase):
         vattribs['standard_name'] = 'variable 2'
         vattribs['units'] = 'm'
         vdicts['V2']['attributes'] = vattribs
-        
+
     def tearDown(self):
         self._clear_()
-        
+
     def _clear_(self):
         for fname in self.filenames.itervalues():
             if exists(fname):
@@ -561,16 +544,16 @@ class DatasetTests(unittest.TestCase):
                            actual=actual, expected=expected)
         npt.assert_equal(actual, expected,
                          'OutputDataset.get_dict() returns wrong data')
-        
+
     def test_dataset_get_dict_from_input(self):
         inds = datasets.InputDataset('myinds', self.filenames.values())
         actual = inds.get_dict()
         print_test_message('InputDataset.get_dict()', actual=actual)
-        
+
 
 #===============================================================================
 # Command-Line Execution
 #===============================================================================
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

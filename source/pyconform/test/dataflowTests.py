@@ -1,71 +1,40 @@
 """
-Dataset Unit Tests
+DataFlow Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os import linesep, remove
+from os import remove
 from os.path import exists
-from pyconform import conform, datasets
+from pyconform import dataflow, datasets
+from testutils import print_test_message
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 
-import json
-import numpy
 import unittest
+import numpy
+from scipy.stats._continuous_distns import ncf
 
-class NDArrayEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, numpy.ndarray) and obj.ndim == 1:
-                return obj.tolist()
-        elif isinstance(obj, numpy.generic):
-            return obj.item()
-        return json.JSONEncoder.default(self, obj)
 
-#=========================================================================
-# print_test_message - Helper function
-#=========================================================================
-def print_test_message(testname, indata=None, actual=None, expected=None):
+#===================================================================================================
+# DataFlowTests
+#===================================================================================================
+class DataFlowTests(unittest.TestCase):
     """
-    Pretty-print a test message
-
-    Parameters:
-        testname: String name of the test
-        indata: Input data for testing (if any)
-        actual: Actual return value/result
-        expected: Expected return value/result
-    """
-    indent = linesep + ' ' * 14
-    print '{}:'.format(testname)
-    if indata:
-        s_indata = str(indata).replace(linesep, indent)
-        print '    input:    {}'.format(s_indata)
-    if actual:
-        s_actual = str(actual).replace(linesep, indent)
-        print '    actual:   {}'.format(s_actual)
-    if expected:
-        s_expected = str(expected).replace(linesep, indent)
-        print '    expected: {}'.format(s_expected)
-    print
-
-
-#=========================================================================
-# ConformTests - Tests for the setup module
-#=========================================================================
-class ConformTests(unittest.TestCase):
-    """
-    Unit Tests for the pyconform.dataset module
+    Unit tests for the flownodes.FlowNode class
     """
 
     def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'),
                                       ('u2', 'u2.nc')])
-        self._clear_input_()
+        for fname in self.filenames.itervalues():
+            if exists(fname):
+                remove(fname)
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 8), ('lat', 7), ('lon', 6)])
+        self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
@@ -194,7 +163,7 @@ class ConformTests(unittest.TestCase):
         vattribs['standard_name'] = 'variable 4'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 100.0
+        vattribs['valid_max'] = 20.0
         vdicts['V4']['attributes'] = vattribs
 
         self.outds = datasets.OutputDataset('outds', self.dsdict)
@@ -202,46 +171,68 @@ class ConformTests(unittest.TestCase):
         self.outfiles = dict((vname, vdict['filename']) for vname, vdict
                              in vdicts.iteritems() if 'filename' in vdict)
 
-        self._clear_output_()
-
-    def tearDown(self):
-        self._clear_input_()
-        self._clear_output_()
-
-    def _clear_input_(self):
-        for fname in self.filenames.itervalues():
-            if exists(fname):
-                remove(fname)
-
-    def _clear_output_(self):
         for fname in self.outfiles.itervalues():
             if exists(fname):
                 remove(fname)
 
-    def test_setup(self):
-        with open('conform.spec', 'w') as fp:
-            json.dump(self.outds.get_dict(), fp, indent=4, cls=NDArrayEncoder)
-        actual = conform.setup(self.inpds, self.outds)
-        expected = None
-        print_test_message('setup()',
-                           actual=actual, expected=expected)
-        # self.assertEqual(actual, expected,
-        #                 'setup() incorrect')
+    def test_init(self):
+        testname = 'DataFlow.__init__()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = type(df)
+        expected = dataflow.DataFlow
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertIsInstance(df, expected, '{} failed'.format(testname))
 
-    def test_run(self):
-        with open('conform.spec', 'w') as fp:
-            json.dump(self.outds.get_dict(), fp, indent=4, cls=NDArrayEncoder)
-        agraph = conform.setup(self.inpds, self.outds)
-        actual = conform.run(self.inpds, self.outds, agraph)
-        expected = None
-        print_test_message('run()',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'run() incorrect')
+    def test_dimension_map(self):
+        testname = 'DataFlow().dimension_map'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        actual = df.dimension_map
+        expected = {'lat': 'y', 'lon': 'x', 'time': 't'}
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_execute_all(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute()
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
+
+    def test_execute_chunks_1D(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute({'x': 4})
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
+
+    def test_execute_chunks_2D(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute(chunks=OrderedDict([('x', 4), ('y', 3)]))
+        actual = all(exists(f) for f in self.outfiles.itervalues())
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        for f in self.outfiles.itervalues():
+            with NCDataset(f, 'r') as ncf:
+                print ncf
+            print
 
 
 #===============================================================================
-# Command-Line Execution
+# Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']

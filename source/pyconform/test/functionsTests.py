@@ -6,8 +6,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform import functions
+from pyconform.physarray import PhysArray
 from cf_units import Unit
-from os import linesep
+from testutils import print_test_message
 
 import unittest
 import numpy as np
@@ -15,220 +16,200 @@ import operator as op
 
 
 #===============================================================================
-# General Functions
+# FindTests
 #===============================================================================
-def print_test_message(testname, indata=None, actual=None, expected=None):
-    print '{}:'.format(testname)
-    print ' - indata   = {}'.format(indata)
-    print ' - actual   = {}'.format(actual).replace(linesep, ' ')
-    print ' - expected = {}'.format(expected).replace(linesep, ' ')
-    print
-
-
-#===============================================================================
-# FunctionsTests
-#===============================================================================
-class FunctionsTests(unittest.TestCase):
+class FindTests(unittest.TestCase):
     """
-    Unit tests for the functions module
+    Unit tests for finding functions and operators
     """
-    
+
     def setUp(self):
         self.all_operators = set((('-', 1), ('^', 2), ('+', 2),
                                   ('-', 2), ('*', 2), ('/', 2)))
-        self.all_functions = set((('transpose', 2), ('sqrt', 1), ('convert', 3)))
+        self.all_functions = set((('T', 2), ('sqrt', 1), ('C', 2)))
         self.all = (self.all_operators).union(self.all_functions)
 
-    def test_available_operators(self):
-        testname = 'available_operators()'
-        actual = functions.available_operators()
-        expected = self.all_operators
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertSetEqual(actual, expected,
-                            '{} returned unexpected result'.format(testname))
-
-    def test_find_operator_neg(self):
-        indata = ('-', 1)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_neg(self):
+        key = '-'
+        numargs = 1
+        testname = 'find_operator({!r}, {})'.format(key, numargs)
+        actual = functions.find_operator(key, numargs)
         expected = functions.NegationOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_add(self):
-        indata = ('+', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_add(self):
+        key = '+'
+        numargs = 2
+        testname = 'find_operator({!r}, {})'.format(key, numargs)
+        actual = functions.find_operator(key, numargs)
         expected = functions.AdditionOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_sub(self):
-        indata = ('-', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_sub(self):
+        key = '-'
+        numargs = 2
+        testname = 'find_operator({!r}, {})'.format(key, numargs)
+        actual = functions.find_operator(key, numargs)
         expected = functions.SubtractionOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_mul(self):
-        indata = ('*', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_mul(self):
+        key = '*'
+        testname = 'find_operator({!r})'.format(key)
+        actual = functions.find_operator(key)
         expected = functions.MultiplicationOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_div(self):
-        indata = ('/', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_div(self):
+        key = '/'
+        testname = 'find_operator({!r})'.format(key)
+        actual = functions.find_operator(key)
         expected = functions.DivisionOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_pow(self):
-        indata = ('^', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
-        actual = functions.find_operator(*indata)
+    def test_operator_pow(self):
+        key = '^'
+        testname = 'find_operator({!r})'.format(key)
+        actual = functions.find_operator(key)
         expected = functions.PowerOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_operator_key_failure(self):
-        indata = ('?', 2)
-        testname = 'find_operator({!r}, {})'.format(*indata)
+    def test_operator_key_failure(self):
+        key = '?'
+        testname = 'find_operator({!r})'.format(key)
         expected = KeyError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(KeyError, functions.find_operator, *indata)
+        print_test_message(testname, key=key, expected=expected)
+        self.assertRaises(KeyError, functions.find_operator, key)
 
-    def test_find_operator_numargs_failure(self):
-        indata = ('*', 1)
-        testname = 'find_operator({!r}, {})'.format(*indata)
+    def test_operator_numargs_failure(self):
+        key = '*'
+        numargs = 1
+        testname = 'find_operator({!r}, {})'.format(key, numargs)
         expected = KeyError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(KeyError, functions.find_operator, *indata)
+        print_test_message(testname, key=key, numargs=numargs, expected=expected)
+        self.assertRaises(KeyError, functions.find_operator, key, numargs)
 
-    def test_available_functions(self):
-        testname = 'available_functions()'
-        actual = functions.available_functions()
-        expected = self.all_functions
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertSetEqual(actual, expected,
-                            '{} returned unexpected result'.format(testname))
-
-    def test_find_function_sqrt(self):
-        indata = ('sqrt', 1)
-        testname = 'find_function({!r}, {})'.format(*indata)
-        actual = functions.find_function(*indata)
+    def test_function_sqrt(self):
+        key = 'sqrt'
+        testname = 'find_function({!r})'.format(key)
+        actual = functions.find_function(key)
         expected = functions.SquareRootFunction
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_function_key_failure(self):
-        indata = ('f', 1)
-        testname = 'find_function({!r}, {})'.format(*indata)
+    def test_function_key_failure(self):
+        key = 'f'
+        testname = 'find_function({!r})'.format(key)
         expected = KeyError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(KeyError, functions.find_function, *indata)
+        print_test_message(testname, key=key, expected=expected)
+        self.assertRaises(KeyError, functions.find_function, key)
 
-    def test_find_function_numargs_failure(self):
-        indata = ('sqrt', 2)
-        testname = 'find_function({!r}, {})'.format(*indata)
+    def test_function_numargs_failure(self):
+        key = 'sqrt'
+        numargs = 2
+        testname = 'find_function({!r}, {})'.format(key, numargs)
         expected = KeyError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(KeyError, functions.find_function, *indata)
-        
-    def test_available(self):
-        testname = 'available()'
-        actual = functions.available()
-        expected = self.all
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertSetEqual(actual, expected,
-                            '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, numargs=numargs, expected=expected)
+        self.assertRaises(KeyError, functions.find_function, key, numargs)
 
-    def test_find_sqrt(self):
-        indata = ('sqrt', 1)
-        testname = 'find({!r}, {})'.format(*indata)
-        actual = functions.find(*indata)
+    def test_sqrt(self):
+        key = 'sqrt'
+        testname = 'find({!r})'.format(key)
+        actual = functions.find(key)
         expected = functions.SquareRootFunction
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_mul(self):
-        indata = ('*', 2)
-        testname = 'find({!r}, {})'.format(*indata)
-        actual = functions.find(*indata)
+    def test_mul(self):
+        key = '*'
+        testname = 'find({!r})'.format(key)
+        actual = functions.find(key)
         expected = functions.MultiplicationOperator
-        print_test_message(testname, indata=indata, 
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
 
-    def test_find_failure(self):
-        indata = ('*', 3)
-        testname = 'find({!r}, {})'.format(*indata)
+    def test_key_failure(self):
+        key = '?'
+        testname = 'find({!r})'.format(key)
         expected = KeyError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(KeyError, functions.find, *indata)
+        print_test_message(testname, key=key, expected=expected)
+        self.assertRaises(KeyError, functions.find, key)
 
-    def test_function_mul(self):
-        indata = (2.4, 3.2)
-        testname = 'find({!r}, {}).function'.format('*', 2)
-        actual = functions.find('*', 2)(*indata)
-        expected = op.mul(*indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         '{} returned unexpected result'.format(testname))
+    def test_numargs_failure(self):
+        key = '*'
+        numargs = 3
+        testname = 'find({!r}, {})'.format(key, numargs)
+        expected = KeyError
+        print_test_message(testname, key=key, numargs=numargs, expected=expected)
+        self.assertRaises(KeyError, functions.find, key, numargs)
 
-    def test_function_attribute_sqrt(self):
-        indata = (4.0,)
-        testname = 'find({!r}, {}).function'.format('sqrt', 1)
-        actual = functions.find('sqrt', 1)(*indata)
-        expected = np.sqrt(*indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                        '{} returned unexpected result'.format(testname))
-    
-    def test_user_defined_function(self):
+    def test_user_defined(self):
         class myfunc(functions.Function):
             key = 'myfunc'
             numargs = 3
-            def units(self, *arg_units):
-                uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
-                return uret, (None, None, None)
-            def dimensions(self, *arg_dims):
-                dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else ()
-                return dret, (None, None, None)
-            def __call(self, x, y, z):
+            def __call__(self, x, y, z):
                 return x
 
-        indata = ('myfunc', 3)
-        testname = 'find({!r}, {}).function'.format(*indata)
-        actual = functions.find(*indata)
+        key = 'myfunc'
+        testname = 'find({})'.format(key)
+        actual = functions.find(key)
         expected = myfunc
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertIsInstance(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        print_test_message(testname, key=key, actual=actual, expected=expected)
+        self.assertIsInstance(actual, expected, '{} failed'.format(testname))
+
+#===============================================================================
+# EvaluationTests
+#===============================================================================
+class EvaluationTests(unittest.TestCase):
+    """
+    Unit tests for evaluating functions and operators
+    """
+
+    def test_op_neg_float(self):
+        key = '-'
+        indata = (3.1,)
+        testname = '({}{})'.format(key, indata[0])
+        func = functions.find(key, 1)
+        actual = func(*indata)
+        expected = op.neg(*indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_op_sub_float(self):
+        key = '-'
+        indata = (2.4, 3.2)
+        testname = '({} {} {})'.format(indata[0], key, indata[1])
+        func = functions.find(key, 2)
+        actual = func(*indata)
+        expected = op.sub(*indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_op_mul_float(self):
+        key = '*'
+        indata = (2.4, 3.2)
+        testname = '({} {} {})'.format(indata[0], key, indata[1])
+        func = functions.find(key)
+        actual = func(*indata)
+        expected = op.mul(*indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_sqrt_float(self):
+        key = 'sqrt'
+        indata = (4.0,)
+        testname = '{}{}'.format(key, *indata)
+        func = functions.find(key)
+        actual = func(*indata)
+        expected = np.sqrt(*indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
 #===============================================================================
@@ -236,126 +217,85 @@ class FunctionsTests(unittest.TestCase):
 #===============================================================================
 class UnitsTests(unittest.TestCase):
     """
-    Unit tests for the units methods of the functions.FunctionAbstract classes
+    Unit tests for evaluating functions and operators units
     """
-    
-    def test_units_neg_m(self):
-        indata = (Unit('m'),)
-        testname = 'NegationOperator.units({!r})'.format(*indata)
-        actual = functions.NegationOperator.units(*indata)
-        expected = Unit(indata[0]), (None,)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
 
     def test_units_neg_1(self):
-        indata = (1,)
-        testname = 'NegationOperator.units({!r})'.format(*indata)
-        actual = functions.NegationOperator.units(*indata)
-        expected = Unit(indata[0]), (None,)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = 1
+        testname = 'NegationOperator().units'
+        func = functions.NegationOperator()
+        actual = func(indata).units
+        expected = Unit(1)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_units_neg_m(self):
+        indata = PhysArray(5.0, units=Unit('m'))
+        testname = 'NegationOperator().units'
+        func = functions.NegationOperator()
+        actual = func(indata).units
+        expected = indata.units
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_m(self):
-        indata = (Unit('m'), Unit('m'))
-        testname = 'AdditionOperator.units({!r})'.format(*indata)
-        actual = functions.AdditionOperator.units(*indata)
-        expected = Unit(indata[0]), (None, None)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('m')))
+        testname = 'AdditionOperator().units'
+        func = functions.AdditionOperator()
+        actual = func(*indata).units
+        expected = Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_add_m_km(self):
-        indata = (Unit('m'), Unit('km'))
-        testname = 'AdditionOperator.units({!r})'.format(*indata)
-        actual = functions.AdditionOperator.units(*indata)
-        expected = Unit(indata[0]), (None, Unit('m'))
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
-
-    def test_units_add_m_g(self):
-        indata = (Unit('m'), Unit('g'))
-        testname = 'AdditionOperator.units({!r})'.format(*indata)
-        expected = functions.UnitsError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(expected, functions.AdditionOperator.units, *indata)
-
-    def test_units_add_1_u1(self):
-        indata = (1, Unit(1))
-        testname = 'AdditionOperator.units({!r})'.format(*indata)
-        actual = functions.AdditionOperator.units(*indata)
-        expected = Unit(indata[0]), (None, None)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
-
-    def test_units_add_m_2(self):
-        indata = (Unit('m'), 2)
-        testname = 'AdditionOperator.units({!r})'.format(*indata)
-        expected = functions.UnitsError
-        print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(expected, functions.AdditionOperator.units, *indata)
-
-    def test_units_sub_m_km(self):
-        indata = (Unit('m'), Unit('km'))
-        testname = 'SubtractionOperator.units({!r})'.format(*indata)
-        actual = functions.SubtractionOperator.units(*indata)
-        expected = Unit(indata[0]), (None, Unit('m'))
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('km')))
+        testname = 'AdditionOperator().units'
+        func = functions.AdditionOperator()
+        actual = func(*indata).units
+        expected = Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_mul_m_m(self):
-        indata = (Unit('m'), Unit('m'))
-        testname = 'MultiplicationOperator.units({!r})'.format(*indata)
-        actual = functions.MultiplicationOperator.units(*indata)
-        expected = Unit(op.mul(*indata)), (None, None)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = (PhysArray(1.0, units=Unit('m')), PhysArray(2.0, units=Unit('m')))
+        testname = 'MultiplicationOperator().units'
+        func = functions.MultiplicationOperator()
+        actual = func(*indata).units
+        expected = Unit('m^2')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_mul_1_m(self):
-        indata = (1, Unit('m'))
-        testname = 'MultiplicationOperator.units({!r})'.format(*indata)
-        actual = functions.MultiplicationOperator.units(*indata)
-        expected = Unit(op.mul(*indata)), (None, None)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = (1, PhysArray(1.0, units=Unit('m')))
+        testname = 'MultiplicationOperator().units'
+        func = functions.MultiplicationOperator()
+        actual = func(*indata).units
+        expected = Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_div_1_m(self):
-        indata = (1, Unit('m'))
-        testname = 'DivisionOperator.units({!r})'.format(*indata)
-        actual = functions.DivisionOperator.units(*indata)
-        expected = Unit(1)/Unit('m'), (None, None)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
+        indata = (1, PhysArray(1.0, units=Unit('m')))
+        testname = 'DivisionOperator().units'
+        func = functions.DivisionOperator()
+        actual = func(*indata).units
+        expected = Unit(1) / Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_sqrt_m2(self):
-        indata = (Unit('m')**2,)
-        testname = 'SquareRootFunction.units({!r})'.format(*indata)
-        actual = functions.SquareRootFunction.units(*indata)
-        expected = Unit('m'), (None,)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertTupleEqual(actual, expected,
-                              '{} returned unexpected result'.format(testname))
-        
+        indata = (PhysArray(4.0, units=Unit('m^2')),)
+        testname = 'SquareRootFunction().units'
+        func = functions.SquareRootFunction()
+        actual = func(*indata).units
+        expected = Unit('m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+
 #===============================================================================
 # Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -6,27 +6,16 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform import parsing
-from os import linesep
+from testutils import print_test_message
 
 import unittest
-
-
-#===============================================================================
-# General Functions
-#===============================================================================
-def print_test_message(testname, indata=None, actual=None, expected=None):
-    print '{0}:'.format(testname)
-    print ' - input    = {0!r}'.format(indata).replace(linesep, ' ')
-    print ' - actual   = {0!r}'.format(actual).replace(linesep, ' ')
-    print ' - expected = {0!r}'.format(expected).replace(linesep, ' ')
-    print
 
 
 #===============================================================================
 # ParsedStringTypeTests
 #===============================================================================
 class ParsedStringTypeTests(unittest.TestCase):
-    
+
     def test_pst_init(self):
         indata = (['x'], {})
         pst = parsing.ParsedFunction(indata)
@@ -37,7 +26,7 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Types do not match')
-    
+
     def test_varpst_init(self):
         indata = (['x'], {})
         pst = parsing.ParsedVariable(indata)
@@ -48,7 +37,7 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Types do not match')
-    
+
     def test_funcpst_init(self):
         indata = (['x'], {})
         pst = parsing.ParsedFunction(indata)
@@ -59,7 +48,7 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Types do not match')
-    
+
     def test_operpst_init(self):
         indata = (['x'], {})
         pst = parsing.ParsedBinOp(indata)
@@ -70,7 +59,7 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Types do not match')
-        
+
     def test_pst_init_args(self):
         indata = (['x', 1, -3.2], {})
         pst = parsing.ParsedFunction(indata)
@@ -103,7 +92,7 @@ class ParsedStringTypeTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Names do not match')
-                
+
 
 #===============================================================================
 # DefinitionParserTests
@@ -131,7 +120,7 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'String parsing failed')
-           
+
 #===== INTEGERS ================================================================
 
     def test_parse_integer(self):
@@ -365,7 +354,7 @@ class DefinitionParserTests(unittest.TestCase):
     def test_parse_var_slice(self):
         indata = 'x[1:2:3]'
         actual = parsing.parse_definition(indata)
-        expected = parsing.ParsedVariable([['x', slice(1,2,3)]])
+        expected = parsing.ParsedVariable([['x', slice(1, 2, 3)]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -726,12 +715,12 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Integrated operator parsing failed')
-        
+
     def test_parse_integrated_2(self):
         indata = '2-17.3*x / f(2.3, x[2:5])'
         actual = parsing.parse_definition(indata)
         x = parsing.ParsedVariable([['x']])
-        x25 = parsing.ParsedVariable([['x', slice(2,5)]])
+        x25 = parsing.ParsedVariable([['x', slice(2, 5)]])
         f = parsing.ParsedFunction([['f', 2.3, x25]])
         dxf = parsing.ParsedBinOp([['/', x, f]])
         m17p3dxf = parsing.ParsedBinOp([['*', 17.3, dxf]])
@@ -747,5 +736,5 @@ class DefinitionParserTests(unittest.TestCase):
 # Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
