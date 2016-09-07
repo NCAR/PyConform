@@ -163,9 +163,6 @@ def _get_key(key, table, user_table):
 #=============================================
 class ParseExcel(object):
 
-    def __init__(self):
-        super(ParseExcel, self).__init__()
-
     #=============================================
     # Parse the tab deliminated table file
     #=============================================
@@ -248,9 +245,6 @@ class ParseExcel(object):
 # Parses standard CMOR table files
 #=============================================
 class ParseCmorTable(object):
-
-    def __init__(self):
-        super(ParseCmorTable, self).__init__()
 
     #=============================================
     #  Reset and get ready for a new variable set
@@ -430,9 +424,6 @@ class ParseCmorTable(object):
 #  Parse the XML format
 #=============================================
 class ParseXML(object):
-
-    def __init__(self):
-        super(ParseXML, self).__init__()
 
     #=============================================
     # Parse the XML format using dreqPy
