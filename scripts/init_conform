@@ -74,7 +74,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
     axes = table_dict['axes']
     table_info = table_dict['table_info']
     attributes.update(table_info)
-    if 'generic_levels' in table_info.keys():
+    if 'generic_levels' in table_info:
         g_levels = table_info['generic_levels']
         g_split = g_levels.split(' ')
         for l in g_split:
@@ -82,7 +82,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
 
     # Get variables needed to piece together the filename
     identifier = id
-    if ('model_id') in attributes.keys():
+    if ('model_id') in attributes:
         model = attributes['model_id']
     else:
         model = ''
@@ -102,7 +102,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
     version = 'v' + str(today.year).zfill(4) + str(today.month).zfill(2) + str(today.day).zfill(2)
 
     # Do we need to add anything to further_info_url?
-    if 'further_info_url' in attributes.keys():
+    if 'further_info_url' in attributes:
         fiu_split = str(attributes['further_info_url']).split('/')
         if table not in fiu_split:
             attributes['further_info_url'] = str(attributes['further_info_url']) + '/' + table
@@ -117,7 +117,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
 
     # For each variable in the definition file, create a file entry in the spec and define it
     for v, d in variables.iteritems():
-        if v in definitions.keys():
+        if v in definitions:
             tper = variables[v]['frequency']
             component = variables[v]['modeling_realm']
             if ' ' in component:
@@ -133,14 +133,14 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
             var["attributes"] = variables[v]
             var["definition"] = definitions[v]
             var["filename"] = f_name
-            if 'type' in variables[v].keys() and variables[v]['type'] != 'None' and variables[v]['type'] != '':
+            if 'type' in variables[v] and variables[v]['type'] != 'None' and variables[v]['type'] != '':
                 var["datatype"] = data_types[variables[v]['type']]
             else:
                 var["datatype"] = 'None'
-            if 'requested' in variables[v].keys():
+            if 'requested' in variables[v]:
                 if variables[v]['requested'] != '':
                     var['data'] = variables[v]['requested']
-            if 'dimensions' in variables[v].keys():
+            if 'dimensions' in variables[v]:
                 var["dimensions"] = variables[v]['dimensions'].split('|')
             var_list[f_id] = var
 
@@ -149,9 +149,9 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
         f_id = v
         var = {}
         var["attributes"] = axes[v]
-        if 'type' in axes[v].keys():
+        if 'type' in axes[v]:
             var["datatype"] = data_types[axes[v]['type']]
-        if 'requested' in axes[v].keys():
+        if 'requested' in axes[v]:
             if axes[v]['requested'] != '':
                 var['data'] = axes[v]['requested']
         var_list[f_id] = var
@@ -164,7 +164,7 @@ def create_output(table_dict, id, definitions, attributes, output_path, args):
                 if vr != "":
                     var = {}
                     f_id = vr
-                    if vr in definitions.keys():
+                    if vr in definitions:
                         var["attributes"] = {}
                         var["definition"] = definitions[vr]
                         f_name = ("{0}{1}".format(vr, fn_suffix))
@@ -231,7 +231,7 @@ def main(argv=None):
         exp_dict = mip_table_parser.mip_table_parser(args.exp, args.mipTable, type=args.mipTableType)
 
     # Write the spec files out to disk
-    for t in exp_dict.keys():
+    for t in exp_dict:
         create_output(exp_dict[t], t, definitions, attributes, args.outputpath, args)
 
 
