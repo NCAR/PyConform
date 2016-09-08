@@ -67,8 +67,7 @@ class DimensionInfo(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        unlim_str = ', unlimited' if self.unlimited else ''
-        return '{!r} [{}{}]'.format(self.name, self.size, unlim_str)
+        return '{!r} [{}{}]'.format(self.name, self.size, '+' if self.unlimited else '')
 
 
 #===================================================================================================
