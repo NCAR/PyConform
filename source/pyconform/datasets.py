@@ -407,7 +407,7 @@ class InputDataset(Dataset):
 
                     if vname in variables:
                         if vinfo != variables[vname]:
-                            err_msgs = ['Variable {!r} in file {!r}:'.format(vname, fname),
+                            err_msgs = ['Variable in file {!r}:'.format(fname),
                                        '{}'.format(vinfo),
                                        'differs from same variable in other file(s):',
                                        '{}'.format(variables[vname])]
