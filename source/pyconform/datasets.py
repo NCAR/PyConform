@@ -391,8 +391,8 @@ class InputDataset(Dataset):
                     dinfo = DimensionInfo(dobj.name, dobj.size, dobj.isunlimited())
                     if dname in dimensions:
                         if dinfo != dimensions[dname]:
-                            err_msg = ('Dimension {!r} in input file {!r} is different from '
-                                       'expected: {!r}').format(dinfo, fname, dimensions[dname])
+                            err_msg = ('Dimension {} in input file {!r} is different from '
+                                       'expected: {}').format(dinfo, fname, dimensions[dname])
                             raise ValueError(err_msg)
                     else:
                         dimensions[dname] = dinfo
@@ -407,7 +407,7 @@ class InputDataset(Dataset):
 
                     if vname in variables:
                         if vinfo != variables[vname]:
-                            err_msgs = ['Variable {!r} in file {!r}:'.format(vname, fname),
+                            err_msgs = ['Variable in file {!r}:'.format(fname),
                                        '{}'.format(vinfo),
                                        'differs from same variable in other file(s):',
                                        '{}'.format(variables[vname])]

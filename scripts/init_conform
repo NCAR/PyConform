@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import argparse, os
 import json
-import mip_table_parser
+from pyconform import miptableparser
 from dateutil.parser import parse
 import datetime
 
@@ -228,7 +228,8 @@ def main(argv=None):
 
     # Open/Read the MIP table
     if args.mipTableType != None and args.exp != None:
-        exp_dict = mip_table_parser.mip_table_parser(args.exp, args.mipTable, type=args.mipTableType)
+        exp_dict = miptableparser.parse_mip_table(args.exp, args.mipTable,
+                                                  table_type=args.mipTableType)
 
     # Write the spec files out to disk
     for t in exp_dict:
