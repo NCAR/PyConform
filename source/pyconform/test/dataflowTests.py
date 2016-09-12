@@ -90,7 +90,8 @@ class DataFlowTests(unittest.TestCase):
         vdicts['L'] = OrderedDict()
         vdicts['L']['datatype'] = 'float32'
         vdicts['L']['dimensions'] = ('l',)
-        vdicts['L']['data'] = tuple(range(5))
+        vdicts['L']['definition'] = tuple(range(5))
+        vdicts['L']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'level'
         vattribs['units'] = '1'
@@ -100,6 +101,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['X']['datatype'] = 'float64'
         vdicts['X']['dimensions'] = ('x',)
         vdicts['X']['definition'] = 'lon'
+        vdicts['X']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'longitude'
         vattribs['units'] = 'degrees_east'
@@ -109,6 +111,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['Y']['datatype'] = 'float64'
         vdicts['Y']['dimensions'] = ('y',)
         vdicts['Y']['definition'] = 'lat'
+        vdicts['Y']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'latitude'
         vattribs['units'] = 'degrees_north'
@@ -118,6 +121,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['T']['datatype'] = 'float64'
         vdicts['T']['dimensions'] = ('t',)
         vdicts['T']['definition'] = 'time'
+        vdicts['T']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
         vattribs['units'] = 'days since 0001-01-01 00:00:00'
@@ -128,7 +132,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V1']['datatype'] = 'float64'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
-        vdicts['V1']['filename'] = 'var1.nc'
+        vdicts['V1']['filenames'] = ['var1.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
         vattribs['units'] = 'cm'
@@ -138,7 +142,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V2']['datatype'] = 'float64'
         vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
-        vdicts['V2']['filename'] = 'var2.nc'
+        vdicts['V2']['filenames'] = ['var2.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 2'
         vattribs['units'] = 'cm'
@@ -148,7 +152,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V3']['datatype'] = 'float64'
         vdicts['V3']['dimensions'] = ('x', 'y', 't')
         vdicts['V3']['definition'] = 'u2'
-        vdicts['V3']['filename'] = 'var3.nc'
+        vdicts['V3']['filenames'] = ['var3.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 3'
         vattribs['units'] = 'cm'
@@ -158,7 +162,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V4']['datatype'] = 'float64'
         vdicts['V4']['dimensions'] = ('t', 'x', 'y')
         vdicts['V4']['definition'] = 'u1'
-        vdicts['V4']['filename'] = 'var4.nc'
+        vdicts['V4']['filenames'] = ['var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 4'
         vattribs['units'] = 'km'

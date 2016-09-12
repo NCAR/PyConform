@@ -22,7 +22,6 @@ from pyconform.functions import find
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
 from asaptools.partition import WeightBalanced
-from itertools import cycle as itercycle
 from collections import OrderedDict
 
 import numpy
@@ -36,7 +35,7 @@ class DataFlow(object):
     An object describing the flow of data from input to output
     """
 
-    def __init__(self, inpds, outds, cycle=True):
+    def __init__(self, inpds, outds):
         """
         Initializer
         
@@ -45,9 +44,6 @@ class DataFlow(object):
                 parsing variable definitions
             outds (OutputDataset): The output dataset defining the output variables and
                 their definitions or data
-            cyc (bool): If True, cycles which file to read metadata variables
-                from (i.e., variables that exist in all input files).  If False,
-                always reads metadata variables from the first input file.
         """
         # Input dataset
         if not isinstance(inpds, InputDataset):
@@ -59,13 +55,6 @@ class DataFlow(object):
             raise TypeError('Output dataset must be of OutputDataset type')
         self._ods = outds
 
-        # Cyclic iterator over available input filenames
-        fnames = [v.filename for v in self._ids.variables.itervalues()]
-        if cycle:
-            self._infile_cycle = itercycle(filter(None, fnames))
-        else:
-            self._infile_cycle = itercycle([filter(None, fnames)[0]])
-
         # Initialize the dimension map and the inverse dimension map
         self._i2omap = {}
         self._o2imap = {}
@@ -74,20 +63,17 @@ class DataFlow(object):
         datavars = {}
         defnvars = {}
         for vname, vinfo in self._ods.variables.iteritems():
-            if vinfo.data is not None:
-                datavars[vname] = vinfo
-            elif vinfo.definition is not None:
+            if isinstance(vinfo.definition, basestring):
                 defnvars[vname] = vinfo
             else:
-                raise ValueError(('Output variable {0} does not have a data parameter '
-                                  'nor a definition parameter').format(vname))
+                datavars[vname] = vinfo
 
         # Create a dictionary to store "source" DataNodes from 'data' attributes
         self._datnodes = {}
 
         # First, parse output variables with 'data'
         for vname, vinfo in datavars.iteritems():
-            vdata = numpy.array(vinfo.data, dtype=vinfo.datatype)
+            vdata = numpy.array(vinfo.definition, dtype=vinfo.datatype)
             cdnode = DataNode(vname, vdata, units=vinfo.cfunits(), dimensions=vinfo.dimensions)
             self._datnodes[vname] = cdnode
 
@@ -145,23 +131,25 @@ class DataFlow(object):
                                                  attributes=vinfo.attributes,
                                                  dtype=vinfo.datatype)
 
-        # Now determine which output variables have no output file (metadata variables)
-        tsvnames = tuple(vname for vname, vinfo in self._ods.variables.iteritems()
-                         if vinfo.filename is not None)
-        mvnames = tuple(vname for vname, vinfo in self._ods.variables.iteritems()
-                        if vinfo.filename is None)
+        # Create a dictionary of filenames pointing to list of variables to write into the file
+        fvnames = {}
+        for vname, vinfo in self._ods.variables.iteritems():
+            if vinfo.filenames is not None:
+                for fname in vinfo.filenames:
+                    if fname in fvnames:
+                        fvnames[fname].append(vname)
+                    else:
+                        fvnames[fname] = [vname]
 
         # Create the WriteDataNodes for each time-series output file
         writenodes = {}
-        for tsvname in tsvnames:
-            tsvinfo = self._ods.variables[tsvname]
-            filename = tsvinfo.filename
-            vnodes = tuple(self._varnodes[n] for n in mvnames) + (self._varnodes[tsvname],)
+        for filename, vnames in fvnames.iteritems():
+            vnodes = tuple(self._varnodes[n] for n in vnames)
             unlimited = tuple(self._i2omap[d] for d in self._ids.dimensions
                               if self._ids.dimensions[d].unlimited)
             attribs = OrderedDict((k, v) for k, v in self._ods.attributes.iteritems())
             attribs['unlimited'] = unlimited
-            writenodes[tsvname] = WriteNode(filename, *vnodes, **attribs)
+            writenodes[filename] = WriteNode(filename, *vnodes, **attribs)
         self._writenodes = writenodes
 
         # Construct the output dimension sizes
@@ -182,15 +170,15 @@ class DataFlow(object):
 
         # Compute the file sizes for each output file
         self._filesizes = {}
-        for tsvname, wnode in self._writenodes.iteritems():
-            self._filesizes[tsvname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
+        for fname, wnode in self._writenodes.iteritems():
+            self._filesizes[fname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
 
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._ids.variables:
                 vinfo = self._ids.variables[vname]
-                fname = vinfo.filename if vinfo.filename else self._infile_cycle.next()
+                fname = vinfo.filenames[0]
                 return ReadNode(fname, vname, index=obj.args)
 
             elif vname in self._datnodes:
@@ -246,13 +234,13 @@ class DataFlow(object):
             print 'Beginning execution of data flow...'
 
         # Partition the output files/variables over available parallel (MPI) ranks
-        vnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
-        print '{}: Writing files for variables: {}'.format(prefix, ', '.join(vnames))
+        fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
+        print '{}: Writing files: {}'.format(prefix, ', '.join(fnames))
 
         # Loop over output files and write using given chunking
-        for vname in vnames:
-            print '{}: Writing output variable {!r} to file'.format(prefix, vname)
-            self._writenodes[vname].execute(chunks=chunks)
+        for fname in fnames:
+            print '{}: Writing file'.format(prefix, fname)
+            self._writenodes[fname].execute(chunks=chunks)
 
         if scomm.is_manager():
             print 'All output variables written.'
