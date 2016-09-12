@@ -396,11 +396,16 @@ class InputDataset(Dataset):
 
                     if vname in variables:
                         if vinfo != variables[vname]:
-                            err_msgs = ['Variable in file {!r}:'.format(fname),
-                                       '{}'.format(vinfo),
-                                       'differs from same variable in other file(s):',
-                                       '{}'.format(variables[vname])]
-                            raise ValueError(linesep.join(err_msgs))
+                            if (vinfo.datatype == variables[vname].datatype and
+                                vinfo.dimensions == variables[vname].dimensions):
+                                if len(vinfo.attributes) > len(variables[vname].attributes):
+                                    variables[vname] = vinfo
+                            else:
+                                err_msgs = ['Variable in file {!r}:'.format(fname),
+                                           '{}'.format(vinfo),
+                                           'differs from same variable in other file(s):',
+                                           '{}'.format(variables[vname])]
+                                raise ValueError(linesep.join(err_msgs))
                         else:
                             varfiles[vname].append(fname)
                     else:
