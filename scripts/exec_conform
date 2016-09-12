@@ -60,11 +60,6 @@ def cli(argv=None):
                         help='Whether to error when validation checks do not pass '
                              '(True) or simply print a warning message (False) '
                              '[Default: False]')
-    parser.add_argument('-n', '--nocycle', default=False,
-                        action='store_true', dest='nocycle',
-                        help='Whether to cycle over input files for metadata (False) '
-                             'or read all metadata from the first input file (True) '
-                             '[Default: False]')
     parser.add_argument('-s', '--serial', default=False,
                         action='store_true', dest='serial',
                         help='Whether to run in serial (True) or parallel '
@@ -106,7 +101,7 @@ def main(argv=None):
         simplefilter("error", ValidationWarning)
 
     # Setup the PyConform data flow
-    dataflow = DataFlow(inpds, outds, cycle=(not args.nocycle))
+    dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
     dataflow.execute(chunks=dict(args.chunks), serial=args.serial)
