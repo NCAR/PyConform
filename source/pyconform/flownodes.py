@@ -596,9 +596,11 @@ class WriteNode(FlowNode):
             for vnode in self._inputs:
                 vname = vnode.label
                 vinfo = self._vinfos[vname]
-                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
-                for aname, avalue in vnode._attributes.iteritems():
-                    print(aname, avalue)
+                vattrs = {k:v for k, v in vnode._attributes.iteritems()}
+                fill_value = vattrs.pop('_FillValue', None)
+                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
+                                                  fill_value=fill_value)
+                for aname, avalue in vattrs.iteritems():
                     ncvar.setncattr(aname, avalue)
                 ncvar.setncattr('provenance', vinfo.name)
 
