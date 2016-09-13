@@ -129,7 +129,7 @@ def join(shape0, index1, index2):
     if not isinstance(shape0, tuple):
         raise TypeError('Array shape must be a tuple')
     if len(shape0) == 0:
-        raise TypeError('Cannot index scalar array')
+        return ()
     for n in shape0:
         if not isinstance(n, int):
             raise TypeError('Array shape must be a tuple of integers')
