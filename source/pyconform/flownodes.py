@@ -12,7 +12,8 @@ from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
 from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
-from os.path import exists
+from os.path import exists, dirname
+from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
@@ -555,7 +556,14 @@ class WriteNode(FlowNode):
         """
         if self._file is None:
 
-            # Try to pen the output file
+            # Make the necessary subdirectories to open the file
+            if not exists(dirname(self.label)):
+                try:
+                    makedirs(dirname(self.label))
+                except:
+                    raise IOError('Failed to create directory for output file {!r}'.format(self.label))
+
+            # Try to pen the output file for writing
             try:
                 self._file = Dataset(self.label, 'w')
             except:
