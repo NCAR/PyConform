@@ -178,8 +178,8 @@ class VariableInfo(object):
         return self.attributes.get('long_name', None)
 
     def units(self):
-        """Retrieve the units attribute, if it exists, otherwise None"""
-        return self.attributes.get('units', None)
+        """Retrieve the units attribute, if it exists, otherwise 1"""
+        return self.attributes.get('units', 1)
 
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
