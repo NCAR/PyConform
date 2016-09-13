@@ -239,7 +239,7 @@ class DataFlow(object):
 
         # Loop over output files and write using given chunking
         for fname in fnames:
-            print '{}: Writing file'.format(prefix, fname)
+            print '{}: Writing file: {}'.format(prefix, fname)
             self._writenodes[fname].execute(chunks=chunks)
 
         if scomm.is_manager():
