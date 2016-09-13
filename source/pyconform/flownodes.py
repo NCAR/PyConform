@@ -360,6 +360,7 @@ class MapNode(FlowNode):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
 
         else:
+            print(self.label, index, inp_dims)
             out_index = index_tuple(index, len(inp_dims))
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in zip(out_dims, out_index))
 
