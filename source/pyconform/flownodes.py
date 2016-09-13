@@ -172,7 +172,10 @@ class ReadNode(FlowNode):
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-            units = Unit(units_attr, calendar=calendar_attr)
+            if units_attr == 'level':
+                units = Unit(1)
+            else:
+                units = Unit(units_attr, calendar=calendar_attr)
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
