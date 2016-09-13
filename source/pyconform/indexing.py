@@ -74,6 +74,9 @@ def index_tuple(index, ndims):
     """
     Generate an index tuple from a given index expression and number of dimensions
     """
+    if ndims == 0:
+        return ()
+
     idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
@@ -128,8 +131,6 @@ def join(shape0, index1, index2):
     """
     if not isinstance(shape0, tuple):
         raise TypeError('Array shape must be a tuple')
-    if len(shape0) == 0:
-        return ()
     for n in shape0:
         if not isinstance(n, int):
             raise TypeError('Array shape must be a tuple of integers')

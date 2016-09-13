@@ -353,7 +353,7 @@ class MapNode(FlowNode):
         out_dims = tuple(self._i2omap.get(d, d) for d in inp_dims)
 
         # Compute the input index in terms of input dimensions
-        if index is None or len(inp_dims) == 0:
+        if index is None:
             inp_index = dict((d, slice(0, 1)) for d in inp_dims)
 
         elif isinstance(index, dict):
