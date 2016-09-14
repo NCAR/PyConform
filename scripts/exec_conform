@@ -48,25 +48,22 @@ def cli(argv=None):
                         help='Chunk sizes for each dimension specified in the '
                              'output specification file.  Data will be read/written '
                              'in sizes given by these chunks. [Default: no chunking]')
-    parser.add_argument('-i', '--infile', dest='infiles', default=[],
-                        metavar='INFILE', action='append', type=str,
+    parser.add_argument('-f', '--specfile', default=None, metavar='SPECFILE', type=str,
+                        help='JSON-formatted output specification file '
+                             '[REQUIRED]')
+    parser.add_argument('-e', '--error', default=False, action='store_true',
+                        help='Whether to error when validation checks do not pass '
+                             '(True) or simply print a warning message (False) '
+                             '[Default: False]')
+    parser.add_argument('-s', '--serial', default=False, action='store_true',
+                        help='Whether to run in serial (True) or parallel '
+                             '(False). [Default: False]')
+    parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
                         help='Input file path or globstring specifying input '
                              'data for the PyConform operation.  If no input '
                              'files are specified, then PyConform will validate '
                              'the output specification file only, and then '
                              'exit.  [No default]')
-    parser.add_argument('-e', '--error', default=False,
-                        action='store_true', dest='error',
-                        help='Whether to error when validation checks do not pass '
-                             '(True) or simply print a warning message (False) '
-                             '[Default: False]')
-    parser.add_argument('-s', '--serial', default=False,
-                        action='store_true', dest='serial',
-                        help='Whether to run in serial (True) or parallel '
-                             '(False). [Default: False]')
-    parser.add_argument('specfile', default=None, metavar='SPECFILE', type=str,
-                        help='JSON-formatted output specification file '
-                             '[REQUIRED]')
 
     return parser.parse_args(argv)
 
