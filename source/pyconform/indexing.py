@@ -44,7 +44,9 @@ def index_str(index):
     """
     Convert an index expression into a compact string
     """
-    if isinstance(index, int):
+    if index is None:
+        return ':'
+    elif isinstance(index, int):
         return str(index)
     elif isinstance(index, EllipsisType):
         return '...'
