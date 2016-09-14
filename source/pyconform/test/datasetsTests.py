@@ -303,8 +303,8 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_units_default(self):
         vinfo = datasets.VariableInfo('x')
         actual = vinfo.units()
-        expected = None
-        print_test_message('VariableInfo.units() == None',
+        expected = Unit('1')
+        print_test_message('VariableInfo.units() == 1',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
                          'Default VariableInfo.units() not None')
@@ -342,7 +342,7 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_cfunits_default(self):
         vinfo = datasets.VariableInfo('time')
         actual = vinfo.cfunits()
-        expected = Unit(None)
+        expected = Unit(1)
         print_test_message('VariableInfo.cfunits() == None',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
