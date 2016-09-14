@@ -112,7 +112,7 @@ def align_index(index, dimensions):
         dimensions (tuple): A tuple of named dimensions for each axis of the data
     """
     if index is None:
-        return tuple(slice(0, 1) for d in dimensions)
+        return tuple(slice(0, 0) for d in dimensions)
     elif isinstance(index, dict):
         return tuple(index.get(d, slice(None)) for d in dimensions)
     else:

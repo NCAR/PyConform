@@ -448,11 +448,16 @@ class ValidateNode(FlowNode):
         # Get the data to validate
         indata = self._inputs[0][index]
 
-        # Check the datatype
+        # Check datatype, and cast as necessary
         if self._dtype is None:
             odtype = indata.dtype
         else:
             odtype = self._dtype
+        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
+            indata = indata.astype(odtype)
+        else:
+            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
+                            '{!r}').format(indata.dtype, odtype, self.label)
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
@@ -461,6 +466,10 @@ class ValidateNode(FlowNode):
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
             indata = indata.transpose(self._dimensions)
+
+        # Do not validate if index is None (nothing to validate)
+        if index is None:
+            return indata
 
         # Testing parameters
         valid_min = self._attributes.get('valid_min', None)
@@ -498,12 +507,7 @@ class ValidateNode(FlowNode):
                 msg = 'ok_max_mean_abs: {} > {} ({!r})'.format(mean_abs, ok_max_mean_abs, self.label)
                 warn(msg, ValidationWarning)
 
-        # Check datatype, and cast as necessary
-        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
-            return indata.astype(odtype)
-        else:
-            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
-                            '{!r}').format(indata.dtype, odtype, self.label)
+        return indata
 
 
 #===================================================================================================
