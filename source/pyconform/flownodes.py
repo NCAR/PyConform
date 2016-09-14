@@ -27,6 +27,11 @@ import numpy
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
+#===================================================================================================
+# UnitsWarning
+#===================================================================================================
+class UnitsWarning(Warning):
+    """Warning for units errors"""
 
 #===================================================================================================
 # FlowNode
@@ -173,10 +178,14 @@ class ReadNode(FlowNode):
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-            if units_attr in ('level', 'fraction'):
-                units = Unit(1)
-            else:
+            try:
                 units = Unit(units_attr, calendar=calendar_attr)
+            except ValueError:
+                msg = 'Units {!r} unrecognized in UDUNITS.  Assuming unitless.'
+                warn(msg, UnitsWarning)
+                units = Unit(1)
+            except:
+                raise
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
