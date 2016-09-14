@@ -557,9 +557,10 @@ class WriteNode(FlowNode):
         if self._file is None:
 
             # Make the necessary subdirectories to open the file
-            if not exists(dirname(self.label)):
+            labeldir = dirname(self.label)
+            if len(labeldir) > 0 and not exists(labeldir):
                 try:
-                    makedirs(dirname(self.label))
+                    makedirs(labeldir)
                 except:
                     raise IOError('Failed to create directory for output file {!r}'.format(self.label))
 
