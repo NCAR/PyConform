@@ -404,7 +404,7 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
+    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes=OrderedDict()):
         """
         Initializer
         
@@ -439,6 +439,13 @@ class ValidateNode(FlowNode):
 
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
+
+    @property
+    def attributes(self):
+        """
+        Attributes dictionary of the variable returned by the ValidateNode
+        """
+        return self._attributes
 
     def __getitem__(self, index):
         """
@@ -558,7 +565,7 @@ class WriteNode(FlowNode):
         self._unlimited = unlimited
 
         # Save the global attributes
-        self._attributes = {str(a): str(v) for a, v in kwds.iteritems()}
+        self._attributes = {str(a): v for a, v in kwds.iteritems()}
 
         # Set the filehandle
         self._file = None
@@ -610,7 +617,7 @@ class WriteNode(FlowNode):
             for vnode in self._inputs:
                 vname = vnode.label
                 vinfo = self._vinfos[vname]
-                vattrs = {k:v for k, v in vnode._attributes.iteritems()}
+                vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
                 fill_value = vattrs.pop('_FillValue', None)
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
                                                   fill_value=fill_value)
