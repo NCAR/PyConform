@@ -14,8 +14,9 @@ from os.path import exists
 from glob import glob
 from json import load as json_load
 from collections import OrderedDict
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from warnings import simplefilter
+from datetime import datetime
 
 from pyconform.datasets import InputDataset, OutputDataset
 from pyconform.dataflow import DataFlow
@@ -23,7 +24,7 @@ from pyconform.flownodes import ValidationWarning
 
 
 #===================================================================================================
-# chunk
+# chunk - Dimension/Chunksize Argument
 #===================================================================================================
 def chunk(arg):
     try:
@@ -31,7 +32,7 @@ def chunk(arg):
         size = int(size_str)
         return name, size
     except:
-        raise argparse.ArgumentTypeError("Chunks must be formatted as 'name,size'")
+        raise ArgumentTypeError("Chunks must be formatted as 'name,size'")
 
 
 #===================================================================================================
@@ -54,6 +55,10 @@ def cli(argv=None):
     parser.add_argument('-e', '--error', default=False, action='store_true',
                         help='Whether to error when validation checks do not pass '
                              '(True) or simply print a warning message (False) '
+                             '[Default: False]')
+    parser.add_argument('-p', '--provenance', default=False, action='store_true',
+                        help='Whether to add a conform_prov attribute to each variable '
+                             'storing the provenance information generated as execution time '
                              '[Default: False]')
     parser.add_argument('-s', '--serial', default=False, action='store_true',
                         help='Whether to run in serial (True) or parallel '
@@ -101,7 +106,7 @@ def main(argv=None):
     dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
-    dataflow.execute(chunks=dict(args.chunks), serial=args.serial)
+    dataflow.execute(chunks=dict(args.chunks), serial=args.serial, provenance=args.provenance)
 
 
 #===================================================================================================
