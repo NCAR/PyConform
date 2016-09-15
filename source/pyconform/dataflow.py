@@ -204,11 +204,6 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def enable_provenance(self):
-        """
-        Enable the writing of special provenance data generated during execution
-        """
-
     def execute(self, chunks={}, serial=False, provenance=False):
         """
         Execute the Data Flow
