@@ -291,51 +291,6 @@ class Dataset(object):
                 vdict['attributes'] = vinfo.attributes
             dsdict['variables'][vinfo.name] = vdict
         return dsdict
-#
-#     def get_shape(self, name):
-#         """
-#         Get the shape of a variable in the dataset
-#
-#         Parameters:
-#             name (str): name of the variable
-#         """
-#         if name not in self.variables:
-#             err_msg = 'Variable {!r} not in Dataset {!r}'.format(name, self.name)
-#             raise KeyError(err_msg)
-#         if self.dimensions:
-#             return tuple(self.dimensions[d].size
-#                          for d in self.variables[name].dimensions)
-#         else:
-#             return None
-#
-#     def get_size(self, name):
-#         """
-#         Get the size of a variable in the dataset
-#
-#         This is based on dimensions, so a variable that has no dimensions
-#         returns a size of 0.
-#
-#         Parameters:
-#             name (str): name of the variable
-#         """
-#         return sum(self.get_shape(name))
-#
-#     def get_bytesize(self, name):
-#         """
-#         Get the size in bytes of a variable in the dataset
-#
-#         If the size of the variable returns 0, then it assumes it is a
-#         single-value (non-array) variable.
-#
-#         Parameters:
-#             name (str): name of the variable
-#         """
-#         size = self.get_size(name)
-#         itembytes = dtype(self.variables[name].datatype).itemsize
-#         if size == 0:
-#             return itembytes
-#         else:
-#             return itembytes * size
 
 
 #===================================================================================================
