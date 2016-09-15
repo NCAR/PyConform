@@ -669,7 +669,7 @@ class WriteNode(FlowNode):
                 yield {d: (slice(lb, ub) if ub < dsizes[d] else slice(lb, None))
                        for d, (lb, ub) in bnds.iteritems()}
 
-    def execute(self, chunks={}, provenance=False):
+    def execute(self, chunks={}, provenance=False, mindate=None, maxdate=None):
         """
         Execute the writing of the WriteNode file at once
         
@@ -684,6 +684,12 @@ class WriteNode(FlowNode):
                 dimension will be assumed to correspond to the slowest-varying index.)
             provenance (bool): Whether to write a provenance attribute generated during execution
                 for each variable in the file
+            mindate (datetime):  Minimum datetime to write time-series data to file.  The 
+                variable(s) with time units will be bounded from below by this value, and
+                corresponding dimensions will be similarly bounded.
+            maxdate (datetime):  Maximum datetime to write time-series data to file.  The 
+                variable(s) with time units will be bounded from below by this value, and
+                corresponding dimensions will be similarly bounded.
         """
 
         # Open the file and write the header information

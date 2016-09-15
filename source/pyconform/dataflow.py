@@ -204,7 +204,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, provenance=False):
+    def execute(self, chunks={}, serial=False, provenance=False, mindate=None, maxdate=None):
         """
         Execute the Data Flow
         
@@ -217,6 +217,12 @@ class DataFlow(object):
             serial (bool): Whether to run in serial (True) or parallel (False)
             provenance (bool): Whether to write a provenance attribute generated during execution
                 for each variable in the file
+            mindate (datetime):  Minimum datetime to write time-series data to file.  The 
+                variable(s) with time units will be bounded from below by this value, and
+                corresponding dimensions will be similarly bounded.
+            maxdate (datetime):  Maximum datetime to write time-series data to file.  The 
+                variable(s) with time units will be bounded from below by this value, and
+                corresponding dimensions will be similarly bounded.
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -242,7 +248,8 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, provenance=provenance)
+            self._writenodes[fname].execute(chunks=chunks, provenance=provenance,
+                                            mindate=mindate, maxdate=maxdate)
 
         if scomm.is_manager():
             print 'All output variables written.'
