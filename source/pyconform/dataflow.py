@@ -204,7 +204,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, provenance=False, mindate=None, maxdate=None):
+    def execute(self, chunks={}, serial=False, provenance=False, bounds={}):
         """
         Execute the Data Flow
         
@@ -217,13 +217,24 @@ class DataFlow(object):
             serial (bool): Whether to run in serial (True) or parallel (False)
             provenance (bool): Whether to write a provenance attribute generated during execution
                 for each variable in the file
-            mindate (datetime):  Minimum datetime to write time-series data to file.  The 
-                variable(s) with time units will be bounded from below by this value, and
-                corresponding dimensions will be similarly bounded.
-            maxdate (datetime):  Maximum datetime to write time-series data to file.  The 
-                variable(s) with time units will be bounded from below by this value, and
-                corresponding dimensions will be similarly bounded.
+            bounds (dict):  Bounds on named variables specified in the output specification
+                file.  Data will be written for values within these bounds inclusively.
         """
+        # Check the bounds type
+        if not isinstance(bounds, dict):
+            raise TypeError('Bounds must be specified with a dictionary')
+
+        # Make sure that the specified dimensions are valid
+        for oname, (lbound, ubound) in bounds.iteritems():
+            if oname not in self._ods.variables:
+                raise ValueError('Cannot bound on unknown output variable {!r}'.format(oname))
+            if not isinstance(lbound, int):
+                raise TypeError(('Lower bound invalid for output variable {!r}: '
+                                 '{}').format(oname, lbound))
+            if not isinstance(ubound, int):
+                raise TypeError(('Upper bound invalid for output variable {!r}: '
+                                 '{}').format(oname, ubound))
+
         # Check chunks type
         if not isinstance(chunks, dict):
             raise TypeError('Chunks must be specified with a dictionary')
@@ -233,7 +244,8 @@ class DataFlow(object):
             if odname not in self._o2imap:
                 raise ValueError('Cannot chunk over unknown output dimension {!r}'.format(odname))
             if not isinstance(odsize, int):
-                raise TypeError('Chunk size invalid: {}'.format(odsize))
+                raise TypeError(('Chunk size invalid for output dimension {!r}: '
+                                 '{}').format(odname, odsize))
 
         # Create the simple communicator
         scomm = create_comm(serial=bool(serial))
@@ -248,8 +260,7 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, provenance=provenance,
-                                            mindate=mindate, maxdate=maxdate)
+            self._writenodes[fname].execute(chunks=chunks, provenance=provenance, bounds=bounds)
 
         if scomm.is_manager():
             print 'All output variables written.'

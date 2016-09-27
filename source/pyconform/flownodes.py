@@ -17,6 +17,7 @@ from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
+from datetime import datetime
 
 import numpy
 
@@ -181,7 +182,7 @@ class ReadNode(FlowNode):
             try:
                 units = Unit(units_attr, calendar=calendar_attr)
             except ValueError:
-                msg = 'Units {!r} unrecognized in UDUNITS.  Assuming unitless.'
+                msg = 'Units {!r} unrecognized in UDUNITS.  Assuming unitless.'.format(units_attr)
                 warn(msg, UnitsWarning)
                 units = Unit(1)
             except:
@@ -571,6 +572,9 @@ class WriteNode(FlowNode):
 
         # Set the filehandle
         self._file = None
+        
+        # Initialize the variable information
+        self._vinfos = {}
 
     def open(self, provenance=False):
         """
@@ -669,7 +673,7 @@ class WriteNode(FlowNode):
                 yield {d: (slice(lb, ub) if ub < dsizes[d] else slice(lb, None))
                        for d, (lb, ub) in bnds.iteritems()}
 
-    def execute(self, chunks={}, provenance=False, mindate=None, maxdate=None):
+    def execute(self, chunks={}, provenance=False, bounds={}):
         """
         Execute the writing of the WriteNode file at once
         
@@ -684,16 +688,29 @@ class WriteNode(FlowNode):
                 dimension will be assumed to correspond to the slowest-varying index.)
             provenance (bool): Whether to write a provenance attribute generated during execution
                 for each variable in the file
-            mindate (datetime):  Minimum datetime to write time-series data to file.  The 
-                variable(s) with time units will be bounded from below by this value, and
-                corresponding dimensions will be similarly bounded.
-            maxdate (datetime):  Maximum datetime to write time-series data to file.  The 
-                variable(s) with time units will be bounded from below by this value, and
-                corresponding dimensions will be similarly bounded.
+            bounds (dict):  Bounds on named variables specified in the output specification
+                file.  Data will be written for values within these bounds inclusively.
         """
 
-        # Open the file and write the header information
+        # Open the file and write the header information (fills the _vinfos)
         self.open(provenance=provenance)
+        
+        # Loop over vinfos and convert lower/upper bounds from coordinates to indices
+#         cbounds = {}
+#         for vname, vinfo in self._vinfos.iteritems():
+#             if vname in bounds:
+#                 if len(vinfo.dimensions) != 1:
+#                     raise ValueError(('Cannot set bounds on {}-dimensional variable '
+#                                       '{!r}').format(len(vinfo.dimensions), vname))
+#                 vdim = vinfo.dimensions[0]
+#                 if vinfo.units.is_time():
+#                     tfmt = '%Y-%m-%dT%H:%M:%S'
+#                     dtbounds = map(lambda s: datetime.strptime(s, tfmt), bounds[vname])
+#                     vbounds = map(vinfo.units.date2num, dtbounds)
+#                 else:
+#                     vbounds = bounds[vname]
+#                 vlower, vupper = map(vinfo.dtype, vbounds)
+# TO BE FINISHED
 
         # Loop over all variable nodes
         for vnode in self._inputs:

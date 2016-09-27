@@ -24,7 +24,7 @@ from pyconform.flownodes import ValidationWarning
 
 
 #===================================================================================================
-# chunk - Dimension/Chunksize Argument
+# chunk - Chunksize for a named dimension
 #===================================================================================================
 def chunk(arg):
     try:
@@ -36,24 +36,14 @@ def chunk(arg):
 
 
 #===================================================================================================
-# dtstr - Datetime String Argumnet
+# bound - Bounds on a named dimension
 #===================================================================================================
-def dtstr(arg):
+def bound(arg):
     try:
-        dtargs = ' '.join(arg.split()).split(' ')
-        if len(dtargs) == 1:
-            dargs = dtargs[0]
-            targs = None
-        else:
-            dargs, targs = dtargs
-        yr, mon, dy = map(int, dargs.split('-'))
-        if targs:
-            hms = map(int, targs.split(':'))
-        else:
-            hms = (0, 0, 0)
-        return datetime(yr, mon, dy, *hms)
+        name, lower_str, upper_str = arg.split(',')
+        return name, (lower_str, upper_str)
     except:
-        raise ArgumentTypeError("Datetime strings must be formatted as 'YYYY-MM-DD [hh:mm:ss]'")
+        raise ArgumentTypeError("Bounds must be formatted as 'name,lower,upper'")
 
 
 #===================================================================================================
@@ -65,6 +55,11 @@ def cli(argv=None):
               specification file (specfile)."""
 
     parser = ArgumentParser(description=desc)
+    parser.add_argument('-b', '--bound', dest='bounds', default=[],
+                        metavar='NAME,LOWER,UPPER', action='append', type=bound,
+                        help='Set the bounds on a named variable specified in the output '
+                             'specification file.  Data will be written for values within '
+                             'these bounds inclusively.  [Default: no bounds]')
     parser.add_argument('-c', '--chunk', dest='chunks', default=[],
                         metavar='NAME,SIZE', action='append', type=chunk,
                         help='Chunk sizes for each dimension specified in the '
@@ -77,17 +72,9 @@ def cli(argv=None):
                         help='Whether to error when validation checks do not pass '
                              '(True) or simply print a warning message (False) '
                              '[Default: False]')
-    parser.add_argument('--mindate', default=None, type=dtstr,
-                        help='Minimum datetime to write time-series data to file.  The '
-                             'variable(s) with time units will be bounded from below by this '
-                             'value, and corresponding dimensions will be similarly bounded.')
-    parser.add_argument('--maxdate', default=None, type=dtstr,
-                        help='Maximum datetime to write time-series data to file.  The '
-                             'variable(s) with time units will be bounded from above by this '
-                             'value, and corresponding dimensions will be similarly bounded.')
     parser.add_argument('-p', '--provenance', default=False, action='store_true',
-                        help='Whether to add a conform_prov attribute to each variable '
-                             'storing the provenance information generated as execution time '
+                        help="Whether to add a 'conform_prov' attribute to each variable, "
+                             'storing the provenance information generated at execution time '
                              '[Default: False]')
     parser.add_argument('-s', '--serial', default=False, action='store_true',
                         help='Whether to run in serial (True) or parallel '
@@ -107,14 +94,21 @@ def cli(argv=None):
 #===================================================================================================
 def main(argv=None):
     args = cli(argv)
-
+    
+    # Construct a dictionary of output bounds
+    bounds = {k:v for k, v in args.bounds}
+    
+    # Gather the list of input files
     infiles = []
     for infile in args.infiles:
         infiles.extend(glob(infile))
 
+    # Check that the specfile exists
     if not exists(args.specfile):
         raise OSError(('Output specification file {!r} not '
                        'found').format(args.specfile))
+    
+    # Read the specfile into a dictionary
     dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
 
     # Parse the output Dataset
@@ -135,8 +129,8 @@ def main(argv=None):
     dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
-    dataflow.execute(chunks=dict(args.chunks), serial=args.serial, provenance=args.provenance,
-                     mindate=args.mindate, maxdate=args.maxdate)
+    dataflow.execute(chunks=dict(args.chunks), serial=args.serial,
+                     provenance=args.provenance, bounds=bounds)
 
 
 #===================================================================================================
