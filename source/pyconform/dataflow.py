@@ -262,6 +262,7 @@ class DataFlow(object):
             print '{}: Writing file: {}'.format(prefix, fname)
             self._writenodes[fname].execute(chunks=chunks, provenance=provenance, bounds=bounds)
 
+        scomm.sync()
         if scomm.is_manager():
             print 'All output variables written.'
             print
