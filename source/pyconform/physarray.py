@@ -48,14 +48,14 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store a name associated with the object
         if name is None:
             if 'name' not in obj._optinfo:
-                obj.name = str(inarray)
+                obj.name = PhysArray.interpret_name(inarray)
         else:
             obj.name = name
 
         # Store units of the data
         if units is None:
             if 'units' not in obj._optinfo:
-                obj.units = Unit(1)
+                obj.units = PhysArray.interpret_units(inarray)
         elif isinstance(units, Unit):
             obj.units = units
         else:
@@ -64,7 +64,7 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store dimension names associated with each axis
         if dimensions is None:
             if 'dimensions' not in obj._optinfo:
-                obj.dimensions = tuple(i for i in xrange(obj.ndim))
+                obj.dimensions = PhysArray.interpret_dimensions(inarray)
         else:
             obj.dimensions = dimensions
 
