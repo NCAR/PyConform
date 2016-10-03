@@ -101,7 +101,7 @@ class DefinitionParserTests(unittest.TestCase):
 
 #===== QUOTED STRINGS ==========================================================
 
-    def test_parse_quote(self):
+    def test_parse_quote_int(self):
         indata = '"1"'
         actual = parsing.parse_definition(indata)
         expected = '1'
@@ -115,6 +115,26 @@ class DefinitionParserTests(unittest.TestCase):
         indata = '"\\"1\\""'
         actual = parsing.parse_definition(indata)
         expected = '"1"'
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'String parsing failed')
+
+    def test_parse_quote_literal(self):
+        indata = 'Hello, World!'
+        actual = parsing.parse_definition('"' + indata + '"')
+        expected = indata
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        self.assertEqual(actual, expected,
+                         'String parsing failed')
+
+    def test_parse_quote_func(self):
+        indata = 'f(x,y,z)'
+        actual = parsing.parse_definition('"' + indata + '"')
+        expected = indata
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
