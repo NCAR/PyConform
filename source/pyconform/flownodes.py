@@ -572,7 +572,7 @@ class WriteNode(FlowNode):
 
         # Set the filehandle
         self._file = None
-        
+
         # Initialize the variable information
         self._vinfos = {}
 
@@ -694,7 +694,7 @@ class WriteNode(FlowNode):
 
         # Open the file and write the header information (fills the _vinfos)
         self.open(provenance=provenance)
-        
+
         # Loop over vinfos and convert lower/upper bounds from coordinates to indices
 #         cbounds = {}
 #         for vname, vinfo in self._vinfos.iteritems():
@@ -723,6 +723,9 @@ class WriteNode(FlowNode):
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
+
+            if len(vinfo.dimensions) != len(vinfo._shape):
+                print('*** {}: {}, {}'.format(vname, vinfo.dimensions, vinfo._shape))
 
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo._shape, chunks):
