@@ -48,7 +48,7 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store a name associated with the object
         if name is None:
             if 'name' not in obj._optinfo:
-                obj.name = str(obj.__class__.__name__)
+                obj.name = str(inarray)
         else:
             obj.name = name
 
