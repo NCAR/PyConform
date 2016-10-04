@@ -12,7 +12,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.indexing import align_index
 from cf_units import Unit
-from operator import mul, div
+from operator import mul, div, pow
 
 import numpy
 
@@ -48,14 +48,14 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store a name associated with the object
         if name is None:
             if 'name' not in obj._optinfo:
-                obj.name = PhysArray.interpret_name(inarray)
+                obj.name = str(inarray)
         else:
             obj.name = name
 
         # Store units of the data
         if units is None:
             if 'units' not in obj._optinfo:
-                obj.units = PhysArray.interpret_units(inarray)
+                obj.units = Unit(1)
         elif isinstance(units, Unit):
             obj.units = units
         else:
@@ -64,20 +64,16 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store dimension names associated with each axis
         if dimensions is None:
             if 'dimensions' not in obj._optinfo:
-                obj.dimensions = PhysArray.interpret_dimensions(inarray)
+                obj.dimensions = tuple(range(len(numpy.shape(inarray))))
         else:
             obj.dimensions = dimensions
 
         # Initial shape
         if _shape is None:
             if '_shape' not in obj._optinfo:
-                obj._optinfo['_shape'] = obj.shape
+                obj._optinfo['_shape'] = numpy.shape(inarray)
         else:
-            if not isinstance(_shape, tuple):
-                raise TypeError('Initial shape must be a tuple')
-            if len(_shape) != len(obj.dimensions):
-                raise ValueError('Initial shape must match dimension length')
-            obj._optinfo['_shape'] = _shape
+            obj._shape = _shape
 
         return obj
 
@@ -129,6 +125,15 @@ class PhysArray(numpy.ma.MaskedArray):
         """Initial size of each dimension of the data"""
         return self._optinfo['_shape']
 
+    @_shape.setter
+    def _shape(self, shape):
+        """Initial size of each dimension of the data"""
+        if not isinstance(shape, tuple):
+            raise TypeError('Initial shape must be a tuple')
+        if len(shape) != len(self.shape):
+            raise ValueError('Initial shape must have same length as shape')
+        self._optinfo['_shape'] = shape
+
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
         if len(idx) == 0:
@@ -141,24 +146,6 @@ class PhysArray(numpy.ma.MaskedArray):
                                  dimensions=dimensions, _shape=shape0)
             else:
                 return super(PhysArray, self).__getitem__(idx)
-
-    @staticmethod
-    def interpret_name(obj):
-        """Return an object's assumed string name"""
-        return obj.name if isinstance(obj, PhysArray) else str(obj)
-
-    @staticmethod
-    def interpret_units(obj):
-        """Return an object's assumed units"""
-        return obj.units if isinstance(obj, PhysArray) else Unit(1)
-
-    @staticmethod
-    def interpret_dimensions(obj):
-        """Return an object's assumed dimensions"""
-        if isinstance(obj, PhysArray):
-            return obj.dimensions
-        else:
-            return tuple(i for i in xrange(len(numpy.shape(obj))))
 
     @staticmethod
     def _convert_name_(name, units1, units2):
@@ -189,232 +176,6 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             return units1.convert(obj, units2)
 
-    @staticmethod
-    def _match_right_(left, right):
-        rname = PhysArray.interpret_name(right)
-        lunits = PhysArray.interpret_units(left)
-        runits = PhysArray.interpret_units(right)
-        if lunits != runits:
-            if runits.is_convertible(lunits):
-                right = PhysArray._safe_convert_(right, runits, lunits)
-                rname = PhysArray._convert_name_(rname, runits, lunits)
-            else:
-                raise UnitsError('Nonconvertible units: {}, {}'.format(lunits, runits))
-        ldims = PhysArray.interpret_dimensions(left)
-        rdims = PhysArray.interpret_dimensions(right)
-        if ldims == () or rdims == ():
-            return right, rname
-        elif ldims != rdims:
-            if set(ldims) == set(rdims):
-                right = numpy.transpose(right, axes=tuple(rdims.index(d) for d in ldims))
-                rname = PhysArray._transpose_name_(rname, rdims, ldims)
-            else:
-                raise DimensionsError('Nontransposable dimensions: {}, {}'.format(ldims, rdims))
-        return right, rname
-
-    def __add__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        return PhysArray(super(PhysArray, self).__add__(other),
-                         name='({}+{})'.format(self.name, rname))
-
-    def __radd__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        return PhysArray(super(PhysArray, self).__radd__(other),
-                         name='({}+{})'.format(rname, self.name))
-
-    def __iadd__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        self.name = '({}+{})'.format(self.name, rname)
-        return super(PhysArray, self).__iadd__(other)
-
-    def __sub__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        return PhysArray(super(PhysArray, self).__sub__(other),
-                         name='({}-{})'.format(self.name, rname))
-
-    def __rsub__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        return PhysArray(super(PhysArray, self).__rsub__(other),
-                         name='({}-{})'.format(rname, self.name))
-
-    def __isub__(self, other):
-        other, rname = PhysArray._match_right_(self, other)
-        self.name = '({}-{})'.format(self.name, rname)
-        return super(PhysArray, self).__isub__(other)
-
-    @staticmethod
-    def _mul_div_units_(op, left, right):
-        lunits = PhysArray.interpret_units(left)
-        runits = PhysArray.interpret_units(right)
-        try:
-            munits = op(lunits, runits)
-        except:
-            nm = 'multiply' if op == mul else 'divide'
-            raise UnitsError('Cannot {} with units: {}, {}'.format(nm, lunits, runits))
-        return munits
-
-    @staticmethod
-    def _mul_div_dimensions_(op, self, other):
-        oname = PhysArray.interpret_name(other)
-        sdims = PhysArray.interpret_dimensions(self)
-        odims = PhysArray.interpret_dimensions(other)
-        if sdims == ():
-            mdims = odims
-        elif sdims == odims or odims == ():
-            mdims = sdims
-        elif set(sdims) == set(odims):
-            other = numpy.transpose(other, axes=tuple(odims.index(d) for d in sdims))
-            oname = PhysArray._transpose_name_(oname, odims, sdims)
-            mdims = sdims
-        else:
-            nm = 'multiply' if op == mul else 'divide'
-            raise DimensionsError(('Cannot {} with dimensions: {}, {}').format(nm, sdims, odims))
-        return other, mdims, oname
-
-    def __mul__(self, other):
-        units = PhysArray._mul_div_units_(mul, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(mul, self, other)
-        return PhysArray(super(PhysArray, self).__mul__(other), units=units, dimensions=dims,
-                         name='({}*{})'.format(self.name, oname))
-
-    def __rmul__(self, other):
-        units = PhysArray._mul_div_units_(mul, other, self)
-        other, dims, oname = PhysArray._mul_div_dimensions_(mul, self, other)
-        return PhysArray(super(PhysArray, self).__rmul__(other), units=units, dimensions=dims,
-                         name='({}*{})'.format(oname, self.name))
-
-    def __imul__(self, other):
-        self.units = PhysArray._mul_div_units_(mul, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(mul, self, other)
-        self.dimensions = dims
-        self.name = '({}*{})'.format(self.name, oname)
-        return super(PhysArray, self).__imul__(other)
-
-    def __div__(self, other):
-        units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__div__(other), units=units, dimensions=dims,
-                         name='({}/{})'.format(self.name, oname))
-
-    def __rdiv__(self, other):
-        units = PhysArray._mul_div_units_(div, other, self)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__rdiv__(other), units=units, dimensions=dims,
-                         name='({}/{})'.format(oname, self.name))
-
-    def __idiv__(self, other):
-        self.units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        self.dimensions = dims
-        self.name = '({}/{})'.format(self.name, oname)
-        return super(PhysArray, self).__idiv__(other)
-
-    def __floordiv__(self, other):
-        units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__floordiv__(other), units=units, dimensions=dims,
-                         name='({}//{})'.format(self.name, oname))
-
-    def __rfloordiv__(self, other):
-        units = PhysArray._mul_div_units_(div, other, self)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__rfloordiv__(other), units=units, dimensions=dims,
-                         name='({}//{})'.format(oname, self.name))
-
-    def __ifloordiv__(self, other):
-        self.units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        self.dimensions = dims
-        self.name = '({}//{})'.format(self.name, oname)
-        return super(PhysArray, self).__ifloordiv__(other)
-
-    def __truediv__(self, other):
-        units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__truediv__(other), units=units, dimensions=dims,
-                         name='({}/{})'.format(self.name, oname))
-
-    def __rtruediv__(self, other):
-        units = PhysArray._mul_div_units_(div, other, self)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__rtruediv__(other), units=units, dimensions=dims,
-                         name='({}/{})'.format(oname, self.name))
-
-    def __itruediv__(self, other):
-        self.units = PhysArray._mul_div_units_(div, self, other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        self.dimensions = dims
-        self.name = '({}/{})'.format(self.name, oname)
-        return super(PhysArray, self).__itruediv__(other)
-
-    def __mod__(self, other):
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims,
-                         name='({}%{})'.format(self.name, oname))
-
-    def __rmod__(self, other):
-        units = PhysArray.interpret_units(other)
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        return PhysArray(super(PhysArray, self).__rmod__(other), units=units, dimensions=dims,
-                         name='({}%{})'.format(oname, self.name))
-
-    def __imod__(self, other):
-        other, dims, oname = PhysArray._mul_div_dimensions_(div, self, other)
-        self.dimensions = dims
-        self.name = '({}%{})'.format(self.name, oname)
-        return super(PhysArray, self).__imod__(other)
-
-    def __divmod__(self, other):
-        return (self.__floordiv__(other), self.__mod__(other))
-
-    def __rdivmod__(self, other):
-        return (self.__rfloordiv__(other), self.__rmod__(other))
-
-    @staticmethod
-    def _pow_units_(left, right):
-        rname = PhysArray.interpret_name(right)
-        lunits = PhysArray.interpret_units(left)
-        runits = PhysArray.interpret_units(right)
-        if runits != Unit(1):
-            if runits.is_convertible(Unit(1)):
-                right = runits.convert(right, Unit(1))
-                rname = PhysArray._convert_name_(rname, runits, Unit(1))
-            else:
-                raise UnitsError('Exponents must be scalar: {}'.format(right))
-        try:
-            punits = lunits ** right
-        except:
-            raise UnitsError('Cannot exponentiate with units: {!r}, {}'.format(lunits, right))
-        return punits, rname, right
-
-    @staticmethod
-    def _pow_dimensions_(left, right):
-        ldims = PhysArray.interpret_dimensions(left)
-        rdims = PhysArray.interpret_dimensions(right)
-        if rdims != ():
-            raise DimensionsError('Exponents must be scalar: {}'.format(right))
-        return ldims
-
-    def __pow__(self, other):
-        units, oname, other = PhysArray._pow_units_(self, other)
-        dimensions = PhysArray._pow_dimensions_(self, other)
-        return PhysArray(super(PhysArray, self).__pow__(other), units=units, dimensions=dimensions,
-                         name='({}**{})'.format(self.name, oname))
-
-    def __rpow__(self, other):
-        right = self.copy()
-        units, sname, right = PhysArray._pow_units_(other, right)
-        dimensions = PhysArray._pow_dimensions_(other, right)
-        return PhysArray(super(PhysArray, right).__rpow__(other), units=units, dimensions=dimensions,
-                         name='({}**{})'.format(PhysArray.interpret_name(other), sname))
-
-    def __ipow__(self, other):
-        units, oname, other = PhysArray._pow_units_(self, other)
-        self.units = units
-        self.dimensions = PhysArray._pow_dimensions_(self, other)
-        self.name = '({}**{})'.format(self.name, oname)
-        return super(PhysArray, self).__ipow__(other)
-
     def convert(self, units):
         """
         Return a new PhysArray with new units
@@ -427,6 +188,12 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             raise UnitsError('Cannot convert units {!r} to {!r}'.format(self.units, units))
 
+    def _convert_scalar_check_(self, units):
+        if self.units != units:
+            return self.convert(units)
+        else:
+            return self
+
     def transpose(self, *dims):
         """
         Return a new PhysArray with dimensions transposed in the order given
@@ -437,7 +204,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if len(dims) == 1 and isinstance(dims[0], tuple):
             dims = dims[0]
         if set(dims) == set(self.dimensions):
-            new_dims = dims
+            new_dims = tuple(dims)
             new_shp0 = tuple(self._shape[self.dimensions.index(d)] for d in dims)
             axes = tuple(self.dimensions.index(d) for d in dims)
         elif set(dims) == set(range(self.ndim)):
@@ -450,3 +217,174 @@ class PhysArray(numpy.ma.MaskedArray):
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
                          name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims),
                          _shape=new_shp0)
+
+    def _transpose_scalar_check_(self, obj):
+        if self.dimensions == () or obj.dimensions == ():
+            return self
+        else:
+            return self.transpose(obj.dimensions)
+
+    def _return_dim_shape_(self, other):
+        if self.dimensions == ():
+            return other.dimensions, other._shape
+        else:
+            return self.dimensions, self._shape
+
+    def __add__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, _shape=_shape,
+                         name='({}+{})'.format(self.name, other.name))
+
+    def __radd__(self, other):
+        return PhysArray(other).__add__(self)
+
+    def __iadd__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
+        super(PhysArray, self).__iadd__(other)
+        self.name = '({}+{})'.format(self.name, other.name)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __sub__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, _shape=_shape,
+                         name='({}-{})'.format(self.name, other.name))
+
+    def __rsub__(self, other):
+        return PhysArray(other).__sub__(self)
+
+    def __isub__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
+        super(PhysArray, self).__isub__(other)
+        self.name = '({}-{})'.format(self.name, other.name)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def _op_units_(self, val, op):
+        sunits = self.units
+        try:
+            units = op(sunits, val)
+        except:
+            opnm = str(op.__name__)
+            raise UnitsError('Operator {!r} failed with units: {}, {}'.format(opnm, sunits, val))
+        return units
+
+    def __mul__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        units = self._op_units_(other.units, mul)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__mul__(other), dimensions=dims, _shape=_shape,
+                         units=units, name='({}*{})'.format(self.name, other.name))
+
+    def __rmul__(self, other):
+        return PhysArray(other).__mul__(self)
+
+    def __imul__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        super(PhysArray, self).__imul__(other)
+        self.name = '({}*{})'.format(self.name, other.name)
+        self.units = self._op_units_(other.units, mul)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __div__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        units = self._op_units_(other.units, div)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__div__(other), dimensions=dims, _shape=_shape,
+                         units=units, name='({}/{})'.format(self.name, other.name))
+
+    def __rdiv__(self, other):
+        return PhysArray(other).__div__(self)
+
+    def __idiv__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        super(PhysArray, self).__idiv__(other)
+        self.name = '({}/{})'.format(self.name, other.name)
+        self.units = self._op_units_(other.units, div)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __floordiv__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        units = self._op_units_(other.units, div)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__floordiv__(other), dimensions=dims, _shape=_shape,
+                         units=units, name='({}//{})'.format(self.name, other.name))
+
+    def __rfloordiv__(self, other):
+        return PhysArray(other).__floordiv__(self)
+
+    def __ifloordiv__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        super(PhysArray, self).__ifloordiv__(other)
+        self.name = '({}//{})'.format(self.name, other.name)
+        self.units = self._op_units_(other.units, div)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __truediv__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        units = self._op_units_(other.units, div)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__truediv__(other), dimensions=dims, _shape=_shape,
+                         units=units, name='({}/{})'.format(self.name, other.name))
+
+    def __rtruediv__(self, other):
+        return PhysArray(other).__truediv__(self)
+
+    def __itruediv__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        super(PhysArray, self).__itruediv__(other)
+        self.name = '({}/{})'.format(self.name, other.name)
+        self.units = self._op_units_(other.units, div)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __mod__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        dims, _shape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims, _shape=_shape,
+                         name='({}%{})'.format(self.name, other.name))
+
+    def __rmod__(self, other):
+        return PhysArray(other).__mod__(self)
+
+    def __imod__(self, other):
+        other = PhysArray(other)._transpose_scalar_check_(self)
+        super(PhysArray, self).__imod__(other)
+        self.name = '({}%{})'.format(self.name, other.name)
+        self.dimensions, self._shape = self._return_dim_shape_(other)
+        return self
+
+    def __divmod__(self, other):
+        return self.__floordiv__(other), self.__mod__(other)
+
+    def __rdivmod__(self, other):
+        return self.__rfloordiv__(other), self.__rmod__(other)
+
+    def _check_exponent_dims_(self, exp):
+        if exp.dimensions != ():
+            raise DimensionsError('Exponents must be scalar: {}'.format(exp))
+
+    def __pow__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(Unit(1))
+        units = self._op_units_(other, pow)
+        if other.dimensions != ():
+            raise DimensionsError('Exponents must be scalar: {}'.format(other))
+        return PhysArray(super(PhysArray, self).__pow__(other), units=units,
+                         name='({}**{})'.format(self.name, other.name))
+
+    def __rpow__(self, other):
+        return PhysArray(other).__pow__(self)
+
+    def __ipow__(self, other):
+        other = PhysArray(other)._convert_scalar_check_(Unit(1))
+        if other.dimensions != ():
+            raise DimensionsError('Exponents must be scalar: {}'.format(other))
+        super(PhysArray, self).__ipow__(other)
+        self.units = self._op_units_(other, pow)
+        self.name = '({}**{})'.format(self.name, other.name)
+        return self
