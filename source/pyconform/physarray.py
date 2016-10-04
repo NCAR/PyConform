@@ -234,7 +234,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         dims, _shape = self._return_dim_shape_(other)
         return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, _shape=_shape,
-                         name='({}+{})'.format(self.name, other.name))
+                         units=self.units, name='({}+{})'.format(self.name, other.name))
 
     def __radd__(self, other):
         return PhysArray(other).__add__(self)
@@ -250,7 +250,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         dims, _shape = self._return_dim_shape_(other)
         return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, _shape=_shape,
-                         name='({}-{})'.format(self.name, other.name))
+                         units=self.units, name='({}-{})'.format(self.name, other.name))
 
     def __rsub__(self, other):
         return PhysArray(other).__sub__(self)
