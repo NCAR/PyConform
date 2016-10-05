@@ -501,6 +501,7 @@ class ParseXML(object):
 
 
             rl = dq.inx.requestLink.uid[dr.rlid]
+            rvg = dq.inx.requestVarGroup.uid[rl.refid]
             vars = dq.inx.iref_by_sect[rl.refid].a
             axes_list = [] 
             for rv in vars['requestVar']:
@@ -666,12 +667,7 @@ class ParseXML(object):
             table_dict['variables'] = variables
             table_dict['axes'] = axes 
             table_dict['table_info'] = table_info
-            if '!' in dr.tab:
-                tab = dr.tab.split('!')[-1]
-            elif ':' in dr.tab:
-                tab = dr.tab.split(':')[-1]
-            else:
-                tab = dr.tab
+            tab = rvg.label
             table_info['table_id'] = tab
             total_request[dr.mip+'_'+tab] = table_dict
         print 'Total in request:',len(total_request)
