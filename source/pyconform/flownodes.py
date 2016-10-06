@@ -227,7 +227,7 @@ class ReadNode(FlowNode):
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
 
-        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, _shape=shape2)
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, initshape=shape2)
 
 
 #===================================================================================================
@@ -609,7 +609,7 @@ class WriteNode(FlowNode):
             # Collect the dimension sizes from the initialshape parameter of the input data
             req_dims = {}
             for vinfo in self._vinfos.itervalues():
-                for dname, dsize in zip(vinfo.dimensions, vinfo._shape):
+                for dname, dsize in zip(vinfo.dimensions, vinfo.initshape):
                     if dname not in req_dims:
                         req_dims[dname] = dsize
                     elif req_dims[dname] != dsize:
@@ -724,11 +724,11 @@ class WriteNode(FlowNode):
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
-            if len(vinfo.dimensions) != len(vinfo._shape):
-                print('*** {}: {}, {}'.format(vname, vinfo.dimensions, vinfo._shape))
+            if len(vinfo.dimensions) != len(vinfo.initshape):
+                print('*** {}: {}, {}'.format(vname, vinfo.dimensions, vinfo.initshape))
 
             # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo._shape, chunks):
+            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
                 ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
 
         # Close the file after completion

@@ -42,7 +42,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None, _shape=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None, initshape=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -69,11 +69,11 @@ class PhysArray(numpy.ma.MaskedArray):
             obj.dimensions = dimensions
 
         # Initial shape
-        if _shape is None:
-            if '_shape' not in obj._optinfo:
-                obj._optinfo['_shape'] = numpy.shape(inarray)
+        if initshape is None:
+            if 'initshape' not in obj._optinfo:
+                obj._optinfo['initshape'] = numpy.shape(inarray)
         else:
-            obj._shape = _shape
+            obj.initshape = initshape
 
         return obj
 
@@ -121,18 +121,18 @@ class PhysArray(numpy.ma.MaskedArray):
         self._optinfo['dimensions'] = dims
 
     @property
-    def _shape(self):
+    def initshape(self):
         """Initial size of each dimension of the data"""
-        return self._optinfo['_shape']
+        return self._optinfo['initshape']
 
-    @_shape.setter
-    def _shape(self, shape):
+    @initshape.setter
+    def initshape(self, shape):
         """Initial size of each dimension of the data"""
         if not isinstance(shape, tuple):
             raise TypeError('Initial shape must be a tuple')
         if len(shape) != len(self.shape):
             raise ValueError('Initial shape must have same length as shape')
-        self._optinfo['_shape'] = shape
+        self._optinfo['initshape'] = shape
 
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
@@ -141,11 +141,17 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             dimensions = tuple(d for i, d in zip(idx, self.dimensions) if isinstance(i, slice))
             if dimensions != self.dimensions:
-                shape0 = tuple(s for i, s in zip(idx, self._shape) if isinstance(i, slice))
+                shape0 = tuple(s for i, s in zip(idx, self.initshape) if isinstance(i, slice))
                 return PhysArray(super(PhysArray, self).__getitem__(idx),
-                                 dimensions=dimensions, _shape=shape0)
+                                 dimensions=dimensions, initshape=shape0)
             else:
                 return super(PhysArray, self).__getitem__(idx)
+
+    def __setitem__(self, index, values):
+        idx = align_index(index, self.dimensions)
+        if isinstance(values, PhysArray):
+            values = values.convert(self.units).transpose(self.dimensions)
+        super(PhysArray, self).__setitem__(idx, values)
 
     @staticmethod
     def _convert_name_(name, units1, units2):
@@ -169,7 +175,7 @@ class PhysArray(numpy.ma.MaskedArray):
                                              mask=obj.mask, dtype=obj.dtype)
             new_name = PhysArray._convert_name_(obj.name, units1, units2)
             return PhysArray(new_array, name=new_name, units=units2,
-                             dimensions=obj.dimensions, _shape=obj._shape)
+                             dimensions=obj.dimensions, initshape=obj.initshape)
         elif isinstance(obj, numpy.ma.MaskedArray):
             return numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                         mask=obj.mask, dtype=obj.dtype)
@@ -205,18 +211,18 @@ class PhysArray(numpy.ma.MaskedArray):
             dims = dims[0]
         if set(dims) == set(self.dimensions):
             new_dims = tuple(dims)
-            new_shp0 = tuple(self._shape[self.dimensions.index(d)] for d in dims)
+            new_shp0 = tuple(self.initshape[self.dimensions.index(d)] for d in dims)
             axes = tuple(self.dimensions.index(d) for d in dims)
         elif set(dims) == set(range(self.ndim)):
             new_dims = tuple(self.dimensions[i] for i in dims)
-            new_shp0 = tuple(self._shape[i] for i in dims)
+            new_shp0 = tuple(self.initshape[i] for i in dims)
             axes = dims
         else:
             raise DimensionsError(('Cannot transpose dimensions/axes {} to '
                                    '{}').format(self.dimensions, dims))
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
                          name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims),
-                         _shape=new_shp0)
+                         initshape=new_shp0)
 
     def _transpose_scalar_check_(self, obj):
         if self.dimensions == () or obj.dimensions == ():
@@ -226,14 +232,14 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def _return_dim_shape_(self, other):
         if self.dimensions == ():
-            return other.dimensions, other._shape
+            return other.dimensions, other.initshape
         else:
-            return self.dimensions, self._shape
+            return self.dimensions, self.initshape
 
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, initshape=initshape,
                          units=self.units, name='({}+{})'.format(self.name, other.name))
 
     def __radd__(self, other):
@@ -243,13 +249,13 @@ class PhysArray(numpy.ma.MaskedArray):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         super(PhysArray, self).__iadd__(other)
         self.name = '({}+{})'.format(self.name, other.name)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __sub__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, initshape=initshape,
                          units=self.units, name='({}-{})'.format(self.name, other.name))
 
     def __rsub__(self, other):
@@ -259,7 +265,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         super(PhysArray, self).__isub__(other)
         self.name = '({}-{})'.format(self.name, other.name)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def _op_units_(self, val, op):
@@ -274,8 +280,8 @@ class PhysArray(numpy.ma.MaskedArray):
     def __mul__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
         units = self._op_units_(other.units, mul)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__mul__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__mul__(other), dimensions=dims, initshape=initshape,
                          units=units, name='({}*{})'.format(self.name, other.name))
 
     def __rmul__(self, other):
@@ -286,14 +292,14 @@ class PhysArray(numpy.ma.MaskedArray):
         super(PhysArray, self).__imul__(other)
         self.name = '({}*{})'.format(self.name, other.name)
         self.units = self._op_units_(other.units, mul)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __div__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
         units = self._op_units_(other.units, div)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__div__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__div__(other), dimensions=dims, initshape=initshape,
                          units=units, name='({}/{})'.format(self.name, other.name))
 
     def __rdiv__(self, other):
@@ -304,14 +310,14 @@ class PhysArray(numpy.ma.MaskedArray):
         super(PhysArray, self).__idiv__(other)
         self.name = '({}/{})'.format(self.name, other.name)
         self.units = self._op_units_(other.units, div)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __floordiv__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
         units = self._op_units_(other.units, div)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__floordiv__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__floordiv__(other), dimensions=dims, initshape=initshape,
                          units=units, name='({}//{})'.format(self.name, other.name))
 
     def __rfloordiv__(self, other):
@@ -322,14 +328,14 @@ class PhysArray(numpy.ma.MaskedArray):
         super(PhysArray, self).__ifloordiv__(other)
         self.name = '({}//{})'.format(self.name, other.name)
         self.units = self._op_units_(other.units, div)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __truediv__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
         units = self._op_units_(other.units, div)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__truediv__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__truediv__(other), dimensions=dims, initshape=initshape,
                          units=units, name='({}/{})'.format(self.name, other.name))
 
     def __rtruediv__(self, other):
@@ -340,13 +346,13 @@ class PhysArray(numpy.ma.MaskedArray):
         super(PhysArray, self).__itruediv__(other)
         self.name = '({}/{})'.format(self.name, other.name)
         self.units = self._op_units_(other.units, div)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __mod__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
-        dims, _shape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims, _shape=_shape,
+        dims, initshape = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims, initshape=initshape,
                          name='({}%{})'.format(self.name, other.name))
 
     def __rmod__(self, other):
@@ -356,7 +362,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = PhysArray(other)._transpose_scalar_check_(self)
         super(PhysArray, self).__imod__(other)
         self.name = '({}%{})'.format(self.name, other.name)
-        self.dimensions, self._shape = self._return_dim_shape_(other)
+        self.dimensions, self.initshape = self._return_dim_shape_(other)
         return self
 
     def __divmod__(self, other):
