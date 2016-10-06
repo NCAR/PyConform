@@ -7,7 +7,6 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from __future__ import print_function
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
 from cf_units import Unit
@@ -724,11 +723,9 @@ class WriteNode(FlowNode):
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
-            if len(vinfo.dimensions) != len(vinfo.initshape):
-                print('*** {}: {}, {}'.format(vname, vinfo.dimensions, vinfo.initshape))
-
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
+                print '=== chunk = {}'.format(chunk)
                 ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
 
         # Close the file after completion
