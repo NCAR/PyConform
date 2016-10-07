@@ -726,7 +726,7 @@ class WriteNode(FlowNode):
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
                 ncchunk = align_index(chunk, ncvar.dimensions)
-                print '=== chunks: {} <== {}'.format(ncchunk, chunk)
+                print '=== {}, chunk: {} <== {}'.format(vname, ncchunk, chunk)
                 ncvar[ncchunk] = vnode[chunk]
 
         # Close the file after completion
