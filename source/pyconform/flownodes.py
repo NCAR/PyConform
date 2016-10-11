@@ -363,7 +363,7 @@ class MapNode(FlowNode):
 
         # Compute the input index in terms of input dimensions
         if index is None:
-            inp_index = dict((d, slice(0, 1)) for d in inp_dims)
+            inp_index = dict((d, slice(0, 0)) for d in inp_dims)
 
         elif isinstance(index, dict):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
