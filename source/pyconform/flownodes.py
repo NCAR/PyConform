@@ -16,7 +16,7 @@ from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
-#from datetime import datetime
+# from datetime import datetime
 
 import numpy
 
@@ -292,14 +292,14 @@ class EvalNode(FlowNode):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
-        if len(self._inputs) == 0:
+        if len(self.inputs) == 0:
             data = self._function()
             if isinstance(data, PhysArray):
                 return data[index]
             else:
                 return data
         else:
-            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self._inputs]
+            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
             return self._function(*args)
 
 
@@ -352,7 +352,7 @@ class MapNode(FlowNode):
         """
 
         # Request the input information without pulling data
-        inp_info = self._inputs[0][None]
+        inp_info = self.inputs[0][None]
 
         # Get the input data dimensions
         inp_dims = inp_info.dimensions
@@ -363,7 +363,7 @@ class MapNode(FlowNode):
 
         # Compute the input index in terms of input dimensions
         if index is None:
-            inp_index = dict((d, slice(0, 0)) for d in inp_dims)
+            inp_index = align_index(index, inp_dims)
 
         elif isinstance(index, dict):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
@@ -376,7 +376,7 @@ class MapNode(FlowNode):
         idims_str = ','.join(inp_dims)
         odims_str = ','.join(out_dims)
         name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
-        return PhysArray(self._inputs[0][inp_index], name=name, dimensions=out_dims)
+        return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
 #===================================================================================================
@@ -453,7 +453,7 @@ class ValidateNode(FlowNode):
         """
 
         # Get the data to validate
-        indata = self._inputs[0][index]
+        indata = self.inputs[0][index]
 
         # Check datatype, and cast as necessary
         if self._dtype is None:
@@ -623,7 +623,7 @@ class WriteNode(FlowNode):
                     self._file.createDimension(dname, dsize)
 
             # Create the variables and write their attributes
-            for vnode in self._inputs:
+            for vnode in self.inputs:
                 vname = vnode.label
                 vinfo = self._vinfos[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
@@ -712,7 +712,7 @@ class WriteNode(FlowNode):
 # TO BE FINISHED
 
         # Loop over all variable nodes
-        for vnode in self._inputs:
+        for vnode in self.inputs:
 
             # Get the name of the variable node
             vname = vnode.label
