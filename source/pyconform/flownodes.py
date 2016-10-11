@@ -203,6 +203,7 @@ class ReadNode(FlowNode):
             shape1 = tuple(s for s, i in zip(shape0, index1) if isinstance(i, slice))
 
             # Align the second index on the intermediate dimensions
+            print self.label, index
             index2 = align_index(index, dimensions1)
 
             # Get the dimensions after application of the second index
