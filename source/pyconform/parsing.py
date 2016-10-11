@@ -10,8 +10,11 @@ LICENSE: See the LICENSE.rst file for details
 
 from numpy import index_exp
 from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence
-from pyparsing import Word, Combine, Forward, Suppress, Group, Optional
+from pyparsing import Word, Combine, Forward, Suppress, Group, Optional, ParserElement
 from pyparsing import Literal, CaselessLiteral, QuotedString
+
+# To improve performance
+ParserElement.enablePackrat()
 
 #===================================================================================================
 # ParsedFunction
@@ -143,8 +146,15 @@ _VARIABLE_.setParseAction(ParsedVariable)
 _EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE_,
                                     [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
-                                     (oneOf('* /'), 2, opAssoc.RIGHT, _binop_),
-                                     (oneOf('+ -'), 2, opAssoc.RIGHT, _binop_)])
+# Using the following gets the order of operations wrong!  ...
+#                                      (oneOf('/ *'), 2, opAssoc.RIGHT, _binop_),
+#                                      (oneOf('- +'), 2, opAssoc.RIGHT, _binop_)])
+# ...However, using the following (which gets order of ops correct) is much slower!
+# ...but enabling packrat parsing speeds it back up!  (see top of file)
+                                    (Literal('/'), 2, opAssoc.RIGHT, _binop_),
+                                    (Literal('*'), 2, opAssoc.RIGHT, _binop_),
+                                    (Literal('-'), 2, opAssoc.RIGHT, _binop_),
+                                    (Literal('+'), 2, opAssoc.RIGHT, _binop_)])
 
 #===================================================================================================
 # Function to parse a string definition

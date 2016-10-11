@@ -16,7 +16,7 @@ from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
-from datetime import datetime
+#from datetime import datetime
 
 import numpy
 
@@ -725,7 +725,6 @@ class WriteNode(FlowNode):
 
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
-                print '=== chunk = {}'.format(chunk)
                 ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
 
         # Close the file after completion

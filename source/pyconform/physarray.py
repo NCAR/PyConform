@@ -225,7 +225,7 @@ class PhysArray(numpy.ma.MaskedArray):
                          initshape=new_shp0)
 
     def _transpose_scalar_check_(self, obj):
-        if self.dimensions == () or obj.dimensions == ():
+        if self.dimensions == () or obj.dimensions == () or self.dimensions == obj.dimensions:
             return self
         else:
             return self.transpose(obj.dimensions)
