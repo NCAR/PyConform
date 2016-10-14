@@ -22,10 +22,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = type(pst)
         expected = parsing.ParsedFunction
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Types do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Types do not match')
 
     def test_varpst_init(self):
         indata = (['x'], {})
@@ -33,10 +31,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = type(pst)
         expected = parsing.ParsedVariable
         testname = 'ParsedVariable.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Types do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Types do not match')
 
     def test_funcpst_init(self):
         indata = (['x'], {})
@@ -44,10 +40,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = type(pst)
         expected = parsing.ParsedFunction
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Types do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Types do not match')
 
     def test_operpst_init(self):
         indata = (['x'], {})
@@ -55,10 +49,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = type(pst)
         expected = parsing.ParsedBinOp
         testname = 'ParsedBinOp.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Types do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Types do not match')
 
     def test_pst_init_args(self):
         indata = (['x', 1, -3.2], {})
@@ -66,10 +58,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = type(pst)
         expected = parsing.ParsedFunction
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Types do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Types do not match')
 
     def test_pst_obj(self):
         indata = (['x', 1, -3.2], {})
@@ -77,10 +67,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = pst.key
         expected = indata[0][0]
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Names do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Names do not match')
 
     def test_pst_args(self):
         indata = (['x', 1, -3.2], {})
@@ -88,10 +76,8 @@ class ParsedStringTypeTests(unittest.TestCase):
         actual = pst.args
         expected = tuple(indata[0][1:])
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Names do not match')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Names do not match')
 
 
 #===============================================================================
@@ -101,25 +87,37 @@ class DefinitionParserTests(unittest.TestCase):
 
 #===== QUOTED STRINGS ==========================================================
 
-    def test_parse_quote(self):
+    def test_parse_quote_int(self):
         indata = '"1"'
         actual = parsing.parse_definition(indata)
         expected = '1'
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'String parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'String parsing failed')
 
     def test_parse_quote_escaped(self):
         indata = '"\\"1\\""'
         actual = parsing.parse_definition(indata)
         expected = '"1"'
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'String parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'String parsing failed')
+
+    def test_parse_quote_literal(self):
+        indata = 'Hello, World!'
+        actual = parsing.parse_definition('"' + indata + '"')
+        expected = indata
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'String parsing failed')
+
+    def test_parse_quote_func(self):
+        indata = 'f(x,y,z)'
+        actual = parsing.parse_definition('"' + indata + '"')
+        expected = indata
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'String parsing failed')
 
 #===== INTEGERS ================================================================
 
@@ -128,20 +126,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = int(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Integer parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integer parsing failed')
 
     def test_parse_integer_large(self):
         indata = '98734786423867234'
         actual = parsing.parse_definition(indata)
         expected = int(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Integer parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integer parsing failed')
 
 #===== FLOATS ==================================================================
 
@@ -150,150 +144,120 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_long(self):
         indata = '1.8374755'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_nofirst(self):
         indata = '.35457'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_exp(self):
         indata = '1e7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_pos_exp(self):
         indata = '1e+7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_neg_exp(self):
         indata = '1e-7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_exp(self):
         indata = '1.e7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_pos_exp(self):
         indata = '1.e+7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_neg_exp(self):
         indata = '1.e-7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_long_exp(self):
         indata = '1.324523e7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_long_pos_exp(self):
         indata = '1.324523e+7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_long_neg_exp(self):
         indata = '1.324523e-7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_nofirst_exp(self):
         indata = '.324523e7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_nofirst_pos_exp(self):
         indata = '.324523e+7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
     def test_parse_float_dec_nofirst_neg_exp(self):
         indata = '.324523e-7'
         actual = parsing.parse_definition(indata)
         expected = float(indata)
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Float parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Float parsing failed')
 
 #===== FUNCTIONS ===============================================================
 
@@ -302,20 +266,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedFunction(('f', {}))
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Function parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Function parsing failed')
 
     def test_parse_func_arg(self):
         indata = 'f(1)'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedFunction([['f', 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Function parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Function parsing failed')
 
     def test_parse_func_nested(self):
         g2 = parsing.ParsedFunction([['g', 2]])
@@ -324,10 +284,8 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = f1g
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Function parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Function parsing failed')
 
 #===== VARIABLES ===============================================================
 
@@ -336,30 +294,24 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedVariable([['x']])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Variable parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
 
     def test_parse_var_index(self):
         indata = 'x[1]'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedVariable([['x', 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Variable parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
 
     def test_parse_var_slice(self):
         indata = 'x[1:2:3]'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedVariable([['x', slice(1, 2, 3)]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Variable parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
 
 #     def test_parse_var_index_nested(self):
 #         y0 = parsing.ParsedVariable([['y', 0]])
@@ -392,20 +344,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedUniOp([['-', 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Negation parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Negation parsing failed')
 
     def test_parse_neg_float(self):
         indata = '-1.4'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedUniOp([['-', 1.4]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Negation parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Negation parsing failed')
 
     def test_parse_neg_var(self):
         indata = '-x'
@@ -413,10 +361,8 @@ class DefinitionParserTests(unittest.TestCase):
         x = parsing.ParsedVariable([['x']])
         expected = parsing.ParsedUniOp([['-', x]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Negation parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Negation parsing failed')
 
     def test_parse_neg_func(self):
         indata = '-f()'
@@ -424,10 +370,8 @@ class DefinitionParserTests(unittest.TestCase):
         f = parsing.ParsedFunction([['f']])
         expected = parsing.ParsedUniOp([['-', f]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Negation parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Negation parsing failed')
 
 #===== POSITIVE ================================================================
 
@@ -436,40 +380,32 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = 1
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Positive operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Positive operator parsing failed')
 
     def test_parse_pos_float(self):
         indata = '+1e7'
         actual = parsing.parse_definition(indata)
         expected = 1e7
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Positive operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Positive operator parsing failed')
 
     def test_parse_pos_func(self):
         indata = '+f()'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedFunction([['f']])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Positive operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Positive operator parsing failed')
 
     def test_parse_pos_var(self):
         indata = '+x[1]'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedVariable([['x', 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Positive operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Positive operator parsing failed')
 
 #===== POWER ===================================================================
 
@@ -478,20 +414,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['^', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Power operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_float_pow_float(self):
         indata = '2.4 ^ 1e7'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['^', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Power operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_func_pow_func(self):
         indata = 'f() ^ g(1)'
@@ -500,10 +432,8 @@ class DefinitionParserTests(unittest.TestCase):
         g1 = parsing.ParsedFunction([['g', 1]])
         expected = parsing.ParsedBinOp([['^', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Power operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_var_pow_var(self):
         indata = 'x[1] ^ y'
@@ -512,10 +442,8 @@ class DefinitionParserTests(unittest.TestCase):
         y = parsing.ParsedVariable([['y']])
         expected = parsing.ParsedBinOp([['^', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Power operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Power operator parsing failed')
 
 #===== DIV =====================================================================
 
@@ -524,20 +452,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['/', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Division operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Division operator parsing failed')
 
     def test_parse_float_div_float(self):
         indata = '2.4/1e7'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['/', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Division operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Division operator parsing failed')
 
     def test_parse_func_div_func(self):
         indata = 'f() / g(1)'
@@ -546,10 +470,8 @@ class DefinitionParserTests(unittest.TestCase):
         g1 = parsing.ParsedFunction([['g', 1]])
         expected = parsing.ParsedBinOp([['/', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Division operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Division operator parsing failed')
 
     def test_parse_var_div_var(self):
         indata = 'x[1] / y'
@@ -558,10 +480,8 @@ class DefinitionParserTests(unittest.TestCase):
         y = parsing.ParsedVariable([['y']])
         expected = parsing.ParsedBinOp([['/', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Division operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Division operator parsing failed')
 
 #===== MUL =====================================================================
 
@@ -570,20 +490,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['*', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Multiplication operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Multiplication operator parsing failed')
 
     def test_parse_float_mul_float(self):
         indata = '2.4*1e7'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['*', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Multiplication operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Multiplication operator parsing failed')
 
     def test_parse_func_mul_func(self):
         indata = 'f() * g(1)'
@@ -592,10 +508,8 @@ class DefinitionParserTests(unittest.TestCase):
         g1 = parsing.ParsedFunction([['g', 1]])
         expected = parsing.ParsedBinOp([['*', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Multiplication operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Multiplication operator parsing failed')
 
     def test_parse_var_mul_var(self):
         indata = 'x[1] * y'
@@ -604,10 +518,8 @@ class DefinitionParserTests(unittest.TestCase):
         y = parsing.ParsedVariable([['y']])
         expected = parsing.ParsedBinOp([['*', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Multiplication operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Multiplication operator parsing failed')
 
 #===== ADD =====================================================================
 
@@ -616,20 +528,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['+', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Addition operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Addition operator parsing failed')
 
     def test_parse_float_add_float(self):
         indata = '2.4+1e7'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['+', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Addition operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Addition operator parsing failed')
 
     def test_parse_func_add_func(self):
         indata = 'f() + g(1)'
@@ -638,10 +546,8 @@ class DefinitionParserTests(unittest.TestCase):
         g1 = parsing.ParsedFunction([['g', 1]])
         expected = parsing.ParsedBinOp([['+', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Addition operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Addition operator parsing failed')
 
     def test_parse_var_add_var(self):
         indata = 'x[1] + y'
@@ -650,10 +556,8 @@ class DefinitionParserTests(unittest.TestCase):
         y = parsing.ParsedVariable([['y']])
         expected = parsing.ParsedBinOp([['+', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Addition operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Addition operator parsing failed')
 
 #===== SUB =====================================================================
 
@@ -662,20 +566,16 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['-', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Subtraction operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Subtraction operator parsing failed')
 
     def test_parse_float_sub_float(self):
         indata = '2.4-1e7'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedBinOp([['-', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Subtraction operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Subtraction operator parsing failed')
 
     def test_parse_func_sub_func(self):
         indata = 'f() - g(1)'
@@ -684,10 +584,8 @@ class DefinitionParserTests(unittest.TestCase):
         g1 = parsing.ParsedFunction([['g', 1]])
         expected = parsing.ParsedBinOp([['-', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Subtraction operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Subtraction operator parsing failed')
 
     def test_parse_var_sub_var(self):
         indata = 'x[1] - y'
@@ -696,10 +594,8 @@ class DefinitionParserTests(unittest.TestCase):
         y = parsing.ParsedVariable([['y']])
         expected = parsing.ParsedBinOp([['-', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Subtraction operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Subtraction operator parsing failed')
 
 #===== Integration =============================================================
 
@@ -711,10 +607,8 @@ class DefinitionParserTests(unittest.TestCase):
         m17p3x2 = parsing.ParsedBinOp([['*', 17.3, x2]])
         expected = parsing.ParsedBinOp([['-', 2, m17p3x2]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Integrated operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integrated #1 operator parsing failed')
 
     def test_parse_integrated_2(self):
         indata = '2-17.3*x / f(2.3, x[2:5])'
@@ -726,11 +620,28 @@ class DefinitionParserTests(unittest.TestCase):
         m17p3dxf = parsing.ParsedBinOp([['*', 17.3, dxf]])
         expected = parsing.ParsedBinOp([['-', 2, m17p3dxf]])
         testname = 'parse_definition({0!r})'.format(indata)
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Integrated operator parsing failed')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integrated #2 operator parsing failed')
 
+    def test_parse_integrated_3(self):
+        indata = '2-3+1'
+        actual = parsing.parse_definition(indata)
+        m23 = parsing.ParsedBinOp([['-', 2, 3]])
+        expected = parsing.ParsedBinOp([['+', m23, 1]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integrated #3 operator parsing failed')
+
+    def test_parse_integrated_4(self):
+        indata = '2-3/4*2+1'
+        actual = parsing.parse_definition(indata)
+        d34 = parsing.ParsedBinOp([['/', 3, 4]])
+        d34m2 = parsing.ParsedBinOp([['*', d34, 2]])
+        s2d34m2 = parsing.ParsedBinOp([['-', 2, d34m2]])
+        expected = parsing.ParsedBinOp([['+', s2d34m2, 1]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Integrated #4 operator parsing failed')
 
 #===============================================================================
 # Command-Line Operation

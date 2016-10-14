@@ -67,8 +67,7 @@ class DimensionInfo(object):
         return not self.__eq__(other)
 
     def __str__(self):
-        unlim_str = ', unlimited' if self.unlimited else ''
-        return '{!r} [{}{}]'.format(self.name, self.size, unlim_str)
+        return '{!r} [{}{}]'.format(self.name, self.size, '+' if self.unlimited else '')
 
 
 #===================================================================================================
@@ -85,7 +84,7 @@ class VariableInfo(object):
     """
 
     def __init__(self, name, datatype='float32', dimensions=(), attributes=OrderedDict(),
-                 definition=None, data=None, filename=None):
+                 definition=None, filenames=None):
         """
         Initializer
 
@@ -103,8 +102,7 @@ class VariableInfo(object):
         self._dimensions = tuple(dimensions)
         self._attributes = attributes
         self._definition = definition
-        self._data = data
-        self._filename = filename
+        self._filenames = filenames
 
     @property
     def name(self):
@@ -132,14 +130,9 @@ class VariableInfo(object):
         return self._definition
 
     @property
-    def data(self):
-        """Array data (if preset) or None"""
-        return self._data
-
-    @property
-    def filename(self):
+    def filenames(self):
         """Name of file where variable exists (if a time-series variable) or None (if metadata)"""
-        return self._filename
+        return self._filenames
 
     def __eq__(self, other):
         if self.name != other.name:
@@ -153,11 +146,9 @@ class VariableInfo(object):
                 return False
             elif not array_equal(v, self.attributes[k]):
                 return False
-        if self.definition != other.definition:
+        if not array_equal(self.definition, other.definition):
             return False
-        if not array_equal(self.data, other.data):
-            return False
-        if self.filename != other.filename:
+        if self.filenames != other.filenames:
             return False
         return True
 
@@ -170,10 +161,8 @@ class VariableInfo(object):
         strvals += ['   dimensions: {!s}'.format(self.dimensions)]
         if self.definition is not None:
             strvals += ['   definition: {!r}'.format(self.definition)]
-        if self.data is not None:
-            strvals += ['   data: {!r}'.format(self.data)]
-        if self.filename is not None:
-            strvals += ['   filename: {!r}'.format(self.filename)]
+        if self.filenames is not None:
+            strvals += ['   filenames: {!r}'.format(self.filenames)]
         if len(self.attributes) > 0:
             strvals += ['   attributes:']
             for aname, avalue in self.attributes.iteritems():
@@ -189,8 +178,8 @@ class VariableInfo(object):
         return self.attributes.get('long_name', None)
 
     def units(self):
-        """Retrieve the units attribute, if it exists, otherwise None"""
-        return self.attributes.get('units', None)
+        """Retrieve the units attribute, if it exists, otherwise 1"""
+        return self.attributes.get('units', 1)
 
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
@@ -215,10 +204,9 @@ class Dataset(object):
     
     Self-consistency is defined as:
         1. Dimensions with names that appear in multiple files must all have the same size and
-           limited/unlimited status,
-        2. Variables must be "time-series" or "metadata", according to the similar definitions
-           in the PyReshaper.  Namely, a "time-series" variable appears only in its own (single)
-           file, and "metadata" variables appear duplicated in all files of the Dataset.
+           limited/unlimited status, and
+        2. Variables with names that appear in multiple files must have the same datatype and
+           dimensions, and they must refer to the same data.
     """
 
     def __init__(self, name='', dimensions=OrderedDict(),
@@ -297,59 +285,12 @@ class Dataset(object):
             vdict['dimensions'] = vinfo.dimensions
             if vinfo.definition is not None:
                 vdict['definition'] = vinfo.definition
-            if vinfo.data is not None:
-                vdict['data'] = vinfo.data
-            if vinfo.filename is not None:
-                vdict['filename'] = vinfo.filename
+            if vinfo.filenames is not None:
+                vdict['filenames'] = vinfo.filenames
             if vinfo.attributes is not None:
                 vdict['attributes'] = vinfo.attributes
             dsdict['variables'][vinfo.name] = vdict
         return dsdict
-
-    def get_shape(self, name):
-        """
-        Get the shape of a variable in the dataset
-        
-        Parameters:
-            name (str): name of the variable
-        """
-        if name not in self.variables:
-            err_msg = 'Variable {!r} not in Dataset {!r}'.format(name, self.name)
-            raise KeyError(err_msg)
-        if self.dimensions:
-            return tuple(self.dimensions[d].size
-                         for d in self.variables[name].dimensions)
-        else:
-            return None
-
-    def get_size(self, name):
-        """
-        Get the size of a variable in the dataset
-        
-        This is based on dimensions, so a variable that has no dimensions
-        returns a size of 0.
-        
-        Parameters:
-            name (str): name of the variable
-        """
-        return sum(self.get_shape(name))
-
-    def get_bytesize(self, name):
-        """
-        Get the size in bytes of a variable in the dataset
-        
-        If the size of the variable returns 0, then it assumes it is a
-        single-value (non-array) variable.
-        
-        Parameters:
-            name (str): name of the variable
-        """
-        size = self.get_size(name)
-        itembytes = dtype(self.variables[name].datatype).itemsize
-        if size == 0:
-            return itembytes
-        else:
-            return itembytes * size
 
 
 #===================================================================================================
@@ -362,6 +303,9 @@ class InputDataset(Dataset):
     The InputDataset is a kind of Dataset where all of the Dataset information is read from 
     the headers of existing NetCDF files.  The files must be self-consistent according to the
     standard Dataset definition.
+    
+    Variables in an InputDataset must have unset "definition" parameters, and the "filenames"
+    parameter will contain the names of files from which the variable data can be read.  
     """
 
     def __init__(self, name='input', filenames=[]):
@@ -407,11 +351,16 @@ class InputDataset(Dataset):
 
                     if vname in variables:
                         if vinfo != variables[vname]:
-                            err_msgs = ['Variable in file {!r}:'.format(fname),
-                                       '{}'.format(vinfo),
-                                       'differs from same variable in other file(s):',
-                                       '{}'.format(variables[vname])]
-                            raise ValueError(linesep.join(err_msgs))
+                            if (vinfo.datatype == variables[vname].datatype and
+                                vinfo.dimensions == variables[vname].dimensions):
+                                if len(vinfo.attributes) > len(variables[vname].attributes):
+                                    variables[vname] = vinfo
+                            else:
+                                err_msgs = ['Variable in file {!r}:'.format(fname),
+                                           '{}'.format(vinfo),
+                                           'differs from same variable in other file(s):',
+                                           '{}'.format(variables[vname])]
+                                raise ValueError(linesep.join(err_msgs))
                         else:
                             varfiles[vname].append(fname)
                     else:
@@ -421,17 +370,7 @@ class InputDataset(Dataset):
         # Check variable occurrences in each file:
         # Should either be time-series (in 1 file only) or metadata (in all files)
         for vname, vfiles in varfiles.iteritems():
-
-            # If variable is in only 1 file, then its a time-series variable
-            if len(vfiles) == 1:
-                variables[vname]._filename = vfiles[0]
-
-            # Else, if it is not in all files, then error!
-            elif len(vfiles) < len(filenames):
-                missing_files = set(filenames) - set(vfiles)
-                err_msgs = ['Variable {!r} appears in more than 1 file, but not all:'.foramt(vname),
-                           '{}'.format(missing_files)]
-                raise RuntimeError(linesep.join(err_msgs))
+            variables[vname]._filenames = tuple(vfiles)
 
         # Call the base class initializer to check self-consistency
         super(InputDataset, self).__init__(name, dimensions, variables, attributes)
@@ -448,16 +387,22 @@ class OutputDataset(Dataset):
     files.  Unlike the InputDataset, it is not assumed that all of the variable and dimension
     information can be found in existing files.  Instead, the OutputDataset contains a minimal
     subset of the output file headers, and information about how to construct the variable data
-    and dimensions by using 'definition' and 'data' attributes of the variables.
+    and dimensions by using the 'definition' parameter of the variables.
 
-    The information to define an OutputDataset must be specified as a dictionary containing
-    2 dictionaries:
-        1. an 'attributes' dictionary (declaring the global attributes of the dataset), and
-        2. a 'variables' dictionary (declaring the output variables to be written to files)
+    The information to define an OutputDataset must be specified as a two-level nested dictionary,
+    where the first level of dictionaries contains:
+        1. an 'attributes' dictionary declaring the global attributes of the dataset (which
+           will be written to every file), and
+        2. a 'variables' dictionary declaring the output variables to be written to files.
     
-    The variables dictionary is assued to contain the following:
-        1. 'attributes': A dictionary of variable attributes
-        2. 'dimensions': A tuple of
+    Each 'variables' dictionary is assued to contain the following:
+        1. 'attributes': A dictionary of the variable's attributes
+        2. 'datatype': A string specifying the type of the variable's data
+        3. 'dimensions': A tuple of names of dimensions upon which the variable depends
+        4. 'definition': Either a string mathematical expression representing how to construct
+           the variable's data from input variables or functions, or an array declaring the actual
+           data from which to construct the variable
+        5. 'filenames': The names of each file into which the variable will be written
     """
 
     def __init__(self, name='output', dsdict=OrderedDict()):
@@ -493,23 +438,19 @@ class OutputDataset(Dataset):
                 kwargs['datatype'] = vdict['datatype']
 
             # Get either the 'definition' or the 'data' of the variables
-            has_defn = 'definition' in vdict
-            has_data = 'data' in vdict
-            if has_data and has_defn:
-                err_msg = ('Both definition and data cannot be defined '
-                           'for output variable {!r}').format(vname)
-                raise ValueError(err_msg)
-            elif has_defn:
-                kwargs['definition'] = str(vdict['definition'])
-            elif has_data:
-                kwargs['data'] = array(vdict['data'], dtype=vdict['datatype'])
+            if 'definition' in vdict:
+                vdef = vdict['definition']
+                if isinstance(vdef, basestring):
+                    kwargs['definition'] = str(vdef)
+                else:
+                    kwargs['definition'] = array(vdef, dtype=vdict['datatype'])
             else:
-                err_msg = 'Definition or data is required for output variable {!r}'.format(vname)
+                err_msg = 'Definition is required for output variable {!r}'.format(vname)
                 raise ValueError(err_msg)
 
             # Get the filename (defined for time-series variables, None for metadata)
-            if 'filename' in vdict:
-                kwargs['filename'] = str(vdict['filename'])
+            if 'filenames' in vdict:
+                kwargs['filenames'] = tuple(vdict['filenames'])
 
             # Construct and store the VariableInfo object for this variable
             variables[vname] = VariableInfo(vname, **kwargs)
@@ -519,17 +460,16 @@ class OutputDataset(Dataset):
         dimensions = OrderedDict()
         for vname, vinfo in variables.iteritems():
 
-            # If the variable has a 'definition' ('data' is None),
-            # Record its dimensions as None (i.e., undefined)
-            if vinfo.data is None:
+            # If the variable has a string 'definition', record its
+            # dimensions as None (i.e., undefined)
+            if isinstance(vinfo.definition, basestring):
                 for dname in vinfo.dimensions:
                     if dname not in dimensions:
                         dimensions[dname] = None
 
-            # Else, if it has 'data', then construct the full DimensionInfo
-            # object for the dimension
+            # Else, if it has an array 'definition', then construct the full DimensionInfo
             else:
-                dshape = vinfo.data.shape
+                dshape = vinfo.definition.shape
                 if len(dshape) == 0:
                     dshape = (1,)
                 for dname, dsize in zip(vinfo.dimensions, dshape):

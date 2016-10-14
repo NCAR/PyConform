@@ -7,15 +7,16 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from __future__ import print_function
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
 from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
-from os.path import exists
+from os.path import exists, dirname
+from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
+# from datetime import datetime
 
 import numpy
 
@@ -26,6 +27,11 @@ import numpy
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
+#===================================================================================================
+# UnitsWarning
+#===================================================================================================
+class UnitsWarning(Warning):
+    """Warning for units errors"""
 
 #===================================================================================================
 # FlowNode
@@ -172,7 +178,14 @@ class ReadNode(FlowNode):
             attrs = ncvar.ncattrs()
             units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
             calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
-            units = Unit(units_attr, calendar=calendar_attr)
+            try:
+                units = Unit(units_attr, calendar=calendar_attr)
+            except ValueError:
+                msg = 'Units {!r} unrecognized in UDUNITS.  Assuming unitless.'.format(units_attr)
+                warn(msg, UnitsWarning)
+                units = Unit(1)
+            except:
+                raise
 
             # Read the original variable dimensions
             dimensions0 = ncvar.dimensions
@@ -213,7 +226,7 @@ class ReadNode(FlowNode):
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
 
-        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, _shape=shape2)
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, initshape=shape2)
 
 
 #===================================================================================================
@@ -279,14 +292,14 @@ class EvalNode(FlowNode):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
-        if len(self._inputs) == 0:
+        if len(self.inputs) == 0:
             data = self._function()
             if isinstance(data, PhysArray):
                 return data[index]
             else:
                 return data
         else:
-            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self._inputs]
+            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
             return self._function(*args)
 
 
@@ -339,7 +352,7 @@ class MapNode(FlowNode):
         """
 
         # Request the input information without pulling data
-        inp_info = self._inputs[0][None]
+        inp_info = self.inputs[0][None]
 
         # Get the input data dimensions
         inp_dims = inp_info.dimensions
@@ -350,7 +363,7 @@ class MapNode(FlowNode):
 
         # Compute the input index in terms of input dimensions
         if index is None:
-            inp_index = dict((d, slice(0, 1)) for d in inp_dims)
+            inp_index = None
 
         elif isinstance(index, dict):
             inp_index = dict((self._o2imap.get(d, d), i) for d, i in index.iteritems())
@@ -363,7 +376,7 @@ class MapNode(FlowNode):
         idims_str = ','.join(inp_dims)
         odims_str = ','.join(out_dims)
         name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
-        return PhysArray(self._inputs[0][inp_index], name=name, dimensions=out_dims)
+        return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
 #===================================================================================================
@@ -391,7 +404,7 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
+    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes=OrderedDict()):
         """
         Initializer
         
@@ -427,19 +440,31 @@ class ValidateNode(FlowNode):
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
 
+    @property
+    def attributes(self):
+        """
+        Attributes dictionary of the variable returned by the ValidateNode
+        """
+        return self._attributes
+
     def __getitem__(self, index):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
 
         # Get the data to validate
-        indata = self._inputs[0][index]
+        indata = self.inputs[0][index]
 
-        # Check the datatype
+        # Check datatype, and cast as necessary
         if self._dtype is None:
             odtype = indata.dtype
         else:
             odtype = self._dtype
+        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
+            indata = indata.astype(odtype)
+        else:
+            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
+                            '{!r}').format(indata.dtype, odtype, self.label)
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
@@ -448,6 +473,10 @@ class ValidateNode(FlowNode):
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
             indata = indata.transpose(self._dimensions)
+
+        # Do not validate if index is None (nothing to validate)
+        if index is None:
+            return indata
 
         # Testing parameters
         valid_min = self._attributes.get('valid_min', None)
@@ -485,12 +514,7 @@ class ValidateNode(FlowNode):
                 msg = 'ok_max_mean_abs: {} > {} ({!r})'.format(mean_abs, ok_max_mean_abs, self.label)
                 warn(msg, ValidationWarning)
 
-        # Check datatype, and cast as necessary
-        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
-            return indata.astype(odtype)
-        else:
-            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
-                            '{!r}').format(indata.dtype, odtype, self.label)
+        return indata
 
 
 #===================================================================================================
@@ -518,6 +542,8 @@ class WriteNode(FlowNode):
             inputs (ValidateNode): A tuple of ValidateDataNodes providing input into the file
             unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
                 (This parameter is pulled from the 'kwds' argument, if given.)
+            conform_prov (bool): Whether to write variable provenance information
+                generated by PyConform.
             attributes (dict): Dictionary of global attributes to write to the file
                 (This parameter is pulled from the 'kwds' argument, if given.)
         """
@@ -541,18 +567,33 @@ class WriteNode(FlowNode):
         self._unlimited = unlimited
 
         # Save the global attributes
-        self._attributes = {str(a): str(v) for a, v in kwds.iteritems()}
+        self._attributes = {str(a): v for a, v in kwds.iteritems()}
 
         # Set the filehandle
         self._file = None
 
-    def open(self):
+        # Initialize the variable information
+        self._vinfos = {}
+
+    def open(self, provenance=False):
         """
         Open the file for writing, if not open already
+        
+        Parameters:
+            provenance (bool): Whether to write a provenance attribute generated during execution
+                for each variable in the file
         """
         if self._file is None:
 
-            # Try to pen the output file
+            # Make the necessary subdirectories to open the file
+            labeldir = dirname(self.label)
+            if len(labeldir) > 0 and not exists(labeldir):
+                try:
+                    makedirs(labeldir)
+                except:
+                    raise IOError('Failed to create directory for output file {!r}'.format(self.label))
+
+            # Try to pen the output file for writing
             try:
                 self._file = Dataset(self.label, 'w')
             except:
@@ -567,7 +608,7 @@ class WriteNode(FlowNode):
             # Collect the dimension sizes from the initialshape parameter of the input data
             req_dims = {}
             for vinfo in self._vinfos.itervalues():
-                for dname, dsize in zip(vinfo.dimensions, vinfo._shape):
+                for dname, dsize in zip(vinfo.dimensions, vinfo.initshape):
                     if dname not in req_dims:
                         req_dims[dname] = dsize
                     elif req_dims[dname] != dsize:
@@ -582,13 +623,17 @@ class WriteNode(FlowNode):
                     self._file.createDimension(dname, dsize)
 
             # Create the variables and write their attributes
-            for vnode in self._inputs:
+            for vnode in self.inputs:
                 vname = vnode.label
                 vinfo = self._vinfos[vname]
-                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions)
-                for aname, avalue in vnode._attributes.iteritems():
+                vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
+                fill_value = vattrs.pop('_FillValue', None)
+                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
+                                                  fill_value=fill_value)
+                for aname, avalue in vattrs.iteritems():
                     ncvar.setncattr(aname, avalue)
-                ncvar.setncattr('provenance', vinfo.name)
+                if provenance:
+                    ncvar.setncattr('conform_prov', vinfo.name)
 
     def close(self):
         """
@@ -627,7 +672,7 @@ class WriteNode(FlowNode):
                 yield {d: (slice(lb, ub) if ub < dsizes[d] else slice(lb, None))
                        for d, (lb, ub) in bnds.iteritems()}
 
-    def execute(self, chunks={}):
+    def execute(self, chunks={}, provenance=False, bounds={}):
         """
         Execute the writing of the WriteNode file at once
         
@@ -640,13 +685,34 @@ class WriteNode(FlowNode):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
+            provenance (bool): Whether to write a provenance attribute generated during execution
+                for each variable in the file
+            bounds (dict):  Bounds on named variables specified in the output specification
+                file.  Data will be written for values within these bounds inclusively.
         """
 
-        # Open the file and write the header information
-        self.open()
+        # Open the file and write the header information (fills the _vinfos)
+        self.open(provenance=provenance)
+
+        # Loop over vinfos and convert lower/upper bounds from coordinates to indices
+#         cbounds = {}
+#         for vname, vinfo in self._vinfos.iteritems():
+#             if vname in bounds:
+#                 if len(vinfo.dimensions) != 1:
+#                     raise ValueError(('Cannot set bounds on {}-dimensional variable '
+#                                       '{!r}').format(len(vinfo.dimensions), vname))
+#                 vdim = vinfo.dimensions[0]
+#                 if vinfo.units.is_time():
+#                     tfmt = '%Y-%m-%dT%H:%M:%S'
+#                     dtbounds = map(lambda s: datetime.strptime(s, tfmt), bounds[vname])
+#                     vbounds = map(vinfo.units.date2num, dtbounds)
+#                 else:
+#                     vbounds = bounds[vname]
+#                 vlower, vupper = map(vinfo.dtype, vbounds)
+# TO BE FINISHED
 
         # Loop over all variable nodes
-        for vnode in self._inputs:
+        for vnode in self.inputs:
 
             # Get the name of the variable node
             vname = vnode.label
@@ -658,7 +724,7 @@ class WriteNode(FlowNode):
             ncvar = self._file.variables[vname]
 
             # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo._shape, chunks):
+            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
                 ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
 
         # Close the file after completion

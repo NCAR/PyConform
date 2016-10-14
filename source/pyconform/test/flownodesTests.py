@@ -163,7 +163,7 @@ class ReadNodeTests(unittest.TestCase):
         testname = 'ReadNode.__getitem__(None)'
         N = flownodes.ReadNode(self.filename, self.varname)
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.zeros((1,) * len(self.shape), dtype='d'),
+        expected = flownodes.PhysArray(numpy.zeros((0,) * len(self.shape), dtype='d'),
                                        units=self.vardata[self.varname].units,
                                        dimensions=self.vardata[self.varname].dimensions)
         print_test_message(testname, actual=actual, expected=expected)
@@ -229,7 +229,7 @@ class EvalNodeTests(unittest.TestCase):
         testname = 'EvalNode.__getitem__(None)'
         N = flownodes.EvalNode(0, lambda x: x, indata)
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.zeros((1,), dtype=indata.dtype),
+        expected = flownodes.PhysArray(numpy.zeros((0,), dtype=indata.dtype),
                                        units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
@@ -294,7 +294,7 @@ class EvalNodeTests(unittest.TestCase):
         N3 = flownodes.EvalNode(3, lambda a, b: a + b, N1, N2)
         testname = 'EvalNode.__getitem__(None)'
         actual = N3[None]
-        expected = flownodes.PhysArray([6], units='m', dimensions=('x',))
+        expected = flownodes.PhysArray([], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -433,6 +433,19 @@ class ValidateNodeTests(unittest.TestCase):
         N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_minmax_getitem_none(self):
+        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        indata = {'valid_min': 0, 'valid_max': 2}
+        testname = ('OK: ValidateNode({}).__getitem__(None)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        actual = N1[None]
+        expected = N0[None]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))

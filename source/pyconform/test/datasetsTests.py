@@ -188,7 +188,7 @@ class VariableInfoTests(unittest.TestCase):
 
     def test_vinfo_filename_default(self):
         vinfo = datasets.VariableInfo('x')
-        actual = vinfo.filename
+        actual = vinfo.filenames
         expected = None
         print_test_message('VariableInfo.filename == ()',
                            actual=actual, expected=expected)
@@ -236,18 +236,18 @@ class VariableInfoTests(unittest.TestCase):
 
     def test_vinfo_data(self):
         indata = (1, 2, 3, 4, 5, 6)
-        vinfo = datasets.VariableInfo('x', data=indata)
-        actual = vinfo.data
+        vinfo = datasets.VariableInfo('x', definition=indata)
+        actual = vinfo.definition
         expected = indata
-        print_test_message('VariableInfo.data', indata=indata,
+        print_test_message('VariableInfo.definition', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.data is not {!r}'.format(indata))
+                         'Default VariableInfo.definition is not {!r}'.format(indata))
 
     def test_vinfo_filename(self):
-        indata = 'nc1.nc'
-        vinfo = datasets.VariableInfo('x', filename=indata)
-        actual = vinfo.filename
+        indata = ('nc1.nc',)
+        vinfo = datasets.VariableInfo('x', filenames=indata)
+        actual = vinfo.filenames
         expected = indata
         print_test_message('VariableInfo.filename', indata=indata,
                            actual=actual, expected=expected)
@@ -257,7 +257,7 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_equals_same(self):
         kwargs = {'datatype': 'd', 'dimensions': ('a', 'b'),
                   'attributes': {'a1': 'at1', 'a2': 'at2'},
-                  'definition': 'y + z', 'filename': 'out.nc'}
+                  'definition': 'y + z', 'filenames': ('out.nc',)}
         vinfo1 = datasets.VariableInfo('x', **kwargs)
         vinfo2 = datasets.VariableInfo('x', **kwargs)
         actual = vinfo1
@@ -270,7 +270,7 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_equals_diff_name(self):
         kwargs = {'datatype': 'd', 'dimensions': ('a', 'b'),
                   'attributes': {'a1': 'at1', 'a2': 'at2'},
-                  'definition': 'y + z', 'filename': 'out.nc'}
+                  'definition': 'y + z', 'filenames': ('out.nc',)}
         vinfo1 = datasets.VariableInfo('a', **kwargs)
         vinfo2 = datasets.VariableInfo('b', **kwargs)
         actual = vinfo1
@@ -303,8 +303,8 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_units_default(self):
         vinfo = datasets.VariableInfo('x')
         actual = vinfo.units()
-        expected = None
-        print_test_message('VariableInfo.units() == None',
+        expected = Unit('1')
+        print_test_message('VariableInfo.units() == 1',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
                          'Default VariableInfo.units() not None')
@@ -342,7 +342,7 @@ class VariableInfoTests(unittest.TestCase):
     def test_vinfo_cfunits_default(self):
         vinfo = datasets.VariableInfo('time')
         actual = vinfo.cfunits()
-        expected = Unit(None)
+        expected = Unit(1)
         print_test_message('VariableInfo.cfunits() == None',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
@@ -447,7 +447,7 @@ class DatasetTests(unittest.TestCase):
         vdicts['W'] = OrderedDict()
         vdicts['W']['datatype'] = 'float64'
         vdicts['W']['dimensions'] = ('w',)
-        vdicts['W']['data'] = [1., 2., 3., 4., 5., 6., 7., 8.]
+        vdicts['W']['definition'] = np.array([1., 2., 3., 4., 5., 6., 7., 8.], dtype='float64')
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'something'
         vattribs['units'] = '1'
@@ -485,7 +485,7 @@ class DatasetTests(unittest.TestCase):
         vdicts['V1']['datatype'] = 'float64'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = 'u1 + u2'
-        vdicts['V1']['filename'] = 'var1.nc'
+        vdicts['V1']['filenames'] = ['var1.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
         vattribs['units'] = 'm'
@@ -495,7 +495,7 @@ class DatasetTests(unittest.TestCase):
         vdicts['V2']['datatype'] = 'float64'
         vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
-        vdicts['V2']['filename'] = 'var2.nc'
+        vdicts['V2']['filenames'] = ['var2.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 2'
         vattribs['units'] = 'm'

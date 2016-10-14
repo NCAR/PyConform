@@ -44,7 +44,9 @@ def index_str(index):
     """
     Convert an index expression into a compact string
     """
-    if isinstance(index, int):
+    if index is None:
+        return ':'
+    elif isinstance(index, int):
         return str(index)
     elif isinstance(index, EllipsisType):
         return '...'
@@ -74,6 +76,9 @@ def index_tuple(index, ndims):
     """
     Generate an index tuple from a given index expression and number of dimensions
     """
+    if ndims == 0:
+        return ()
+
     idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
@@ -107,7 +112,7 @@ def align_index(index, dimensions):
         dimensions (tuple): A tuple of named dimensions for each axis of the data
     """
     if index is None:
-        return tuple(slice(0, 1) for d in dimensions)
+        return tuple(slice(0, 0) for d in dimensions)
     elif isinstance(index, dict):
         return tuple(index.get(d, slice(None)) for d in dimensions)
     else:
@@ -128,8 +133,6 @@ def join(shape0, index1, index2):
     """
     if not isinstance(shape0, tuple):
         raise TypeError('Array shape must be a tuple')
-    if len(shape0) == 0:
-        raise TypeError('Cannot index scalar array')
     for n in shape0:
         if not isinstance(n, int):
             raise TypeError('Array shape must be a tuple of integers')

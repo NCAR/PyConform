@@ -88,9 +88,7 @@ class NegationOperator(Operator):
     numargs = 1
 
     def __call__(self, arg):
-        units = PhysArray.interpret_units(arg)
-        dims = PhysArray.interpret_dimensions(arg)
-        return PhysArray(-arg, units=units, dimensions=dims)
+        return -arg
 
 
 #===================================================================================================
@@ -101,9 +99,7 @@ class AdditionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.interpret_units(left)
-        dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left + right, units=units, dimensions=dims)
+        return left + right
 
 
 #===================================================================================================
@@ -114,22 +110,18 @@ class SubtractionOperator(Operator):
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.interpret_units(left)
-        dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left - right, units=units, dimensions=dims)
+        return left - right
 
 
 #===================================================================================================
 # PowerOperator
 #===================================================================================================
 class PowerOperator(Operator):
-    key = '^'
+    key = '**'
     numargs = 2
 
     def __call__(self, left, right):
-        units = PhysArray.interpret_units(left)
-        dims = PhysArray.interpret_dimensions(right)
-        return PhysArray(left ** right, units=units, dimensions=dims)
+        return left ** right
 
 
 #===================================================================================================
@@ -159,7 +151,7 @@ class DivisionOperator(Operator):
 #===================================================================================================
 
 __OPERATORS__ = {'-': {1: NegationOperator(), 2: SubtractionOperator()},
-                 '^': {2: PowerOperator()},
+                 '**': {2: PowerOperator()},
                  '+': {2: AdditionOperator()},
                  '*': {2: MultiplicationOperator()},
                  '/': {2: DivisionOperator()}}
@@ -218,15 +210,11 @@ class SquareRootFunction(Function):
     numargs = 1
 
     def __call__(self, data):
-        dname = PhysArray.interpret_name(data)
-        dunits = PhysArray.interpret_units(data)
-        ddims = PhysArray.interpret_dimensions(data)
-
-        try:
-            squnits = dunits.root(2)
-        except:
-            print dunits
-            raise UnitsError('Cannot take square-root of {!r}'.format(dunits))
-
-        return PhysArray(sqrt(data), units=squnits, dimensions=ddims, name='sqrt({})'.format(dname))
-
+        if isinstance(data, PhysArray):
+            try:
+                units = data.units.root(2)
+            except:
+                raise UnitsError('Cannot take square-root of units {!r}'.format(data.units))
+            return PhysArray(sqrt(data), units=units, name='sqrt({})'.format(data.name))
+        else:
+            return sqrt(data)
