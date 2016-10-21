@@ -1,0 +1,995 @@
+############################
+#  TABLE : 3hr
+############################
+clt=CLDTOT 
+hfls=LHFLX
+hfss=SENH_F       
+huss=QREFHT
+mrro=QRUNOFF
+mrsos=SOILWATER_10CM
+pr=PREC_F
+prc=PRECC
+prsn=SNOW_F
+ps=PS
+rlds=LWDN_F + LWUP_F
+rldscs=FLDSC
+rlus=FLDS + FLNS
+rsds=FSDS
+rsdscs=FSDSC
+rsus=FSDS - FSNS
+rsuscs=FSDSC - FSNSC
+tas=TREFHT
+############################
+#  TABLE : 6hrLev
+############################
+hus=vinterp(Q,plevs)
+pmlev=lev
+ps=PS
+ta=vinterp(T,plevs)
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+############################
+#  TABLE : 6hrPlev
+############################
+psl=PSL
+ta=vinterp(T,plevs)
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+############################
+#  TABLE : 6hrPlevpt
+############################
+dtauc=TOT_ICLD_VISTAU
+dtaus=TOT_ICLD_VISTAU
+huss=QREFHT
+mrlsl=SOILLIQ + SOILICE
+mrsos=SOILWATER_10CM
+psl=PSL
+sfcWind=U10
+snw=H2OSNO
+ta=vinterp(T,plevs)
+tas=TREFHT
+ts=TS
+tsl=TSOI
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+############################
+#  TABLE : Amon
+############################
+ccb=PCLDBOT
+cct=PCLDTOP
+cfc11global=f11vmr
+cfc12global=f12vmr
+ch4=vinterp(CH4, plevs)
+ch4global=ch4vmr
+ci=FREQZM
+cl=CLOUD
+cli=CLDICE
+clivi=TGCLDIWP
+clt=CLDTOT
+clw=CLDLIQ
+clwvi=TGCLDLWP
+co2=vinterp(CO2,plevs)
+co2mass=co2vmr
+evspsbl=QFLX
+hfls=LHFLX
+hfss=SENH_F
+hur=vinterp(RELHUM,plevs)
+hurs=RHREFHT
+hus=vinterp(Q,plevs)
+huss=QREFHT
+mc=CMFMC + CMFMCDZM
+n2o=vinterp(N2O,plevs)
+n2oglobal=n2ovmr
+pr=PREC_F
+prc=PRECC
+prsn=SNOW_F
+prw=TMQ
+ps=PS
+psl=PSL
+rlds=LWDN_F + LWUP_F
+rldscs=FLDSC
+rlus=FLDS + FLNS
+rlut=FSNTOA-FSNT+FLNT
+rlutcs=FLUTC
+rsds=FSDS
+rsdscs=FSDSC
+rsdt=SOLIN
+rsus=FSDS - FSNS
+rsuscs=FSDSC - FSNSC
+rsut=SOLIN - FSNTOA
+rsutcs=SOLIN - FSNTOAC
+rtmt=FSNT - FLNT
+sbl=QFLX_SUB_SNOW
+sci=FREQSH
+sfcWind=U10
+ta=vinterp(T,plevs)
+tas=TREFHT
+tasmax=TREFHTMX
+tasmin=TREFHTMN
+tauu=TAUX
+tauv=TAUY
+tro3=vinterp(O3,plevs)
+ts=TS
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : AmonAdj
+############################
+############################
+#  TABLE : LIfxant
+############################
+############################
+#  TABLE : LIfxgre
+############################
+############################
+#  TABLE : LImon
+############################
+hfdsn=FGR
+lwsnl=SNOWLIQ
+sbl=QFLX_SUB_SNOW
+sftgif=PCT_GLACIER
+snc=FSNO
+snd=hs
+snm=QMELT
+snw=H2OSNO
+sootsn=SNOBCMSL + SNODSTMSL + SNOOCMSL
+tsn=SNOTTOPL
+############################
+#  TABLE : LImonant
+############################
+hfls=LHFLX
+hfss=SENH_F
+orog=PHIS/g
+pr=PREC_F
+prsn=SNOW_F
+rlds=LWDN_F + LWUP_F
+rlus=FLDS + FLNS
+rsds=FSDS
+rsus=FSDS - FSNS
+sbl=QFLX_SUB_SNOW
+snc=FSNO
+snm=QMELT
+tas=TREFHT
+ts=TS
+tsn=SNOTTOPL
+############################
+#  TABLE : LImongre
+############################
+hfls=LHFLX
+hfss=SENH_F
+orog=PHIS/g
+pr=PREC_F
+prsn=SNOW_F
+rlds=LWDN_F + LWUP_F
+rlus=FLDS + FLNS
+rsds=FSDS
+rsus=FSDS - FSNS
+sbl=QFLX_SUB_SNOW
+snc=FSNO
+snm=QMELT
+tas=TREFHT
+ts=TS
+tsn=SNOTTOPL
+############################
+#  TABLE : LIyrant
+############################
+orog=PHIS/g
+sftgif=PCT_GLACIER
+snc=FSNO
+############################
+#  TABLE : LIyrgre
+############################
+orog=PHIS/g
+sftgif=PCT_GLACIER
+snc=FSNO
+############################
+#  TABLE : Lmon
+############################
+burntArea=ANN_FAREA_BURNED
+cCwd=CWDC
+cLeaf=LEAFC
+cLitter=TOTLITC
+cMisc=STORVEGC
+cProduct=TOTPRODC
+cRoot=FROOTC+LIVE_ROOTC+DEAD_ROOTC
+cSoil=TOTSOMC
+cSoilFast=SOIL1C+SOIL2C
+cSoilMedium=SOIL3C
+cSoilSlow=SOIL4C
+cVeg=TOTVEGC
+cWood=WOODC
+evspsblsoi=QSOIL
+evspsblveg=QVEGE
+fFire=COL_FIRE_CLOSS
+fLitterSoil=LITR1C_TO_SOIL1C+LITR2C_TO_SOIL2C+LITR3C_TO_SOIL3C
+fLuc=DWT_CLOSS+PRODUCT_CLOSS
+fVegLitter=LITFALL
+gpp=GPP
+lai=TLAI
+mrfso=SOILICE
+mrlsl=SOILLIQ + SOILICE
+mrro=QRUNOFF
+mrros=QOVER
+mrso=mask over ice-covered regions at 5000 kg m-2(SOILICE+SOILLIQ)
+mrsos=SOILWATER_10CM
+nbp=NBP
+npp=NPP
+nppLeaf=LEAFC_ALLOC
+nppRoot=FROOTC_ALLOC
+nppWood=WOODC_ALLOC
+prveg=QINTR
+rGrowth=GR
+rMaint=MR
+ra=AR
+rh=HR
+tran=QSOIL + QVEGT
+tsl=TSOI
+############################
+#  TABLE : Oclim
+############################
+############################
+#  TABLE : Oday
+############################
+sos=SALT[at topmost level * 1000]
+tos=TEMP[at topmost level]
+tossq=TEMP2
+############################
+#  TABLE : Ofx
+############################
+areacello=TAREA
+basin=REGION_MASK
+deptho=HT
+hfgeou=0
+sftof=0 where KMT
+############################
+#  TABLE : Omon
+############################
+agessc=IAGE
+cfc11=CFC11
+chl=diatChl+spChl+diazChl
+chlcalc=spChl*(spCaCO3/spC)
+chldiat=diatChl
+chldiaz=diazChl
+chlpico=spChl
+co3=CO3
+co3satarag=co3_sat_arag
+co3satcalc=co3_sat_calc
+dfe=Fe
+dissic=DIC
+dissoc=DOC
+dpco2=DpCO2
+expc=POC_FLUX_IN
+fbddtalk=Jint_100m_ALK
+fbddtdic=Jint_100m_DIC
+fbddtdife=Jint_100m_Fe
+fbddtdin=Jint_100m_NO3+Jint_100m_NH4
+fbddtdip=Jint_100m_PO4
+fbddtdisi=Jint_100m_SiO3
+fddtalk=tend_zint_100m_ALK
+fddtdic=tend_zint_100m_DIC
+fddtdife=tend_zint_100m_Fe
+fddtdin=tend_zint_100m_NO3+tend_zint_100m_NH4
+fddtdip=tend_zint_100m_PO4
+fddtdisi=tend_zint_100m_SiO3
+fgco2=FG_CO2
+fgo2=STF_O2
+frn=Integrate -DENITRIF over z_t (if (kmt(i,j).ge.k) then cm
+dat2d(i,j)
+fsn=NOx_FLUX+NHy_FLUX+(integrate diaz_Nfix over z_t) (if (kmt(i,j).ge.k) then cm
+dat2d(i,j)
+hfds=SHF+QFLUX
+hfgeou=0
+hfls=LHFLX
+hfss=SENH_F
+intpbsi=Integrate (-bSi_f
+m) over z_t_150m (if (kmt(i,j).ge.k) then cm
+dat2d(i,j)
+intpcalcite=Integrate -1*CaCO3_f
+m over z_t_150m (if (kmt(i,j).ge.k) then cm
+dat2d(i,j)
+intpn2=Integrate diaz_Nfix over z_t_150m (if (kmt(i,j).ge.k) then cm
+dat2d(i,j)
+intpnitrate=photoC_NO3_diat_zint+photoC_NO3_sp_zint+photoC_NO3_diaz_zint
+intpp=Integrate (photoC_diat+photoC_sp+photoC_diaz) over z_t_150m (cm
+dat2d(i,j)
+masso=Integrate PD over ocean volume (total mass (kg) if (indat3a(i,j,k).lt.1.e30) indat1a(it)
+msftbarot=BSF
+msftmyz=MOC
+nh4=NH4
+no3=NO3
+o2=O2
+o2min=O2_ZMIN
+ph=pH_3D
+phyc=spC+diatC+diazC
+phycalc=spC
+phydiat=diatC
+phydiaz=diazC
+phyfe=spFe
+phymisc=diatFe+spFe+diazFe
+phyn=(diatC+spC+diazC)*.137
+phyp=(diatC+spC)*.00855+diazC*.002735
+phypico=spC
+physi=diatSi
+po4=PO4
+pr=PREC_F
+prsn=SNOW_F
+rlds=LWDN_F + LWUP_F
+rsntds=QSW_HTP
+si=SiO3
+so=SALT
+soga=weighted_global_average(SALT)
+sos=SALT[at topmost level * 1000]
+spco2=pCO2SURF
+talk=ALK
+tauuo=TAUX
+tauvo=TAUY
+thetao=TEMP
+thetaoga=weighted_global_average(TEMP)
+thkcello=dz
+tos=TEMP[at topmost level]
+tossq=TEMP2
+umo=(0.5*(UVEL(i,j)+UVEL(i,j-1))*HTE*dz*rho_0)
+uo=UVEL
+vmo=(0.5*(VVEL(i,j)+VVEL(i-1,j))*HTN*dz*rho_0)
+vo=VVEL
+volo=PD
+wmo=(0.5*(WVEL(i,j,k)+WVEL(i,j,k+1))*TAREA*rho_0)
+zo2min=O2_ZMIN_DEPTH
+zooc=zooC
+zos=SSH
+zossq=SSH2
+zostoga=ave_slc_t from Aixue's SLC code; derived from SSH PD TEMP SALT
+zsatarag=zsatarag
+zsatcalc=zsatcalc
+############################
+#  TABLE : Oyr
+############################
+cfc11=CFC11
+chl=diatChl+spChl+diazChl
+chlcalc=spChl*(spCaCO3/spC)
+chldiat=diatChl
+chldiaz=diazChl
+chlpico=spChl
+co3=CO3
+co3satarag=co3_sat_arag
+co3satcalc=co3_sat_calc
+dfe=Fe
+dissic=DIC
+dissoc=DOC
+expc=POC_FLUX_IN
+expcalc=CaCO3_FLUX_IN
+expsi=SiO2_FLUX_IN
+nh4=NH4
+no3=NO3
+o2=O2
+ph=pH_3D
+phyc=spC+diatC+diazC
+phycalc=spC
+phydiat=diatC
+phydiaz=diazC
+phyfe=spFe
+phymisc=diatFe+spFe+diazFe
+phyn=(diatC+spC+diazC)*.137
+phyp=(diatC+spC)*.00855+diazC*.002735
+phypico=spC
+physi=diatSi
+po4=PO4
+si=SiO3
+talk=ALK
+zooc=zooC
+############################
+#  TABLE : SIday
+############################
+############################
+#  TABLE : SImon
+############################
+############################
+#  TABLE : aerannual
+############################
+lossch4=CH4_CHML
+lossco=CO_CHML
+############################
+#  TABLE : aerdaily
+############################
+cod=TOT_CLD_VISTAU
+pr=PREC_F
+ps=PS
+rsds=FSDS
+rsdscs=FSDSC
+tas=TREFHT
+tasmax=TREFHTMX
+tasmin=TREFHTMN
+toz=O3 column
+############################
+#  TABLE : aerfixed
+############################
+areacella=AREA
+landf=LANDFRAC 
+ lf
+orog=PHIS/g
+############################
+#  TABLE : aerhourly
+############################
+ps=PS
+############################
+#  TABLE : aermonthly
+############################
+abs550aer=AODABS
+airmass=MASS
+albs=global(FSDT-FSNT)/global(FSDT)
+albsrfc=global(FSDS-FSNS)/global (FSDS)
+cdnc=CDNUMC
+ch4=vinterp(CH4, plevs)
+chegpso4=SO4_CHMP*(28.97e-3 kg mol-1*1.e-3/6.022e23), 
+ (SO4_CHMP*28.97e-3 kg mol*(1/1000))/avogadros 
+ SO4_CHMP
+chepsoa=all all soa terms  oa surface emis
+cli=CLDICE
+clt=CLDTOT
+clw=CLDLIQ
+co2=vinterp(CO2,plevs)
+cod=TOT_CLD_VISTAU
+drybc=bc_a1DDF
+drydust=DSTSFDRY
+drynh3=DF_NH3
+drynh4=DF_NH4
+drynoy=DF_NOY
+dryo3=DF_O3
+dryoa=pomff_a1DDF+soa_a1DDF+soa_a2DDF
+dryso2=DF_SO2
+dryso4=so4_a1DDF+so4_a2DDF+so4_a3DDF
+dryss=ncl_a1DDF+ncl_a2DDF+ncl_a3DDF
+emibc=SFbc_a1+bc_a1_CLXF
+emibvoc=MEG_ISOP+MEG_CH3OH+ MEG_CH3COCH3+ MEG_CH3CHO+ MEG_CH2O+ MEG_CO+ MEG_C2H6+ MEG_C3H8+MEG_C2H4+MEG_C3H6+ MEG_C2H5OH+ MEG_C10H16+ MEG_BIGALK+ MEG_BIGENE+ MEG_TOLUENE+MEG_MEK+MEG_HCN+MEG_HCOOH+ MEG_CH3COOH
+emico=SFCO
+emidms=SFDMS
+emidust=SFdst_a1+SFdst_a3
+emiisop=SFISOP
+emilnox=LNO_PROD* 14. *1.e+3/6.022e23 *delp/9.81/rho,  rho
+eminh3=SFNH3
+eminox=SFNOX 
+ SFNO
+emioa=(SFOC1+SFOC2)*1.4
+emiso2=SFSO2+SO2_CLXF
+emiso4=so4_a1_CLXF
+emiss=SFncl_a1+SFncl_a2+SFncl_a3
+emivoc=SFCH3OH+SFCH3COCH3+SFCH3CHO+SFCH2O+SFCO+SFC2H6+SFC3H8+SFC2H4+SFC3H6+SFC2H5OH+SFC10H16+SFBIGALK+SFBIGENE+SFTOLUENE+SFMEK+SFHCOOH+SFCH3COOH+SFISOP+SFHCN
+h2o=Q+CLDICE+CLDLIQ
+hfls=LHFLX
+hfss=SENH_F
+hus=vinterp(Q,plevs)
+lai=TLAI
+lwp=TGCLDLWP
+mcu=ZMMU
+mmrbc=CB1+CB2
+mmrdust=DST01+DST02+DST03+DST04
+mmrnh4=NH4
+mmrno3=NH4NO3
+mmroa=OC1+OC2+SOAM+SOAI+SOAT+SOAB+SOAX
+mmrso4=SO4
+mmrsoa=SOAM+SOAI+SOAT+SOAB+SOAX
+mmrss=SSLT01+SSLT02+SSLT03+SSLT04
+n2o=vinterp(N2O,plevs)
+o3loss=O3_Loss *1.e-6 / avogn
+o3prod=O3_Prod *1.e-6 / avogn
+od440aer=AEROD_v
+od550aer=AODVIS
+od550bc=ODV_BC1
+od550dust=ODV_DST01+ODV_DST02+ODV_DST03+ODV_DST04
+od550oa=ODV_OC1
+od550so4=ODV_SO4
+od550ss=SSLT01OD+SSLT02OD+SSLT03OD+SSLT04OD
+photo1d=jo3_a
+pilev=ilev
+pr=PREC_F
+ps=PS
+ptp=TROP_P
+reffclwtop=AREL
+rlds=LWDN_F + LWUP_F
+rlus=FLDS + FLNS
+rlut=FSNTOA-FSNT+FLNT
+rlutcs=FLUTC
+rsds=FSDS
+rsus=FSDS - FSNS
+rsut=SOLIN - FSNTOA
+rsutcs=SOLIN - FSNTOAC
+sic=aice
+snc=FSNO
+ta=vinterp(T,plevs)
+tatp=TROP_T
+tos=TEMP[at topmost level]
+toz=O3 column
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wetbc=bc_a1SFWET+bc_c1SFWET
+wetdust=dst_a1SFWET+dst_a3SFWET+dst_c1SFWET+dst_c3SFWET
+wetnh3=DTWR_NH3
+wetoa=pom_a1SFWET+pom_c1SFWET+soa_a1SFWET+soa_a2SFWET+soa_c1SFWET+soa_c2SFWET
+wetso2=WD_SO2
+wetso4=so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
+wetss=ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
+zg=vinterp(Z3,plevs)
+ztp=TROP_Z
+############################
+#  TABLE : aero
+############################
+abs550aer=AODABS
+cdnc=CDNUMC
+chepsoa=all all soa terms  oa surface emis
+concaerh2o=wat_a1+wat_a2+wat_a3
+concbc=bc_a1
+conccmcn=num_a3
+conccn=num_a1+num_a2+num_a3
+concdms=DMS
+concdust=dst_a1+dst_a3
+concoa=soa_a1+soa_a2+pom_a1
+concso2=SO2
+concso4=so4_a1+so4_a2+so4_a3
+concsoa=soa_a1+soa_a2
+concss=ncl_a1+ncl_a2+ncl_a3
+drybc=bc_a1DDF
+drydms=DF_DMS
+drydust=DSTSFDRY
+drynh3=DF_NH3
+drynh4=DF_NH4
+dryoa=pomff_a1DDF+soa_a1DDF+soa_a2DDF
+drypoa=pom_a1DDF
+dryso2=DF_SO2
+dryso4=so4_a1DDF+so4_a2DDF+so4_a3DDF
+drysoa=DF_SOAB+DF_SOAI+DF_SOAM+DF_SOAT+DF_SOAX
+dryss=ncl_a1DDF+ncl_a2DDF+ncl_a3DDF
+emibc=SFbc_a1+bc_a1_CLXF
+emidms=SFDMS
+emidust=SFdst_a1+SFdst_a3
+eminh3=SFNH3
+emioa=(SFOC1+SFOC2)*1.4
+emiso2=SFSO2+SO2_CLXF
+emiso4=so4_a1_CLXF
+emiss=SFncl_a1+SFncl_a2+SFncl_a3
+loadbc=bc_a1
+loaddust=dst_a1+dst_a3
+loadoa=SOAM+SOAI+SOAT+SOAB+SOAX,
+loadpoa=pom_a1
+loadso4=so4_a1+so4_a2+so4_a3
+loadsoa=soa_a1+soa_a2
+loadss=ncl_a1+ncl_a2+ncl_a3
+od550aer=AODVIS
+reffclws=REL
+reffclwtop=AREL
+wetbc=bc_a1SFWET+bc_c1SFWET
+wetdust=dst_a1SFWET+dst_a3SFWET+dst_c1SFWET+dst_c3SFWET
+wetoa=pom_a1SFWET+pom_c1SFWET+soa_a1SFWET+soa_a2SFWET+soa_c1SFWET+soa_c2SFWET
+wetso2=WD_SO2
+wetso4=so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
+wetss=ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
+############################
+#  TABLE : cf3hr
+############################
+cfadDbze94=CFAD_DBZE94_CS
+cfadLidarsr532=CFAD_SR532_CAL
+clcalipso=CLD_CAL
+clcalipso2=clcalipso2
+clhcalipso=CLDHGH_CAL
+clic=CLDICECON
+clis=CLDICESTR
+cllcalipso=CLDLOW_CAL
+clmcalipso=CLDMED_CAL
+cltc=CONCLD
+cltcalipso=CLDTOT_CAL
+clwc=CLDLIQCON
+clws=CLDLIQSTR
+demc=EMIS
+dems=EMIS
+dtauc=TOT_ICLD_VISTAU
+dtaus=TOT_ICLD_VISTAU
+h2o=Q+CLDICE+CLDLIQ
+parasolRefl=RFL_PARASOL
+prcprof=ZMFLXPRC-ZMFLXSNW + RKFLXPRC-RKFLXSNW
+prlsns=LS_FLXSNW
+prlsprof=LS_FLXPRC-LS_FLXSNW
+prsnc=ZMFLXSNW+HKFLXSNW
+reffclis=REI
+reffclws=REL
+ta=vinterp(T,plevs)
+############################
+#  TABLE : cfDay
+############################
+albisccp=MEANCLDALB_ISCCP
+ccb=PCLDBOT
+cct=PCLDTOP
+cl=CLOUD
+clcalipso=CLD_CAL
+clhcalipso=CLDHGH_CAL
+cli=CLDICE
+clivi=TGCLDIWP
+cllcalipso=CLDLOW_CAL
+clmcalipso=CLDMED_CAL
+clt=CLDTOT
+cltcalipso=CLDTOT_CAL
+cltisccp=CLDTOT_ISCCP
+clw=CLDLIQ
+clwvi=TGCLDLWP
+hfls=LHFLX
+hfss=SENH_F
+hur=vinterp(RELHUM,plevs)
+hus=vinterp(Q,plevs)
+mc=CMFMC + CMFMCDZM
+parasolRefl=RFL_PARASOL
+pctisccp=MEANPTOP_ISCCP
+prc=PRECC
+ps=PS
+rlds=LWDN_F + LWUP_F
+rldscs=FLDSC
+rlus=FLDS + FLNS
+rlutcs=FLUTC
+rsdscs=FSDSC
+rsdt=SOLIN
+rsuscs=FSDSC - FSNSC
+rsut=SOLIN - FSNTOA
+rsutcs=SOLIN - FSNTOAC
+ta=vinterp(T,plevs)
+ta700=T700
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+wap500=OMEGA500
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : cfMon
+############################
+albisccp=MEANCLDALB_ISCCP
+clcalipso=CLD_CAL
+clhcalipso=CLDHGH_CAL
+clic=CLDICECON
+clis=CLDICESTR
+cllcalipso=CLDLOW_CAL
+clmcalipso=CLDMED_CAL
+cltcalipso=CLDTOT_CAL
+cltisccp=CLDTOT_ISCCP
+clwc=CLDLIQCON
+clws=CLDLIQSTR
+hur=vinterp(RELHUM,plevs)
+hus=vinterp(Q,plevs)
+mcu=ZMMU
+parasolRefl=RFL_PARASOL
+pctisccp=MEANPTOP_ISCCP
+ta=vinterp(T,plevs)
+tnhus=TAQ+PTEQ
+tnhusa=TAQ
+tnhusc=ZMDQ+EVAPQZM+CMFDQ
+tnhusd=VD01
+tnhusmp=PTEQ
+tnhusscpbl=EVAPPREC+DQSED-CME
+tnt=TTEND_TOT
+tntc=ZMDT+EVAPTZM+ZMMTT+CMFDT
+tntmp=PTTEND
+tntr=QRL+QRS
+tntscpbl=HPROGCLD/CPAIR+HSED/1004.64
+############################
+#  TABLE : cfOff
+############################
+cfadDbze94=CFAD_DBZE94_CS
+cfadLidarsr532=CFAD_SR532_CAL
+clcalipso=CLD_CAL
+clcalipso2=clcalipso2
+clhcalipso=CLDHGH_CAL
+cllcalipso=CLDLOW_CAL
+clmcalipso=CLDMED_CAL
+cltcalipso=CLDTOT_CAL
+parasolRefl=RFL_PARASOL
+############################
+#  TABLE : cfSites
+############################
+cl=CLOUD
+cli=CLDICE
+clw=CLDLIQ
+hur=vinterp(RELHUM,plevs)
+hus=vinterp(Q,plevs)
+mc=CMFMC + CMFMCDZM
+ta=vinterp(T,plevs)
+tnhus=TAQ+PTEQ
+tnhusa=TAQ
+tnhusc=ZMDQ+EVAPQZM+CMFDQ
+tnhusd=VD01
+tnhusmp=PTEQ
+tnhusscpbl=EVAPPREC+DQSED-CME
+tnt=TTEND_TOT
+tntc=ZMDT+EVAPTZM+ZMMTT+CMFDT
+tntmp=PTTEND
+tntr=QRL+QRS
+tntscpbl=HPROGCLD/CPAIR+HSED/1004.64
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : day
+############################
+clt=CLDTOT
+hfls=LHFLX
+hfss=SENH_F
+hur=vinterp(RELHUM,plevs)
+hus=vinterp(Q,plevs)
+huss=QREFHT
+mrro=QRUNOFF
+mrsos=SOILWATER_10CM
+pr=PREC_F
+prc=PRECC
+prsn=SNOW_F
+psl=PSL
+rhs=RHREFHT
+rlds=LWDN_F + LWUP_F
+rlus=FLDS + FLNS
+rlut=FSNTOA-FSNT+FLNT
+rsds=FSDS
+rsus=FSDS - FSNS
+sfcWind=U10
+sic=aice
+sit=hi
+snc=FSNO
+snw=H2OSNO
+ta=vinterp(T,plevs)
+tas=TREFHT
+tasmax=TREFHTMX
+tasmin=TREFHTMN
+tos=TEMP[at topmost level]
+tossq=TEMP2
+ua=vinterp(U,plevs)
+usi=uvel_d
+va=vinterp(V,plevs)
+vsi=vvel_d
+wap=vinterp(OMEGA,plevs)
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : em1hr
+############################
+pr=PREC_F
+prc=PRECC
+psl=PSL
+rlut=FSNTOA-FSNT+FLNT
+ta=vinterp(T,plevs)
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+############################
+#  TABLE : em1hrclimmon
+############################
+rlut=FSNTOA-FSNT+FLNT
+rlutcs=FLUTC
+rsdt=SOLIN
+rsut=SOLIN - FSNTOA
+rsutcs=SOLIN - FSNTOAC
+############################
+#  TABLE : em3hr
+############################
+clivi=TGCLDIWP
+clwvi=TGCLDLWP
+gpp=GPP
+pr=PREC_F
+prw=TMQ
+psl=PSL
+ra=AR
+rh=HR
+rlut=FSNTOA-FSNT+FLNT
+rlutcs=FLUTC
+rsdscs=FSDSC
+rsdt=SOLIN
+rsut=SOLIN - FSNTOA
+rsutcs=SOLIN - FSNTOAC
+############################
+#  TABLE : em3hrpt
+############################
+cfadDbze94=CFAD_DBZE94_CS
+cfadLidarsr532=CFAD_SR532_CAL
+clcalipso=CLD_CAL
+clcalipso2=clcalipso2
+clhcalipso=CLDHGH_CAL
+cllcalipso=CLDLOW_CAL
+clmcalipso=CLDMED_CAL
+cltcalipso=CLDTOT_CAL
+huss=QREFHT
+parasolRefl=RFL_PARASOL
+psl=PSL
+tas=TREFHT
+############################
+#  TABLE : emDay
+############################
+albs=global(FSDT-FSNT)/global(FSDT)
+hfds=SHF+QFLUX
+hfdsn=FGR
+hur=vinterp(RELHUM,plevs)
+lai=TLAI
+loadbc=bc_a1
+loaddust=dst_a1+dst_a3
+loadoa=SOAM+SOAI+SOAT+SOAB+SOAX,
+loadpoa=pom_a1
+loadso4=so4_a1+so4_a2+so4_a3
+loadsoa=soa_a1+soa_a2
+loadss=ncl_a1+ncl_a2+ncl_a3
+lwsnl=SNOWLIQ
+mrlsl=SOILLIQ + SOILICE
+mrro=QRUNOFF
+mrros=QOVER
+mrsos=SOILWATER_10CM
+pr=PREC_F
+prsn=SNOW_F
+prsnc=ZMFLXSNW+HKFLXSNW
+prveg=QINTR
+prw=TMQ
+psl=PSL
+rlds=LWDN_F + LWUP_F
+rlus=FLDS + FLNS
+rsdt=SOLIN
+rsut=SOLIN - FSNTOA
+sbl=QFLX_SUB_SNOW
+sic=aice
+sit=hi
+snc=FSNO
+snd=hs
+snm=QMELT
+snw=H2OSNO
+sootsn=SNOBCMSL + SNODSTMSL + SNOOCMSL
+tasmax=TREFHTMX
+tasmin=TREFHTMN
+tauu=TAUX
+tauv=TAUY
+tran=QSOIL + QVEGT
+ts=TS
+tsl=TSOI
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : emDayZ
+############################
+hus=vinterp(Q,plevs)
+ta=vinterp(T,plevs)
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+zg=vinterp(Z3,plevs)
+############################
+#  TABLE : emDaypt
+############################
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+############################
+#  TABLE : emFx
+############################
+sftgif=PCT_GLACIER
+############################
+#  TABLE : emMon
+############################
+agessc=IAGE
+albs=global(FSDT-FSNT)/global(FSDT)
+albsrfc=global(FSDS-FSNS)/global (FSDS)
+cLeaf=LEAFC
+cLitter=TOTLITC
+cMisc=STORVEGC
+cProduct=TOTPRODC
+cRoot=FROOTC+LIVE_ROOTC+DEAD_ROOTC
+cSoil=TOTSOMC
+cVeg=TOTVEGC
+cWood=WOODC
+cfadDbze94=CFAD_DBZE94_CS
+cfadLidarsr532=CFAD_SR532_CAL
+cfc11=CFC11
+chl=diatChl+spChl+diazChl
+chlcalc=spChl*(spCaCO3/spC)
+chlpico=spChl
+cl=CLOUD
+co3satarag=co3_sat_arag
+co3satcalc=co3_sat_calc
+dfe=Fe
+dissic=DIC
+dpco2=DpCO2
+epc100=POC_FLUX_IN[only depth100m meters]
+epcalc100=CaCO3_FLUX_IN[only depth100m meters]
+evspsbl=QFLX
+evspsblveg=QVEGE
+fLitterSoil=LITR1C_TO_SOIL1C+LITR2C_TO_SOIL2C+LITR3C_TO_SOIL3C
+fLuc=DWT_CLOSS+PRODUCT_CLOSS
+fVegLitter=LITFALL
+fgco2=FG_CO2
+fgo2=STF_O2
+flashrate=FLASHFRQ/60./area
+gpp=GPP
+intpp=Integrate (photoC_diat+photoC_sp+photoC_diaz) over z_t_150m (cm
+dat2d(i,j)
+lai=TLAI
+lwp=TGCLDLWP
+mcu=ZMMU
+mmraerso4=SO4
+mmrbc=CB1+CB2
+mmrdust=DST01+DST02+DST03+DST04
+mmrno3=NH4NO3
+mmrss=SSLT01+SSLT02+SSLT03+SSLT04
+mrfso=SOILICE
+mrros=QOVER
+mrsos=SOILWATER_10CM
+nh4=NH4
+no3=NO3
+npp=NPP
+o2=O2
+od550aer=AODVIS
+od550dust=ODV_DST01+ODV_DST02+ODV_DST03+ODV_DST04
+od550so4=ODV_SO4
+parasolRefl=RFL_PARASOL
+ph=pH_3D
+phyc=spC+diatC+diazC
+phydiat=diatC
+phydiaz=diazC
+phyfe=spFe
+phymisc=diatFe+spFe+diazFe
+phyp=(diatC+spC)*.00855+diazC*.002735
+phypico=spC
+po4=PO4
+prveg=QINTR
+ra=AR
+reffclis=REI
+reffclws=REL
+rh=HR
+rsds=FSDS
+si=SiO3
+spco2=pCO2SURF
+ta=vinterp(T,plevs)
+talk=ALK
+tnhusc=ZMDQ+EVAPQZM+CMFDQ
+tntr=QRL+QRS
+tran=QSOIL + QVEGT
+tsl=TSOI
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+zooc=zooC
+############################
+#  TABLE : emMonZ
+############################
+ua=vinterp(U,plevs)
+zmtnt=PTTEND PS
+############################
+#  TABLE : emMonpt
+############################
+############################
+#  TABLE : emSubhr
+############################
+hfls=LHFLX
+hfss=SENH_F
+hus=vinterp(Q,plevs)
+huss=QREFHT
+mc=CMFMC + CMFMCDZM
+pr=PREC_F
+prc=PRECC
+prw=TMQ
+reffclis=REI
+reffclws=REL
+rlut=FSNTOA-FSNT+FLNT
+rsdt=SOLIN
+rsut=SOLIN - FSNTOA
+ta=vinterp(T,plevs)
+tas=TREFHT
+tnhus=TAQ+PTEQ
+tnt=TTEND_TOT
+ua=vinterp(U,plevs)
+va=vinterp(V,plevs)
+wap=vinterp(OMEGA,plevs)
+############################
+#  TABLE : emYr
+############################
+cLitter=TOTLITC
+cSoil=TOTSOMC
+cVeg=TOTVEGC
+############################
+#  TABLE : fx
+############################
+areacella=AREA
+areacello=TAREA
+basin=REGION_MASK
+deptho=HT
+hfgeou=0
+mrsofc=WATSAT
+orog=PHIS/g
+sftgif=PCT_GLACIER
+sftlf=LANDFRAC
+sftof=0 where KMT
+thkcello=dz
+volcello=TAREA*dz

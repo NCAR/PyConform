@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import argparse, os
 import json
-import mip_table_parser
+import miptableparser 
 from dateutil.parser import parse
 import datetime
 
@@ -46,11 +46,14 @@ def load(defs):
 
     def_dict = {}
     for line in defs:
+        line = line.strip()
+        if '#' in line:
+            line = line.split('#')[0].strip()
         split = line.split('=')
         if (len(split) == 2):
             def_dict[split[0].strip()] = split[1].strip()
         else:
-            if line != '\n':
+            if len(line)>0 :
                 print 'Could not parse this line: ',line
     return def_dict
 
@@ -222,7 +225,7 @@ def main(argv=None):
     # Open/Read the MIP table
 #    if args.mipTable != None and args.mipTableType != None and args.exp != None:
     if args.mipTableType != None and args.exp != None:
-        exp_dict = mip_table_parser.mip_table_parser(args.exp, args.mipTable,type=args.mipTableType)
+        exp_dict = miptableparser.mip_table_parser(args.exp, args.mipTable,type=args.mipTableType)
 
     # Write the spec files out to disk
     for t in exp_dict.keys():
