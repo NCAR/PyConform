@@ -662,7 +662,6 @@ class ParseXML(object):
                 if hasattr(v,'coords'):
                     ax['coords'] = v.coords
                 axes[a] = ax
-                print a,ax
       
             table_dict['variables'] = variables
             table_dict['axes'] = axes 
@@ -670,10 +669,10 @@ class ParseXML(object):
             tab = rvg.label
             table_info['table_id'] = tab
             total_request[dr.mip+'_'+tab] = table_dict
-        print 'Total in request:',len(total_request)
-        for k in sorted(total_request.keys()):
-            v = total_request[k]
-            print k, len(v['variables'])
+        #print 'Total in request:',len(total_request)
+        #for k in sorted(total_request.keys()):
+        #    v = total_request[k]
+        #    print k, len(v['variables'])
 
         return total_request
 
