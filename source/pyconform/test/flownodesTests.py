@@ -336,7 +336,7 @@ class MapNodeTests(unittest.TestCase):
         testname = 'MapNode.__getitem__(None)'
         N = flownodes.MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.arange(1), units='km', dimensions=('y',))
+        expected = flownodes.PhysArray(numpy.arange(0), units='km', dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))

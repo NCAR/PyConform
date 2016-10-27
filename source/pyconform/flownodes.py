@@ -468,7 +468,10 @@ class ValidateNode(FlowNode):
 
         # Check that units match as expected
         if self._units is not None and self._units != indata.units:
-            indata = indata.convert(self._units)
+            if index is None:
+                indata.units = self._units
+            else:
+                indata = indata.convert(self._units)
 
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
