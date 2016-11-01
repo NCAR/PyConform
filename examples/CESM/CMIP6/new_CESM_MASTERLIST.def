@@ -1,4 +1,21 @@
 ############################
+#  Coords
+############################
+latitude=lat
+longitude=lon
+time=time
+time1=time
+time2=time
+alevhalf=ilev
+alevel=lev
+site=
+xant=nj
+yant=ni
+rho=RHO
+sdepth=levgrnd
+olevel=lev
+
+############################
 #  TABLE : 3hr
 ############################
 clt=CLDTOT 

@@ -495,6 +495,7 @@ class ParseXML(object):
 
             table_info['experiment'] = exp
             table_info['experiment_id'] = exp
+            table_info['data_specs_version'] = dreq.version
 
             dr = dq.inx.uid[ri]
             table_info['activity_id'] = dr.mip
@@ -523,15 +524,18 @@ class ParseXML(object):
 	        if hasattr(c_var,'label'):
                     var['id']= c_var.label
                     var['out_name'] = c_var.label
+                    var['variable_id'] = c_var.label
                     l = dq.inx.var.label[c_var.label]
                     if len(l)>0:
-                        var['standard_name'] = dq.inx.var.uid[l[0]].sn 
+                        var['standard_name'] = dq.inx.var.uid[l[0]].sn
+                if hasattr(c_var,'mipTable'):
+                    var['mipTable']=c_var.mipTable 
 	        if hasattr(c_var,'modeling_realm'):
-                    var['modeling_realm']= c_var.modeling_realm
-	        if hasattr(c_var,'ok_min_mean_abs'):
-                    var['ok_min_mean_abs']= c_var.ok_min_mean_abs
-	        if hasattr(c_var,'ok_max_mean_abs'):
-                    var['ok_max_mean_abs']= c_var.ok_max_mean_abs
+                    var['realm']= c_var.modeling_realm
+	        #if hasattr(c_var,'ok_min_mean_abs'):
+                #    var['ok_min_mean_abs']= c_var.ok_min_mean_abs
+	        #if hasattr(c_var,'ok_max_mean_abs'):
+                #    var['ok_max_mean_abs']= c_var.ok_max_mean_abs
 	        if hasattr(c_var,'out_name'):
                     var['out_name']= c_var.label #?
 	        if hasattr(c_var,'positive'):
@@ -579,7 +583,7 @@ class ParseXML(object):
                         t = t_var.dimensions
                         if t != '' and t != 'None':
                             var['time'] = t
-                            var['dimensions'] = t+'|'
+                            var['coordinates'] = t+'|'
                     if hasattr(t_var,'label'):
                         var['time_label'] = t_var.label
                     if hasattr(t_var,'title'):
@@ -589,17 +593,18 @@ class ParseXML(object):
                 if hasattr(s_var, 'spid'):
 	            sp_var = dq.inx.uid[s_var.spid]
 	            if hasattr(sp_var,'dimensions'):
-                        if 'dimensions' in var.keys():
-                            var['dimensions'] = var['dimensions']+sp_var.dimensions
+                        if 'coordinates' in var.keys():
+                            var['coordinates'] = var['coordinates']+sp_var.dimensions
                         else:
-                            var['dimensions'] = sp_var.dimensions
-                        dims = var['dimensions'].split('|')
+                            var['coordinates'] = sp_var.dimensions
+                        dims = var['coordinates'].split('|')
                         for d in dims:
                             if d not in axes_list and d != '' and d != 'None':
                                 if 'copy' not in var['id']:
                                     axes_list.append(d) 
-                        ####if 'alev' in var['dimensions']:
-                            ####print '*** FOUND ALEV ',var['id'] 
+                if var['coordinates'][-1] == '|':
+                    var['coordinates'] = var['coordinates'][:-1] 
+
 	        # Set what we can from the variable section
                 if hasattr(c_var, 'vid'):
                     v_var = dq.inx.uid[c_var.vid]
@@ -643,8 +648,8 @@ class ParseXML(object):
                 if hasattr(v,'valid_min'):
                     if isinstance(v.valid_min, (int, long, float, complex)):
                         ax['valid_min'] = v.valid_min
-                if hasattr(v,'cf_standard_name'):
-                    ax['cf_standard_name'] = v.standardName
+                if hasattr(v,'standardName'):
+                    ax['standard_name'] = v.standardName
                 if hasattr(v,'type'):
                     ax['type'] = v.type
                 if hasattr(v,'id'):
