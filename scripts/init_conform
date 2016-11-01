@@ -14,9 +14,16 @@ import miptableparser
 from dateutil.parser import parse
 import datetime
 
+# Map netcdf types to python types
 data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
               'float': 'float32', 'real': 'float32', 'double': 'float64', 
               'character':'char', 'integer':'int32'}
+
+# The way the date should be formatted in the filenames
+date_strings = {'yr': '__YYYY-YYYY__', 'mon': '__YYYYMM-YYYYMM__', 'monClim': '__YYYYMM-YYYYMM-clim__', 
+                'day': '__YYYYMMDD-YYYYMMDD__', '6hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', 
+                '3hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__',
+                'subhr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hrClimMon': '__YYYYMMDDHHMM-YYYYMMDDHHMM-clim__'}
 
 def parseArgs(argv = None):
 
@@ -42,13 +49,18 @@ def parseArgs(argv = None):
 
     return parser.parse_args(argv)
 
+
 def load(defs):
+
+    # Load the definition file - translations from  model variables to requested variables 
 
     def_dict = {}
     for line in defs:
         line = line.strip()
+        # hanle comments
         if '#' in line:
             line = line.split('#')[0].strip()
+        # slit definition into the two parts
         split = line.split('=')
         if (len(split) == 2):
             def_dict[split[0].strip()] = split[1].strip()
@@ -57,134 +69,222 @@ def load(defs):
                 print 'Could not parse this line: ',line
     return def_dict
 
-def create_output(table_dict, id, definitions, attributes, output_path, args):
-
-    outSpec = {}
-    variables = {}
-    axes = {}
-    table_info = {}
-
-    variables = table_dict['variables']
-    axes = table_dict['axes']
-    table_info = table_dict['table_info']
-    attributes.update(table_info)
-    if 'generic_levels' in table_info.keys():
-        g_levels = table_info['generic_levels']
-        g_split = g_levels.split(' ')
-        for l in g_split:
-            axes[l] = {}
-    #print '\n\n',variables.keys(),'\n\n'#,axes,'\n',table_info
+def defineVar(v, varName, attributes, definition, experiment):
 
     # Get variables needed to piece together the filename
-    identifier = id
-    if ('model_id') in attributes.keys():
-        model = attributes['model_id']
-    else:
-        model = ''
-    experiment = args.exp
-    ripgf_list = ['realization_index','initialization_index','physics_index','forcing_index','grid_index']
-    if all (ripgf in attributes for ripgf in ripgf_list):
-        ripfg = ("r{0}i{1}p{2}f{3}g{4}".format(attributes['realization_index'],
+    ripf_list = ['realization_index','initialization_index','physics_index','forcing_index']
+    if all (ripf in attributes for ripf in ripf_list):
+        ripf = ("r{0}i{1}p{2}f{3}".format(attributes['realization_index'],
                                                      attributes['initialization_index'],
                                                      attributes['physics_index'],
-                                                     attributes['forcing_index'],
-                                                     attributes['grid_index']))
+                                                     attributes['forcing_index']))
     else:
-        ripfg = ''
-    table = identifier
-    today = datetime.datetime.now()
-    version = 'v'+str(today.year).zfill(4)+str(today.month).zfill(2)+str(today.day).zfill(2) 
+        ripf = ''
+    mip_era = attributes['mip_era']
+    activity_id = attributes['activity_id']
+    institution_id = attributes['institution_id']
+    source_id = attributes['source_id']
+    grid = attributes['grid_label']
+    version = attributes['version']
+    sub_experiment_id = attributes['sub_experiment_id']
+    #today = datetime.datetime.now()
+    #version = 'v'+str(today.year).zfill(4)+str(today.month).zfill(2)+str(today.day).zfill(2)
 
-    # Do we need to add anything to further_info_url?
-    if 'further_info_url' in attributes.keys():
-        fiu_split = str(attributes['further_info_url']).split('/')
-        if table not in fiu_split:
-            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+table
-        if experiment not in fiu_split:
-            attributes['further_info_url'] =  str(attributes['further_info_url'])+'/'+experiment
+    # modify and add to the global attributes that are requested
+    v2 = dict(v)
+    for key,value in v.iteritems(): # remove all attributes that do not have values
+        if value == '':
+            v2.pop(key,None)
 
-    # Create Output Spec
-    # First add global attributes that are common to all files
-    outSpec["attributes"] = attributes
+    attributes2 = dict(attributes)
 
-    var_list = {}
+    attributes2["variable_id"] = v["variable_id"]
+    attributes2["realm"] = v["realm"]
+    attributes2["creation_date"]=""
+    attributes2.pop('version',None)
 
-    # For each variable in the definition file, create a file entry in the spec and define it
-    for v,d in variables.iteritems():
-        if v in definitions.keys():
-            tper = variables[v]['frequency']
-            component = variables[v]['modeling_realm']
-            if ' ' in component:
-                component = component.replace(' ','_') 
-            f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}_{8}_{9}_{10}_{11}".format(experiment,
-                       tper,component,table,ripfg,version,v,
-                       v,table,model,experiment,ripfg))
-            f_id = v
-            var = {}
-            for k1,v1 in variables[v].iteritems():
-                if not isinstance(v1,(list,str,float)):
-                    variables[v][k1] = "None"
-            var["attributes"] = variables[v]
-            var["definition"] = definitions[v]
-            var["filename"] = f_name
-            if 'type' in variables[v].keys() and variables[v]['type'] != 'None' and variables[v]['type'] != '':
-                var["datatype"]  = data_types[variables[v]['type']]
+    # Put together the filename
+    mipTable = v['mipTable']
+    if v["frequency"] in date_strings.keys():
+        dst = date_strings[v["frequency"]]
+    else:
+        dst = ''
+    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}{16}.nc".format(
+               mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
+               varName, grid, version,
+               varName, mipTable, experiment, source_id, ripf, grid, dst))
+
+    var = {}
+    # handle things that still aren't set correctly in the request
+    for k1,v1 in v.iteritems():
+        if not isinstance(v1,(list,str,float)):
+            v[k1] = "None"
+
+    # create proper url for the further_info_url global attribute
+    info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment, sub_experiment_id, ripf) 
+    attributes2['further_info_url'] = attributes2['further_info_url'] + info_url
+
+    # put together the dictionary entry for this variable    
+    var["attributes"] = v2
+    var["definition"] = definition
+    var["file"] = {}
+    var["file"]["global_attributes"] = attributes2
+    var["file"]["filename"] = f_name
+    if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '':
+        var["datatype"]  = data_types[v['type']]
+    else:
+        var["datatype"] = 'None'
+    if 'requested' in v.keys():
+        if v['requested'] != '':
+            var['definition'] =  v['requested']
+                   
+    if 'coordinates' in v.keys():
+        var["dimensions"] = v['coordinates'].split('|')
+
+    # return the variable dictionary with all pieces added
+    return var
+
+def defineAxes(v, name):
+
+    # define the axes that is used by at least one of the variables in the file
+
+    var = {}
+    v2 = dict(v)
+
+    # remove all of the attributes that have no values    
+    for key,value in v.iteritems():
+        if value == '':
+            v2.pop(key,None)
+
+    # put everything into a variable dictionary
+    var["attributes"] = v2
+    if 'type' in v.keys():
+        var["datatype"]  = data_types[v['type']]
+    if 'requested' in v.keys():
+        if v['requested'] != '':
+            try:
+                req = [float(val) for val in v['requested'].split()]
+            except ValueError:
+                req = v['requested'].split()
+            if len(req) > 0:
+                var['definition'] = req
+            #var['definition'] =  v['requested'] 
+    var['dimensions'] = [name]
+
+    # return the variable dictionary with all pieces added
+    return var
+
+
+def defineUserVars(fn, var_list, missing_list):
+
+    # create variables from a list supplied by the user
+
+    with open(fn) as f:
+        for vr in f:
+            vr = vr.strip()
+            if vr != "":
+                var = {}
+                f_id = vr
+                if vr in definitions.keys():
+                    var["attributes"] = {}
+                    var["definition"] = definitions[vr]
+                    f_name = ("{0}{1}".format(vr,fn_suffix))
+                    var["filename"] = f_name
+                    var["datatype"]  = "None"
+                    var["dimensions"] = "None"
+                    var_list[f_id] = var
+                else:
+                    missing_list.append(vr)
+
+    return var_list, missing_list
+
+
+def create_output(exp_dict, definitions, attributes, output_path, args):
+
+    # create the output json files
+
+    TableSpec = {}
+    AllMissing = {}
+
+    # go through each one of the data requests from the experiments
+    for t,table_dict in exp_dict.iteritems():
+
+        ReqSpec = {}
+        variables = {}
+        axes = {}
+        table_info = {}
+
+        AllMissing[t] = []
+
+        # separate the data request
+        variables = table_dict['variables']
+        axes = table_dict['axes']
+        table_info = table_dict['table_info']
+        attributes.update(table_info)
+        if 'generic_levels' in table_info.keys():
+            g_levels = table_info['generic_levels']
+            g_split = g_levels.split(' ')
+            for l in g_split:
+                axes[l] = {}
+
+        identifier = t
+        experiment = args.exp
+
+        var_list = {}
+        missing_def_var_list = []
+
+        # Add axes into the variable list
+        for v,d in axes.iteritems():
+            var_list[v] = defineAxes(d, v)
+            if v in definitions.keys() and 'definition' not in var_list[v].keys():
+                var_list[v]['definition'] = definitions[v]
+
+
+        # For each variable in the definition file, create a file entry in the spec and define it
+        for v,d in variables.iteritems():
+            if v in definitions.keys():
+                var_list[v] = defineVar(d, v, attributes, definitions[v], experiment)
+                ts_key = var_list[v]["file"]["global_attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]
+                if ts_key not in TableSpec.keys():
+                    TableSpec[ts_key] = {}
+                TableSpec[ts_key][v] = var_list[v]
+                for dim in var_list[v]["dimensions"]:
+                    if dim not in TableSpec[ts_key].keys() and dim != '':
+                        TableSpec[ts_key][dim] = var_list[dim] 
             else:
-                var["datatype"] = 'None'
-            if 'requested' in variables[v].keys():
-                if variables[v]['requested'] != '':
-                    var['data'] = variables[v]['requested']
-            if 'dimensions' in variables[v].keys():
-                var["dimensions"] = variables[v]['dimensions'].split('|')
-            var_list[f_id] = var
-######        else:
-######            print id, ':', v, ' is being requested by the experiment, but a definition has not been supplied.'
+                missing_def_var_list.append(v)
+                AllMissing[t].append(v)
 
-    # Add axes into the variable list
-    for v,d in axes.iteritems():
-        f_id = v
-        var = {}
-        var["attributes"] = axes[v]
-        if 'type' in axes[v].keys():
-            var["datatype"]  = data_types[axes[v]['type']]
-        if 'requested' in axes[v].keys():
-            if axes[v]['requested'] != '':
-                var['data'] = axes[v]['requested']
-        var_list[f_id] = var
+        # Go through a user supplied list if specified
+        if args.userList and os.path.isfile(args.userList):
+            var_list,missing_def_var_list = defineUserVars(args.userList, var_list, missing_def_var_list)
+        else:
+            if args.userList and not os.path.isfile(args.userList):
+                print 'The User Variable List file does not exist: ',args.userList
 
-    # Go through a user supplied list if specified
-    if args.userList and os.path.isfile(args.userList):
-        with open(args.userList) as f:
-            for vr in f:
-                vr = vr.strip()
-                if vr != "":
-                    var = {}
-                    f_id = vr
-                    if vr in definitions.keys():
-                        var["attributes"] = {}
-                        var["definition"] = definitions[vr]
-                        f_name = ("{0}{1}".format(vr,fn_suffix))
-                        var["filename"] = f_name
-                        var["datatype"]  = "None"
-                        var["dimensions"] = "None"
-                        var_list[f_id] = var
-                    else:
-                        print vr, ' is being requested by the experiment, but a definition has not been supplied.'
-    else:
-        if args.userList and not os.path.isfile(args.userList):
-            print 'The User Variable List file does not exist: ',args.userList
-            os.sys.exit(1)
+        ReqSpec["variables"] = var_list
+        ReqSpec["variables_missing_defs"] = sorted(missing_def_var_list)
 
-    outSpec["variables"] = var_list
+        # Write the JSON request spec file
+        f = output_path + '/' +experiment + '/byRequest/' + experiment + '_' + identifier + '_spec.json'
+        if not os.path.exists(output_path+'/' +experiment + '/byRequest/'):
+            os.makedirs(output_path + '/' +experiment + '/byRequest/')
+        with open(f, 'w') as outfile:
+            json.dump(ReqSpec, outfile, sort_keys=True, indent=4)
 
-    # Write the JSON output spec file
-    f = output_path + '/' + experiment + '_' + id + '_spec.json'
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    # create json files per MIP+table
+    for n,t in TableSpec.iteritems():
+        spec = {}
+        f = output_path + '/' +experiment + '/byTable/' + experiment + '_' + n + '_spec.json'
+        if not os.path.exists(output_path+'/' +experiment + '/byTable/'):
+            os.makedirs(output_path + '/' +experiment + '/byTable/')
+        spec["variables"] = t
+        with open(f, 'w') as outfile:
+            json.dump(spec, outfile, sort_keys=True, indent=4)
+
+    f = output_path + '/' +experiment + '/byTable/MISSING_DEFS.json'
     with open(f, 'w') as outfile:
-        json.dump(outSpec, outfile, sort_keys=True, indent=4)
-
-
+        json.dump(AllMissing, outfile, sort_keys=True, indent=4)
 
 def main(argv=None):
    
@@ -228,8 +328,7 @@ def main(argv=None):
         exp_dict = miptableparser.mip_table_parser(args.exp, args.mipTable,type=args.mipTableType)
 
     # Write the spec files out to disk
-    for t in exp_dict.keys():
-        create_output(exp_dict[t], t, definitions, attributes, args.outputpath, args)
+    create_output(exp_dict, definitions, attributes, args.outputpath, args)
 
 if __name__ == '__main__':
     main()

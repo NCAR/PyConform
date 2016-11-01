@@ -1,34 +1,29 @@
-institute_id = NCAR
-institute = NCAR (National Center for Atmospheric Research) Boulder, CO, USA
-model_id = CESM2
-model = Community Earth System Model version 2
 realization_index = 1
 initialization_index = 1
 physics_index = 1
 forcing_index = 1
-grid_index = 1
-parent_experiment_id = historical
-parent_experiment_ripfg = r1i1p1f1g1
-sub_experiment_idindex = xxxxxx
-Convensions = CF-1.4 CMIP6-1.0 UGRID Conv
-start_date = 1979-01-01 00:00:00
-creation_date = 2016-07-31T14:46:40Z
-branch_time_in_parent = 19.
-branch_method = hybrid
-branch_time_units_in_parent = days since 1850-01-01 00:00:00
-branch_time_in_child = days since 1979-01-01 00:00:00
-further_info_url = http://purl.org/cmip6FurtherInfo/NCAR/CESM2/
-tracking_id = hdl:21.14100/xxxxxx
-comment = CESM home page cesm.ucar.edu
+source_type = AOGCM
+branch_method = standard
+grid = native 1x1 degree grid 
+grid_label = gn
+grid_resolution = 1x1 degree # or 100km?
+version = v20170101
+
+#variant_label = 
+#
+institution_id = NCAR
+institution = NCAR (National Center for Atmospheric Research) Boulder, CO, USA
+source_id = CESM2
+source = Community Earth System Model version 2
+mip_era = CMIP6 
+product = output
+sub_experiment = none
+sub_experiment_id = none 
+Convensions = CF-1.7 CMIP-6.0
+further_info_url = http://furtherinfo.es-doc.org/
+tracking_id = hdl:21.14100/
 contact = cesm_data@ucar.edu
 references = Gent P. R., et.al. 2011, The Community Climate System Model version 4. J. Climate, doi:10.1175/2011JCLI4083.1
-title = CESM2 model output prepared for CMIP6 
-acknowledgements = The CESM project is supported by the National Science Foundation and the Office of Science (BER) of the U.S. Department of Energy. NCAR is sponsored by the National Science Foundation. Computing resources were provided by the Climate Simulation Laboratory at the NCAR Computational and Information Systems Laboratory (CISL), sponsored by the National Science Foundation and other agencies.
-cesm_casename = f20.1979_amip.track1.1deg.001
-cesm_repotag = cesm2
-cesm_compset = FAMIPC5
-resolution = f09_f09 (0.9x1.25_0.9x1.25)
-forcing = Sl GHG Vl SS Ds SA BC MD OC Oz AA
-forcing_note = Additional information on the external forcings used in this experiment can be found at http://www.cesm.ucar.edu/CMIP5/forcing_information
+license = CMIP6 model data produced by NCAR is licensed under a Creative Commons Attribution \"[*] Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). Use of the data should be acknowledged following guidelines found at https://pcmdi.llnl.gov/home/CMIP6/citation.html. [Permissions beyond the scope of this license may be available at <some URL maintained by modeling group>.] Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in data files)[and at <some URL maintained by modeling group>]. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.
 
 
