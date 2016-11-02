@@ -13,6 +13,7 @@ import json
 import miptableparser 
 from dateutil.parser import parse
 import datetime
+from dreqPy import dreq
 
 # Map netcdf types to python types
 data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
@@ -36,10 +37,12 @@ def parseArgs(argv = None):
     parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
                         help='A file listing the global attributes that ' 
                              'are common to all files.')
-    parser.add_argument('-e', '--exp', default=None, type=str,
+    parser.add_argument('-e', '--exp', default='None', type=str,
                         help='The name of the experiment.')
-    parser.add_argument('-m', '--mipTable', default=None, type=str,
-                        help='The name of the MIP table.')
+    parser.add_argument('-m', '--mip', default='None', type=str,
+                        help='The name of the MIPs to generate spec files for')
+    parser.add_argument('-t', '--miptables',default='None', type=str,
+                        help='The name of the MIP Tables to generate spec files for')
     parser.add_argument('-tt', '--mipTableType', default=None, type=str,
                         help='MIP table file type.  Can be xml, cmor, or excel.')
     parser.add_argument('-u', '--userList', default=None, type=str,
@@ -80,6 +83,7 @@ def defineVar(v, varName, attributes, definition, experiment):
                                                      attributes['forcing_index']))
     else:
         ripf = ''
+
     mip_era = attributes['mip_era']
     activity_id = attributes['activity_id']
     institution_id = attributes['institution_id']
@@ -199,7 +203,7 @@ def defineUserVars(fn, var_list, missing_list):
     return var_list, missing_list
 
 
-def create_output(exp_dict, definitions, attributes, output_path, args):
+def create_output(exp_dict, definitions, attributes, output_path, args, experiment):
 
     # create the output json files
 
@@ -228,7 +232,6 @@ def create_output(exp_dict, definitions, attributes, output_path, args):
                 axes[l] = {}
 
         identifier = t
-        experiment = args.exp
 
         var_list = {}
         missing_def_var_list = []
@@ -273,11 +276,11 @@ def create_output(exp_dict, definitions, attributes, output_path, args):
             json.dump(ReqSpec, outfile, sort_keys=True, indent=4)
 
     # create json files per MIP+table
+    if not os.path.exists(output_path+'/' +experiment + '/byTable/'):
+        os.makedirs(output_path + '/' +experiment + '/byTable/')
     for n,t in TableSpec.iteritems():
         spec = {}
         f = output_path + '/' +experiment + '/byTable/' + experiment + '_' + n + '_spec.json'
-        if not os.path.exists(output_path+'/' +experiment + '/byTable/'):
-            os.makedirs(output_path + '/' +experiment + '/byTable/')
         spec["variables"] = t
         with open(f, 'w') as outfile:
             json.dump(spec, outfile, sort_keys=True, indent=4)
@@ -296,7 +299,8 @@ def main(argv=None):
     print 'Variable Definitions: ', args.defFile
     print 'Global Attributes to be added to each file: ', args.globalAttrFile
     print 'Experiment Name: ', args.exp
-    print 'MIP Table to be used: ', args.mipTable
+    print 'MIPs: ', args.mip
+    print 'MIP Tables: ', args.miptables
     print 'MIP Table Type: ',args.mipTableType
     print 'User supplied variable list: ',args.userList
     print 'Will create output spec files within this directory:', args.outputpath
@@ -323,12 +327,26 @@ def main(argv=None):
             os.sys.exit(1)
 
     # Open/Read the MIP table
-#    if args.mipTable != None and args.mipTableType != None and args.exp != None:
-    if args.mipTableType != None and args.exp != None:
-        exp_dict = miptableparser.mip_table_parser(args.exp, args.mipTable,type=args.mipTableType)
+    #if args.mipTableType != None and args.exp != None:
+    exps = args.exp.split(',')
+    if exps[0] == 'None':
+        exps = ['--ALL--']
+    mips = args.mip.split(',')
+    if mips[0] == 'None':
+        mips = ['--ALL--']
+    tables = args.miptables.split(',')
+    if tables[0] == 'None':
+        tables = ['--ALL--']
+   
+    dq = dreq.loadDreq()
+    if '--ALL--' in exps:
+        exps = dq.inx.experiment.label.keys()
 
-    # Write the spec files out to disk
-    create_output(exp_dict, definitions, attributes, args.outputpath, args)
+    for exp in exps: 
+        exp_dict = miptableparser.mip_table_parser(exp, mips, tables, type=args.mipTableType)
+
+        # Write the spec files out to disk
+        create_output(exp_dict, definitions, attributes, args.outputpath, args, exp)
 
 if __name__ == '__main__':
     main()
