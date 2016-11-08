@@ -5,7 +5,7 @@ import sys
 # Return a dcitionary that contains the parsed
 # information.
 #=============================================
-def  mip_table_parser(exp,mip,table,type=None,user_vars={},user_axes={},user_tableInfo={}):
+def  mip_table_parser(exp,mip,table,variables,type=None,user_vars={},user_axes={},user_tableInfo={}):
     """
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
     After the table has been parsed, the information is standardized into the three dictionaries 
@@ -126,7 +126,7 @@ def  mip_table_parser(exp,mip,table,type=None,user_vars={},user_axes={},user_tab
         p = ParseCmorTable()
     elif type == 'xml':
         p = ParseXML()
-    return p.parse_table(exp,mip,table,table_var_fields,table_axes_fields,table_fields,
+    return p.parse_table(exp,mip,table,variables,table_var_fields,table_axes_fields,table_fields,
                         user_vars,user_axes,user_tableInfo)
  
 #=============================================
@@ -169,7 +169,7 @@ class ParseExcel(object):
     #=============================================
     # Parse the tab deliminated table file
     #=============================================
-    def parse_table(self,exp,mip,table,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self,exp,mip,table,variables,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse a tab deliminated file and return a dictionary containing
@@ -196,51 +196,40 @@ class ParseExcel(object):
             'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
             each variable has a value of a dictionary keyed with the standard field names.           
         """
-        import csv
+        from openpyxl import load_workbook
 
 	table_dict = {}
 
-	output_var_keys = table_var_fields['id']
-	variables = {}
-	key = None
-	longest = 0
-	found = False
-	fieldnames = []
+        for t in table:
+           wb = load_workbook(t)
+           for sheet in wb.get_sheet_names():
+               if sheet != 'Notes': 
+                   s = wb.get_sheet_by_name(sheet)          
+                   variables = {}
+                   axes = {}
+                   cols = []
+                   table_info = {}
+                   for c in range(0,len(s.columns)):
+                       cols.append(s.rows[0][c].value)
+                   for r in range(1,len(s.rows)):
+                       vnc = cols.index('Variable Name')
+                       vn = s.rows[r][vnc].value
+                       variables[vn] = {}
+                       for c in range(0,len(s.columns)):
+                           variables[vn][cols[c]] = s.rows[r][c].value
+                       variables[vn]['variable_id'] = vn
+                       variables[vn]['mipTable'] = sheet
+                       variables[vn]['coordinates'] = variables[vn]['dimensions'].strip().replace(' ','|')
+                       dims = variables[vn]['dimensions'].encode("utf-8").split()
+                       for dim in dims:
+                           if dim not in axes.keys():
+                               axes[dim] = {}
+                   table_info["table_id"] = sheet
+                   table_dict[sheet] = {}
+                   table_dict[sheet]['variables'] = variables
+                   table_dict[sheet]['axes'] = axes
+                   table_dict[sheet]['table_info'] = table_info
 
-        # First time reading the file:  Read the file and determine the longest line (first is recorded).
-        # This line is assumed to contain the field names.
-	f = open(table, 'rU')
-	reader = (f.read().splitlines()) 
-	for row in reader:
-	    r = row.split('\t')
-	    i = 0 
-	    l = len(r)
-	    for g in r:
-		if g == '':
-		    l = l-1
-		i = i+1
-	    if l > longest:
-		fieldnames = list(r)   
-		longest = l 
-
-        # Second time reading the file:  Parse the file into a dictionary that uses the field
-        # names found in the first read as the keys.
-	reader = csv.DictReader(open(table, 'rU'), delimiter='\t',fieldnames=fieldnames)
-
-        # Standardize the field  names and store in a final dictionary.
-	for row in reader:
-	    fields = {}
-	    for k in row.keys():
-	       if k in output_var_keys:
-		   key = row[k]
-	    for k,v in row.iteritems():
-		if v != '':
-		    var_key = _get_key(k, table_var_fields, user_vars)
-		    fields[var_key] = v
-
-	    variables[key] = fields
-
-	table_dict['variables'] = variables
 
 	return table_dict
 
@@ -254,32 +243,9 @@ class ParseCmorTable(object):
         super(ParseCmorTable, self).__init__()
 
     #=============================================
-    #  Reset and get ready for a new variable set 
-    #=============================================  
-    def _reset(self, status, part, whole, name):
-
-        whole[name] = part
-        part = {}
-        status = False
-        return status, part, whole
-
-    #=============================================
-    #  Setup for the new entry group found
-    #=============================================
-    def _new_entry(self, status, part, whole, name, key, value):
-
-        if len(part.keys()) > 0:
-            whole[name] = part
-        part = {}
-        name = value
-        part['id'] = value
-        status = True
-        return status, part, whole, name
-
-    #=============================================
     #  Parse a CMOR text file
     #=============================================
-    def parse_table(self, exp,mip,table,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self, exp,mip,table,v_list,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse a CMOR table text file and return a dictionary containing
@@ -306,126 +272,41 @@ class ParseCmorTable(object):
             'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
             each variable has a value of a dictionary keyed with the standard field names.           
         """
+        import json
 
-        # Initialize needed dictionaries
-	table_dict = {}
-	table_info = {}
-	expt_id_ok = {}
-	axes = {}
-	variables = {}
-	subroutines = {}
-	mapping = {}
-        axis = {}
-        var = {}
-        sub = {}
-        map = {} 
+        # Open and load the CMOR/CMIP json file
+        total_request = {}
+        print table
+        for t in table:
+            table_dict = {}
+            with open(t) as f:
+                mt = json.load(f)
 
-        # Status Variables
-	current_axis = None
-	current_var = None
-	current_sub = None
-	current_mapping = None
-	in_axis = False
-	in_var = False
-	in_sub = False
-	in_mapping = False
+            if len(v_list) == 0:
+                v_list = mt["variable_entry"].keys()
 
-        # Open table file
-        mip_file = open(table)
+            variables = {}
+            axes = {}
+            for var in v_list:
+                v = mt["variable_entry"][var]
+                variables[var] = v
+                variables[var]["variable_id"] = var
+                variables[var]['realm'] = mt['Header']['realm']
+                variables[var]['mipTable'] = mt['Header']['table_id'].replace('Table ','')
+                variables[var]['frequency'] = mt['Header']['frequency']
+                variables[var]['coordinates'] = v['dimensions'].replace(' ','|')
+                dims = v['dimensions'].encode("utf-8").split()
+                for dim in dims:
+                    if dim not in axes.keys() and dim in mt['axis_entry'].keys():
+                        axes[dim] = mt['axis_entry'][dim]
 
-	for l in mip_file:
-	    # if comment - don't proceed
-	    #print l
-	    l_no_comment = l.split('!')
-	    l = l_no_comment[0].strip()
-	    if len(l) > 0 and ':' in l:
-		# remove anything after a comment character
-		# parse the key from the value
-		parts = l.split(':')
-		if len(parts) > 2:
-		    parts[1] = ''.join(parts[1:])
-		key = parts[0].strip()
-		value = parts[1].strip()
-		#print l,'->',parts
-
-		# add to table_info dictionary
-                # Start an entry for 'expt_id_ok'
-		if 'expt_id_ok' in key:
-		    equiv = value.split("\' \'")
-		    if len(equiv) == 2:
-		       expt_id_ok[equiv[0]] = equiv[1]
-		    elif len(equiv) == 1:
-		       expt_id_ok[equiv[0]] = None
-                # Start an entry for 'axis_entry'
-		elif 'axis_entry' in key:
-		    if in_var == True:
-			in_var,var,variables = self.reset(in_var,var,variables,current_var)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_axis,axis,axes,current_axis = self._new_entry(in_axis,axis,axes,current_axis,key,value)
-                # Start an entry for 'variable_entry'
-		elif 'variable_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_var,var,variables,current_var = self._new_entry(in_var,var,variables,current_var,key,value)
-                # Start an entry for 'subroutine_entry'
-		elif 'subroutine_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_var == True:
-			in_var,var,variables = self._reset(in_var,var,variables,current_var)
-		    if in_mapping == True:
-			in_mapping,map,maping = self._reset(in_mapping,map,mapping,current_mapping)
-		    in_sub,sub,subroutines,current_sub = self._new_entry(in_sub,sub,subroutines,current_sub,key,value)
-                # Start an entry for 'mapping_entry'
-		elif 'mapping_entry' in key:
-		    if in_axis == True:
-			in_axis,axis,axes = self._reset(in_axis,axis,axes,current_axis)
-		    if in_var == True:
-			in_var,var,variables = self._reset(in_var,var,variables,current_var)
-		    if in_sub == True:
-			in_sub,sub,subroutines = self._reset(in_sub,sub,subroutines,current_sub)
-		    in_mapping,map,maping,current_mapping = self._new_entry(in_mapping,map,mapping,current_mapping,key,value)
-                # The new entry has been started.  If this point has been reached, parse this line into the correct standardized
-                # field name under the current activated entry.
-		else:
-		    if (in_axis): #field added to axes variable
-			axis_key = _get_key(key, table_axes_fields, user_axes) 
-			axis[axis_key] = value
-		    elif (in_var): #field added to variable
-			var_key = _get_key(key, table_var_fields, user_vars)
-			var[var_key] = value
-		    elif (in_sub): #field added to subroutine
-			sub[key] = value
-		    elif (in_mapping): #field added to mapping
-			map[key] = value
-		    else: #field added to table information
-			mip_key = _get_key(key, table_fields, user_tableInfo)
-			table_info[mip_key] = value
-
-        # Add final entry into its group dictionary
-	if in_var == True:
-	    variables[current_var] = var
-	if in_axis == True:
-	    axes[current_axis] = axis
-	if in_sub == True:
-	    subroutines[current_sub] = sub
-	if in_mapping == True:
-	    mapping[current_mapping] = map
-
-        # Combine three separate dictionaries into the table summary dictionary
-	table_dict['variables'] = variables
-	table_dict['axes'] = axes
-	table_dict['subroutines'] = subroutines
-	table_dict['table_info'] = table_info
-
-	return table_dict 
+            # Combine three separate dictionaries into the table summary dictionary
+	    table_dict['variables'] = variables
+	    table_dict['table_info'] = mt['Header']
+            table_dict['axes'] = axes
+            table_id = mt['Header']['table_id'].replace('Table ','')
+            total_request[table_id] = table_dict
+	return total_request
 
 #=============================================
 #  Parse the XML format
@@ -438,7 +319,7 @@ class ParseXML(object):
     #=============================================
     # Parse the XML format using dreqPy
     #=============================================
-    def parse_table(self,exp,mips,tables,table_var_fields,table_axes_fields,table_fields,
+    def parse_table(self,exp,mips,tables,v_list,table_var_fields,table_axes_fields,table_fields,
                     user_vars,user_axes,user_tableInfo):
         """
         Function will parse an XML file using dreqPy and return a dictionary containing
@@ -507,8 +388,17 @@ class ParseXML(object):
                 rl = dq.inx.requestLink.uid[dr.rlid]
                 rvg = dq.inx.requestVarGroup.uid[rl.refid]
                 vars = dq.inx.iref_by_sect[rl.refid].a
-                axes_list = [] 
-                for rv in vars['requestVar']:
+                axes_list = []
+                var_list = []
+                if len(v_list) == 0:
+                    var_list = vars['requestVar'] 
+                else:
+                    for v in v_list:
+                        uids = dq.inx.requestVar.label[v]
+                        for uid in uids:
+                            if uid in vars['requestVar']:
+                                var_list.append(uid)
+                for rv in var_list:
                     var = {}
                     v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
                     c_var = dq.inx.uid[v_id]
@@ -667,7 +557,7 @@ class ParseXML(object):
                     if hasattr(v,'coords'):
                         ax['coords'] = v.coords
                     axes[a] = ax
-    
+   
                 try:
                     table_dict['variables'] = variables
                     table_dict['axes'] = axes
