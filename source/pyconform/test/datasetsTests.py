@@ -67,7 +67,7 @@ class DimensionDescTests(unittest.TestCase):
     def test_dinfo_limited_default(self):
         dinfo = datasets.DimensionDesc('x', size=1)
         actual = dinfo.unlimited
-        expected = False
+        expected = None
         print_test_message('DimensionDesc.unlimited',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
