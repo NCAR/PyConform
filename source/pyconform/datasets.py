@@ -170,14 +170,6 @@ class VariableDesc(object):
                 strvals += ['      {}: {!r}'.format(aname, avalue)]
         return linesep.join(strvals)
 
-    def standard_name(self):
-        """Retrieve the standard_name attribute, if it exists, otherwise None"""
-        return self.attributes.get('standard_name', None)
-
-    def long_name(self):
-        """Retrieve the long_name attribute, if it exists, otherwise None"""
-        return self.attributes.get('long_name', None)
-
     def units(self):
         """Retrieve the units attribute, if it exists, otherwise 1"""
         return self.attributes.get('units', 1)

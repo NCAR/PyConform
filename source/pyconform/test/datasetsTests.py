@@ -360,25 +360,6 @@ class VariableDescTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Default VariableDesc.cfunits() not {}'.format(expected))
 
-    def test_vinfo_standard_name(self):
-        indata = 'X var'
-        vinfo = datasets.VariableDesc('x', attributes={'standard_name': indata})
-        actual = vinfo.standard_name()
-        expected = indata
-        print_test_message('VariableDesc.standard_name()', indata=indata,
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected,
-                         'Default VariableDesc.standard_name() not {}'.format(indata))
-
-    def test_vinfo_standard_name_default(self):
-        vinfo = datasets.VariableDesc('x')
-        actual = vinfo.standard_name()
-        expected = None
-        print_test_message('VariableDesc.standard_name() == None',
-                           actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected,
-                            'Default VariableDesc.standard_name() not None')
-
 
 #=========================================================================
 # DatasetDescTests - Tests for the datasets module
