@@ -80,7 +80,7 @@ class DataFlowTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
 
-        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDatasetDesc('inpds', self.filenames.values())
 
         self.dsdict = OrderedDict()
         self.dsdict['attributes'] = self.fattribs
@@ -170,7 +170,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_max'] = 20.0
         vdicts['V4']['attributes'] = vattribs
 
-        self.outds = datasets.OutputDataset('outds', self.dsdict)
+        self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
 
         self.outfiles = dict((vname, vdict['filename']) for vname, vdict
                              in vdicts.iteritems() if 'filename' in vdict)

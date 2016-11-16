@@ -1,5 +1,5 @@
 """
-Dataset Interface Class
+DatasetDesc Interface Class
 
 This file contains the interface classes to the input and output multi-file
 datasets.
@@ -16,11 +16,11 @@ from cf_units import Unit
 
 
 #===================================================================================================
-# DimensionInfo
+# DimensionDesc
 #===================================================================================================
-class DimensionInfo(object):
+class DimensionDesc(object):
     """
-    Descriptor for a dimension in a Dataset
+    Descriptor for a dimension in a DatasetDesc
     
     Contains the name of the dimensions, its size, and whether the dimension is limited or
     unlimited.
@@ -71,9 +71,9 @@ class DimensionInfo(object):
 
 
 #===================================================================================================
-# VariableInfo
+# VariableDesc
 #===================================================================================================
-class VariableInfo(object):
+class VariableDesc(object):
     """
     Descriptor for a variable in a dataset
     
@@ -191,16 +191,16 @@ class VariableInfo(object):
 
 
 #===================================================================================================
-# Dataset
+# DatasetDesc
 #===================================================================================================
-class Dataset(object):
+class DatasetDesc(object):
     """
     A class describing a self-consistent set of dimensions and variables
     
-    In simplest terms, a single NetCDF file is a dataset.  Hence, the Dataset object can be
+    In simplest terms, a single NetCDF file is a dataset.  Hence, the DatasetDesc object can be
     viewed as a simple container for the header information of a NetCDF file.  However, the
-    Dataset can span multiple files, as long as dimensions and variables are consistent across
-    all of the files in the Dataset.
+    DatasetDesc can span multiple files, as long as dimensions and variables are consistent across
+    all of the files in the DatasetDesc.
     
     Self-consistency is defined as:
         1. Dimensions with names that appear in multiple files must all have the same size and
@@ -217,7 +217,7 @@ class Dataset(object):
         Parameters:
             name (str): String name to optionally give to a dataset
             dimensions (dict): Dictionary of dimension sizes
-            variables (dict): Dictionary of VariableInfo objects defining the dataset
+            variables (dict): Dictionary of VariableDesc objects defining the dataset
             gattribs (dict): Dictionary of attributes common to all files in the dataset
         """
         # Store the dataset name
@@ -225,27 +225,27 @@ class Dataset(object):
 
         # Check type of variables parameter
         if not isinstance(variables, dict):
-            err_msg = 'Dataset {!r} variables must be given in a dict'.format(self.name)
+            err_msg = 'DatasetDesc {!r} variables must be given in a dict'.format(self.name)
             raise TypeError(err_msg)
         for vinfo in variables.itervalues():
-            if not isinstance(vinfo, VariableInfo):
-                err_msg = 'Dataset {!r} variables must be of VariableInfo type'.format(self.name)
+            if not isinstance(vinfo, VariableDesc):
+                err_msg = 'DatasetDesc {!r} variables must be of VariableDesc type'.format(self.name)
                 raise TypeError(err_msg)
         self._variables = variables
 
         # Check type of dimensions parameter
         if not isinstance(dimensions, dict):
-            err_msg = 'Dataset {!r} dimensions must be given in a dict'.format(self.name)
+            err_msg = 'DatasetDesc {!r} dimensions must be given in a dict'.format(self.name)
             raise TypeError(err_msg)
         for dinfo in dimensions.itervalues():
-            if dinfo is not None and not isinstance(dinfo, DimensionInfo):
-                err_msg = 'Dataset {!r} dimensions must be DimensionInfo or None'.format(self.name)
+            if dinfo is not None and not isinstance(dinfo, DimensionDesc):
+                err_msg = 'DatasetDesc {!r} dimensions must be DimensionDesc or None'.format(self.name)
                 raise TypeError(err_msg)
         self._dimensions = dimensions
 
         # Check type of attributes parameter
         if not isinstance(gattribs, dict):
-            err_msg = 'Dataset {!r} global attributes must be given in a dict'.format(self.name)
+            err_msg = 'DatasetDesc {!r} global attributes must be given in a dict'.format(self.name)
             raise TypeError(err_msg)
         self._attributes = gattribs
 
@@ -256,12 +256,12 @@ class Dataset(object):
 
     @property
     def variables(self):
-        """OrderedDict of variable names and VariableInfo objects"""
+        """OrderedDict of variable names and VariableDesc objects"""
         return self._variables
 
     @property
     def dimensions(self):
-        """OrderedDict of dimension names and DimensionInfo objects"""
+        """OrderedDict of dimension names and DimensionDesc objects"""
         return self._dimensions
 
     @property
@@ -271,7 +271,7 @@ class Dataset(object):
 
     def get_dict(self):
         """
-        Return the dictionary form of the Dataset definition
+        Return the dictionary form of the DatasetDesc definition
         
         Returns:
             dict: The ordered dictionary describing the dataset
@@ -294,17 +294,17 @@ class Dataset(object):
 
 
 #===================================================================================================
-# InputDataset
+# InputDatasetDesc
 #===================================================================================================
-class InputDataset(Dataset):
+class InputDatasetDesc(DatasetDesc):
     """
-    Dataset that can be used as input (i.e., can be read from file)
+    DatasetDesc that can be used as input (i.e., can be read from file)
     
-    The InputDataset is a kind of Dataset where all of the Dataset information is read from 
+    The InputDatasetDesc is a kind of DatasetDesc where all of the DatasetDesc information is read from 
     the headers of existing NetCDF files.  The files must be self-consistent according to the
-    standard Dataset definition.
+    standard DatasetDesc definition.
     
-    Variables in an InputDataset must have unset "definition" parameters, and the "filenames"
+    Variables in an InputDatasetDesc must have unset "definition" parameters, and the "filenames"
     parameter will contain the names of files from which the variable data can be read.  
     """
 
@@ -332,7 +332,7 @@ class InputDataset(Dataset):
 
                 # Parse dimensions
                 for dname, dobj in ncfile.dimensions.iteritems():
-                    dinfo = DimensionInfo(dobj.name, dobj.size, dobj.isunlimited())
+                    dinfo = DimensionDesc(dobj.name, dobj.size, dobj.isunlimited())
                     if dname in dimensions:
                         if dinfo != dimensions[dname]:
                             err_msg = ('Dimension {} in input file {!r} is different from '
@@ -346,7 +346,7 @@ class InputDataset(Dataset):
                     vattrs = OrderedDict()
                     for vattr in vobj.ncattrs():
                         vattrs[vattr] = vobj.getncattr(vattr)
-                    vinfo = VariableInfo(name=vname, datatype='{!s}'.format(vobj.dtype),
+                    vinfo = VariableDesc(name=vname, datatype='{!s}'.format(vobj.dtype),
                                          dimensions=vobj.dimensions, attributes=vattrs)
 
                     if vname in variables:
@@ -373,23 +373,23 @@ class InputDataset(Dataset):
             variables[vname]._filenames = tuple(vfiles)
 
         # Call the base class initializer to check self-consistency
-        super(InputDataset, self).__init__(name, dimensions, variables, attributes)
+        super(InputDatasetDesc, self).__init__(name, dimensions, variables, attributes)
 
 
 #===================================================================================================
-# OutputDataset
+# OutputDatasetDesc
 #===================================================================================================
-class OutputDataset(Dataset):
+class OutputDatasetDesc(DatasetDesc):
     """
-    Dataset that can be used for output (i.e., to be written to files)
+    DatasetDesc that can be used for output (i.e., to be written to files)
     
-    The OutputDataset contains all of the header information needed to write a Dataset to
-    files.  Unlike the InputDataset, it is not assumed that all of the variable and dimension
-    information can be found in existing files.  Instead, the OutputDataset contains a minimal
+    The OutputDatasetDesc contains all of the header information needed to write a DatasetDesc to
+    files.  Unlike the InputDatasetDesc, it is not assumed that all of the variable and dimension
+    information can be found in existing files.  Instead, the OutputDatasetDesc contains a minimal
     subset of the output file headers, and information about how to construct the variable data
     and dimensions by using the 'definition' parameter of the variables.
 
-    The information to define an OutputDataset must be specified as a two-level nested dictionary,
+    The information to define an OutputDatasetDesc must be specified as a two-level nested dictionary,
     where the first level of dictionaries contains:
         1. an 'attributes' dictionary declaring the global attributes of the dataset (which
            will be written to every file), and
@@ -433,7 +433,7 @@ class OutputDataset(Dataset):
                 err_msg = 'Dimensions are required for variable {!r}'.format(vname)
                 raise ValueError(err_msg)
 
-            # Get the datatype of the variable, otherwise defaults to VariableInfo default
+            # Get the datatype of the variable, otherwise defaults to VariableDesc default
             if 'datatype' in vdict:
                 kwargs['datatype'] = vdict['datatype']
 
@@ -452,8 +452,8 @@ class OutputDataset(Dataset):
             if 'filenames' in vdict:
                 kwargs['filenames'] = tuple(vdict['filenames'])
 
-            # Construct and store the VariableInfo object for this variable
-            variables[vname] = VariableInfo(vname, **kwargs)
+            # Construct and store the VariableDesc object for this variable
+            variables[vname] = VariableDesc(vname, **kwargs)
 
         # Loop through all of the newly constructed output variables and
         # gather information about their dimensions
@@ -467,7 +467,7 @@ class OutputDataset(Dataset):
                     if dname not in dimensions:
                         dimensions[dname] = None
 
-            # Else, if it has an array 'definition', then construct the full DimensionInfo
+            # Else, if it has an array 'definition', then construct the full DimensionDesc
             else:
                 dshape = vinfo.definition.shape
                 if len(dshape) == 0:
@@ -479,13 +479,13 @@ class OutputDataset(Dataset):
                     if dname in dimensions and dimensions[dname] is not None:
                         if dsize != dimensions[dname].size:
                             err_msg = ('Dimension {!r} is inconsistently defined in '
-                                       'OutputDataset {!r}').format(dname, name)
+                                       'OutputDatasetDesc {!r}').format(dname, name)
                             raise ValueError(err_msg)
 
-                    # Else, set/store the DimensionInfo object
+                    # Else, set/store the DimensionDesc object
                     else:
-                        dimensions[dname] = DimensionInfo(dname, dsize)
+                        dimensions[dname] = DimensionDesc(dname, dsize)
 
         # Call the base class to run self-consistency checks
-        super(OutputDataset, self).__init__(name, variables=variables, dimensions=dimensions,
-                                            gattribs=attributes)
+        super(OutputDatasetDesc, self).__init__(name, variables=variables, dimensions=dimensions,
+                                                gattribs=attributes)

@@ -16,7 +16,7 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
@@ -40,19 +40,19 @@ class DataFlow(object):
         Initializer
         
         Parameters:
-            inpds (InputDataset): The input dataset to use as reference when
+            inpds (InputDatasetDesc): The input dataset to use as reference when
                 parsing variable definitions
-            outds (OutputDataset): The output dataset defining the output variables and
+            outds (OutputDatasetDesc): The output dataset defining the output variables and
                 their definitions or data
         """
         # Input dataset
-        if not isinstance(inpds, InputDataset):
-            raise TypeError('Input dataset must be of InputDataset type')
+        if not isinstance(inpds, InputDatasetDesc):
+            raise TypeError('Input dataset must be of InputDatasetDesc type')
         self._ids = inpds
 
         # Output dataset
-        if not isinstance(outds, OutputDataset):
-            raise TypeError('Output dataset must be of OutputDataset type')
+        if not isinstance(outds, OutputDatasetDesc):
+            raise TypeError('Output dataset must be of OutputDatasetDesc type')
         self._ods = outds
 
         # Initialize the dimension map and the inverse dimension map

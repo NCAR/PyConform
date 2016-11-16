@@ -1,5 +1,5 @@
 """
-Dataset Unit Tests
+DatasetDesc Unit Tests
 
 COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -19,371 +19,371 @@ import unittest
 
 
 #===============================================================================
-# DimensionInfoTests
+# DimensionDescTests
 #===============================================================================
-class DimensionInfoTests(unittest.TestCase):
+class DimensionDescTests(unittest.TestCase):
     """
-    Unit tests for DimensionInfo objects
+    Unit tests for DimensionDesc objects
     """
 
     def test_dinfo_type(self):
-        dinfo = datasets.DimensionInfo('x')
+        dinfo = datasets.DimensionDesc('x')
         actual = type(dinfo)
-        expected = datasets.DimensionInfo
-        print_test_message('type(DimensionInfo)',
+        expected = datasets.DimensionDesc
+        print_test_message('type(DimensionDesc)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'DimensionInfo has wrong type')
+                         'DimensionDesc has wrong type')
 
     def test_dinfo_name(self):
         indata = 'x'
-        dinfo = datasets.DimensionInfo(indata)
+        dinfo = datasets.DimensionDesc(indata)
         actual = dinfo.name
         expected = indata
-        print_test_message('DimensionInfo.name', indata=indata,
+        print_test_message('DimensionDesc.name', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'DimensionInfo.name does not match')
+                         'DimensionDesc.name does not match')
 
     def test_dinfo_size_default(self):
-        dinfo = datasets.DimensionInfo('x')
+        dinfo = datasets.DimensionDesc('x')
         actual = dinfo.size
         expected = None
-        print_test_message('DimensionInfo.size == None',
+        print_test_message('DimensionDesc.size == None',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default DimensionInfo.size is not None')
+                         'Default DimensionDesc.size is not None')
 
     def test_dinfo_size(self):
         indata = 1
-        dinfo = datasets.DimensionInfo('x', size=indata)
+        dinfo = datasets.DimensionDesc('x', size=indata)
         actual = dinfo.size
         expected = indata
-        print_test_message('DimensionInfo.size', indata=indata,
+        print_test_message('DimensionDesc.size', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'DimensionInfo.size is not set properly')
+                         'DimensionDesc.size is not set properly')
 
     def test_dinfo_limited_default(self):
-        dinfo = datasets.DimensionInfo('x', size=1)
+        dinfo = datasets.DimensionDesc('x', size=1)
         actual = dinfo.unlimited
         expected = False
-        print_test_message('DimensionInfo.unlimited',
+        print_test_message('DimensionDesc.unlimited',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default DimensionInfo.unlimited is False')
+                         'Default DimensionDesc.unlimited is False')
 
     def test_dinfo_limited(self):
-        dinfo = datasets.DimensionInfo('x', size=1, unlimited=True)
+        dinfo = datasets.DimensionDesc('x', size=1, unlimited=True)
         actual = dinfo.unlimited
         expected = True
-        print_test_message('DimensionInfo.unlimited == True',
+        print_test_message('DimensionDesc.unlimited == True',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'DimensionInfo.unlimited is not True')
+                         'DimensionDesc.unlimited is not True')
 
     def test_dinfo_equals_same(self):
-        dinfo1 = datasets.DimensionInfo('x', size=1, unlimited=True)
-        dinfo2 = datasets.DimensionInfo('x', size=1, unlimited=True)
+        dinfo1 = datasets.DimensionDesc('x', size=1, unlimited=True)
+        dinfo2 = datasets.DimensionDesc('x', size=1, unlimited=True)
         actual = dinfo1
         expected = dinfo2
-        print_test_message('DimensionInfo == DimensionInfo',
+        print_test_message('DimensionDesc == DimensionDesc',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Identical DimensionInfo objects not equal')
+                         'Identical DimensionDesc objects not equal')
 
     def test_dinfo_equals_diff_name(self):
-        dinfo1 = datasets.DimensionInfo('a', size=1, unlimited=True)
-        dinfo2 = datasets.DimensionInfo('b', size=1, unlimited=True)
+        dinfo1 = datasets.DimensionDesc('a', size=1, unlimited=True)
+        dinfo2 = datasets.DimensionDesc('b', size=1, unlimited=True)
         actual = dinfo1
         expected = dinfo2
-        print_test_message('DimensionInfo(a) != DimensionInfo(b)',
+        print_test_message('DimensionDesc(a) != DimensionDesc(b)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently named DimensionInfo objects equal')
+                            'Differently named DimensionDesc objects equal')
 
     def test_dinfo_equals_diff_size(self):
-        dinfo1 = datasets.DimensionInfo('x', size=1, unlimited=True)
-        dinfo2 = datasets.DimensionInfo('x', size=2, unlimited=True)
+        dinfo1 = datasets.DimensionDesc('x', size=1, unlimited=True)
+        dinfo2 = datasets.DimensionDesc('x', size=2, unlimited=True)
         actual = dinfo1
         expected = dinfo2
-        print_test_message('DimensionInfo(1) != DimensionInfo(2)',
+        print_test_message('DimensionDesc(1) != DimensionDesc(2)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently sized DimensionInfo objects equal')
+                            'Differently sized DimensionDesc objects equal')
 
     def test_dinfo_equals_diff_ulim(self):
-        dinfo1 = datasets.DimensionInfo('x', size=1, unlimited=False)
-        dinfo2 = datasets.DimensionInfo('x', size=1, unlimited=True)
+        dinfo1 = datasets.DimensionDesc('x', size=1, unlimited=False)
+        dinfo2 = datasets.DimensionDesc('x', size=1, unlimited=True)
         actual = dinfo1
         expected = dinfo2
-        print_test_message('DimensionInfo(1) != DimensionInfo(2)',
+        print_test_message('DimensionDesc(1) != DimensionDesc(2)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently limited DimensionInfo objects equal')
+                            'Differently limited DimensionDesc objects equal')
 
 
 #===============================================================================
-# VariableInfoTests
+# VariableDescTests
 #===============================================================================
-class VariableInfoTests(unittest.TestCase):
+class VariableDescTests(unittest.TestCase):
     """
-    Unit tests for VariableInfo objects
+    Unit tests for VariableDesc objects
     """
 
     def test_vinfo_type(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = type(vinfo)
-        expected = datasets.VariableInfo
-        print_test_message('type(VariableInfo)',
+        expected = datasets.VariableDesc
+        print_test_message('type(VariableDesc)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'VariableInfo has wrong type')
+                         'VariableDesc has wrong type')
 
     def test_vinfo_name(self):
         indata = 'x'
-        vinfo = datasets.VariableInfo(indata)
+        vinfo = datasets.VariableDesc(indata)
         actual = vinfo.name
         expected = indata
-        print_test_message('VariableInfo.name', indata=indata,
+        print_test_message('VariableDesc.name', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'VariableInfo.name does not match')
+                         'VariableDesc.name does not match')
 
     def test_vinfo_dtype_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.datatype
         expected = 'float32'
-        print_test_message('VariableInfo.datatype == float32',
+        print_test_message('VariableDesc.datatype == float32',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.datatype is not float32')
+                         'Default VariableDesc.datatype is not float32')
 
     def test_vinfo_dimensions_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.dimensions
         expected = tuple()
-        print_test_message('VariableInfo.dimensions == ()',
+        print_test_message('VariableDesc.dimensions == ()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.dimensions is not ()')
+                         'Default VariableDesc.dimensions is not ()')
 
     def test_vinfo_attributes_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.attributes
         expected = OrderedDict()
-        print_test_message('VariableInfo.attributes == ()',
+        print_test_message('VariableDesc.attributes == ()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.attributes is not OrderedDict()')
+                         'Default VariableDesc.attributes is not OrderedDict()')
 
     def test_vinfo_definition_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.definition
         expected = None
-        print_test_message('VariableInfo.definition == ()',
+        print_test_message('VariableDesc.definition == ()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.definition is not None')
+                         'Default VariableDesc.definition is not None')
 
     def test_vinfo_filename_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.filenames
         expected = None
-        print_test_message('VariableInfo.filename == ()',
+        print_test_message('VariableDesc.filename == ()',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.filename is not None')
+                         'Default VariableDesc.filename is not None')
 
     def test_vinfo_dtype(self):
-        vinfo = datasets.VariableInfo('x', datatype='float64')
+        vinfo = datasets.VariableDesc('x', datatype='float64')
         actual = vinfo.datatype
         expected = 'float64'
-        print_test_message('VariableInfo.datatype == float64',
+        print_test_message('VariableDesc.datatype == float64',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.datatype is not float64')
+                         'Default VariableDesc.datatype is not float64')
 
     def test_vinfo_dimensions(self):
         indata = ('y', 'z')
-        vinfo = datasets.VariableInfo('x', dimensions=indata)
+        vinfo = datasets.VariableDesc('x', dimensions=indata)
         actual = vinfo.dimensions
         expected = indata
-        print_test_message('VariableInfo.dimensions == ()', indata=indata,
+        print_test_message('VariableDesc.dimensions == ()', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.dimensions is not {}'.format(indata))
+                         'Default VariableDesc.dimensions is not {}'.format(indata))
 
     def test_vinfo_attributes(self):
         indata = OrderedDict([('a1', 'attrib1'), ('a2', 'attrib2')])
-        vinfo = datasets.VariableInfo('x', attributes=indata)
+        vinfo = datasets.VariableDesc('x', attributes=indata)
         actual = vinfo.attributes
         expected = indata
-        print_test_message('VariableInfo.attributes', indata=indata,
+        print_test_message('VariableDesc.attributes', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.attributes is not {}'.format(indata))
+                         'Default VariableDesc.attributes is not {}'.format(indata))
 
     def test_vinfo_definition(self):
         indata = 'y + z'
-        vinfo = datasets.VariableInfo('x', definition=indata)
+        vinfo = datasets.VariableDesc('x', definition=indata)
         actual = vinfo.definition
         expected = indata
-        print_test_message('VariableInfo.definition', indata=indata,
+        print_test_message('VariableDesc.definition', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.definition is not {!r}'.format(indata))
+                         'Default VariableDesc.definition is not {!r}'.format(indata))
 
     def test_vinfo_data(self):
         indata = (1, 2, 3, 4, 5, 6)
-        vinfo = datasets.VariableInfo('x', definition=indata)
+        vinfo = datasets.VariableDesc('x', definition=indata)
         actual = vinfo.definition
         expected = indata
-        print_test_message('VariableInfo.definition', indata=indata,
+        print_test_message('VariableDesc.definition', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.definition is not {!r}'.format(indata))
+                         'Default VariableDesc.definition is not {!r}'.format(indata))
 
     def test_vinfo_filename(self):
         indata = ('nc1.nc',)
-        vinfo = datasets.VariableInfo('x', filenames=indata)
+        vinfo = datasets.VariableDesc('x', filenames=indata)
         actual = vinfo.filenames
         expected = indata
-        print_test_message('VariableInfo.filename', indata=indata,
+        print_test_message('VariableDesc.filename', indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.filename is not {!r}'.format(indata))
+                         'Default VariableDesc.filename is not {!r}'.format(indata))
 
     def test_vinfo_equals_same(self):
         kwargs = {'datatype': 'd', 'dimensions': ('a', 'b'),
                   'attributes': {'a1': 'at1', 'a2': 'at2'},
                   'definition': 'y + z', 'filenames': ('out.nc',)}
-        vinfo1 = datasets.VariableInfo('x', **kwargs)
-        vinfo2 = datasets.VariableInfo('x', **kwargs)
+        vinfo1 = datasets.VariableDesc('x', **kwargs)
+        vinfo2 = datasets.VariableDesc('x', **kwargs)
         actual = vinfo1
         expected = vinfo2
-        print_test_message('VariableInfo == VariableInfo',
+        print_test_message('VariableDesc == VariableDesc',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Identical VariableInfo objects not equal')
+                         'Identical VariableDesc objects not equal')
 
     def test_vinfo_equals_diff_name(self):
         kwargs = {'datatype': 'd', 'dimensions': ('a', 'b'),
                   'attributes': {'a1': 'at1', 'a2': 'at2'},
                   'definition': 'y + z', 'filenames': ('out.nc',)}
-        vinfo1 = datasets.VariableInfo('a', **kwargs)
-        vinfo2 = datasets.VariableInfo('b', **kwargs)
+        vinfo1 = datasets.VariableDesc('a', **kwargs)
+        vinfo2 = datasets.VariableDesc('b', **kwargs)
         actual = vinfo1
         expected = vinfo2
-        print_test_message('VariableInfo(a) != VariableInfo(b)',
+        print_test_message('VariableDesc(a) != VariableDesc(b)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently named VariableInfo objects equal')
+                            'Differently named VariableDesc objects equal')
 
     def test_vinfo_equals_diff_dtype(self):
-        vinfo1 = datasets.VariableInfo('x', datatype='d')
-        vinfo2 = datasets.VariableInfo('x', datatype='f')
+        vinfo1 = datasets.VariableDesc('x', datatype='d')
+        vinfo2 = datasets.VariableDesc('x', datatype='f')
         actual = vinfo1
         expected = vinfo2
-        print_test_message('VariableInfo(d) != VariableInfo(f)',
+        print_test_message('VariableDesc(d) != VariableDesc(f)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently typed VariableInfo objects equal')
+                            'Differently typed VariableDesc objects equal')
 
     def test_vinfo_equals_diff_dims(self):
-        vinfo1 = datasets.VariableInfo('x', dimensions=('a', 'b'))
-        vinfo2 = datasets.VariableInfo('x', dimensions=('a', 'b', 'c'))
+        vinfo1 = datasets.VariableDesc('x', dimensions=('a', 'b'))
+        vinfo2 = datasets.VariableDesc('x', dimensions=('a', 'b', 'c'))
         actual = vinfo1
         expected = vinfo2
-        print_test_message('VariableInfo(dims1) != VariableInfo(dims2)',
+        print_test_message('VariableDesc(dims1) != VariableDesc(dims2)',
                            actual=str(actual), expected=str(expected))
         self.assertNotEqual(actual, expected,
-                            'Differently dimensioned VariableInfo objects equal')
+                            'Differently dimensioned VariableDesc objects equal')
 
     def test_vinfo_units_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.units()
         expected = Unit('1')
-        print_test_message('VariableInfo.units() == 1',
+        print_test_message('VariableDesc.units() == 1',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.units() not None')
+                         'Default VariableDesc.units() not None')
 
     def test_vinfo_units(self):
         indata = 'm'
-        vinfo = datasets.VariableInfo('x', attributes={'units': indata})
+        vinfo = datasets.VariableDesc('x', attributes={'units': indata})
         actual = vinfo.units()
         expected = indata
-        print_test_message('VariableInfo.units()', indata=indata,
+        print_test_message('VariableDesc.units()', indata=indata,
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.units() not {}'.format(indata))
+                         'Default VariableDesc.units() not {}'.format(indata))
 
     def test_vinfo_calendar_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.calendar()
         expected = None
-        print_test_message('VariableInfo.calendar()',
+        print_test_message('VariableDesc.calendar()',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.calendar() not None')
+                         'Default VariableDesc.calendar() not None')
 
     def test_vinfo_calendar(self):
         indata = 'noleap'
-        vinfo = datasets.VariableInfo('x', attributes={'units': 'days',
+        vinfo = datasets.VariableDesc('x', attributes={'units': 'days',
                                                       'calendar': indata})
         actual = vinfo.calendar()
         expected = indata
-        print_test_message('VariableInfo.calendar()', indata=indata,
+        print_test_message('VariableDesc.calendar()', indata=indata,
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'VariableInfo.calendar() not {}'.format(indata))
+                         'VariableDesc.calendar() not {}'.format(indata))
 
     def test_vinfo_cfunits_default(self):
-        vinfo = datasets.VariableInfo('time')
+        vinfo = datasets.VariableDesc('time')
         actual = vinfo.cfunits()
         expected = Unit(1)
-        print_test_message('VariableInfo.cfunits() == None',
+        print_test_message('VariableDesc.cfunits() == None',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.cfunits() not None')
+                         'Default VariableDesc.cfunits() not None')
 
     def test_vinfo_cfunits(self):
         units = 'days'
         calendar = 'noleap'
-        vinfo = datasets.VariableInfo('x', attributes={'units': units,
+        vinfo = datasets.VariableDesc('x', attributes={'units': units,
                                                       'calendar': calendar})
         actual = vinfo.cfunits()
         expected = Unit(units, calendar=calendar)
-        print_test_message('VariableInfo.cfunits()',
+        print_test_message('VariableDesc.cfunits()',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.cfunits() not {}'.format(expected))
+                         'Default VariableDesc.cfunits() not {}'.format(expected))
 
     def test_vinfo_standard_name(self):
         indata = 'X var'
-        vinfo = datasets.VariableInfo('x', attributes={'standard_name': indata})
+        vinfo = datasets.VariableDesc('x', attributes={'standard_name': indata})
         actual = vinfo.standard_name()
         expected = indata
-        print_test_message('VariableInfo.standard_name()', indata=indata,
+        print_test_message('VariableDesc.standard_name()', indata=indata,
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                         'Default VariableInfo.standard_name() not {}'.format(indata))
+                         'Default VariableDesc.standard_name() not {}'.format(indata))
 
     def test_vinfo_standard_name_default(self):
-        vinfo = datasets.VariableInfo('x')
+        vinfo = datasets.VariableDesc('x')
         actual = vinfo.standard_name()
         expected = None
-        print_test_message('VariableInfo.standard_name() == None',
+        print_test_message('VariableDesc.standard_name() == None',
                            actual=str(actual), expected=str(expected))
         self.assertEqual(actual, expected,
-                            'Default VariableInfo.standard_name() not None')
+                            'Default VariableDesc.standard_name() not None')
 
 
 #=========================================================================
-# DatasetTests - Tests for the datasets module
+# DatasetDescTests - Tests for the datasets module
 #=========================================================================
-class DatasetTests(unittest.TestCase):
+class DatasetDescTests(unittest.TestCase):
     """
     Unit Tests for the pyconform.datasets module
     """
@@ -510,45 +510,45 @@ class DatasetTests(unittest.TestCase):
                 remove(fname)
 
     def test_dataset_type(self):
-        ds = datasets.Dataset()
+        ds = datasets.DatasetDesc()
         actual = type(ds)
-        expected = datasets.Dataset
-        print_test_message('type(Dataset)',
+        expected = datasets.DatasetDesc
+        print_test_message('type(DatasetDesc)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'Dataset has wrong type')
+                         'DatasetDesc has wrong type')
 
     def test_input_dataset_type(self):
-        inds = datasets.InputDataset('myinds', self.filenames.values())
+        inds = datasets.InputDatasetDesc('myinds', self.filenames.values())
         actual = type(inds)
-        expected = datasets.InputDataset
-        print_test_message('type(InputDataset)',
+        expected = datasets.InputDatasetDesc
+        print_test_message('type(InputDatasetDesc)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'InputDataset has wrong type')
+                         'InputDatasetDesc has wrong type')
 
     def test_output_dataset_type(self):
-        outds = datasets.OutputDataset('myoutds', self.dsdict)
+        outds = datasets.OutputDatasetDesc('myoutds', self.dsdict)
         actual = type(outds)
-        expected = datasets.OutputDataset
-        print_test_message('type(OutputDataset)',
+        expected = datasets.OutputDatasetDesc
+        print_test_message('type(OutputDatasetDesc)',
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
-                         'OutputDataset has wrong type')
+                         'OutputDatasetDesc has wrong type')
 
     def test_dataset_get_dict_from_output(self):
-        outds = datasets.OutputDataset('myoutds', self.dsdict)
+        outds = datasets.OutputDatasetDesc('myoutds', self.dsdict)
         actual = outds.get_dict()
         expected = self.dsdict
-        print_test_message('OutputDataset.get_dict()',
+        print_test_message('OutputDatasetDesc.get_dict()',
                            actual=actual, expected=expected)
         npt.assert_equal(actual, expected,
-                         'OutputDataset.get_dict() returns wrong data')
+                         'OutputDatasetDesc.get_dict() returns wrong data')
 
     def test_dataset_get_dict_from_input(self):
-        inds = datasets.InputDataset('myinds', self.filenames.values())
+        inds = datasets.InputDatasetDesc('myinds', self.filenames.values())
         actual = inds.get_dict()
-        print_test_message('InputDataset.get_dict()', actual=actual)
+        print_test_message('InputDatasetDesc.get_dict()', actual=actual)
 
 
 #===============================================================================
