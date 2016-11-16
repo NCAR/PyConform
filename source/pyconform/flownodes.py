@@ -697,23 +697,6 @@ class WriteNode(FlowNode):
         # Open the file and write the header information (fills the _vinfos)
         self.open(provenance=provenance)
 
-        # Loop over vinfos and convert lower/upper bounds from coordinates to indices
-#         cbounds = {}
-#         for vname, vinfo in self._vinfos.iteritems():
-#             if vname in bounds:
-#                 if len(vinfo.dimensions) != 1:
-#                     raise ValueError(('Cannot set bounds on {}-dimensional variable '
-#                                       '{!r}').format(len(vinfo.dimensions), vname))
-#                 vdim = vinfo.dimensions[0]
-#                 if vinfo.units.is_time():
-#                     tfmt = '%Y-%m-%dT%H:%M:%S'
-#                     dtbounds = map(lambda s: datetime.strptime(s, tfmt), bounds[vname])
-#                     vbounds = map(vinfo.units.date2num, dtbounds)
-#                 else:
-#                     vbounds = bounds[vname]
-#                 vlower, vupper = map(vinfo.dtype, vbounds)
-# TO BE FINISHED
-
         # Loop over all variable nodes
         for vnode in self.inputs:
 
