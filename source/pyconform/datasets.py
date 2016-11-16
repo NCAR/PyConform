@@ -9,6 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from os import linesep
+from os.path import exists
 from collections import OrderedDict
 from numpy import dtype, array, array_equal
 from netCDF4 import Dataset as NC4Dataset
@@ -26,7 +27,7 @@ class DimensionDesc(object):
     unlimited.
     """
 
-    def __init__(self, name, size=None, unlimited=False):
+    def __init__(self, name, size=None, unlimited=None):
         """
         Initializer
         
@@ -35,9 +36,9 @@ class DimensionDesc(object):
             size (int): Dimension size
             unlimited (bool): Whether the dimension is unlimited or not
         """
-        self._name = str(name)
+        self._name = name
         self._size = int(size) if size else None
-        self._unlimited = bool(unlimited)
+        self._unlimited = bool(unlimited) if unlimited else None
 
     @property
     def name(self):
@@ -191,11 +192,110 @@ class VariableDesc(object):
 
 
 #===================================================================================================
+# FileDesc
+#===================================================================================================
+class FileDesc(object):
+    """
+    A class describing the contents of a single dataset file
+    
+    In simplest terms, the FileDesc contains the header information for a single NetCDF file.  It
+    contains the name of the file, the type of the file, a dictionary of global attributes in the
+    file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
+    """
+
+    def __init__(self, name, fmt='NETCDF4_CLASSIC', attributes=OrderedDict(),
+                 dimensions=(), variables=()):
+        """
+        Initializer
+        
+        Parameters:
+            name (str): String name of the file (i.e., a path name or file name)
+            fmt (str):  String defining the NetCDF file format (one of 'NETCDF4',
+                'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or 
+                'NETCDF3_64BIT_DATA')
+            attributes (dict):  Dict of global attributes in the file
+            dimensions (tuple):  Tuple of DimensionDesc objects describing the file dimensions
+            variables (tuple):  Tuple of VariableDesc objects describing the file variables            
+        """
+        self._name = name
+
+        if fmt not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
+                          'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA'):
+            raise TypeError(('Unrecognized NetCDF file format {!r} for '
+                             'file {!r}').format(fmt, name))
+        self._format = fmt
+
+        if not isinstance(attributes, dict):
+            raise TypeError(('Global file attributes must be given as a '
+                             'dict for file {!r}').format(name))
+        self._attributes = attributes
+
+        if not isinstance(dimensions, (list, tuple)):
+            raise TypeError(('File dimensions must be given as a '
+                             'list or tuple for file {!r}').format(name))
+        for obj in dimensions:
+            if not isinstance(obj, DimensionDesc):
+                raise TypeError(('Dimension {!r} in file {!r} must be given as a '
+                                 'DimensionDesc').format(obj, name))
+        self._dimensions = OrderedDict((obj.name, obj) for obj in dimensions)
+
+        if not isinstance(variables, (list, tuple)):
+            raise TypeError(('File variables must be given as a '
+                             'list or tuple for file {!r}').format(name))
+        for obj in variables:
+            if not isinstance(obj, VariableDesc):
+                raise TypeError(('Dimension {!r} in file {!r} must be given as a '
+                                 'VariableDesc').format(obj, name))
+        self._variables = OrderedDict((obj.name, obj) for obj in variables)
+
+    @property
+    def name(self):
+        """
+        Name of the file
+        """
+        return self._name
+
+    def exists(self):
+        """
+        Whether the file exists or not
+        """
+        return exists(self.name)
+
+    @property
+    def format(self):
+        """
+        Format of the file
+        """
+        return self._format
+
+    @property
+    def attributes(self):
+        """
+        Dictionary of global attributes of the file
+        """
+        return self._attributes
+
+    @property
+    def dimensions(self):
+        """
+        Dictionary of dimensions in the file
+        """
+        return self._dimensions
+
+    @property
+    def variables(self):
+        """
+        Dictionary of variables in the file
+        """
+        return self._variables
+
+
+#===================================================================================================
 # DatasetDesc
 #===================================================================================================
 class DatasetDesc(object):
     """
-    A class describing a self-consistent set of dimensions and variables
+    A class describing a self-consistent set of dimensions and variables in one or more files
     
     In simplest terms, a single NetCDF file is a dataset.  Hence, the DatasetDesc object can be
     viewed as a simple container for the header information of a NetCDF file.  However, the
@@ -209,19 +309,19 @@ class DatasetDesc(object):
            dimensions, and they must refer to the same data.
     """
 
-    def __init__(self, name='', dimensions=OrderedDict(),
-                 variables=OrderedDict(), gattribs=OrderedDict()):
+    def __init__(self, name='', attributes=OrderedDict(), dimensions=OrderedDict(),
+                 variables=OrderedDict()):
         """
         Initializer
 
         Parameters:
             name (str): String name to optionally give to a dataset
+            attributes (dict): Dictionary of attributes common to all files in the dataset
             dimensions (dict): Dictionary of dimension sizes
             variables (dict): Dictionary of VariableDesc objects defining the dataset
-            gattribs (dict): Dictionary of attributes common to all files in the dataset
         """
         # Store the dataset name
-        self._name = str(name)
+        self._name = name
 
         # Check type of variables parameter
         if not isinstance(variables, dict):
@@ -244,10 +344,10 @@ class DatasetDesc(object):
         self._dimensions = dimensions
 
         # Check type of attributes parameter
-        if not isinstance(gattribs, dict):
+        if not isinstance(attributes, dict):
             err_msg = 'DatasetDesc {!r} global attributes must be given in a dict'.format(self.name)
             raise TypeError(err_msg)
-        self._attributes = gattribs
+        self._attributes = attributes
 
     @property
     def name(self):
