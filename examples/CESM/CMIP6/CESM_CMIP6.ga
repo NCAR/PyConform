@@ -8,6 +8,7 @@ grid = native 1x1 degree grid
 grid_label = gn
 grid_resolution = 1x1 degree # or 100km?
 version = v20170101
+netcdf_type = NETCDF4 
 
 #variant_label = 
 #
