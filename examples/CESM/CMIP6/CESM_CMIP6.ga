@@ -9,6 +9,8 @@ grid_label = gn
 grid_resolution = 1x1 degree # or 100km?
 version = v20170101
 netcdf_type = NETCDF4 
+compression = 2
+shuffle = on
 
 #variant_label = 
 #
