@@ -106,12 +106,29 @@ def defineVar(v, varName, attributes, definition, experiment):
         attributes2["realm"] = v["realm"]
     attributes2["creation_date"]=""
     attributes2.pop('version',None)
+
     f_format = attributes2["netcdf_type"]
     valid_formats = ['NETCDF4','NETCDF4_CLASSIC','NETCDF3_CLASSIC','NETCDF3_64BIT_OFFSET','NETCDF3_64BIT_DATA']
     if f_format not in valid_formats:
        print 'ERROR: ', f_format, ' is not a valid format.  Please choose from ',valid_formats
        sys.exit(-9) 
     attributes2.pop('netcdf_type',None)
+   
+    if 'NETCDF4' in f_format: 
+        if 'compression' in attributes2.keys():
+            compression = attributes2['compression'] 
+            attributes2.pop('compression',None)
+        else:
+            compression = None
+
+        if 'shuffle' in attributes2.keys():
+            shuffle = attributes2['shuffle']
+            attributes2.pop('shuffle',None)
+        else:
+            shuffle = None 
+    else:
+        compression = None   
+        shuffle = None
 
     # Put together the filename
     mipTable = v['mipTable']
@@ -142,6 +159,10 @@ def defineVar(v, varName, attributes, definition, experiment):
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
     var["file"]["metavars"] = []
+    if compression is not None:
+        var["file"]["compression"] = compression
+    if shuffle is not None:
+        var["file"]["shuffle"] = shuffle
 
     if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] != None:
         var["datatype"]  = data_types[v['type']]
