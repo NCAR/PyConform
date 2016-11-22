@@ -412,7 +412,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['W'] = OrderedDict()
         vdicts['W']['datatype'] = 'float64'
-        vdicts['W']['dimensions'] = (datasets.DimensionDesc('w'),)
+        vdicts['W']['dimensions'] = ('w',)
         vdicts['W']['definition'] = np.array([1., 2., 3., 4., 5., 6., 7., 8.], dtype='float64')
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'something'
@@ -421,7 +421,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'float64'
-        vdicts['X']['dimensions'] = (datasets.DimensionDesc('x'),)
+        vdicts['X']['dimensions'] = ('x',)
         vdicts['X']['definition'] = 'lon'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'longitude'
@@ -430,7 +430,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['Y'] = OrderedDict()
         vdicts['Y']['datatype'] = 'float64'
-        vdicts['Y']['dimensions'] = (datasets.DimensionDesc('y'),)
+        vdicts['Y']['dimensions'] = ('y',)
         vdicts['Y']['definition'] = 'lat'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'latitude'
@@ -439,7 +439,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['T'] = OrderedDict()
         vdicts['T']['datatype'] = 'float64'
-        vdicts['T']['dimensions'] = (datasets.DimensionDesc('t'),)
+        vdicts['T']['dimensions'] = ('t',)
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
@@ -449,7 +449,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'float64'
-        vdicts['V1']['dimensions'] = tuple(datasets.DimensionDesc(d) for d in ('t', 'y', 'x'))
+        vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = 'u1 + u2'
         fdict = OrderedDict()
         fdict['filename'] = 'var1.nc'
@@ -463,7 +463,7 @@ class DatasetDescTests(unittest.TestCase):
 
         vdicts['V2'] = OrderedDict()
         vdicts['V2']['datatype'] = 'float64'
-        vdicts['V2']['dimensions'] = tuple(datasets.DimensionDesc(d) for d in ('t', 'y', 'x'))
+        vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
         fdict = OrderedDict()
         fdict['filename'] = 'var2.nc'

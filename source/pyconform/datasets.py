@@ -321,6 +321,8 @@ class DatasetDesc(object):
             files (tuple): Tuple of FileDesc objects contained in the dataset
         """
         self._name = name
+        self._dimensions = OrderedDict()
+        self._variables = OrderedDict()
 
         if not isinstance(files, (list, tuple)):
             err_msg = ('File descriptors in DatasetDesc {!r} cannot be of type {!r}, needs to be '
@@ -333,25 +335,8 @@ class DatasetDesc(object):
                 raise TypeError(err_msg)
         self._files = OrderedDict((obj.name, obj) for obj in files)
 
-        # Declare objects to be cross-referenced
-        self._dimensions = OrderedDict()
-        self._variables = OrderedDict()
-
         # Check self-consistency and cross-reference
         for fname, fdesc in self._files.iteritems():
-
-            for dname, ddesc in fdesc.dimensions.iteritems():
-                if dname in self.dimensions:
-                    if not self.dimensions[dname].is_set() and ddesc.is_set():
-                        self.dimensions[dname].set(ddesc)
-                    if self.dimensions[dname] == ddesc:
-                        fdesc.dimensions[dname] = self.dimensions[dname]
-                    else:
-                        err_msg = ('Dimension {!r} is inconsistent across variables in file '
-                                   '{!r}').format(dname, self.name)
-                        raise ValueError(err_msg)
-                else:
-                    self.dimensions[dname] = ddesc
 
             for vname in fdesc.variables:
                 if vname in self.variables:
@@ -363,6 +348,19 @@ class DatasetDesc(object):
                         raise ValueError(err_msg)
                 else:
                     self.variables[vname] = fdesc.variables[vname]
+
+                for dname in fdesc.variables[vname].dimensions:
+                    if dname in self.dimensions:
+                        if not self.dimensions[dname].is_set() and fdesc.variables[vname].dimensions[dname].is_set():
+                            self.dimensions[dname].set(fdesc.variables[vname].dimensions[dname])
+                        if self.dimensions[dname] == fdesc.variables[vname].dimensions[dname]:
+                            fdesc.dimensions[dname] = self.dimensions[dname]
+                        else:
+                            err_msg = ('Dimension {!r} is inconsistent across variables in file '
+                                       '{!r}').format(dname, self.name)
+                            raise ValueError(err_msg)
+                    else:
+                        self.dimensions[dname] = fdesc.variables[vname].dimensions[dname]
 
     @property
     def name(self):
@@ -491,22 +489,12 @@ class OutputDatasetDesc(DatasetDesc):
         # Look over all variables in the dataset dictionary
         variables = OrderedDict()
         metavars = []
-        dimensions = {}
         for vname, vdict in dsdict.iteritems():
             vkwds = {}
 
             # Get the variable attributes, if they are defined
             if 'attributes' in vdict:
                 vkwds['attributes'] = vdict['attributes']
-
-            # Get the dimensions of the variable (REQUIRED)
-            if 'dimensions' in vdict:
-                vkwds['dimensions'] = tuple(dimensions.get(d, DimensionDesc(d))
-                                            for d in vdict['dimensions'])
-            else:
-                err_msg = ('Dimensions are required for variable {!r} in dataset '
-                           '{!r}').format(vname, name)
-                raise ValueError(err_msg)
 
             # Get the datatype of the variable, otherwise defaults to VariableDesc default
             vkwds['datatype'] = 'float32'
@@ -518,10 +506,25 @@ class OutputDatasetDesc(DatasetDesc):
                 vdef = vdict['definition']
                 if isinstance(vdef, basestring):
                     vkwds['definition'] = vdef
+                    vshape = None
                 else:
-                    vkwds['definition'] = array(vdef, dtype=vkwds['datatype'])
+                    vdat = array(vdef, dtype=vkwds['datatype'])
+                    vshape = vdat.shape
+                    vkwds['definition'] = vdat
             else:
                 err_msg = ('Definition is required for output variable {!r} in dataset '
+                           '{!r}').format(vname, name)
+                raise ValueError(err_msg)
+
+            # Get the dimensions of the variable (REQUIRED)
+            if 'dimensions' in vdict:
+                if vshape is None:
+                    vkwds['dimensions'] = tuple(DimensionDesc(d) for d in vdict['dimensions'])
+                else:
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, s) for d, s in
+                                                zip(vdict['dimensions'], vshape))
+            else:
+                err_msg = ('Dimensions are required for variable {!r} in dataset '
                            '{!r}').format(vname, name)
                 raise ValueError(err_msg)
 
@@ -563,10 +566,25 @@ class OutputDatasetDesc(DatasetDesc):
         # Loop through all found files and create the file descriptors
         filedescs = []
         for fname, fdict in files.iteritems():
+
+            # Get the variable descriptors for each variable required to be in the file
             vlist = [variables[vname] for vname in fdict['variables']]
+
+            # Get the unique list of dimension names for required by these variables
+            fdims = set()
+            for vdesc in vlist:
+                for dname in vdesc.dimensions:
+                    fdims.add(dname)
+
+            # Loop through all the variable names identified as metadata (i.e., no 'file')
             for mvname in metavars:
                 if mvname not in fdict['variables']:
-                    vlist.append(variables[vname])
+                    vdesc = variables[mvname]
+
+                    # Include this variable in the file only if all of its dimensions are included
+                    if set(vdesc.dimensions.keys()).issubset(fdims):
+                        vlist.append(vdesc)
+
             fdict['variables'] = vlist
             filedescs.append(FileDesc(fname, **fdict))
 

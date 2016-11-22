@@ -59,30 +59,30 @@ class DataFlow(object):
         self._i2omap = {}
         self._o2imap = {}
 
-        # Separate output variables into variables with 'data' or 'definitions'
+        # Separate output variables into variables with data or string 'definitions'
         datavars = {}
         defnvars = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            if isinstance(vinfo.definition, basestring):
-                defnvars[vname] = vinfo
+        for vname, vdesc in self._ods.variables.iteritems():
+            if isinstance(vdesc.definition, basestring):
+                defnvars[vname] = vdesc
             else:
-                datavars[vname] = vinfo
+                datavars[vname] = vdesc
 
         # Create a dictionary to store "source" DataNodes from 'data' attributes
         self._datnodes = {}
 
-        # First, parse output variables with 'data'
-        for vname, vinfo in datavars.iteritems():
-            vdata = numpy.array(vinfo.definition, dtype=vinfo.datatype)
-            cdnode = DataNode(vname, vdata, units=vinfo.cfunits(), dimensions=vinfo.dimensions)
+        # First, parse output variables with data definitions
+        for vname, vdesc in datavars.iteritems():
+            vdata = numpy.array(vdesc.definition, dtype=vdesc.datatype)
+            cdnode = DataNode(vname, vdata, units=vdesc.cfunits(), dimensions=vdesc.dimensions.keys())
             self._datnodes[vname] = cdnode
 
         # Create a dictionary to store "output variable" DataNodes from 'definition' attributes
         self._defnodes = {}
 
         # Parse the output variable definitions
-        for vname, vinfo in defnvars.iteritems():
-            self._defnodes[vname] = self._construct_flow_(parse_definition(vinfo.definition))
+        for vname, vdesc in defnvars.iteritems():
+            self._defnodes[vname] = self._construct_flow_(parse_definition(vdesc.definition))
 
         # Gather information about each FlowNode's data
         definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
@@ -120,53 +120,41 @@ class DataFlow(object):
 
         # Now loop through ALL of the variables and create ValidateNodes for validation
         self._varnodes = {}
-        for vname, vinfo in self._ods.variables.iteritems():
+        for vname, vdesc in self._ods.variables.iteritems():
             if vname in self._datnodes:
                 vnode = self._datnodes[vname]
             elif vname in self._defnodes:
                 vnode = self._defnodes[vname]
 
-            self._varnodes[vname] = ValidateNode(vname, vnode, units=vinfo.cfunits(),
-                                                 dimensions=vinfo.dimensions,
-                                                 attributes=vinfo.attributes,
-                                                 dtype=vinfo.datatype)
-
-        # Create a dictionary of filenames pointing to list of variables to write into the file
-        fvnames = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            if vinfo.filenames is not None:
-                for fname in vinfo.filenames:
-                    if fname in fvnames:
-                        fvnames[fname].append(vname)
-                    else:
-                        fvnames[fname] = [vname]
+            self._varnodes[vname] = ValidateNode(vname, vnode, units=vdesc.cfunits(),
+                                                 dimensions=vdesc.dimensions.keys(),
+                                                 attributes=vdesc.attributes,
+                                                 dtype=vdesc.datatype)
 
         # Create the WriteDataNodes for each time-series output file
         writenodes = {}
-        for filename, vnames in fvnames.iteritems():
-            vnodes = tuple(self._varnodes[n] for n in vnames)
+        for filename, fdesc in self._ods.files.iteritems():
+            vnodes = tuple(self._varnodes[n] for n in fdesc.variables)
             unlimited = tuple(self._i2omap[d] for d in self._ids.dimensions
                               if self._ids.dimensions[d].unlimited)
-            attribs = OrderedDict((k, v) for k, v in self._ods.attributes.iteritems())
+            attribs = OrderedDict((k, v) for k, v in fdesc.attributes.iteritems())
             attribs['unlimited'] = unlimited
             writenodes[filename] = WriteNode(filename, *vnodes, **attribs)
         self._writenodes = writenodes
 
         # Construct the output dimension sizes
-        odsizes = {}
-        for dname, dinfo in self._ods.dimensions.iteritems():
-            if dinfo is None:
-                odsizes[dname] = self._ids.dimensions[self._o2imap[dname]].size
-            else:
-                odsizes[dname] = dinfo.size
+        for dname, ddesc in self._ods.dimensions.iteritems():
+            if not ddesc.is_set():
+                ddesc.set(self._ids.dimensions[self._o2imap[dname]])
 
         # Compute the bytesizes of each output variable
         bytesizes = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            vsize = sum(odsizes[d] for d in vinfo.dimensions)
+        for vname, vdesc in self._ods.variables.iteritems():
+            print vname, [(dname, ddesc.size) for dname, ddesc in vdesc.dimensions.iteritems()]
+            vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
             if vsize == 0:
                 vsize = 1
-            bytesizes[vname] = vsize * numpy.dtype(vinfo.datatype).itemsize
+            bytesizes[vname] = vsize * numpy.dtype(vdesc.datatype).itemsize
 
         # Compute the file sizes for each output file
         self._filesizes = {}
@@ -177,15 +165,17 @@ class DataFlow(object):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._ids.variables:
-                vinfo = self._ids.variables[vname]
-                fname = vinfo.filenames[0]
-                return ReadNode(fname, vname, index=obj.args)
+                vfiles = [fname for fname, fdesc in self._ids.files.iteritems()
+                          if vname in fdesc.variables]
+                if len(vfiles) < 1:
+                    raise ValueError('Variable {!r} cannot be found in any input file'.format(vname))
+                return ReadNode(vfiles[0], vname, index=obj.args)
 
             elif vname in self._datnodes:
                 return self._datnodes[vname]
 
             else:
-                raise KeyError('Variable {0!r} not found or cannot be used as input'.format(vname))
+                raise KeyError('Variable {!r} not found or cannot be used as input'.format(vname))
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key

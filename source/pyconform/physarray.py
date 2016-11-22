@@ -118,11 +118,11 @@ class PhysArray(numpy.ma.MaskedArray):
     @dimensions.setter
     def dimensions(self, dims):
         """Named dimensions of the data"""
-        if not isinstance(dims, tuple):
+        if not isinstance(dims, (list, tuple)):
             raise TypeError('Dimensions must be a tuple')
         if len(dims) != len(self.shape):
             raise ValueError('Dimensions must have same length as shape')
-        self._optinfo['dimensions'] = dims
+        self._optinfo['dimensions'] = tuple(dims)
 
     @property
     def initshape(self):
@@ -132,11 +132,11 @@ class PhysArray(numpy.ma.MaskedArray):
     @initshape.setter
     def initshape(self, shape):
         """Initial size of each dimension of the data"""
-        if not isinstance(shape, tuple):
+        if not isinstance(shape, (list, tuple)):
             raise TypeError('Initial shape must be a tuple')
         if len(shape) != len(self.shape):
             raise ValueError('Initial shape must have same length as shape')
-        self._optinfo['initshape'] = shape
+        self._optinfo['initshape'] = tuple(shape)
 
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
@@ -211,8 +211,8 @@ class PhysArray(numpy.ma.MaskedArray):
         Parameters:
             dims (tuple): Tuple of dimension names in the new order
         """
-        if len(dims) == 1 and isinstance(dims[0], tuple):
-            dims = dims[0]
+        if len(dims) == 1 and isinstance(dims[0], (list, tuple)):
+            dims = tuple(dims[0])
         if set(dims) == set(self.dimensions):
             new_dims = tuple(dims)
             new_shp0 = tuple(self.initshape[self.dimensions.index(d)] for d in dims)
