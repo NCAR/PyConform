@@ -337,7 +337,8 @@ class EvaluationTests(unittest.TestCase):
         actual = func(x, y)
         expected = PhysArray(1.5 / 7.9, name='(x/y)', units='1/1000')
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
-        self.assertEqual(actual, expected, '{} failed - data'.format(testname))
+        np.testing.assert_array_almost_equal(actual, expected, 16,
+                                             '{} failed - data'.format(testname))
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
