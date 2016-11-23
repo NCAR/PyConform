@@ -104,13 +104,15 @@ class PhysArrayTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_dimensions_type_error(self):
+    def test_dimensions_list(self):
         nlist = range(3)
         indata = ['x']
         testname = 'PhysArray({}, dimensions={!r}).dimensions'.format(nlist, indata)
-        expected = TypeError
-        print_test_message(testname, expected=expected)
-        self.assertRaises(expected, physarray.PhysArray, nlist, dimensions=indata, name='X')
+        X = physarray.PhysArray(nlist, dimensions=indata, name='X')
+        actual = X.dimensions
+        expected = tuple(indata)
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_initial_shape_default(self):
         nlist = range(3)
