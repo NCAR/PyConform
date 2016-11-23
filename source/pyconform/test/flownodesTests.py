@@ -607,7 +607,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_init(self):
         filename = 'test.nc'
         testname = 'WriteNode.__init__({})'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = type(N)
         expected = flownodes.WriteNode
         print_test_message(testname, actual=actual, expected=expected)
@@ -616,7 +616,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_all(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -625,7 +625,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -634,7 +634,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -643,7 +643,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(2, None), 'y': slice(0, 3)},
@@ -655,7 +655,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -664,7 +664,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_reverse(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(0, 2), 'y': slice(3, None)},
@@ -676,7 +676,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_execute_simple(self):
         filename = 'v_x_y_simple.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute()
         actual = exists(filename)
         expected = True
@@ -690,7 +690,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_1D.nc'
         chunks = {'x': 6}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -704,7 +704,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -718,7 +718,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3, 'z': 7}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
