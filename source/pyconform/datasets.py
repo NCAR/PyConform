@@ -17,6 +17,44 @@ from cf_units import Unit
 
 
 #===================================================================================================
+# _group_by_name_
+#===================================================================================================
+def _group_by_name_(*descs):
+    """
+    Return a dictionary of the objects elements, grouped by name
+    
+    This is a simple group-by implementation for the Desc objects, used when making the
+    objects unique by name.
+    
+    Parameters:
+        descs: A list of Desc objects (with a 'name' attribute)
+    """
+    grp = OrderedDict()
+    for desc in descs:
+        if desc.name in grp:
+            grp[desc.name].append(desc)
+        else:
+            grp[desc.name] = [desc]
+    return grp
+
+
+#===================================================================================================
+# _is_list_of_type_
+#===================================================================================================
+def _is_list_of_type_(obj, typ):
+    """
+    Check that an object is a list/tuple of a given type
+    
+    Parameters:
+        obj:  A list or tuple of objects
+        typ:  The type of objects that should be in the list
+    """
+    if not isinstance(obj, (list, tuple)):
+        return False
+    return all([isinstance(o, typ) for o in obj])
+
+
+#===================================================================================================
 # DimensionDesc
 #===================================================================================================
 class DimensionDesc(object):
@@ -81,24 +119,50 @@ class DimensionDesc(object):
             raise TypeError(err_msg)
         self._size = dd.size
         self._unlimited = dd.unlimited
-
+    
     def __eq__(self, other):
         if not isinstance(other, DimensionDesc):
             return False
         if self.name != other.name:
             return False
-        if self.is_set() and other.is_set():
-            if self.size != other.size:
-                return False
-            if self.unlimited != other.unlimited:
-                return False
+        if self.size != other.size:
+            return False
+        if self.unlimited != other.unlimited:
+            return False
         return True
-
+    
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __str__(self):
-        return '{!r} [{}{}]'.format(self.name, self.size, '+' if bool(self.unlimited) else '')
+        return '{!r} [{}{}]'.format(self.name, self.size, '+' if self.unlimited else '')
+    
+    @staticmethod
+    def unique(descs):
+        """
+        Return a mapping of names to unique DimensionDescs
+        
+        Parameters:
+            descs: A list of DimensionDesc objects
+        """
+        ugrp = OrderedDict()
+        if not all([isinstance(d, DimensionDesc) for d in descs]):
+            err_msg = 'All arguments to unique must be DimensionDesc objects: {}'.format(descs)
+            raise TypeError(err_msg)
+        grp = _group_by_name_(*descs)
+        for name, ndescs in grp.iteritems():
+            setdescs = [d for d in ndescs if d.is_set()]
+            if len(setdescs) == 0:
+                ugrp[name] = ndescs[0]
+            elif len(setdescs) == 1:
+                ugrp[name] = setdescs[0]
+            else:
+                if not all([d == setdescs[0] for d in setdescs[1:]]):
+                    err_msg = ('Multiple DimensionDescs of same name but different settings: '
+                               '{}').format(', '.join([str(d) for d in setdescs]))
+                    raise ValueError(err_msg)
+                ugrp[name] = setdescs[0]
+        return ugrp
 
 
 #===================================================================================================
@@ -128,16 +192,11 @@ class VariableDesc(object):
         self._datatype = str(dtype(datatype))
         self.definition = definition
 
-        if not isinstance(dimensions, (list, tuple)):
-            err_msg = ('Dimensions for variable {!r} cannot be of type {!r}, must be a list or '
-                       'tuple').format(self.name, type(dimensions))
+        if not _is_list_of_type_(dimensions, DimensionDesc):
+            err_msg = ('Dimensions for variable {!r} must be a list or tuple of type '
+                       'DimensionDesc').format(name)
             raise TypeError(err_msg)
-        for i, obj in enumerate(dimensions):
-            if not isinstance(obj, DimensionDesc):
-                err_msg = ('Dimension {} for variable {!r} cannot be of type {!r}, must be a '
-                           'DimensionDesc').format(i, self.name, type(obj))
-                raise TypeError(err_msg)
-        self._dimensions = OrderedDict((obj.name, obj) for obj in dimensions)
+        self._dimensions = DimensionDesc.unique(dimensions)
 
         if not isinstance(attributes, dict):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
@@ -164,11 +223,13 @@ class VariableDesc(object):
         return self._dimensions
 
     def __eq__(self, other):
+        if not isinstance(other, VariableDesc):
+            return False
         if self.name != other.name:
             return False
         if self.datatype != other.datatype:
             return False
-        if self.dimensions != other.dimensions:
+        if self.dimensions.keys() != other.dimensions.keys():
             return False
         return True
 
@@ -198,6 +259,33 @@ class VariableDesc(object):
     def cfunits(self):
         """Construct a cf_units.Unit object from the units/calendar attributes"""
         return Unit(self.units(), calendar=self.calendar())
+    
+    @staticmethod
+    def unique(descs):
+        """
+        Return a mapping of names to unique VariableDescs
+        
+        Parameters:
+            descs: A list of VariableDesc objects
+        """
+        if not all([isinstance(d, VariableDesc) for d in descs]):
+            err_msg = 'All arguments to unique must be VariableDesc objects: {}'.format(descs)
+            raise TypeError(err_msg)
+        grp = _group_by_name_(*descs)
+        ugrp = OrderedDict()
+        for name, ndescs in grp.iteritems():
+            if len(ndescs) == 0:
+                err_msg = 'No VariableDesc objects found with given name {}'.format(name)
+                raise ValueError(err_msg)
+            elif len(ndescs) == 1:
+                ugrp[name] = ndescs[0]
+            else:
+                if not all([d == ndescs[0] for d in ndescs[1:]]):
+                    err_msg = ('Multiple VariableDescs of same name but different settings: '
+                               '{}').format(ndescs[0].name)
+                    raise ValueError(err_msg)
+                ugrp[name] = ndescs[0]
+        return ugrp
 
 
 #===================================================================================================
@@ -228,39 +316,28 @@ class FileDesc(object):
 
         if fmt not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
                           'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA'):
-            err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(fmt, self.name)
+            err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(fmt, name)
             raise TypeError(err_msg)
         self._format = fmt
 
-        if not isinstance(variables, (list, tuple)):
-            err_msg = ('Variables in file {!r} cannot be of type {!r}, needs to be list or '
-                       'tuple').format(self.name, type(variables))
+        if not _is_list_of_type_(variables, VariableDesc):
+            err_msg = ('Variables in file {!r} must be a list or tuple of type '
+                       'VariableDesc').format(name)
             raise TypeError(err_msg)
-        for obj in variables:
-            if not isinstance(obj, VariableDesc):
-                err_msg = ('Variable {!r} in file {!r} cannot be of type {!r}, needs to be a '
-                           'VariableDesc').format(obj, self.name, type(obj))
-                raise TypeError(err_msg)
-        self._variables = OrderedDict((obj.name, obj) for obj in variables)
-
-        self._dimensions = OrderedDict()
-        for vdesc in self.variables.itervalues():
-            for dname, ddesc in vdesc.dimensions.iteritems():
-                if dname in self.dimensions:
-                    if not self.dimensions[dname].is_set() and ddesc.is_set():
-                        self.dimensions[dname].set(ddesc)
-                    if self.dimensions[dname] == ddesc:
-                        vdesc.dimensions[dname] = self.dimensions[dname]
-                    else:
-                        err_msg = ('Dimension {!r} is inconsistent across variables in file '
-                                   '{!r}').format(dname, self.name)
-                        raise ValueError(err_msg)
-                else:
-                    self.dimensions[dname] = ddesc
+        
+        dimensions = []
+        for vdesc in variables:
+            dimensions.extend(vdesc.dimensions.values())
+        self._dimensions = DimensionDesc.unique(dimensions)
+        
+        for vdesc in variables:
+            for dname in vdesc.dimensions:
+                vdesc.dimensions[dname] = self._dimensions[dname]
+        self._variables = VariableDesc.unique(variables)
 
         if not isinstance(attributes, dict):
-            err_msg = ('Global attributes in file {!r} cannot be of type {!r}, needs to be a '
-                       'dict').format(self.name, type(attributes))
+            err_msg = ('Attributes in file {!r} cannot be of type {!r}, needs to be a '
+                       'dict').format(name, type(attributes))
             raise TypeError(err_msg)
         self._attributes = attributes
 
@@ -292,6 +369,49 @@ class FileDesc(object):
     def variables(self):
         """Dictionary of variable descriptors associated with the file"""
         return self._variables
+    
+    def __eq__(self, other):
+        if not isinstance(other, FileDesc):
+            return False
+        if self.name != other.name:
+            return False
+        if self.dimensions.keys() != other.dimensions.keys():
+            return False
+        if self.variables.keys() != other.variables.keys():
+            return False
+        return True
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    
+    @staticmethod
+    def unique(descs):
+        """
+        Return a mapping of names to unique FileDescs
+        
+        Parameters:
+            descs: A list of FileDesc objects
+        """
+        if not all([isinstance(d, FileDesc) for d in descs]):
+            err_msg = 'All arguments to unique must be FileDesc objects: {}'.format(descs)
+            raise TypeError(err_msg)
+        grp = _group_by_name_(*descs)
+        ugrp = OrderedDict()
+        for name, ndescs in grp.iteritems():
+            if len(ndescs) == 0:
+                err_msg = 'No FileDesc objects found with given name {}'.format(name)
+                raise ValueError(err_msg)
+            elif len(ndescs) == 1:
+                ugrp[name] = ndescs[0]
+            else:
+                if not all([d == ndescs[0] for d in ndescs[1:]]):
+                    err_msg = ('Multiple FileDesc of same name but different settings: '
+                               '{}').format(ndescs[0].name)
+                    raise ValueError(err_msg)
+                ugrp[name] = ndescs[0]
+        return ugrp
+        
+
 
 #===================================================================================================
 # DatasetDesc
@@ -321,46 +441,34 @@ class DatasetDesc(object):
             files (tuple): Tuple of FileDesc objects contained in the dataset
         """
         self._name = name
-        self._dimensions = OrderedDict()
-        self._variables = OrderedDict()
 
-        if not isinstance(files, (list, tuple)):
-            err_msg = ('File descriptors in DatasetDesc {!r} cannot be of type {!r}, needs to be '
-                       'list or tuple').format(self.name, type(files))
+        if not _is_list_of_type_(files, FileDesc):
+            err_msg = ('File descriptors in DatasetDesc {!r} must be a list or tuple of type '
+                       'FileDesc').format(name)
             raise TypeError(err_msg)
-        for obj in files:
-            if not isinstance(obj, FileDesc):
-                err_msg = ('File descriptor {!r} in DatasetDesc {!r} cannot be of type {!r}, '
-                           'needs to be a FileDesc').format(obj, self.name, type(obj))
-                raise TypeError(err_msg)
-        self._files = OrderedDict((obj.name, obj) for obj in files)
-
-        # Check self-consistency and cross-reference
-        for fname, fdesc in self._files.iteritems():
-
+        
+        dimensions = []
+        for fdesc in files:
+            dimensions.extend(fdesc.dimensions.values())
+        self._dimensions = DimensionDesc.unique(dimensions)
+        
+        for fdesc in files:
+            for dname in fdesc.dimensions:
+                fdesc.dimensions[dname] = self._dimensions[dname]
+            for vdesc in fdesc.variables.itervalues():
+                for dname in vdesc.dimensions:
+                    vdesc.dimensions[dname] = self._dimensions[dname]
+        
+        variables = []
+        for fdesc in files:
+            variables.extend(fdesc.variables.values())
+        self._variables = VariableDesc.unique(variables)
+        
+        for fdesc in files:
             for vname in fdesc.variables:
-                if vname in self.variables:
-                    if self.variables[vname] == fdesc.variables[vname]:
-                        fdesc.variables[vname] = self.variables[vname]
-                    else:
-                        err_msg = ('Variable {!r} in file {!r} is inconsistent with variables '
-                                   'in other files').format(vname, fname)
-                        raise ValueError(err_msg)
-                else:
-                    self.variables[vname] = fdesc.variables[vname]
-
-                for dname in fdesc.variables[vname].dimensions:
-                    if dname in self.dimensions:
-                        if not self.dimensions[dname].is_set() and fdesc.variables[vname].dimensions[dname].is_set():
-                            self.dimensions[dname].set(fdesc.variables[vname].dimensions[dname])
-                        if self.dimensions[dname] == fdesc.variables[vname].dimensions[dname]:
-                            fdesc.dimensions[dname] = self.dimensions[dname]
-                        else:
-                            err_msg = ('Dimension {!r} is inconsistent across variables in file '
-                                       '{!r}').format(dname, self.name)
-                            raise ValueError(err_msg)
-                    else:
-                        self.dimensions[dname] = fdesc.variables[vname].dimensions[dname]
+                fdesc.variables[vname] = self._variables[vname]
+        
+        self._files = FileDesc.unique(files)
 
     @property
     def name(self):

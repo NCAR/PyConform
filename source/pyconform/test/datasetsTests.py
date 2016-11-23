@@ -115,13 +115,13 @@ class DimensionDescTests(unittest.TestCase):
         print_test_message('DimensionDesc(1) != DimensionDesc(2)', actual=actual, expected=expected)
         self.assertNotEqual(actual, expected, 'Differently limited DimensionDesc objects equal')
 
-    def test_equals_same_1set(self):
+    def test_equals_diff_1set(self):
         ddesc1 = datasets.DimensionDesc('x', 1, True)
         ddesc2 = datasets.DimensionDesc('x')
         actual = ddesc1
         expected = ddesc2
         print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Set DimensionsDesc does not equal unset DimensionDesc')
+        self.assertNotEqual(actual, expected, 'Set DimensionsDesc equals unset DimensionDesc')
 
     def test_equals_same_unset(self):
         ddesc1 = datasets.DimensionDesc('x')
@@ -130,15 +130,7 @@ class DimensionDescTests(unittest.TestCase):
         expected = ddesc2
         print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Unset DimensionsDesc not equal to unset DimensionDesc')
-
-    def test_equals_diff_1set(self):
-        ddesc1 = datasets.DimensionDesc('y', 1, True)
-        ddesc2 = datasets.DimensionDesc('x')
-        actual = ddesc1
-        expected = ddesc2
-        print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=actual, expected=expected)
-        self.assertNotEqual(actual, expected, 'Set DimensionsDesc equal to unset DimensionDesc')
-
+        
 
 #===============================================================================
 # VariableDescTests
