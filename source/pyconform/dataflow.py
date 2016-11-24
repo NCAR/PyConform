@@ -19,6 +19,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
+from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
 from asaptools.partition import WeightBalanced
@@ -70,7 +71,8 @@ class DataFlow(object):
             vdata = numpy.array(vdesc.definition, dtype=vdesc.datatype)
             vunits = vdesc.cfunits()
             vdims = vdesc.dimensions.keys()
-            self._datnodes[vname] = DataNode(vname, vdata, units=vunits, dimensions=vdims)
+            varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
+            self._datnodes[vname] = DataNode(varray)
 
         # Create a dictionary to store "output variable" DataNodes from string 'definitions'
         self._defnodes = {}
@@ -133,7 +135,7 @@ class DataFlow(object):
                                                  attributes=vdesc.attributes,
                                                  dtype=vdesc.datatype)
 
-        # Create the WriteDataNodes for each time-series output file
+        # Create the WriteNodes for each time-series output file
         writenodes = {}
         for fname, fdesc in self._ods.files.iteritems():
             vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys())

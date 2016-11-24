@@ -16,7 +16,6 @@ from os import makedirs
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
-# from datetime import datetime
 
 import numpy
 
@@ -79,26 +78,23 @@ class DataNode(FlowNode):
     This is a "source" FlowNode.
     """
 
-    def __init__(self, label, data, units=None, dimensions=None):
+    def __init__(self, data):
         """
         Initializer
         
         Parameters:
-            label: A label to give the FlowNode
-            data (array): Data to store in this FlowNode
-            units (Unit): Units to associate with the data
-            dimensions: Dimensions to associate with the data 
+            data (PhysArray): Data to store in this FlowNode
         """
         # Determine type and upcast, if necessary
-        array = numpy.asarray(data)
+        array = PhysArray(data)
         if issubclass(array.dtype.type, numpy.float) and array.dtype.itemsize < 8:
-            array = data.astype(numpy.float64)
+            array = array.astype(numpy.float64)
 
         # Store data
-        self._data = PhysArray(array, name=str(label), units=units, dimensions=dimensions)
+        self._data = array
 
         # Call base class initializer
-        super(DataNode, self).__init__(label)
+        super(DataNode, self).__init__(self._data.name)
 
     def __getitem__(self, index):
         """
@@ -541,7 +537,7 @@ class WriteNode(FlowNode):
         
         Parameters:
             filename (str): Name of the file to write
-            inputs (tuple): A tuple of ValidateDataNodes providing input into the file
+            inputs (tuple): A tuple of ValidateNodes providing input into the file
             unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
             attributes (dict): Dictionary of global attributes to write to the file
         """

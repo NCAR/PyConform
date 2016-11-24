@@ -5,7 +5,8 @@ COPYRIGHT: 2016, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import flownodes, physarray
+from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
+from pyconform.physarray import PhysArray, DimensionsError
 from testutils import print_test_message
 from cf_units import Unit
 from os.path import exists
@@ -28,16 +29,16 @@ class FlowNodeTests(unittest.TestCase):
     def test_init(self):
         indata = 0
         testname = 'FlowNode.__init__({})'.format(indata)
-        N = flownodes.FlowNode(0)
+        N = FlowNode(0)
         actual = type(N)
-        expected = flownodes.FlowNode
+        expected = FlowNode
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
     def test_label_int(self):
         indata = 0
         testname = 'FlowNode({}).label'.format(indata)
-        N = flownodes.FlowNode(indata)
+        N = FlowNode(indata)
         actual = N.label
         expected = indata
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -46,7 +47,7 @@ class FlowNodeTests(unittest.TestCase):
     def test_label_str(self):
         indata = 'abcd'
         testname = 'FlowNode({}).label'.format(indata)
-        N = flownodes.FlowNode(indata)
+        N = FlowNode(indata)
         actual = N.label
         expected = indata
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -55,7 +56,7 @@ class FlowNodeTests(unittest.TestCase):
     def test_inputs(self):
         indata = ['a', 0, 1, 2, 3]
         testname = 'FlowNode{}.inputs'.format(indata)
-        N = flownodes.FlowNode(*indata)
+        N = FlowNode(*indata)
         actual = N.inputs
         expected = indata[1:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -63,42 +64,42 @@ class FlowNodeTests(unittest.TestCase):
 
 
 #===================================================================================================
-# CreateNodeTests
+# DataNodeTests
 #===================================================================================================
-class CreateNodeTests(unittest.TestCase):
+class DataNodeTests(unittest.TestCase):
     """
     Unit tests for the flownodes.DataNode class
     """
 
     def test_getitem_all(self):
-        indata = numpy.arange(10)
+        indata = PhysArray(numpy.arange(10), units='m', dimensions=('x',))
         testname = 'DataNode.__getitem__(:)'
-        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
+        N = DataNode(indata)
         actual = N[:]
-        expected = flownodes.PhysArray(indata, units='m', dimensions=('x',))
+        expected = indata
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
-        indata = numpy.arange(10)
+        indata = PhysArray(numpy.arange(10), units='m', dimensions=('x',))
         testname = 'DataNode.__getitem__(:5)'
-        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
+        N = DataNode(indata)
         actual = N[:5]
-        expected = flownodes.PhysArray(indata[:5], units='m', dimensions=('x',))
+        expected = PhysArray(indata[:5], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
-        indata = numpy.arange(10)
+        indata = PhysArray(numpy.arange(10), name=0, units='m', dimensions=('x',))
         indict = {'a': 4, 'x': slice(1, 5, 2)}
         testname = 'DataNode.__getitem__({})'.format(indict)
-        N = flownodes.DataNode(0, indata, units='m', dimensions=('x',))
+        N = DataNode(indata)
         actual = N[indict]
-        expected = flownodes.PhysArray(indata[indict['x']], units='m', dimensions=('x',))
+        expected = PhysArray(indata[indict['x']], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -118,11 +119,11 @@ class ReadNodeTests(unittest.TestCase):
         self.varname = 'v'
         self.dimensions = ('x', 'y')
         self.shape = {'x': 5, 'y': 10}
-        self.vardata = {'x': flownodes.PhysArray(numpy.arange(self.shape['x'], dtype='f'),
+        self.vardata = {'x': PhysArray(numpy.arange(self.shape['x'], dtype='f'),
                                                  units='m', dimensions=('x',), name='x'),
-                        'y': flownodes.PhysArray(numpy.arange(self.shape['y'], dtype='f'),
+                        'y': PhysArray(numpy.arange(self.shape['y'], dtype='f'),
                                                  units='km', dimensions=('y',), name='x'),
-                        'v': flownodes.PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
+                        'v': PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
                                                               dtype='d').reshape(self.shape['x'], self.shape['y']),
                                                  units='K', dimensions=self.dimensions, name='v')}
 
@@ -141,7 +142,7 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_all(self):
         testname = 'ReadNode.__getitem__(:)'
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[:]
         expected = self.vardata[self.varname]
         print_test_message(testname, actual=actual, expected=expected)
@@ -151,7 +152,7 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_slice(self):
         testname = 'ReadNode.__getitem__(:2)'
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[:2]
         expected = self.vardata[self.varname][:2]
         print_test_message(testname, actual=actual, expected=expected)
@@ -161,9 +162,9 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_none(self):
         testname = 'ReadNode.__getitem__(None)'
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.zeros((0,) * len(self.shape), dtype='d'),
+        expected = PhysArray(numpy.zeros((0,) * len(self.shape), dtype='d'),
                                        units=self.vardata[self.varname].units,
                                        dimensions=self.vardata[self.varname].dimensions)
         print_test_message(testname, actual=actual, expected=expected)
@@ -174,9 +175,9 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_tuple(self):
         intuple = (3, slice(2, 4))
         testname = 'ReadNode.__getitem__({})'.format(intuple)
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[intuple]
-        expected = flownodes.PhysArray(self.vardata[self.varname][intuple], dimensions=('y',))
+        expected = PhysArray(self.vardata[self.varname][intuple], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -185,7 +186,7 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_dict(self):
         indict = {'a': 4, 'x': slice(1, 5, 2)}
         testname = 'ReadNode.__getitem__({})'.format(indict)
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[indict]
         expected = self.vardata[self.varname][slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -196,7 +197,7 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_dict_2(self):
         indict = {'a': 4, 'y': slice(1, 5, 2)}
         testname = 'ReadNode.__getitem__({})'.format(indict)
-        N = flownodes.ReadNode(self.filename, self.varname)
+        N = ReadNode(self.filename, self.varname)
         actual = N[indict]
         expected = self.vardata[self.varname][:, slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -214,9 +215,9 @@ class EvalNodeTests(unittest.TestCase):
     """
 
     def test_getitem_all(self):
-        indata = flownodes.PhysArray(range(10), units='m', dimensions=('x',))
+        indata = PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalNode.__getitem__(:)'
-        N = flownodes.EvalNode(0, lambda x: x, indata)
+        N = EvalNode(0, lambda x: x, indata)
         actual = N[:]
         expected = indata
         print_test_message(testname, actual=actual, expected=expected)
@@ -225,11 +226,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_none(self):
-        indata = flownodes.PhysArray(range(10), units='m', dimensions=('x',))
+        indata = PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalNode.__getitem__(None)'
-        N = flownodes.EvalNode(0, lambda x: x, indata)
+        N = EvalNode(0, lambda x: x, indata)
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.zeros((0,), dtype=indata.dtype),
+        expected = PhysArray(numpy.zeros((0,), dtype=indata.dtype),
                                        units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
@@ -237,9 +238,9 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
-        indata = flownodes.PhysArray(range(10), units='m', dimensions=('x',))
+        indata = PhysArray(range(10), units='m', dimensions=('x',))
         testname = 'EvalNode.__getitem__(:5)'
-        N = flownodes.EvalNode(0, lambda x: x, indata)
+        N = EvalNode(0, lambda x: x, indata)
         actual = N[:5]
         expected = indata[:5]
         print_test_message(testname, actual=actual, expected=expected)
@@ -248,9 +249,9 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
-        indata = flownodes.PhysArray(range(10), units='m', dimensions=('x',))
+        indata = PhysArray(range(10), units='m', dimensions=('x',))
         testname = "EvalNode.__getitem__({'x': slice(5, None), 'y': 6})"
-        N = flownodes.EvalNode(0, lambda x: x, indata)
+        N = EvalNode(0, lambda x: x, indata)
         actual = N[{'x': slice(5, None), 'y': 6}]
         expected = indata[slice(5, None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -259,11 +260,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add(self):
-        d1 = flownodes.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = flownodes.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = flownodes.EvalNode(1, lambda x: x, d1)
-        N2 = flownodes.EvalNode(2, lambda x: x, d2)
-        N3 = flownodes.EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
+        N1 = EvalNode(1, lambda x: x, d1)
+        N2 = EvalNode(2, lambda x: x, d2)
+        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
         testname = 'EvalNode.__getitem__(:)'
         actual = N3[:]
         expected = d1 + d2
@@ -273,11 +274,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_slice(self):
-        d1 = flownodes.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = flownodes.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = flownodes.EvalNode(1, lambda x: x, d1)
-        N2 = flownodes.EvalNode(2, lambda x: x, d2)
-        N3 = flownodes.EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
+        N1 = EvalNode(1, lambda x: x, d1)
+        N2 = EvalNode(2, lambda x: x, d2)
+        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
         testname = 'EvalNode.__getitem__(:2)'
         actual = N3[:2]
         expected = d1[:2] + d2[:2]
@@ -287,14 +288,14 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_none(self):
-        d1 = flownodes.PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = flownodes.PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = flownodes.EvalNode(1, lambda x: x, d1)
-        N2 = flownodes.EvalNode(2, lambda x: x, d2)
-        N3 = flownodes.EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
+        N1 = EvalNode(1, lambda x: x, d1)
+        N2 = EvalNode(2, lambda x: x, d2)
+        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
         testname = 'EvalNode.__getitem__(None)'
         actual = N3[None]
-        expected = flownodes.PhysArray([], units='m', dimensions=('x',))
+        expected = PhysArray([], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -310,13 +311,14 @@ class MapNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.indata = flownodes.DataNode(0, numpy.arange(10), units='km', dimensions=('x',))
+        array = PhysArray(numpy.arange(10), name=0, units='km', dimensions=('x',))
+        self.indata = DataNode(array)
 
     def test_getitem_all(self):
         testname = 'MapNode.__getitem__(:)'
-        N = flownodes.MapNode(0, self.indata, dmap={'x': 'y'})
+        N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[:]
-        expected = flownodes.PhysArray(self.indata[:], dimensions=('y',))
+        expected = PhysArray(self.indata[:], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -324,9 +326,9 @@ class MapNodeTests(unittest.TestCase):
 
     def test_getitem_slice(self):
         testname = 'MapNode.__getitem__(:3)'
-        N = flownodes.MapNode(0, self.indata, dmap={'x': 'y'})
+        N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[:3]
-        expected = flownodes.PhysArray(self.indata[:3], dimensions=('y',))
+        expected = PhysArray(self.indata[:3], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -334,9 +336,9 @@ class MapNodeTests(unittest.TestCase):
 
     def test_getitem_none(self):
         testname = 'MapNode.__getitem__(None)'
-        N = flownodes.MapNode(0, self.indata, dmap={'x': 'y'})
+        N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[None]
-        expected = flownodes.PhysArray(numpy.arange(0), units='km', dimensions=('y',))
+        expected = PhysArray(numpy.arange(0), units='km', dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -344,9 +346,9 @@ class MapNodeTests(unittest.TestCase):
 
     def test_getitem_slice_no_dmap(self):
         testname = 'MapNode(dmap={}, dimensions=indims).__getitem__(:3)'
-        N = flownodes.MapNode(0, self.indata)
+        N = MapNode(0, self.indata)
         actual = N[:3]
-        expected = flownodes.PhysArray(self.indata[:3], dimensions=('x',))
+        expected = PhysArray(self.indata[:3], dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
@@ -362,9 +364,9 @@ class ValidateNodeTests(unittest.TestCase):
     """
 
     def test_nothing(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         testname = 'OK: ValidateNode().__getitem__(:)'
-        N1 = flownodes.ValidateNode('validate(x)', N0)
+        N1 = ValidateNode('validate(x)', N0)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, actual=actual, expected=expected)
@@ -373,11 +375,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'units': Unit('m')}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
+        N1 = ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -386,12 +388,12 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00',
-                                  dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
+                                dimensions=('x',)))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -400,11 +402,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'dimensions': ('x',)}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
+        N1 = ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -413,11 +415,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'valid_min': 0}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -426,11 +428,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'valid_max': 10}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -439,11 +441,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_minmax_getitem_none(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'valid_min': 0, 'valid_max': 2}
         testname = ('OK: ValidateNode({}).__getitem__(None)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[None]
         expected = N0[None]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -452,11 +454,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
         indata = {'ok_min_mean_abs': 3}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -465,11 +467,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_ok(self):
-        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
         indata = {'ok_max_mean_abs': 5}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -478,14 +480,15 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_convert(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10, dtype=numpy.float64), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10, dtype=numpy.float64), name='x', units='m',
+                                dimensions=('x',)))
         indata = {'units': Unit('km')}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
+        N1 = ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float64)
-        expected.name = physarray.PhysArray._convert_name_('x', Unit('m'), Unit('km'))
+        expected.name = PhysArray._convert_name_('x', Unit('m'), Unit('km'))
         expected.units = Unit('km')
         expected.mask = False
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -494,11 +497,12 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
+                                dimensions=('x',)))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -507,11 +511,12 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_time_units_warn_calendar(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='days since 2000-01-01 00:00:00', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
+                                dimensions=('x',)))
         indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -520,21 +525,21 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_dimensions_error(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'dimensions': ('y',)}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, **indata)
-        expected = physarray.DimensionsError
+        N1 = ValidateNode('validate(x)', N0, **indata)
+        expected = DimensionsError
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(expected, N1.__getitem__, slice(None))
 
     def test_min_warn(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'valid_min': 2}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -543,11 +548,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_warn(self):
-        N0 = flownodes.DataNode('x', numpy.arange(10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
         indata = {'valid_max': 8}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -556,11 +561,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_min_mean_abs_warn(self):
-        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
         indata = {'ok_min_mean_abs': 5}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -569,11 +574,11 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_max_mean_abs_warn(self):
-        N0 = flownodes.DataNode('x', numpy.arange(-5, 10), units='m', dimensions=('x',))
+        N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
         indata = {'ok_max_mean_abs': 3}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = flownodes.ValidateNode('validate(x)', N0, attributes=indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -591,13 +596,13 @@ class WriteNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        x = flownodes.DataNode('X', numpy.arange(-5, 10), units='m', dimensions=('x',))
-        self.x = flownodes.ValidateNode('X', x, attributes={'xa1': 'x attribute 1', 'xa2': 'x attribute 2'})
-        y = flownodes.DataNode('Y', numpy.arange(0, 8), units='m', dimensions=('y',))
-        self.y = flownodes.ValidateNode('Y', y, attributes={'ya1': 'y attribute 1', 'ya2': 'y attribute 2'})
+        x = DataNode(PhysArray(numpy.arange(-5, 10), name='X', units='m', dimensions=('x',)))
+        self.x = ValidateNode('X', x, attributes={'xa1': 'x attribute 1', 'xa2': 'x attribute 2'})
+        y = DataNode(PhysArray(numpy.arange(0, 8), name='Y', units='m', dimensions=('y',)))
+        self.y = ValidateNode('Y', y, attributes={'ya1': 'y attribute 1', 'ya2': 'y attribute 2'})
         vdata = numpy.arange(15 * 8, dtype=numpy.float64).reshape((15, 8))
-        v = flownodes.DataNode('V', vdata, units='K', dimensions=('x', 'y'))
-        self.v = flownodes.ValidateNode('V', v, attributes={'va1': 'v attribute 1', 'va2': 'v attribute 2'})
+        v = DataNode(PhysArray(vdata, name='V', units='K', dimensions=('x', 'y')))
+        self.v = ValidateNode('V', v, attributes={'va1': 'v attribute 1', 'va2': 'v attribute 2'})
         self.vars = [self.x, self.y, self.v]
 
     def tearDown(self):
@@ -607,16 +612,16 @@ class WriteNodeTests(unittest.TestCase):
     def test_init(self):
         filename = 'test.nc'
         testname = 'WriteNode.__init__({})'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = type(N)
-        expected = flownodes.WriteNode
+        expected = WriteNode
         print_test_message(testname, actual=actual, expected=expected)
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_all(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -625,7 +630,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -634,7 +639,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -643,7 +648,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(2, None), 'y': slice(0, 3)},
@@ -655,7 +660,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -664,7 +669,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_reverse(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(0, 2), 'y': slice(3, None)},
@@ -676,7 +681,7 @@ class WriteNodeTests(unittest.TestCase):
     def test_execute_simple(self):
         filename = 'v_x_y_simple.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute()
         actual = exists(filename)
         expected = True
@@ -690,7 +695,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_1D.nc'
         chunks = {'x': 6}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -704,7 +709,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -718,7 +723,7 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3, 'z': 7}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = flownodes.WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
