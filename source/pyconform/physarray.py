@@ -12,7 +12,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.indexing import align_index
 from cf_units import Unit
-from operator import mul, div, pow
+from operator import mul, pow
 
 import numpy
 
@@ -94,8 +94,6 @@ class PhysArray(numpy.ma.MaskedArray):
     @name.setter
     def name(self, nm):
         """String name for the data"""
-        if not isinstance(nm, basestring):
-            raise TypeError('PhysArray name must be string')
         self._optinfo['name'] = nm
 
     @property
