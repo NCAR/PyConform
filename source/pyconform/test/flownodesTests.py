@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from pyconform.physarray import PhysArray, DimensionsError
+from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
 from testutils import print_test_message
 from cf_units import Unit
 from os.path import exists
@@ -120,12 +121,20 @@ class ReadNodeTests(unittest.TestCase):
         self.dimensions = ('x', 'y')
         self.shape = {'x': 5, 'y': 10}
         self.vardata = {'x': PhysArray(numpy.arange(self.shape['x'], dtype='f'),
-                                                 units='m', dimensions=('x',), name='x'),
+                                       units='m', dimensions=('x',), name='x'),
                         'y': PhysArray(numpy.arange(self.shape['y'], dtype='f'),
-                                                 units='km', dimensions=('y',), name='x'),
+                                       units='km', dimensions=('y',), name='x'),
                         'v': PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
-                                                              dtype='d').reshape(self.shape['x'], self.shape['y']),
-                                                 units='K', dimensions=self.dimensions, name='v')}
+                                                    dtype='d').reshape(self.shape['x'],
+                                                                       self.shape['y']),
+                                       units='K', dimensions=self.dimensions, name='v')}
+
+        dimdescs = {d:DimensionDesc(d, s) for d, s in self.shape.iteritems()}
+        vardescs = {vn:VariableDesc(vn, datatype=str(vd.dtype), attributes={'units': str(vd.units)},
+                                    dimensions=[dimdescs[dd] for dd in vd.dimensions])
+                    for vn, vd in self.vardata.iteritems()}
+        self.filedesc = FileDesc(self.filename, variables=vardescs.values())
+        self.vardesc = self.filedesc.variables[self.varname]
 
         with netCDF4.Dataset(self.filename, 'w') as ncfile:
             for d in self.dimensions:
@@ -142,7 +151,7 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_all(self):
         testname = 'ReadNode.__getitem__(:)'
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[:]
         expected = self.vardata[self.varname]
         print_test_message(testname, actual=actual, expected=expected)
@@ -152,7 +161,7 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_slice(self):
         testname = 'ReadNode.__getitem__(:2)'
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[:2]
         expected = self.vardata[self.varname][:2]
         print_test_message(testname, actual=actual, expected=expected)
@@ -162,7 +171,7 @@ class ReadNodeTests(unittest.TestCase):
 
     def test_getitem_none(self):
         testname = 'ReadNode.__getitem__(None)'
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[None]
         expected = PhysArray(numpy.zeros((0,) * len(self.shape), dtype='d'),
                                        units=self.vardata[self.varname].units,
@@ -175,7 +184,7 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_tuple(self):
         intuple = (3, slice(2, 4))
         testname = 'ReadNode.__getitem__({})'.format(intuple)
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[intuple]
         expected = PhysArray(self.vardata[self.varname][intuple], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
@@ -186,7 +195,7 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_dict(self):
         indict = {'a': 4, 'x': slice(1, 5, 2)}
         testname = 'ReadNode.__getitem__({})'.format(indict)
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[indict]
         expected = self.vardata[self.varname][slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -197,7 +206,7 @@ class ReadNodeTests(unittest.TestCase):
     def test_getitem_dict_2(self):
         indict = {'a': 4, 'y': slice(1, 5, 2)}
         testname = 'ReadNode.__getitem__({})'.format(indict)
-        N = ReadNode(self.filename, self.varname)
+        N = ReadNode(self.vardesc)
         actual = N[indict]
         expected = self.vardata[self.varname][:, slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)

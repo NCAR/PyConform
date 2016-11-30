@@ -9,6 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
+from pyconform.datasets import VariableDesc, FileDesc
 from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
 from os.path import exists, dirname
@@ -113,34 +114,38 @@ class ReadNode(FlowNode):
     This is a "source" FlowNode.
     """
 
-    def __init__(self, filepath, variable, index=slice(None)):
+    def __init__(self, variable, index=slice(None)):
         """
         Initializer
         
         Parameters:
-            filepath (str): A string filepath to a NetCDF file 
-            variable (str): A string variable name to read
+            variable (VariableDesc): A variable descriptor object
             index (tuple, slice, int, dict): A tuple of slices or ints, or a slice or int,
                 specifying the range of data to read from the file (in file-local indices)
         """
 
-        # Parse File Path
-        if not isinstance(filepath, basestring):
-            raise TypeError('Unrecognized file path object of type '
-                            '{!r}: {!r}'.format(type(filepath), filepath))
-        if not exists(filepath):
-            raise OSError('File path not found: {!r}'.format(filepath))
-        self._filepath = filepath
+        # Check variable descriptor type and existence in the file
+        if not isinstance(variable, VariableDesc):
+            raise TypeError('Unrecognized variable descriptor of type '
+                            '{!r}: {!r}'.format(type(variable), variable.name))
 
-        # Check variable name type and existence in the file
-        if not isinstance(variable, basestring):
-            raise TypeError('Unrecognized variable name object of type '
-                            '{!r}: {!r}'.format(type(variable), variable))
+        # Check for associated file
+        if len(variable.files) == 0:
+            raise ValueError('Variable descriptor {} has no associated files'.format(variable.name))
+        self._filepath = None
+        for fdesc in variable.files.itervalues():
+            if fdesc.exists():
+                self._filepath = fdesc.name
+                break
+        if self._filepath is None:
+            raise OSError('File path not found for input variable: {!r}'.format(variable.name))
+
+        # Check that the variable exists in the file
         with Dataset(self._filepath, 'r') as ncfile:
-            if variable not in ncfile.variables:
+            if variable.name not in ncfile.variables:
                 raise OSError('Variable {!r} not found in NetCDF file: '
-                              '{!r}'.format(variable, self._filepath))
-        self._variable = variable
+                              '{!r}'.format(variable.name, self._filepath))
+        self._variable = variable.name
 
         # Check if the index means "all"
         is_all = False
@@ -156,9 +161,9 @@ class ReadNode(FlowNode):
 
         # Call the base class initializer
         if is_all:
-            label = variable
+            label = variable.name
         else:
-            label = '{}[{}]'.format(variable, index_str(index))
+            label = '{}[{}]'.format(variable.name, index_str(index))
         super(ReadNode, self).__init__(label)
 
     def __getitem__(self, index):
