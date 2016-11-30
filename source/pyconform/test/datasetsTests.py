@@ -106,7 +106,7 @@ class DimensionDescTests(unittest.TestCase):
         after = str(ddesc)
         print_test_message('DimensionDesc.unset()', before=before, after=after)
         self.assertFalse(ddesc.is_set(), 'DimensionDesc not unset properly')
-        
+
     def test_equals_same(self):
         ddesc1 = DimensionDesc('x', size=1, unlimited=True)
         ddesc2 = DimensionDesc('x', size=1, unlimited=True)
@@ -154,7 +154,7 @@ class DimensionDescTests(unittest.TestCase):
         expected = ddesc2
         print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Unset DimensionsDesc not equal to unset DimensionDesc')
-    
+
     def test_unique_empty(self):
         indata = []
         actual = DimensionDesc.unique(indata)
@@ -413,7 +413,7 @@ class VariableDescTests(unittest.TestCase):
         self.assertEqual(actual, expected, 'VariableDesc.unique failes with all-same list')
 
     def test_unique_same_names_same_dims(self):
-        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]), 
+        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]),
                   VariableDesc('x', dimensions=[DimensionDesc('x')])]
         actual = VariableDesc.unique(indata)
         expected = OrderedDict([(indata[0].name, indata[0])])
@@ -421,7 +421,7 @@ class VariableDescTests(unittest.TestCase):
         self.assertEqual(actual, expected, 'VariableDesc.unique failes with all-same list')
 
     def test_unique_same_names_diff_dims(self):
-        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]), 
+        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]),
                   VariableDesc('x', dimensions=[DimensionDesc('y')])]
         expected = ValueError
         print_test_message('VariableDesc.unique()', input=indata, expected=expected)
@@ -435,7 +435,7 @@ class FileDescTests(unittest.TestCase):
     """
     Unit Tests for the pyconform.datasets module
     """
-    
+
     def test_type(self):
         indata = 'test.nc'
         fdesc = FileDesc(indata)
@@ -495,7 +495,7 @@ class FileDescTests(unittest.TestCase):
         print_test_message('FileDesc.format == {}'.format(expected),
                            input=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'FileDesc.format failed')
-        
+
     def test_format_invalid(self):
         indata = 'STUFF'
         expected = TypeError
@@ -526,7 +526,7 @@ class FileDescTests(unittest.TestCase):
         print_test_message('FileDesc.attributes == {}'.format(expected),
                            input=indata, expected=expected)
         self.assertRaises(expected, FileDesc, 'test.nc', attributes=indata)
-    
+
     def test_variables_scalar(self):
         indata = [VariableDesc('a'), VariableDesc('b')]
         fdesc = FileDesc('test.nc', variables=indata)
@@ -555,8 +555,8 @@ class FileDescTests(unittest.TestCase):
         expected = OrderedDict([(adim.name, adim)])
         print_test_message('FileDesc.dimensions', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
-                
-        
+
+
 #=========================================================================
 # DatasetDescTests - Tests for the datasets module
 #=========================================================================
@@ -663,6 +663,7 @@ class DatasetDescTests(unittest.TestCase):
         fdict['filename'] = 'var1.nc'
         fdict['format'] = 'NETCDF4'
         fdict['attributes'] = {'A': 'some attribute', 'B': 'another attribute'}
+        fdict['metavars'] = ['W']
         vdicts['V1']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
@@ -698,28 +699,87 @@ class DatasetDescTests(unittest.TestCase):
         ds = DatasetDesc()
         actual = type(ds)
         expected = DatasetDesc
-        print_test_message('type(DatasetDesc)',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'DatasetDesc has wrong type')
+        print_test_message('type(DatasetDesc)', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'DatasetDesc has wrong type')
 
     def test_input_dataset_type(self):
         inds = InputDatasetDesc('myinds', self.filenames.values())
         actual = type(inds)
         expected = InputDatasetDesc
-        print_test_message('type(InputDatasetDesc)',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'InputDatasetDesc has wrong type')
+        print_test_message('type(InputDatasetDesc)', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'InputDatasetDesc has wrong type')
+
+    def test_input_dataset_files(self):
+        inds = InputDatasetDesc('myinds', self.filenames.values())
+        actual = sorted(inds.files.keys())
+        expected = sorted(self.filenames.values())
+        print_test_message('InputDatasetDesc.files', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'InputDatasetDesc has wrong files')
+
+    def test_input_dataset_variables(self):
+        inds = InputDatasetDesc('myinds', self.filenames.values())
+        actual = sorted(inds.variables.keys())
+        expected = sorted(self.vdat.keys())
+        print_test_message('InputDatasetDesc.variables', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'InputDatasetDesc has wrong variables')
+
+    def test_input_dataset_variable_files(self):
+        inds = InputDatasetDesc('myinds', self.filenames.values())
+        actual = {v.name:v.files.keys() for v in inds.variables.itervalues()}
+        expected = {'lat': ['u1.nc', 'u2.nc'],
+                    'lon': ['u1.nc', 'u2.nc'],
+                    'time': ['u1.nc', 'u2.nc'],
+                     'u1': ['u1.nc'],
+                     'u2': ['u2.nc']}
+        print_test_message('InputDatasetDesc.variables.files', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'InputDatasetDesc has wrong variable files')
+
+    def test_input_dataset_dimensions(self):
+        inds = InputDatasetDesc('myinds', self.filenames.values())
+        actual = sorted(inds.dimensions.keys())
+        expected = sorted(self.dims.keys())
+        print_test_message('InputDatasetDesc.dimensions', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'InputDatasetDesc has wrong dimensions')
 
     def test_output_dataset_type(self):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
         actual = type(outds)
         expected = OutputDatasetDesc
-        print_test_message('type(OutputDatasetDesc)',
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'OutputDatasetDesc has wrong type')
+        print_test_message('type(OutputDatasetDesc)', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong type')
+
+    def test_output_dataset_files(self):
+        outds = OutputDatasetDesc('myoutds', self.dsdict)
+        actual = sorted(outds.files.keys())
+        expected = sorted(['var1.nc', 'var2.nc'])
+        print_test_message('OutputDatasetDesc.files', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong files')
+
+    def test_output_dataset_variables(self):
+        outds = OutputDatasetDesc('myoutds', self.dsdict)
+        actual = sorted(outds.variables.keys())
+        expected = sorted(self.dsdict.keys())
+        print_test_message('OutputDatasetDesc.variables', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong variables')
+
+    def test_output_dataset_variable_files(self):
+        outds = OutputDatasetDesc('myoutds', self.dsdict)
+        actual = {v.name:v.files.keys() for v in outds.variables.itervalues()}
+        expected = {'X': ['var1.nc', 'var2.nc'],
+                    'Y': ['var1.nc', 'var2.nc'],
+                    'T': ['var1.nc', 'var2.nc'],
+                    'W': ['var1.nc'],
+                     'V1': ['var1.nc', 'var2.nc'],
+                     'V2': ['var2.nc']}
+        print_test_message('OutputDatasetDesc.variables.files', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong variable files')
+
+    def test_output_dataset_dimensions(self):
+        outds = OutputDatasetDesc('myoutds', self.dsdict)
+        actual = sorted(outds.dimensions.keys())
+        expected = sorted(['t', 'x', 'y', 'w'])
+        print_test_message('OutputDatasetDesc.dimensions', actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong dimensions')
 
 
 #===============================================================================

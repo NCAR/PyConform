@@ -119,7 +119,7 @@ class DimensionDesc(object):
             raise TypeError(err_msg)
         self._size = dd.size
         self._unlimited = dd.unlimited
-    
+
     def __eq__(self, other):
         if not isinstance(other, DimensionDesc):
             return False
@@ -130,13 +130,13 @@ class DimensionDesc(object):
         if self.unlimited != other.unlimited:
             return False
         return True
-    
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __str__(self):
         return '{!r} [{}{}]'.format(self.name, self.size, '+' if self.unlimited else '')
-    
+
     @staticmethod
     def unique(descs):
         """
@@ -202,6 +202,8 @@ class VariableDesc(object):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
         self._attributes = attributes
 
+        self._files = {}
+
     @property
     def name(self):
         """Name of the variable"""
@@ -221,6 +223,11 @@ class VariableDesc(object):
     def dimensions(self):
         """Dictionary of dimension descriptors for dimensions on which the variable depends"""
         return self._dimensions
+
+    @property
+    def files(self):
+        """Dictionary of file descriptors for files containing this variable"""
+        return self._files
 
     def __eq__(self, other):
         if not isinstance(other, VariableDesc):
@@ -246,6 +253,10 @@ class VariableDesc(object):
             strvals += ['   attributes:']
             for aname, avalue in self.attributes.iteritems():
                 strvals += ['      {}: {!r}'.format(aname, avalue)]
+        if len(self.files) > 0:
+            strvals += ['   files:']
+            for fname in self.files:
+                strvals += ['      {}'.format(fname)]
         return linesep.join(strvals)
 
     def units(self):
@@ -259,7 +270,7 @@ class VariableDesc(object):
     def cfunits(self):
         """Construct a cf_units.Unit object from the units/calendar attributes"""
         return Unit(self.units(), calendar=self.calendar())
-    
+
     @staticmethod
     def unique(descs):
         """
@@ -271,9 +282,8 @@ class VariableDesc(object):
         if not all([isinstance(d, VariableDesc) for d in descs]):
             err_msg = 'All arguments to unique must be VariableDesc objects: {}'.format(descs)
             raise TypeError(err_msg)
-        grp = _group_by_name_(*descs)
         ugrp = OrderedDict()
-        for name, ndescs in grp.iteritems():
+        for name, ndescs in _group_by_name_(*descs).iteritems():
             if len(ndescs) == 0:
                 err_msg = 'No VariableDesc objects found with given name {}'.format(name)
                 raise ValueError(err_msg)
@@ -324,16 +334,19 @@ class FileDesc(object):
             err_msg = ('Variables in file {!r} must be a list or tuple of type '
                        'VariableDesc').format(name)
             raise TypeError(err_msg)
-        
+
         dimensions = []
         for vdesc in variables:
             dimensions.extend(vdesc.dimensions.values())
         self._dimensions = DimensionDesc.unique(dimensions)
-        
+
         for vdesc in variables:
             for dname in vdesc.dimensions:
                 vdesc.dimensions[dname] = self._dimensions[dname]
         self._variables = VariableDesc.unique(variables)
+
+        for vdesc in self._variables.itervalues():
+            vdesc.files[name] = self
 
         if not isinstance(attributes, dict):
             err_msg = ('Attributes in file {!r} cannot be of type {!r}, needs to be a '
@@ -369,7 +382,7 @@ class FileDesc(object):
     def variables(self):
         """Dictionary of variable descriptors associated with the file"""
         return self._variables
-    
+
     def __eq__(self, other):
         if not isinstance(other, FileDesc):
             return False
@@ -379,11 +392,14 @@ class FileDesc(object):
             return False
         if self.variables.keys() != other.variables.keys():
             return False
+        for vname in self.variables:
+            if self.variables[vname] != other.variables[vname]:
+                return False
         return True
-    
+
     def __ne__(self, other):
         return not self.__eq__(other)
-    
+
     @staticmethod
     def unique(descs):
         """
@@ -395,9 +411,8 @@ class FileDesc(object):
         if not all([isinstance(d, FileDesc) for d in descs]):
             err_msg = 'All arguments to unique must be FileDesc objects: {}'.format(descs)
             raise TypeError(err_msg)
-        grp = _group_by_name_(*descs)
         ugrp = OrderedDict()
-        for name, ndescs in grp.iteritems():
+        for name, ndescs in _group_by_name_(*descs).iteritems():
             if len(ndescs) == 0:
                 err_msg = 'No FileDesc objects found with given name {}'.format(name)
                 raise ValueError(err_msg)
@@ -410,7 +425,7 @@ class FileDesc(object):
                     raise ValueError(err_msg)
                 ugrp[name] = ndescs[0]
         return ugrp
-        
+
 
 
 #===================================================================================================
@@ -446,29 +461,33 @@ class DatasetDesc(object):
             err_msg = ('File descriptors in DatasetDesc {!r} must be a list or tuple of type '
                        'FileDesc').format(name)
             raise TypeError(err_msg)
-        
+
         dimensions = []
         for fdesc in files:
             dimensions.extend(fdesc.dimensions.values())
         self._dimensions = DimensionDesc.unique(dimensions)
-        
+
         for fdesc in files:
             for dname in fdesc.dimensions:
                 fdesc.dimensions[dname] = self._dimensions[dname]
             for vdesc in fdesc.variables.itervalues():
                 for dname in vdesc.dimensions:
                     vdesc.dimensions[dname] = self._dimensions[dname]
-        
+
         variables = []
         for fdesc in files:
             variables.extend(fdesc.variables.values())
         self._variables = VariableDesc.unique(variables)
-        
+
         for fdesc in files:
             for vname in fdesc.variables:
                 fdesc.variables[vname] = self._variables[vname]
-        
+
         self._files = FileDesc.unique(files)
+
+        for fname, fdesc in self._files.iteritems():
+            for vdesc in fdesc.variables.itervalues():
+                vdesc.files[fname] = fdesc
 
     @property
     def name(self):
