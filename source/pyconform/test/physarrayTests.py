@@ -114,43 +114,6 @@ class PhysArrayTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_initial_shape_default(self):
-        nlist = range(3)
-        testname = 'PhysArray({}).initshape'.format(nlist)
-        X = physarray.PhysArray(nlist, name='X')
-        actual = X.initshape
-        expected = numpy.shape(nlist)
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_initial_shape_tuple(self):
-        nlist = range(3)
-        indata = (5,)
-        testname = 'PhysArray({}, initshape={!r}).initshape'.format(nlist, indata)
-        X = physarray.PhysArray(nlist, name='X', initshape=indata)
-        actual = X.initshape
-        expected = indata
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_initial_shape_getitem(self):
-        indata = physarray.PhysArray([1, 2, 3], name='X')
-        testname = 'X[0:1].initshape'.format(indata)
-        X = indata[0:1]
-        actual = X.initshape
-        expected = indata.initshape
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_initial_shape_getitem_eliminate_dim(self):
-        indata = physarray.PhysArray([[1, 2, 3], [4, 5, 6]], name='X')
-        testname = 'X[1, 0:2].initshape'.format(indata)
-        X = indata[1, 0:2]
-        actual = X.initshape
-        expected = indata.shape[1:2]
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
     def test_cast_name(self):
         indata = physarray.PhysArray([1, 2, 3], name='X')
         testname = 'PhysArray({}).dimensions'.format(indata)
@@ -202,24 +165,6 @@ class PhysArrayTests(unittest.TestCase):
         X = physarray.PhysArray(indata, dimensions=('y',))
         actual = X.dimensions
         expected = ('y',)
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_cast_initial_shape(self):
-        indata = physarray.PhysArray([1, 2, 3], name='X')
-        testname = 'PhysArray({}).initshape'.format(indata)
-        X = physarray.PhysArray(indata)
-        actual = X.initshape
-        expected = indata.initshape
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_cast_initial_shape_override(self):
-        indata = physarray.PhysArray([1, 2, 3], name='X')
-        testname = 'PhysArray({}, initshape=(5,)).initshape'.format(indata)
-        X = physarray.PhysArray(indata, initshape=(5,))
-        actual = X.initshape
-        expected = (5,)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 

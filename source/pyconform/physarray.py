@@ -43,7 +43,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None, initshape=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -68,13 +68,6 @@ class PhysArray(numpy.ma.MaskedArray):
                 obj.dimensions = tuple(range(len(numpy.shape(inarray))))
         else:
             obj.dimensions = dimensions
-
-        # Initial shape
-        if initshape is None:
-            if 'initshape' not in obj._optinfo:
-                obj._optinfo['initshape'] = numpy.shape(inarray)
-        else:
-            obj.initshape = initshape
 
         return obj
 
@@ -122,20 +115,6 @@ class PhysArray(numpy.ma.MaskedArray):
             raise ValueError('Dimensions must have same length as shape')
         self._optinfo['dimensions'] = tuple(dims)
 
-    @property
-    def initshape(self):
-        """Initial size of each dimension of the data"""
-        return self._optinfo['initshape']
-
-    @initshape.setter
-    def initshape(self, shape):
-        """Initial size of each dimension of the data"""
-        if not isinstance(shape, (list, tuple)):
-            raise TypeError('Initial shape must be a tuple')
-        if len(shape) != len(self.shape):
-            raise ValueError('Initial shape must have same length as shape')
-        self._optinfo['initshape'] = tuple(shape)
-
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
         if len(idx) == 0:
@@ -143,9 +122,7 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             dimensions = tuple(d for i, d in zip(idx, self.dimensions) if isinstance(i, slice))
             if dimensions != self.dimensions:
-                shape0 = tuple(s for i, s in zip(idx, self.initshape) if isinstance(i, slice))
-                return PhysArray(super(PhysArray, self).__getitem__(idx),
-                                 dimensions=dimensions, initshape=shape0)
+                return PhysArray(super(PhysArray, self).__getitem__(idx), dimensions=dimensions)
             else:
                 return super(PhysArray, self).__getitem__(idx)
 
@@ -170,8 +147,7 @@ class PhysArray(numpy.ma.MaskedArray):
             new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                              mask=obj.mask, dtype=obj.dtype)
             new_name = PhysArray._convert_name_(obj.name, units1, units2)
-            return PhysArray(new_array, name=new_name, units=units2,
-                             dimensions=obj.dimensions, initshape=obj.initshape)
+            return PhysArray(new_array, name=new_name, units=units2, dimensions=obj.dimensions)
         elif isinstance(obj, numpy.ma.MaskedArray):
             return numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                         mask=obj.mask, dtype=obj.dtype)
@@ -213,18 +189,15 @@ class PhysArray(numpy.ma.MaskedArray):
             dims = tuple(dims[0])
         if set(dims) == set(self.dimensions):
             new_dims = tuple(dims)
-            new_shp0 = tuple(self.initshape[self.dimensions.index(d)] for d in dims)
             axes = tuple(self.dimensions.index(d) for d in dims)
         elif set(dims) == set(range(self.ndim)):
             new_dims = tuple(self.dimensions[i] for i in dims)
-            new_shp0 = tuple(self.initshape[i] for i in dims)
             axes = dims
         else:
             raise DimensionsError(('Cannot transpose dimensions/axes {} to '
                                    '{}').format(self.dimensions, dims))
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
-                         name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims),
-                         initshape=new_shp0)
+                         name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims))
 
     def _transpose_scalar_check_(self, obj):
         if self.dimensions == () or obj.dimensions == () or self.dimensions == obj.dimensions:
@@ -234,14 +207,14 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def _return_dim_shape_(self, other):
         if self.dimensions == ():
-            return other.dimensions, other.initshape
+            return other.dimensions
         else:
-            return self.dimensions, self.initshape
+            return self.dimensions
 
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims, initshape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, initshape=initshape,
+        dims = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims,
                          units=self.units, name='({}+{})'.format(self.name, other.name))
 
     def __radd__(self, other):
@@ -253,8 +226,8 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __sub__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims, initshape = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, initshape=initshape,
+        dims = self._return_dim_shape_(other)
+        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims,
                          units=self.units, name='({}-{})'.format(self.name, other.name))
 
     def __rsub__(self, other):
@@ -284,19 +257,17 @@ class PhysArray(numpy.ma.MaskedArray):
         rsyms = ''.join(symbol_map[d] for d in other.dimensions)
         visited = set()
         common_dims = ()
-        initshape = ()
-        for d, s in zip(self.dimensions + other.dimensions, self.initshape + other.initshape):
+        for d in (self.dimensions + other.dimensions):
             if d in visited:
                 continue
             visited.add(d)
             common_dims += (d,)
-            initshape += (s,)
         osyms = ''.join(symbol_map[d] for d in common_dims)
         expr = '{},{}->{}'.format(lsyms, rsyms, osyms)
         ounits = self._op_units_(other.units, mul)
         return PhysArray(numpy.ma.MaskedArray(numpy.einsum(expr, self, other),
                                               mask=self.mask + other.mask),
-                         dimensions=common_dims, initshape=initshape, units=ounits,
+                         dimensions=common_dims, units=ounits,
                          name='({}*{})'.format(self.name, other.name))
 
     def __mul__(self, other):
@@ -311,7 +282,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def invert(self):
         return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
-                         initshape=self.initshape, name='(1/{!s})'.format(self))
+                         name='(1/{!s})'.format(self))
 
     def __div__(self, other):
         data = self._common_dim_multiply_(PhysArray(other).invert())
@@ -328,7 +299,7 @@ class PhysArray(numpy.ma.MaskedArray):
     def __floordiv__(self, other):
         data = self._common_dim_multiply_(PhysArray(other).invert())
         return PhysArray(numpy.ma.floor(data.data), dimensions=data.dimensions, units=data.units,
-                         initshape=data.initshape, name='({!s}//{!s})'.format(self, other))
+                         name='({!s}//{!s})'.format(self, other))
 
     def __rfloordiv__(self, other):
         return PhysArray(other).__floordiv__(self)
@@ -349,9 +320,9 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __mod__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
-        dims, initshape = self._return_dim_shape_(other)
+        dims = self._return_dim_shape_(other)
         return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims,
-                         initshape=initshape, name='({!s}%{!s})'.format(self, other))
+                         name='({!s}%{!s})'.format(self, other))
 
     def __rmod__(self, other):
         return PhysArray(other).__mod__(self)

@@ -200,17 +200,11 @@ class ReadNode(FlowNode):
             # Get the dimensions after application of the first index
             dimensions1 = tuple(d for d, i in zip(dimensions0, index1) if isinstance(i, slice))
 
-            # Compute the original shape after potential dimension reduction
-            shape1 = tuple(s for s, i in zip(shape0, index1) if isinstance(i, slice))
-
             # Align the second index on the intermediate dimensions
             index2 = align_index(index, dimensions1)
 
             # Get the dimensions after application of the second index
             dimensions2 = tuple(d for d, i in zip(dimensions1, index2) if isinstance(i, slice))
-
-            # Compute the original shape after potential dimension reduction
-            shape2 = tuple(s for s, i in zip(shape1, index2) if isinstance(i, slice))
 
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
@@ -227,7 +221,7 @@ class ReadNode(FlowNode):
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
 
-        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, initshape=shape2)
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2)
 
 
 #===================================================================================================
