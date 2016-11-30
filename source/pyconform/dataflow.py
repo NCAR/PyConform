@@ -65,7 +65,7 @@ class DataFlow(object):
             else:
                 datvars[vname] = vdesc
 
-        # Create a dictionary to store "source" DataNodes from 'data' attributes
+        # Create a dictionary to store DataNodes from variables with data 'definitions'
         self._datnodes = {}
         for vname, vdesc in datvars.iteritems():
             vdata = numpy.array(vdesc.definition, dtype=vdesc.datatype)
@@ -74,22 +74,22 @@ class DataFlow(object):
             varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
             self._datnodes[vname] = DataNode(varray)
 
-        # Create a dictionary to store "output variable" DataNodes from string 'definitions'
+        # Create a dictionary to store FlowNodes for variables with string 'definitions'
         self._defnodes = {}
         for vname, vdesc in defvars.iteritems():
             self._defnodes[vname] = self._construct_flow_(parse_definition(vdesc.definition))
 
-        # Gather information about each FlowNode's data (empty PhysArrays)
+        # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
 
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
         nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname)
                                 for vname in self._defnodes))[1]
-        
+
         # Now, we construct the dimension maps
         self._i2omap = {}
-        self._o2imap = {}        
+        self._o2imap = {}
         for vname in nodeorder:
             out_dims = self._ods.variables[vname].dimensions.keys()
             inp_dims = definfos[vname].dimensions
@@ -112,12 +112,10 @@ class DataFlow(object):
             if not ddesc.is_set():
                 ddesc.set(self._ids.dimensions[self._o2imap[dname]])
 
-        # Append the necessary dimension mapping to all string-defined nodes
+        # Append a MapNode to all string-defined nodes (map dimension names)
         for vname in self._defnodes:
             dnode = self._defnodes[vname]
             dinfo = definfos[vname]
-
-            # Map dimensions from input namespace to output namespace
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
             self._defnodes[vname] = MapNode(name, dnode, self._i2omap)
@@ -139,19 +137,14 @@ class DataFlow(object):
         writenodes = {}
         for fname, fdesc in self._ods.files.iteritems():
             vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys())
-            unlimited = tuple(self._i2omap[d] for d in self._ids.dimensions
-                              if self._ids.dimensions[d].unlimited)
-            attribs = OrderedDict((k, v) for k, v in fdesc.attributes.iteritems())
-            writenodes[fname] = WriteNode(fname, inputs=vnodes, unlimited=unlimited,
-                                          attributes=attribs)
+            writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
         self._writenodes = writenodes
 
         # Compute the bytesizes of each output variable
         bytesizes = {}
         for vname, vdesc in self._ods.variables.iteritems():
             vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
-            if vsize == 0:
-                vsize = 1
+            vsize = 1 if vsize == 0 else vsize
             bytesizes[vname] = vsize * numpy.dtype(vdesc.datatype).itemsize
 
         # Compute the file sizes for each output file
@@ -163,11 +156,7 @@ class DataFlow(object):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._ids.variables:
-                vfiles = [fname for fname, fdesc in self._ids.files.iteritems()
-                          if vname in fdesc.variables]
-                if len(vfiles) < 1:
-                    raise ValueError('Variable {!r} cannot be found in any input file'.format(vname))
-                return ReadNode(vfiles[0], vname, index=obj.args)
+                return ReadNode(self._ids.variables[vname], index=obj.args)
 
             elif vname in self._datnodes:
                 return self._datnodes[vname]
