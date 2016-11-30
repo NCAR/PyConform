@@ -605,14 +605,24 @@ class WriteNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        x = DataNode(PhysArray(numpy.arange(-5, 10), name='X', units='m', dimensions=('x',)))
-        self.x = ValidateNode('X', x, attributes={'xa1': 'x attribute 1', 'xa2': 'x attribute 2'})
-        y = DataNode(PhysArray(numpy.arange(0, 8), name='Y', units='m', dimensions=('y',)))
-        self.y = ValidateNode('Y', y, attributes={'ya1': 'y attribute 1', 'ya2': 'y attribute 2'})
-        vdata = numpy.arange(15 * 8, dtype=numpy.float64).reshape((15, 8))
-        v = DataNode(PhysArray(vdata, name='V', units='K', dimensions=('x', 'y')))
-        self.v = ValidateNode('V', v, attributes={'va1': 'v attribute 1', 'va2': 'v attribute 2'})
-        self.vars = [self.x, self.y, self.v]
+        xdata = PhysArray(numpy.arange(-5, 10), name='X', units='m', dimensions=('x',))
+        ydata = PhysArray(numpy.arange(0, 8), name='Y', units='m', dimensions=('y',))
+        vdata = PhysArray(xdata * ydata, name='V', units='K')
+
+        self.data = {'X': xdata, 'Y': ydata, 'V': vdata}
+        self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2'},
+                     'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2'},
+                     'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2'}}
+        self.nodes = {n:ValidateNode(n, DataNode(self.data[n]), attributes=self.atts[n])
+                      for n in self.data}
+
+
+        dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues()
+                    for n, s in zip(x.dimensions, x.shape)}
+        vardescs = {n:VariableDesc(n, datatype=str(self.data[n].dtype), attributes=self.atts[n],
+                                   dimensions=[dimdescs[d] for d in self.data[n].dimensions])
+                    for n in self.data}
+        self.vardescs = vardescs
 
     def tearDown(self):
         for fname in glob('*.nc'):
@@ -621,7 +631,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_init(self):
         filename = 'test.nc'
         testname = 'WriteNode.__init__({})'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values())
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = type(N)
         expected = WriteNode
         print_test_message(testname, actual=actual, expected=expected)
@@ -630,7 +641,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_all(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -639,7 +651,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -648,7 +661,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_1D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
         expected = [slice(None)]
         print_test_message(testname, actual=actual, expected=expected)
@@ -657,7 +671,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(2, None), 'y': slice(0, 3)},
@@ -669,7 +684,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
         expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
         print_test_message(testname, actual=actual, expected=expected)
@@ -678,7 +694,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_chunk_iter_2D_reverse(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
         expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
                     {'x': slice(0, 2), 'y': slice(3, None)},
@@ -690,7 +707,8 @@ class WriteNodeTests(unittest.TestCase):
     def test_execute_simple(self):
         filename = 'v_x_y_simple.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         N.execute()
         actual = exists(filename)
         expected = True
@@ -704,7 +722,8 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_1D.nc'
         chunks = {'x': 6}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -718,7 +737,8 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
@@ -732,7 +752,8 @@ class WriteNodeTests(unittest.TestCase):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3, 'z': 7}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
-        N = WriteNode(filename, inputs=self.vars, attributes={'ga': 'global attribute'})
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
         N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True

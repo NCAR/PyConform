@@ -404,7 +404,7 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes=OrderedDict()):
+    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
         """
         Initializer
         
@@ -413,9 +413,8 @@ class ValidateNode(FlowNode):
             dnode (FlowNode): FlowNode that provides input into this FlowNode
             units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
-            dtype (dtype): The Numpy dtype of the data to return
-            attributes: Additional named arguments corresponding to additional attributes
-                to which to associate with the new variable
+            dtype (dtype): The NumPy dtype of the data to return
+            attributes (dict): Attributes to associate with the new variable
         """
         # Check FlowNode type
         if not isinstance(dnode, FlowNode):
@@ -536,41 +535,38 @@ class WriteNode(FlowNode):
     method to write data efficiently once (and only once).
     """
 
-    def __init__(self, filename, inputs=(), unlimited=(), attributes=OrderedDict()):
+    def __init__(self, filedesc, inputs=()):
         """
         Initializer
         
         Parameters:
-            filename (str): Name of the file to write
+            filedesc (FileDesc): File descriptor for the file to write
             inputs (tuple): A tuple of ValidateNodes providing input into the file
-            unlimited (tuple): A tuple of dimensions that should be written as unlimited dimensions
-            attributes (dict): Dictionary of global attributes to write to the file
         """
         # Check filename
-        if not isinstance(filename, basestring):
-            raise TypeError('Filename must be of string type')
+        if not isinstance(filedesc, FileDesc):
+            raise TypeError('File descriptor must be of FileDesc type')
 
         # Check and store input variables nodes
         if not isinstance(inputs, (list, tuple)):
             raise TypeError(('WriteNode {!r} inputs must be given as a list or '
-                             'tuple').format(filename))
+                             'tuple').format(filedesc.name))
         for inp in inputs:
             if not isinstance(inp, ValidateNode):
                 raise TypeError(('WriteNode {!r} cannot accept input from type {}, must be a '
-                                 'ValidateNode').format(filename, type(inp)))
+                                 'ValidateNode').format(filedesc.name, type(inp)))
 
         # Call base class (label is filename)
-        super(WriteNode, self).__init__(filename, *inputs)
+        super(WriteNode, self).__init__(filedesc.name, *inputs)
 
-        # Grab the unlimited dimensions parameter and check type
-        if not isinstance(unlimited, (list, tuple)):
-            raise TypeError('Unlimited dimensions must be given as a tuple')
-        self._unlimited = unlimited
+        # Store the file descriptor for use later
+        self._filedesc = filedesc
 
-        # Save the global attributes
-        if not isinstance(attributes, dict):
-            raise TypeError('WriteNode {!r} attributes must be given as a dict'.format(filename))
-        self._attributes = attributes
+        # Check that inputs are contained in the file descriptor
+        for inp in inputs:
+            if inp.label not in self._filedesc.variables:
+                raise ValueError(('WriteNode {!r} takes input from variable {!r} that is not '
+                                  'contained in the descibed file').format(filedesc.name, inp.label))
 
         # Set the filehandle
         self._file = None
@@ -603,40 +599,30 @@ class WriteNode(FlowNode):
                 raise IOError('Failed to open output file {!r}'.format(self.label))
 
             # Write the global attributes
-            self._file.setncatts(self._attributes)
-
-            # Generate and collect information for each input data object
-            self._vinfos = {i.label: i[None] for i in self.inputs}
-
-            # Collect the dimension sizes from the initialshape parameter of the input data
-            req_dims = {}
-            for vinfo in self._vinfos.itervalues():
-                for dname, dsize in zip(vinfo.dimensions, vinfo.initshape):
-                    if dname not in req_dims:
-                        req_dims[dname] = dsize
-                    elif req_dims[dname] != dsize:
-                        raise RuntimeError(('Dimension {!r} has inconsistent size: '
-                                            '{}, {}').format(dname, req_dims[dname], dsize))
+            self._file.setncatts(self._filedesc.attributes)
 
             # Create the required dimensions for the variable
-            for dname, dsize in req_dims.iteritems():
-                if dname in self._unlimited:
+            for dname, ddesc in self._filedesc.dimensions.iteritems():
+                if not ddesc.is_set():
+                    raise RuntimeError(('Cannot create unset dimension {!r} in file '
+                                        '{!r}').format(dname, self.label))
+                if ddesc.unlimited:
                     self._file.createDimension(dname)
                 else:
-                    self._file.createDimension(dname, dsize)
+                    self._file.createDimension(dname, ddesc.size)
 
             # Create the variables and write their attributes
             for vnode in self.inputs:
                 vname = vnode.label
-                vinfo = self._vinfos[vname]
+                vdesc = self._filedesc.variables[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
                 fill_value = vattrs.pop('_FillValue', None)
-                ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
+                ncvar = self._file.createVariable(vname, vdesc.datatype, vdesc.dimensions.keys(),
                                                   fill_value=fill_value)
                 for aname, avalue in vattrs.iteritems():
                     ncvar.setncattr(aname, avalue)
                 if provenance:
-                    ncvar.setncattr('conform_prov', vinfo.name)
+                    ncvar.setncattr('conform_prov', vnode[None].name)
 
     def close(self):
         """
@@ -644,7 +630,6 @@ class WriteNode(FlowNode):
         """
         if self._file is not None:
             self._file.close()
-            self._vinfos = {}
             self._file = None
 
     @staticmethod
@@ -704,13 +689,15 @@ class WriteNode(FlowNode):
             vname = vnode.label
 
             # Get the header information for this variable node
-            vinfo = self._vinfos[vname]
+            vdesc = self._filedesc.variables[vname]
+            vdims = vdesc.dimensions.keys()
+            vshape = [d.size for d in vdesc.dimensions.itervalues()]
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
             # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape, chunks):
+            for chunk in WriteNode._chunk_iter_(vdims, vshape, chunks):
                 ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
 
         # Close the file after completion
