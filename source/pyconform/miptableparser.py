@@ -365,6 +365,7 @@ class ParseXML(object):
 
         e_mip = []
         e_id = dq.inx.experiment.label[exp]
+        activity_id = dq.inx.uid[e_id[0]].mip
         e_vars = dq.inx.iref_by_sect[e_id[0]].a
         total_request = {}
         for ri in e_vars['requestItem']:
@@ -382,7 +383,7 @@ class ParseXML(object):
                 table_info['experiment'] = exp
                 table_info['experiment_id'] = exp
                 table_info['data_specs_version'] = dreq.version
-                table_info['activity_id'] = dr.mip
+                table_info['activity_id'] = activity_id
 
 
                 rl = dq.inx.requestLink.uid[dr.rlid]
@@ -494,8 +495,10 @@ class ParseXML(object):
                                         if d not in axes_list and d != '' and d != 'None':
                                             if 'copy' not in var['id'] and '?' not in d:
                                                 axes_list.append(d) 
-                            if var['coordinates'][-1] == '|':
-                                var['coordinates'] = var['coordinates'][:-1] 
+                            if 'coordinates' in var.keys(): 
+                                if len(var['coordinates']) > 1:
+                                    if var['coordinates'][-1] == '|':
+                                        var['coordinates'] = var['coordinates'][:-1] 
 
 	                    # Set what we can from the variable section
                             if hasattr(c_var, 'vid'):
