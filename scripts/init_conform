@@ -267,7 +267,8 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
         for v,d in variables.iteritems():
             if v in definitions.keys():
                 var_list[v] = defineVar(d, v, attributes, definitions[v], experiment)
-                ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]
+                realm = d["realm"].replace(' ','_')
+                ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
                     TableSpec[ts_key] = {}
                 TableSpec[ts_key][v] = var_list[v]
