@@ -6,7 +6,7 @@ This is the command-line interface to the PyConform tool.  It takes input from
 the command-line directly, and from an "output specification" file, which
 defines the output dataset entirely.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

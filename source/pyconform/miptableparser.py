@@ -1,3 +1,10 @@
+"""
+MIP Table Parser
+
+Copyright 2017, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
 import sys
 
 #=============================================

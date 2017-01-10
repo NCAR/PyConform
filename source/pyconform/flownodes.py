@@ -3,7 +3,7 @@ Data Flow Node Classes and Functions
 
 This module contains the classes and functions needed to define nodes in Data Flows.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

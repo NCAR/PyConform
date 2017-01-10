@@ -12,7 +12,7 @@ graph edges is assumed to a Numpy.NDArray-like object.
 The action associated with each node is not performed until the data is
 "requested" with the __getitem__ interface, via Node[key].  
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

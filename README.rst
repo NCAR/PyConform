@@ -5,7 +5,7 @@ A package for transforming a NetCDF dataset into a defined format
 suitable for publication according to a defined publication standard.
 
 :AUTHORS: Sheri Mickelson, Kevin Paul
-:COPYRIGHT: 2016, University Corporation for Atmospheric Research
+:Copyright 2017, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu) or
