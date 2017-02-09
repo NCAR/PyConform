@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-genspecs
+cmip5_patterns
 
-Command-Line Utility to generate specfiles from a set of "correct" output files
+Command-Line Utility to read the CMIP5 data file patterns and write them to file.
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -14,7 +14,6 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
-__PARSER__.add_argument('-o', '--output', help='Name of the output specfile')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
@@ -48,8 +47,30 @@ def main(argv=None):
     if inst != 'NCAR' and model != 'CCSM4':
         raise ValueError('Root appears to be malformed')
     
+    # Standard output
     print 'Institution: {}'.format(inst)
     print 'Model: {}'.format(model)
+    
+    # Fill out a list of CMIP5 directory patterns found on disk
+    ncvars = []
+    for expt in listdir(ROOT):
+        for freq in listdir(pjoin(ROOT, expt)):
+            for realm in listdir(pjoin(ROOT, expt, freq)):
+                for table in listdir(pjoin(ROOT, expt, freq, realm)):
+                    
+                    # Pick an ensemble member (doesn't matter which)
+                    ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
+    
+                    # Find list of all latest-version variables
+                    vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
+                    
+                    ncvars.append([expt, freq, realm, table, ens, vars])
+    
+    # Save to file
+    with open('cmip5_patterns.txt') as f:
+        for ncvar in ncvars:
+            line = ', '.join(ncvar)
+            f.write(line)
         
 
 #===================================================================================================
