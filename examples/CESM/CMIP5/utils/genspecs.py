@@ -9,7 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from glob import glob
-from os import listdir
+from os import listdir, linesep
 from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
@@ -42,12 +42,22 @@ def main(argv=None):
 
     # Assume that ROOT directory is of the form:
     # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>
+    root, inst, model, expmnt, freq, realm, table = ROOT.rsplit('/', 6)
+    
+    # Check for consistency
+    if inst != 'NCAR' and model != 'CCSM4':
+        raise ValueError('Root appears to be malformed')
+    
+    print 'Experiment: {}'.format(expmnt)
+    print 'Table: {}'.format(table)
     
     # Pick an ensemble member (doesn't matter which)
     ens = listdir(pjoin(ROOT))[0]
     
     # Find all files for the 'latest' version
     ncfiles = glob(pjoin(ROOT, ens, 'latest', '*', '*.nc'))
+    print linesep.join(ncfiles)
+    
     
 
 #===================================================================================================
