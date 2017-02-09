@@ -41,22 +41,37 @@ def main(argv=None):
         raise ValueError('Root must be a directory')
 
     # Assume that ROOT directory is of the form:
-    # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>
-    root, inst, model, expmnt, freq, realm, table = ROOT.rsplit('/', 6)
+    # ROOT = <root>/<institution>/<model>
+    root, inst, model = ROOT.rsplit('/', 2)
     
     # Check for consistency
     if inst != 'NCAR' and model != 'CCSM4':
         raise ValueError('Root appears to be malformed')
     
-    print 'Experiment: {}'.format(expmnt)
-    print 'Table: {}'.format(table)
+    print 'Institution: {}'.format(inst)
+    print 'Model: {}'.format(model)
     
-    # Pick an ensemble member (doesn't matter which)
-    ens = listdir(pjoin(ROOT))[0]
+    # Fill out a dictionary of experiment:table:variables
+    mipvars = {expt:{} for expt in listdir(ROOT)}
+    for expt in mipvars:
+        for freq in listdir(pjoin(ROOT, expt)):
+            for realm in listdir(pjoin(ROOT, expt, freq)):
+                for table in listdir(pjoin(ROOT, expt, freq, realm)):
+                    
+                    if table not in mipvars[expt]:
+                        mipvars[expt] = {table: set()}
+
+                    # Pick an ensemble member (doesn't matter which)
+                    ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
     
-    # Find all files for the 'latest' version
-    ncfiles = glob(pjoin(ROOT, ens, 'latest', '*', '*.nc'))
-    print linesep.join(ncfiles)
+                    # Find list of all latest-version variables
+                    vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
+                    
+                    # Add vars to table
+                    for var in vars:
+                        mipvars[expt][table].add(var)
+
+    print mipvars
     
     
 
