@@ -69,7 +69,7 @@ def main(argv=None):
     # Save to file
     with open('cmip5_patterns.txt', 'w') as f:
         for ncvar in ncvars:
-            line = ', '.join(ncvar)
+            line = ' '.join(ncvar)
             f.write(line + linesep)
         
 

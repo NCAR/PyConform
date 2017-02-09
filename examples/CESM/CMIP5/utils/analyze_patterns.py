@@ -2,7 +2,7 @@
 """
 cmip5_patterns
 
-Command-Line Utility to read the CMIP5 data file patterns and write them to file.
+Command-Line Utility to analyze file-directory patterns in CMIP5 data
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -10,11 +10,11 @@ LICENSE: See the LICENSE.rst file for details
 
 from glob import glob
 from os import listdir, linesep
-from os.path import isdir, join as pjoin
+from os.path import isfile, join as pjoin
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
-__PARSER__.add_argument('root', help='Root directory where output files can be found')
+__PARSER__ = ArgumentParser(description='Analyze file-directory patters of CMIP5 data')
+__PARSER__.add_argument('patterns', help='The text file containing all file-directory patterns')
 
 #===================================================================================================
 # cli - Command-Line Interface
@@ -35,42 +35,12 @@ def main(argv=None):
     """
     args = cli(argv)
 
-    ROOT = args.root.rstrip('/')
-    if not isdir(ROOT):
-        raise ValueError('Root must be a directory')
+    if not isfile(args.patterns):
+        raise ValueError('Patterns file not found')
 
-    # Assume that ROOT directory is of the form:
-    # ROOT = <root>/<institution>/<model>
-    root, inst, model = ROOT.rsplit('/', 2)
-    
-    # Check for consistency
-    if inst != 'NCAR' and model != 'CCSM4':
-        raise ValueError('Root appears to be malformed')
-    
-    # Standard output
-    print 'Institution: {}'.format(inst)
-    print 'Model: {}'.format(model)
-    
-    # Fill out a list of CMIP5 directory patterns found on disk
-    ncvars = []
-    for expt in listdir(ROOT):
-        for freq in listdir(pjoin(ROOT, expt)):
-            for realm in listdir(pjoin(ROOT, expt, freq)):
-                for table in listdir(pjoin(ROOT, expt, freq, realm)):
-                    
-                    # Pick an ensemble member (doesn't matter which)
-                    ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
-    
-                    # Find list of all latest-version variables
-                    vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
-                    
-                    ncvars.append([expt, freq, realm, table, ens, vars])
-    
-    # Save to file
+    # Read the patterns file
     with open('cmip5_patterns.txt') as f:
-        for ncvar in ncvars:
-            line = ', '.join(ncvar)
-            f.write(line)
+        ncvars = [line.split() for line in f]
                     
     # Analyze freq/realm/table correlations
     frtcorr = {}
