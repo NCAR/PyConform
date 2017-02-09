@@ -50,13 +50,18 @@ def main(argv=None):
     
     print 'Institution: {}'.format(inst)
     print 'Model: {}'.format(model)
+    print
     
     # Fill out a dictionary of experiment:table:variables
     mipvars = {expt:{} for expt in listdir(ROOT)}
     for expt in mipvars:
+        print 'Experiment: {}'.format(expt)
         for freq in listdir(pjoin(ROOT, expt)):
+            print '  Frequency: {}'.format(freq)
             for realm in listdir(pjoin(ROOT, expt, freq)):
+                print '    Realm: {}'.format(realm)
                 for table in listdir(pjoin(ROOT, expt, freq, realm)):
+                    print '      Table: {}'.format(table)
                     
                     if table not in mipvars[expt]:
                         mipvars[expt] = {table: set()}
@@ -70,6 +75,8 @@ def main(argv=None):
                     # Add vars to table
                     for var in vars:
                         mipvars[expt][table].add(var)
+
+                    print '        Vars: {}'.format(','.join(sorted(mipvars[expt][table])))
 
     print mipvars
     
