@@ -8,9 +8,8 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from fnmatch import filter
-from os import walk
-from os.path import isdir, join
+from glob import glob
+from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
@@ -35,16 +34,15 @@ def main(argv=None):
     Main program
     """
     args = cli(argv)
-    
-    if not isdir(args.root):
+
+    ROOT = args.root.rstrip('/')
+    if not isdir(ROOT):
         raise ValueError('Root must be a directory')
+
+    # Assume that ROOT directory is of the form:
+    # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>
     
-    for root, dirnames, filenames in walk(args.root):
-        print dirnames
-        print filenames
-        print
-#         for filename in filter(filenames, '*.nc'):
-#             print filename)
+    ncfiles = glob(pjoin(ROOT, '*', 'latest', '*', '*.nc'))
     
 
 #===================================================================================================
