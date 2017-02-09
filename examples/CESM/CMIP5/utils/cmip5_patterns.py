@@ -67,7 +67,7 @@ def main(argv=None):
                     ncvars.append([expt, freq, realm, table, ens, vars])
     
     # Save to file
-    with open('cmip5_patterns.txt') as f:
+    with open('cmip5_patterns.txt', 'w') as f:
         for ncvar in ncvars:
             line = ', '.join(ncvar)
             f.write(line)
