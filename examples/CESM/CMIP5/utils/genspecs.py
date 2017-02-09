@@ -71,10 +71,21 @@ def main(argv=None):
                     
                     ncvars.append([expt, freq, realm, table, ens, vars])
                     
+    # Analyze freq/realm/table correlations
+    tables = {}
+    for ncvar in ncvars:
+        ttuple = tuple(ncvar[1:4])
+        table = ttuple[-1]
+        if table in tables:
+            tables[table].add(ttuple)
+        else:
+            tables[table] = {ttuple}
 
-    print ncvars[:-1]
-    
-    
+    print
+    for table in tables:
+        if len(tables[table]) > 1:
+            print "Table {}:  {}".format(table,' / '.join(tables[table]))
+        
 
 #===================================================================================================
 # Command-line Operation
