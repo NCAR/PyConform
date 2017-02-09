@@ -9,6 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from glob import glob
+from os import listdir
 from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
@@ -42,7 +43,11 @@ def main(argv=None):
     # Assume that ROOT directory is of the form:
     # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>
     
-    ncfiles = glob(pjoin(ROOT, '*', 'latest', '*', '*.nc'))
+    # Pick an ensemble member (doesn't matter which)
+    ens = listdir(pjoin(ROOT))[0]
+    
+    # Find all files for the 'latest' version
+    ncfiles = glob(pjoin(ROOT, ens, 'latest', '*', '*.nc'))
     
 
 #===================================================================================================
