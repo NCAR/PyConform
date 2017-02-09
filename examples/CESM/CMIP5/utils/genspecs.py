@@ -69,7 +69,8 @@ def main(argv=None):
                     # Find list of all latest-version variables
                     vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
                     
-                    ncvar = [expt, freq, realm, table, ens, vars]
+                    ncvars.append([expt, freq, realm, table, ens, vars])
+                    
 
     print ncvars[:-1]
     
