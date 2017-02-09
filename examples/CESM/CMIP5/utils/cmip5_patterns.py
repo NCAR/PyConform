@@ -2,7 +2,7 @@
 """
 cmip5_patterns
 
-Command-Line Utility to read the CMIP5 data file patterns and write them to file.
+Command-Line Utility to write all CMIP5 file directory patterns to a file
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -13,7 +13,7 @@ from os import listdir, linesep
 from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
+__PARSER__ = ArgumentParser(description='Write file-directory patterns of CMIP5 data to file')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
