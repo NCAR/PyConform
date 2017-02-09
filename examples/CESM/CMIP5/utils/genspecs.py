@@ -55,13 +55,9 @@ def main(argv=None):
     # Fill out a dictionary of experiment:table:variables
     ncvars = []
     for expt in listdir(ROOT):
-        print 'Experiment: {}'.format(expt)
         for freq in listdir(pjoin(ROOT, expt)):
-            print '  Frequency: {}'.format(freq)
             for realm in listdir(pjoin(ROOT, expt, freq)):
-                print '    Realm: {}'.format(realm)
                 for table in listdir(pjoin(ROOT, expt, freq, realm)):
-                    print '      Table: {}'.format(table)
                     
                     # Pick an ensemble member (doesn't matter which)
                     ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
@@ -72,19 +68,37 @@ def main(argv=None):
                     ncvars.append([expt, freq, realm, table, ens, vars])
                     
     # Analyze freq/realm/table correlations
-    tables = {}
+    frtcorr = {}
     for ncvar in ncvars:
-        ttuple = tuple(ncvar[1:4])
-        table = ttuple[-1]
-        if table in tables:
-            tables[table].add(ttuple)
+        frt = tuple(ncvar[1:4])
+        table = frt[-1]
+        if table in frtcorr:
+            frtcorr[table].add(frt)
         else:
-            tables[table] = {ttuple}
+            frtcorr[table] = {frt}
 
     print
-    for table in tables:
-        if len(tables[table]) > 1:
-            print "Table {}:  {}".format(table,', '.join('/'.join(tt) for tt in tables[table]))
+    print 'Tables with multiple freq/realm/table patterns:'
+    for table in frtcorr:
+        if len(frtcorr[table]) > 1:
+            print "  Table {}:  {}".format(table,', '.join('/'.join(frt) for frt in frtcorr[table]))
+    
+    # Analyze freq/table correlations
+    ftcorr = {}
+    for ncvar in ncvars:
+        ft = tuple(ncvar[1:4])
+        table = ft[-1]
+        if table in ftcorr:
+            ftcorr[table].add(ft)
+        else:
+            ftcorr[table] = {ft}
+
+    print
+    print 'Tables with multiple freq/table patterns:'
+    for table in ftcorr:
+        if len(ftcorr[table]) > 1:
+            print "  Table {}:  {}".format(table,', '.join('/'.join(ft) for ft in ftcorr[table]))
+    
         
 
 #===================================================================================================
