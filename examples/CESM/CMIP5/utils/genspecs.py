@@ -84,7 +84,7 @@ def main(argv=None):
     print
     for table in tables:
         if len(tables[table]) > 1:
-            print "Table {}:  {}".format(table,' / '.join(tables[table]))
+            print "Table {}:  {}".format(table,', '.join('/'.join(tt) for tt in tables[table]))
         
 
 #===================================================================================================
