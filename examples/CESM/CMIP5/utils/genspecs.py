@@ -53,8 +53,8 @@ def main(argv=None):
     print
     
     # Fill out a dictionary of experiment:table:variables
-    mipvars = {expt:{} for expt in listdir(ROOT)}
-    for expt in mipvars:
+    ncvars = []
+    for expt in listdir(ROOT):
         print 'Experiment: {}'.format(expt)
         for freq in listdir(pjoin(ROOT, expt)):
             print '  Frequency: {}'.format(freq)
@@ -63,22 +63,15 @@ def main(argv=None):
                 for table in listdir(pjoin(ROOT, expt, freq, realm)):
                     print '      Table: {}'.format(table)
                     
-                    if table not in mipvars[expt]:
-                        mipvars[expt] = {table: set()}
-
                     # Pick an ensemble member (doesn't matter which)
                     ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
     
                     # Find list of all latest-version variables
                     vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
                     
-                    # Add vars to table
-                    for var in vars:
-                        mipvars[expt][table].add(var)
+                    ncvar = [expt, freq, realm, table, ens, vars]
 
-                    print '        Vars: {}'.format(','.join(sorted(mipvars[expt][table])))
-
-    print mipvars
+    print ncvars[:-1]
     
     
 
