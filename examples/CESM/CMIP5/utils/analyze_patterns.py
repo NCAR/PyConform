@@ -64,7 +64,7 @@ def main(argv=None):
     # Analyze freq/table correlations
     ftcorr = {}
     for ncvar in ncvars:
-        ft = tuple(ncvar[1:4:2])
+        ft = tuple([ncvar[1], ncvar[3]])
         table = ft[-1]
         if table in ftcorr:
             ftcorr[table].add(ft)
@@ -80,8 +80,40 @@ def main(argv=None):
         print "  None"
     print
     
+    # Group variables by table 
+    vtcorr = {}
+    vrcorr = {}
+    for ncvar in ncvars:
+        expt, freq, realm, table, ens = ncvar[:5]
+        vars = ncvar[5:]
+        for var in vars:
+            if var in vtcorr:
+                vtcorr[var] += [table]
+            else:
+                vtcorr[var] = [table]
+            if var in vrcorr:
+                vrcorr[var] += [realm]
+            else:
+                vrcorr[var] = [realm]
+
+    print 'Variables in multiple tables:'
+    multvt = [var for var in vtcorr if len(vtcorr[var]) > 1]
+    if len(multvt) > 0:
+        for var in multvt:
+            print "  Variable {}:  {}".format(var,', '.join('/'.join(t) for t in vtcorr[var]))
+    else:
+        print "  None"
+    print
     
-        
+    print 'Variables in multiple realms:'
+    multvr = [var for var in vrcorr if len(vrcorr[var]) > 1]
+    if len(multvr) > 0:
+        for var in multvr:
+            print "  Variable {}:  {}".format(var,', '.join('/'.join(t) for t in vrcorr[var]))
+    else:
+        print "  None"
+    print
+            
 
 #===================================================================================================
 # Command-line Operation
