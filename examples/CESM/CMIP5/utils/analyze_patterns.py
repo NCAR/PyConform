@@ -61,7 +61,7 @@ def main(argv=None):
     # Analyze freq/table correlations
     ftcorr = {}
     for ncvar in ncvars:
-        ft = tuple(ncvar[1:4])
+        ft = tuple(ncvar[1:4:2])
         table = ft[-1]
         if table in ftcorr:
             ftcorr[table].add(ft)
