@@ -64,7 +64,7 @@ def main(argv=None):
                     # Find list of all latest-version variables
                     vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
                     
-                    ncvars.append([expt, freq, realm, table, ens, vars])
+                    ncvars.append([expt, freq, realm, table, ens] + vars)
     
     # Save to file
     with open('cmip5_patterns.txt', 'w') as f:
