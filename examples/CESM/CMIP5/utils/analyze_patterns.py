@@ -88,19 +88,19 @@ def main(argv=None):
         vars = ncvar[5:]
         for var in vars:
             if var in vtcorr:
-                vtcorr[var] += [table]
+                vtcorr[var].add(table)
             else:
-                vtcorr[var] = [table]
+                vtcorr[var] = {table}
             if var in vrcorr:
-                vrcorr[var] += [realm]
+                vrcorr[var].add(realm)
             else:
-                vrcorr[var] = [realm]
+                vrcorr[var] = {realm}
 
     print 'Variables in multiple tables:'
     multvt = [var for var in vtcorr if len(vtcorr[var]) > 1]
     if len(multvt) > 0:
         for var in multvt:
-            print "  Variable {}:  {}".format(var,', '.join('/'.join(t) for t in vtcorr[var]))
+            print "  Variable {}:  {}".format(var,', '.join(vtcorr[var]))
     else:
         print "  None"
     print
@@ -109,7 +109,7 @@ def main(argv=None):
     multvr = [var for var in vrcorr if len(vrcorr[var]) > 1]
     if len(multvr) > 0:
         for var in multvr:
-            print "  Variable {}:  {}".format(var,', '.join('/'.join(t) for t in vrcorr[var]))
+            print "  Variable {}:  {}".format(var,', '.join(vrcorr[var]))
     else:
         print "  None"
     print
