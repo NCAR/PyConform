@@ -52,11 +52,14 @@ def main(argv=None):
         else:
             frtcorr[table] = {frt}
 
-    print
     print 'Tables with multiple freq/realm/table patterns:'
-    for table in frtcorr:
-        if len(frtcorr[table]) > 1:
+    multfrt = [table for table in frtcorr if len(frtcorr[table]) > 1]
+    if len(multfrt) > 0:
+        for table in multfrt:
             print "  Table {}:  {}".format(table,', '.join('/'.join(frt) for frt in frtcorr[table]))
+    else:
+        print "  None"
+    print
     
     # Analyze freq/table correlations
     ftcorr = {}
@@ -68,11 +71,15 @@ def main(argv=None):
         else:
             ftcorr[table] = {ft}
 
-    print
     print 'Tables with multiple freq/table patterns:'
-    for table in ftcorr:
-        if len(ftcorr[table]) > 1:
+    multft = [table for table in ftcorr if len(ftcorr[table]) > 1]
+    if len(multft) > 0:
+        for table in multft:
             print "  Table {}:  {}".format(table,', '.join('/'.join(ft) for ft in ftcorr[table]))
+    else:
+        print "  None"
+    print
+    
     
         
 
