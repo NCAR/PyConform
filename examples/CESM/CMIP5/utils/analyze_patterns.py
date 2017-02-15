@@ -141,15 +141,17 @@ def main(argv=None):
         for vg in vgroups[frt]:
             if len(vg) > len(largest):
                 largest = vg
-        vgsubsets[frt] = True
+        vgsubsets[frt] = set()
         for vg in vgroups[frt]:
             if not vg.issubset(largest):
-                vgsubsets[frt] = False
+                unmatched = vg - largest
+                for v in unmatched:
+                    vgsubsets[frt].add(v)
             
-    print 'Variable groups that do not represent a single set:'
+    print 'Variables in groups that do not represent a single set:'
     for frt in vgroups:
         if not vgsubsets[frt]:
-            print "  {}".format(frt)
+            print "  {}: ".format(frt, sorted(vgsubsets[frt]))
              
 
 #===================================================================================================
