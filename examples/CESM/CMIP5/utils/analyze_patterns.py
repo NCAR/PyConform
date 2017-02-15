@@ -79,6 +79,15 @@ def main(argv=None):
     else:
         print "  None"
     print
+
+    print 'Unique freq/table patterns:'
+    uniqft = [table for table in ftcorr if len(ftcorr[table]) == 1]
+    if len(uniqft) > 0:
+        for table in uniqft:
+            print "  Table {}:  {}".format(table,', '.join('/'.join(ft) for ft in ftcorr[table]))
+    else:
+        print "  None"
+    print
     
     # Group variables by table 
     vtcorr = {}
