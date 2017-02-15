@@ -151,7 +151,7 @@ def main(argv=None):
     print 'Variables in groups that do not represent a single set:'
     for frt in vgroups:
         if len(vgsubsets[frt]) > 0:
-            print "  {}: ".format(frt, sorted(vgsubsets[frt]))
+            print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
              
 
 #===================================================================================================
