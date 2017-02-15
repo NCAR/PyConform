@@ -122,7 +122,26 @@ def main(argv=None):
     else:
         print "  None"
     print
-            
+    
+    # Analyze variable groups by freq/realm/table patterns
+    vgroups = {}
+    for ncvar in ncvars:
+        frt = '/'.join(ncvar[1:4])
+        vars = ncvar[5:]
+        if frt not in vgroups:
+            vgroups[frt] = [set(vars)]
+        else:
+            vgroups[frt].append(set(vars))
+    
+    print 'Freq/realm/table patterns with differing variable groups:'
+    diffvgs = [frt for frt in vgroups if any(len(vg - vgroups[frt][0]) > 0 or len(vgroups[frt][0] - vg) > 0 for vg in vgroups[frt][1:])]
+    if len(diffvgs) > 0:
+        for frt in diffvgs:
+            print "  {}".format(frt)
+    else:
+        print "  None"
+    print
+             
 
 #===================================================================================================
 # Command-line Operation
