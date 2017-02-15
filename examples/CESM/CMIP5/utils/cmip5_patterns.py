@@ -59,12 +59,12 @@ def main(argv=None):
                 for table in listdir(pjoin(ROOT, expt, freq, realm)):
                     
                     # Pick an ensemble member (doesn't matter which)
-                    ens = listdir(pjoin(pjoin(ROOT, expt, freq, realm, table)))[0]
+                    for ens in listdir(pjoin(pjoin(ROOT, expt, freq, realm, table))):
     
-                    # Find list of all latest-version variables
-                    vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
+                        # Find list of all latest-version variables
+                        vars = listdir(pjoin(ROOT, expt, freq, realm, table, ens, 'latest'))
                     
-                    ncvars.append([expt, freq, realm, table, ens] + vars)
+                        ncvars.append([expt, freq, realm, table, ens] + vars)
     
     # Save to file
     with open('cmip5_patterns.txt', 'w') as f:
