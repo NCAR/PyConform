@@ -141,6 +141,8 @@ def main(argv=None):
         for vg in vgroups[frt]:
             if len(vg) > len(largest):
                 largest = vg
+            elif len(vg) == len(largest):
+                largest.update(vg)
         vgsubsets[frt] = set()
         for vg in vgroups[frt]:
             if not vg.issubset(largest):
@@ -152,7 +154,7 @@ def main(argv=None):
     print 'Variables in groups that do not represent a single set:'
     uniqsubsets = [frt for frt in vgsubsets if len(vgsubsets[frt]) > 0]
     if len(uniqsubsets) > 0:
-        for frt in vgsubsets:
+        for frt in uniqsubsets:
             print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
     else:
         print "  None"
