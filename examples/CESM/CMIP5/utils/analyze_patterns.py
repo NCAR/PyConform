@@ -146,9 +146,10 @@ def main(argv=None):
             if not vg.issubset(largest):
                 vgsubsets[frt] = False
             
-    print 'Freq/realm/table patterns by variable groups:'
+    print 'Variable groups that do not represent a single set:'
     for frt in vgroups:
-        print "  {}: All subsets? {}".format(frt, vgsubsets[frt])
+        if not vgsubsets[frt]:
+            print "  {}".format(frt)
              
 
 #===================================================================================================
