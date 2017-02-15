@@ -141,8 +141,6 @@ def main(argv=None):
         for vg in vgroups[frt]:
             if len(vg) > len(largest):
                 largest = vg
-            elif len(vg) == len(largest):
-                largest.update(vg)
         vgsubsets[frt] = set()
         for vg in vgroups[frt]:
             if not vg.issubset(largest):
