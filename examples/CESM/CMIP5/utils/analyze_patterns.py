@@ -135,6 +135,7 @@ def main(argv=None):
     
     # Determine if all variable groups are subsets of the largest set
     vgsubsets = {}
+    vgsuperset = {}
     for frt in vgroups:
         vgs = vgroups[frt]
         largest = set()
@@ -143,6 +144,7 @@ def main(argv=None):
                 largest = vg
             elif len(vg) == len(largest):
                 largest.update(vg)
+        vgsuperset[frt] = largest
         vgsubsets[frt] = set()
         for vg in vgroups[frt]:
             if not vg.issubset(largest):
@@ -157,6 +159,10 @@ def main(argv=None):
             print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
     else:
         print "  None"
+
+    print 'Variable groups representing a single freq/realm/model set:'
+    for frt in vgsuperset:
+        print "  {}: {}".format(frt, ', '.join(sorted(vgsuperset[frt])))
              
 
 #===================================================================================================
