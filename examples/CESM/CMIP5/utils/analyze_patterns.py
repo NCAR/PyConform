@@ -147,7 +147,6 @@ def main(argv=None):
         for vg in vgroups[frt]:
             if not vg.issubset(largest):
                 unmatched = vg - largest
-                print frt, unmatched, largest
                 for v in unmatched:
                     vgsubsets[frt].add(v)
     
