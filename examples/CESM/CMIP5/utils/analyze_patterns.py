@@ -159,10 +159,12 @@ def main(argv=None):
             print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
     else:
         print "  None"
+    print
 
     print 'Variable groups representing a single freq/realm/model set:'
     for frt in vgsuperset:
         print "  {}: {}".format(frt, ', '.join(sorted(vgsuperset[frt])))
+    print
              
 
 #===================================================================================================
