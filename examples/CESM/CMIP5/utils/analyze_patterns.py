@@ -148,11 +148,14 @@ def main(argv=None):
                 print frt, unmatched, largest
                 for v in unmatched:
                     vgsubsets[frt].add(v)
-            
+    
     print 'Variables in groups that do not represent a single set:'
-    for frt in vgroups:
-        if len(vgsubsets[frt]) > 0:
+    uniqsubsets = [frt for frt in vgsubsets if len(vgsubsets[frt]) > 0]
+    if len(uniqsubsets) > 0:
+        for frt in vgroups:
             print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
+    else:
+        print "  None"
              
 
 #===================================================================================================
