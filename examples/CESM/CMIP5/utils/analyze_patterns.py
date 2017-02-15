@@ -136,7 +136,7 @@ def main(argv=None):
     print 'Freq/realm/table patterns by variable groups:'
     for frt in vgroups:
         spcr = ' ' * len(frt)
-        print "  {}: {}".format(frt, sorted(vgroups[frt]))
+        print "  {}: {}".format(frt, sorted(vgroups[frt][0]))
         for vg in vgroups[frt][1:]:
             print "  {}  {}".format(spcr, sorted(vg))
              
