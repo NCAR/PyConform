@@ -133,12 +133,22 @@ def main(argv=None):
         else:
             vgroups[frt].append(set(vars))
     
+    # Determine if all variable groups are subsets of the largest set
+    vgsubsets = {}
+    for frt in vgroups:
+        vgs = vgroups[frt]
+        largest = set()
+        for vg in vgroups[frt]:
+            if len(vg) > len(largest):
+                largest = vg
+        vgsubsets[frt] = True
+        for vg in vgroups[frt]:
+            if not vg.issubset(largest):
+                vgsubsets[frt] = False
+            
     print 'Freq/realm/table patterns by variable groups:'
     for frt in vgroups:
-        spcr = ' ' * len(frt)
-        print "  {}: {}".format(frt, sorted(vgroups[frt][0]))
-        for vg in vgroups[frt][1:]:
-            print "  {}  {}".format(spcr, sorted(vg))
+        print "  {}: All subsets? {}".format(frt, vgsubsets[frt])
              
 
 #===================================================================================================
