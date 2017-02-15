@@ -133,14 +133,12 @@ def main(argv=None):
         else:
             vgroups[frt].append(set(vars))
     
-    print 'Freq/realm/table patterns with differing variable groups:'
-    diffvgs = [frt for frt in vgroups if any(len(vg - vgroups[frt][0]) > 0 or len(vgroups[frt][0] - vg) > 0 for vg in vgroups[frt][1:])]
-    if len(diffvgs) > 0:
-        for frt in diffvgs:
-            print "  {}".format(frt)
-    else:
-        print "  None"
-    print
+    print 'Freq/realm/table patterns by variable groups:'
+    for frt in vgroups:
+        spcr = ' ' * len(frt)
+        print "  {}: {}".format(frt, sorted(vgroups[frt]))
+        for vg in vgroups[frt][1:]:
+            print "  {}  {}".format(spcr, sorted(vg))
              
 
 #===================================================================================================
