@@ -152,7 +152,7 @@ def main(argv=None):
     print 'Variables in groups that do not represent a single set:'
     uniqsubsets = [frt for frt in vgsubsets if len(vgsubsets[frt]) > 0]
     if len(uniqsubsets) > 0:
-        for frt in vgroups:
+        for frt in vgsubsets:
             print "  {}: {}".format(frt, ', '.join(sorted(vgsubsets[frt])))
     else:
         print "  None"
