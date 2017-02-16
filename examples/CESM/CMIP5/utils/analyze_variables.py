@@ -90,16 +90,17 @@ def main(argv=None):
     xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
     
     # Find variable attribute differences
-    print 'Finding differences in attributes:'
+    print 'Finding differences in attributes...'
+    print
     for var in vatts:
         nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]], xkeys=xkeys)
         if len(nonunif) > 0 or len(unequal) > 0:
-            print '   {}:'.format(var)
+            print 'Diffs in Variable: {}'.format(var)
         if len(nonunif) > 0:
-            print '       Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
+            print '    Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
         if len(unequal) > 0:
             for k in unequal:
-                print '      {}: {}'.format(k, ', '.join(unequal[k]))
+                print '   {}: {}'.format(k, ', '.join(unequal[k]))
     print
 
     print "Done."
