@@ -16,7 +16,6 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Analyze variable metadata of CMIP5 data')
-__PARSER__.add_argument('root', help='The root directory from where the directory patterns were found')
 
 #===================================================================================================
 # cli - Command-Line Interface
@@ -60,39 +59,9 @@ def main(argv=None):
     """
     args = cli(argv)
 
-    if not isdir(args.root):
-        raise ValueError('Patterns file not found')
-
-    # Read the patterns file
-    with open('cmip5_patterns.txt') as f:
-        ncvars = [line.split() for line in f]
-
-    # Attributes with expected differences (to be skipped)
-    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
-    
-    # Variables by attributes
-    vatts = {}
-    for ncvar in ncvars:
-        xfrte = pjoin(*ncvar[:5])
-        print '{}:'.format(xfrte)
-        vars = ncvar[5:]
-        for var in vars:
-            print '   {}...'.format(var),
-            vdir = pjoin(args.root, xfrte, 'latest', var)
-            vfile = glob(pjoin(vdir, '*.nc'))[0]
-            with Dataset(vfile) as vds:
-                vobj = vds.variables[var]
-                vatt = {att:vds.getncattr(att) for att in vds.ncattrs() if att not in xkeys}
-                if var in vatts:
-                    vatts[var][xfrte] = vatt
-                else:
-                    vatts[var] = {xfrte: vatt}
-            print 'done.'
-    print
-    
-    # Save variable attributes to file
-    with open('variable_attribs.json', 'w') as f:
-        json.dump(vatts, f)
+    # Read the variable attributes file
+    with open('variable_attribs.json') as f:
+        vatts = json.load(f)
     
     # Find variable attribute differences
     print 'Finding differences in attributes...'
