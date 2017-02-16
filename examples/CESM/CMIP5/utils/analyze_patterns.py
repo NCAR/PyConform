@@ -14,7 +14,6 @@ from os.path import isfile, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Analyze file-directory patterns of CMIP5 data')
-__PARSER__.add_argument('patterns', help='The text file containing all directory patterns')
 
 #===================================================================================================
 # cli - Command-Line Interface
@@ -35,7 +34,7 @@ def main(argv=None):
     """
     args = cli(argv)
 
-    if not isfile(args.patterns):
+    if not isfile('cmip5_patterns.txt'):
         raise ValueError('Patterns file not found')
 
     # Read the patterns file
