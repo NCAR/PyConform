@@ -31,12 +31,12 @@ def cli(argv=None):
 #===================================================================================================
 # ddiff
 #===================================================================================================
-def ddiff(ds, xkeys=[]):
+def ddiff(ds):
     """
     Difference of multiple dictionaries
     """
     rem = {}
-    allkeys = set(k for d in ds for k in d if k not in xkeys)
+    allkeys = set(k for d in ds for k in d)
     nonunif = set()
     for d in ds:
         for k in allkeys:
@@ -67,6 +67,9 @@ def main(argv=None):
     with open('cmip5_patterns.txt') as f:
         ncvars = [line.split() for line in f]
 
+    # Attributes with expected differences (to be skipped)
+    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
+    
     # Variables by attributes
     vatts = {}
     for ncvar in ncvars:
@@ -79,7 +82,7 @@ def main(argv=None):
             vfile = glob(pjoin(vdir, '*.nc'))[0]
             with Dataset(vfile) as vds:
                 vobj = vds.variables[var]
-                vatt = {att:vds.getncattr(att) for att in vds.ncattrs()}
+                vatt = {att:vds.getncattr(att) for att in vds.ncattrs() if att not in xkeys}
                 if var in vatts:
                     vatts[var][xfrte] = vatt
                 else:
@@ -91,14 +94,11 @@ def main(argv=None):
     with open('variable_attribs.json', 'w') as f:
         json.dump(vatts, f)
     
-    # Attributes with expected differences
-    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
-    
     # Find variable attribute differences
     print 'Finding differences in attributes...'
     print
     for var in vatts:
-        nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]], xkeys=xkeys)
+        nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]])
         if len(nonunif) > 0 or len(unequal) > 0:
             print 'Diffs in Variable: {}'.format(var)
         if len(nonunif) > 0:
