@@ -35,7 +35,7 @@ def ddiff(*ds):
     Difference of multiple dictionaries
     """
     rem = {}
-    allkeys = set(k for k in d for d in ds)
+    allkeys = set(k for d in ds for k in d)
     nonunif = set()
     for d in ds:
         for k in allkeys:
