@@ -8,6 +8,7 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import json
 from netCDF4 import Dataset
 from glob import glob
 from os import listdir, linesep
@@ -85,6 +86,10 @@ def main(argv=None):
                     vatts[var] = {xfrte: vatt}
             print 'done.'
     print
+    
+    # Save variable attributes to file
+    with open('variable_attribs.json', 'w') as f:
+        json.dump(vatts, f)
     
     # Attributes with expected differences
     xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
