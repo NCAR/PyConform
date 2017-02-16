@@ -28,6 +28,29 @@ def cli(argv=None):
 
 
 #===================================================================================================
+# ddiff
+#===================================================================================================
+def ddiff(*ds):
+    """
+    Difference of multiple dictionaries
+    """
+    rem = {}
+    allkeys = set(k for k in d for d in ds)
+    nonunif = set()
+    for d in ds:
+        for k in allkeys:
+            if k not in d:
+                nonunif.add(k)
+                allkeys.remove(k)
+    unequal = {}
+    for k in allkeys:
+        kvals = set(d[k] for d in ds)
+        if len(kvals) > 1:
+            unequal[k] = kvals
+    return nonunif, unequal
+
+
+#===================================================================================================
 # main - Main Program
 #===================================================================================================
 def main(argv=None):
@@ -61,6 +84,19 @@ def main(argv=None):
                 else:
                     vatts[var] = {xfrte: vatt}
             print 'done.'
+    print
+    
+    # Find variable attribute differences
+    print 'Finding differences in attributes:'
+    for var in vatts:
+        print '   {}:'.format(var)
+        nonunif, unequal = ddiff(*[vatts[var][xfrte] for xfrte in vatts[var]])
+        if len(nonunif) > 0:
+            print '       Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
+        if len(unequal) > 0:
+            for k in unequal:
+                print '      {}: {}'.format(k, ', '.join(unequal[k]))
+    print
 
     print "Done."
 
