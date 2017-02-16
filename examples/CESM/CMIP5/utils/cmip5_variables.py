@@ -84,7 +84,7 @@ def main(argv=None):
 
     # Save variable attributes to file
     with open('variable_attribs.json', 'w') as f:
-        json.dump(vatts, f, cls=MyEncoder)
+        json.dump(vatts, f, indent=4, cls=MyEncoder)
 
     print "Done."
 
