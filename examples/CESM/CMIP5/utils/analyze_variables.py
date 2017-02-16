@@ -49,8 +49,8 @@ def main(argv=None):
         xfrte = pjoin(*ncvar[:5])
         vars = ncvar[5:]
         for var in vars:
-            print args.root, xfrte, var, '*.nc'
-            vfile = glob(pjoin(args.root, xfrte, var, '*.nc'))[0]
+            vdir = pjoin(args.root, xfrte, 'latest', var)
+            vfile = glob(pjoin(vdir, '*.nc'))[0]
             with Dataset(vfile) as vds:
                 vobj = vds.variables[var]
                 vatt = {att:vds.getncattr(att) for att in vds.ncattrs}
