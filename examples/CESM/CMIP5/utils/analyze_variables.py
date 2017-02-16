@@ -53,7 +53,7 @@ def main(argv=None):
             vfile = glob(pjoin(vdir, '*.nc'))[0]
             with Dataset(vfile) as vds:
                 vobj = vds.variables[var]
-                vatt = {att:vds.getncattr(att) for att in vds.ncattrs}
+                vatt = {att:vds.getncattr(att) for att in vds.ncattrs()}
                 if var in vatts:
                     vatts[var][xfrte] = vatt
                 else:
