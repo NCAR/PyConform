@@ -49,6 +49,7 @@ def main(argv=None):
         xfrte = pjoin(ncvar[:5])
         vars = ncvar[5:]
         for var in vars:
+            print args.root, xfrte, var, '*.nc'
             vfile = glob(pjoin(args.root, xfrte, var, '*.nc'))[0]
             with Dataset(vfile) as vds:
                 vobj = vds.variables[var]
