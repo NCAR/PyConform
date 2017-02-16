@@ -45,7 +45,7 @@ def main(argv=None):
 
     # Variables by attributes
     vatts = {}
-    for ncvar in ncvars[:25]:
+    for ncvar in ncvars[:3]:
         xfrte = pjoin(*ncvar[:5])
         print '{}:'.format(xfrte)
         vars = ncvar[5:]
