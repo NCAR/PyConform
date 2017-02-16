@@ -46,7 +46,7 @@ def main(argv=None):
     # Variables by attributes
     vatts = {}
     for ncvar in ncvars:
-        xfrte = pjoin(ncvar[:5])
+        xfrte = pjoin(*ncvar[:5])
         vars = ncvar[5:]
         for var in vars:
             print args.root, xfrte, var, '*.nc'
