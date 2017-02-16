@@ -29,29 +29,6 @@ def cli(argv=None):
 
 
 #===================================================================================================
-# ddiff
-#===================================================================================================
-def ddiff(ds):
-    """
-    Difference of multiple dictionaries
-    """
-    rem = {}
-    allkeys = set(k for d in ds for k in d)
-    nonunif = set()
-    for d in ds:
-        for k in allkeys:
-            if k not in d:
-                nonunif.add(k)
-                allkeys.remove(k)
-    unequal = {}
-    for k in allkeys:
-        kvals = set(d[k] for d in ds)
-        if len(kvals) > 1:
-            unequal[k] = kvals
-    return nonunif, unequal
-
-
-#===================================================================================================
 # main - Main Program
 #===================================================================================================
 def main(argv=None):
