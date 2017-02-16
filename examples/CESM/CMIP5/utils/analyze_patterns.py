@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-cmip5_patterns
+analyze_patterns
 
-Command-Line Utility to analyze file-directory patterns in CMIP5 data
+Command-Line Utility to analyze data directory patterns in CMIP5 data
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -13,8 +13,8 @@ from os import listdir, linesep
 from os.path import isfile, join as pjoin
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Analyze file-directory patters of CMIP5 data')
-__PARSER__.add_argument('patterns', help='The text file containing all file-directory patterns')
+__PARSER__ = ArgumentParser(description='Analyze file-directory patterns of CMIP5 data')
+__PARSER__.add_argument('patterns', help='The text file containing all directory patterns')
 
 #===================================================================================================
 # cli - Command-Line Interface
