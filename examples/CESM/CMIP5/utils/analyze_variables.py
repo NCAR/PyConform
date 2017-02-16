@@ -30,12 +30,12 @@ def cli(argv=None):
 #===================================================================================================
 # ddiff
 #===================================================================================================
-def ddiff(*ds):
+def ddiff(ds, xkeys=[]):
     """
     Difference of multiple dictionaries
     """
     rem = {}
-    allkeys = set(k for d in ds for k in d)
+    allkeys = set(k for d in ds for k in d if k not in xkeys)
     nonunif = set()
     for d in ds:
         for k in allkeys:
@@ -86,11 +86,15 @@ def main(argv=None):
             print 'done.'
     print
     
+    # Attributes with expected differences
+    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
+    
     # Find variable attribute differences
     print 'Finding differences in attributes:'
     for var in vatts:
-        print '   {}:'.format(var)
-        nonunif, unequal = ddiff(*[vatts[var][xfrte] for xfrte in vatts[var]])
+        nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]], xkeys=xkeys)
+        if len(nonunif) > 0 or len(unequal) > 0:
+            print '   {}:'.format(var)
         if len(nonunif) > 0:
             print '       Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
         if len(unequal) > 0:
