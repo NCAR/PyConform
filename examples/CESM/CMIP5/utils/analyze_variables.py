@@ -47,8 +47,10 @@ def main(argv=None):
     vatts = {}
     for ncvar in ncvars:
         xfrte = pjoin(*ncvar[:5])
+        print '{}:'.format(xfrte)
         vars = ncvar[5:]
         for var in vars:
+            print '   {}...'.format(var),
             vdir = pjoin(args.root, xfrte, 'latest', var)
             vfile = glob(pjoin(vdir, '*.nc'))[0]
             with Dataset(vfile) as vds:
@@ -58,6 +60,7 @@ def main(argv=None):
                     vatts[var][xfrte] = vatt
                 else:
                     vatts[var] = {xfrte: vatt}
+            print 'done.'
 
     print "Done."
 
