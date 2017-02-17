@@ -56,7 +56,7 @@ def main(argv=None):
     print 'Table:           {}'.format(table)
     print 'Ensemble Member: {}'.format(rip)
     
-    base = pjoin(ROOT.rsplit('/', 7) + ['latest'])
+    base = pjoin(root, inst, model, expt, freq, realm, table, rip, 'latest')
     vars = listdir(base)
     
     specinfo = {}
