@@ -16,6 +16,8 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Analyze variable metadata of CMIP5 data')
+__PARSER__.add_argument('-v', '--verbose', action='store_true', default=False,
+                        help='Enable full output of variable differences')
 
 #===================================================================================================
 # cli - Command-Line Interface
@@ -82,7 +84,10 @@ def main(argv=None):
             print '    Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
         if len(unequal) > 0:
             for k in unequal:
-                print '   "{}": {}'.format(k, ', '.join(str(v) for v in unequal[k]))
+                if args.verbose:
+                    print '   "{}": {}'.format(k, ', '.join(str(v) for v in unequal[k]))
+                else:
+                    print '   "{}"'.format(k)
         print
 
     print "Done."
