@@ -71,7 +71,7 @@ def main(argv=None):
         for v in vds.variables:
             vobj = vds.variables[v]
             if v not in specinfo:
-                specinfo[v] = {"attributes": {vobj.getncattr(a) for a in vobj.ncattrs()},
+                specinfo[v] = {"attributes": {str(a):vobj.getncattr(a) for a in vobj.ncattrs()},
                                "datatype": str(vobj.dtype),
                                "dimensions": [str(d) for d in vobj.dimensions]}
                 if 'comment' in vobj.ncattrs():
