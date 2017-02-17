@@ -73,7 +73,8 @@ def main(argv=None):
         if len(nonunif) > 0:
             print '    Non-uniform keys: {}'.format(', '.join(sorted(nonunif)))
         if len(unequal) > 0:
-            print '   {}: {}'.format(k, ', '.join(str(v) for v in unequal[k]))
+            for k in unequal:
+                print '   {}: {}'.format(k, ', '.join(str(v) for v in unequal[k]))
     print
 
     print "Done."
