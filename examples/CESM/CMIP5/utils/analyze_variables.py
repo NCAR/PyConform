@@ -78,6 +78,7 @@ def main(argv=None):
     print 'Attributes to be skipped:'
     for key in sorted(xkeys):
         print '   "{}"'.format(key)
+    print
     
     # Find variable attribute differences
     print 'Finding differences in attributes...'
