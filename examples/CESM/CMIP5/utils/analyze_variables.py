@@ -65,8 +65,11 @@ def main(argv=None):
 
     # Attributes with expected differences (to be skipped)
     xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date',
-             'cesm_casename', 'cesm_compset', 'cesm_repotag', 'comment', 
-             'processing_code_information', 'NCO', 'comment']
+             'cesm_casename', 'cesm_compset', 'cesm_repotag', 'comment', 'NCO', 
+             'processing_code_information', 'initialization_method', 'parent_experiment_id',
+             'forcing', 'title', 'parent_experiment', 'physics_version', 'cmor_version', 
+             'acknowledgements', 'experiment', 'experiment_id', 'realization',
+             'branch_time', 'resolution', 'parent_experiment_rip']
     
     # Find variable attribute differences
     print 'Finding differences in attributes...'
