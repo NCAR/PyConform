@@ -8,6 +8,8 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import json
+from netCDF4 import Dataset
 from glob import glob
 from os import listdir, linesep
 from os.path import isdir, join as pjoin
@@ -55,6 +57,7 @@ def main(argv=None):
     print 'Realm:           {}'.format(realm)
     print 'Table:           {}'.format(table)
     print 'Ensemble Member: {}'.format(rip)
+    print
     
     base = pjoin(root, inst, model, expt, freq, realm, table, rip, 'latest')
     vars = listdir(base)
@@ -62,8 +65,29 @@ def main(argv=None):
     specinfo = {}
     for var in vars:
         vdir = pjoin(base, var)
-        print vdir
+        vfile = sorted(glob(pjoin(vdir,'*.nc')))[0]
+        vds = Dataset(vfile)
+        fattrs = {str(a):vds.getncattr(a) for a in vds.ncattrs()}
+        for v in vds.variables:
+            vobj = vds.variables[v]
+            if v not in specinfo:
+                specinfo[v] = {"attributes": {vobj.getncattr(a) for a in vobj.ncattrs()},
+                               "datatype": str(vobj.dtype),
+                               "dimensions": [str(d) for d in vobj.dimensions]}
+                if 'comment' in vobj.ncattrs():
+                    specinfo[v]["definition"] = vobj.getncattr('comment')
+                else:
+                    specinfo[v]["definition"] = ''
+                if v == var:
+                    fname = '{}_{}_{}_{}_{}_YYYYMM.nc'.format(v,table,model,expt,rip)
+                    specinfo[v]["file"] = {"filename": fname,
+                                           "attributes": fattrs}
     
+    specname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
+    with open(specname, 'w') as f:
+        json.dump(specinfo, f, indent=4)
+
+    print "Done."
     
 
 #===================================================================================================
