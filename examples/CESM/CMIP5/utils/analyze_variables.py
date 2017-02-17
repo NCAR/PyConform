@@ -30,12 +30,12 @@ def cli(argv=None):
 #===================================================================================================
 # ddiff
 #===================================================================================================
-def ddiff(ds):
+def ddiff(ds, xkeys=[]):
     """
     Difference of multiple dictionaries
     """
     rem = {}
-    allkeys = set(k for d in ds for k in d)
+    allkeys = set(k for d in ds for k in d if k not in xkeys)
     nonunif = set()
     for d in ds:
         for k in allkeys:
@@ -62,12 +62,17 @@ def main(argv=None):
     # Read the variable attributes file
     with open('variable_attribs.json') as f:
         vatts = json.load(f)
+
+    # Attributes with expected differences (to be skipped)
+    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date',
+             'cesm_casename', 'cesm_compset', 'cesm_repotag', 'comment', 
+             'processing_code_information', 'NCO', 'comment']
     
     # Find variable attribute differences
     print 'Finding differences in attributes...'
     print
     for var in vatts:
-        nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]])
+        nonunif, unequal = ddiff([vatts[var][xfrte] for xfrte in vatts[var]], xkeys=xkeys)
         if len(nonunif) > 0 or len(unequal) > 0:
             print 'Diffs in Variable: {}'.format(var)
         if len(nonunif) > 0:
