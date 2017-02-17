@@ -41,16 +41,30 @@ def main(argv=None):
         raise ValueError('Root must be a directory')
 
     # Assume that ROOT directory is of the form:
-    # ROOT = <root>/<institution>/<model>
-    root, inst, model = ROOT.rsplit('/', 2)
+    # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/<ensemble>
+    root, inst, model, expt, freq, realm, table, rip = ROOT.rsplit('/', 7)
     
     # Check for consistency
     if inst != 'NCAR' and model != 'CCSM4':
         raise ValueError('Root appears to be malformed')
     
-    print 'Institution: {}'.format(inst)
-    print 'Model: {}'.format(model)
-        
+    print 'Institution:     {}'.format(inst)
+    print 'Model:           {}'.format(model)
+    print 'Experiment:      {}'.format(expt)
+    print 'Frequency:       {}'.format(freq)
+    print 'Realm:           {}'.format(realm)
+    print 'Table:           {}'.format(table)
+    print 'Ensemble Member: {}'.format(rip)
+    
+    base = pjoin(ROOT.rsplit('/', 7) + ['latest'])
+    vars = listdir(base)
+    
+    specinfo = {}
+    for var in vars:
+        vdir = pjoin(base, var)
+        print vdir
+    
+    
 
 #===================================================================================================
 # Command-line Operation
