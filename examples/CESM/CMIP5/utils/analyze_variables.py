@@ -43,7 +43,7 @@ def ddiff(ds):
                 nonunif.add(k)
     uniform = set(k for k in allkeys if k not in nonunif)
     unequal = {}
-    for k in allkeys:
+    for k in uniform:
         kvals = set(d[k] for d in ds)
         if len(kvals) > 1:
             unequal[k] = kvals
