@@ -88,7 +88,8 @@ def main(argv=None):
                     print '   "{}": {}'.format(k, ', '.join(str(v) for v in unequal[k]))
                 else:
                     print '   "{}"'.format(k)
-        print
+        if len(nonunif) > 0 or len(unequal) > 0:
+            print
 
     print "Done."
 
