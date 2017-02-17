@@ -71,7 +71,8 @@ def main(argv=None):
              'processing_code_information', 'initialization_method', 'parent_experiment_id',
              'forcing', 'title', 'parent_experiment', 'physics_version', 'cmor_version', 
              'acknowledgements', 'experiment', 'experiment_id', 'realization',
-             'branch_time', 'resolution', 'parent_experiment_rip']
+             'branch_time', 'resolution', 'parent_experiment_rip',
+             'modeling_realm', 'source', 'frequency', 'forcing_note']
     
     # Find variable attribute differences
     print 'Finding differences in attributes...'
