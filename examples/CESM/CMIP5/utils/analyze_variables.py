@@ -74,6 +74,11 @@ def main(argv=None):
              'branch_time', 'resolution', 'parent_experiment_rip',
              'modeling_realm', 'source', 'frequency', 'forcing_note']
     
+    # Print out skipped attributes
+    print 'Attributes to be skipped:'
+    for key in sorted(xkeys):
+        print '   "{}"'.format(key)
+    
     # Find variable attribute differences
     print 'Finding differences in attributes...'
     print
