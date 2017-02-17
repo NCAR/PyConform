@@ -41,7 +41,7 @@ def ddiff(ds):
         for k in allkeys:
             if k not in d:
                 nonunif.add(k)
-                allkeys.remove(k)
+    uniform = set(k for k in allkeys if k not in nonunif)
     unequal = {}
     for k in allkeys:
         kvals = set(d[k] for d in ds)
