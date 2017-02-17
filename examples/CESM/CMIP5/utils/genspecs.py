@@ -9,6 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import json
+import numpy
 from netCDF4 import Dataset
 from glob import glob
 from os import listdir, linesep
@@ -27,6 +28,21 @@ def cli(argv=None):
     Command-Line Interface
     """
     return __PARSER__.parse_args(argv)
+
+
+#===================================================================================================
+# MyEncoder
+#===================================================================================================
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, numpy.integer):
+            return int(obj)
+        elif isinstance(obj, numpy.floating):
+            return float(obj)
+        elif isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+        else:
+            return super(MyEncoder, self).default(obj)
 
 
 #===================================================================================================
@@ -85,7 +101,7 @@ def main(argv=None):
     
     specname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
     with open(specname, 'w') as f:
-        json.dump(specinfo, f, indent=4)
+        json.dump(specinfo, f, indent=4, cls=MyEncoder)
 
     print "Done."
     
