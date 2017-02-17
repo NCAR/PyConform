@@ -58,9 +58,6 @@ def main(argv=None):
     # Read the patterns file
     with open('cmip5_patterns.txt') as f:
         ncvars = [line.split() for line in f]
-
-    # Attributes with expected differences (to be skipped)
-    xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date']
     
     # Variables by attributes
     vatts = {}
@@ -74,7 +71,7 @@ def main(argv=None):
             vfile = glob(pjoin(vdir, '*.nc'))[0]
             with Dataset(vfile) as vds:
                 vobj = vds.variables[var]
-                vatt = {att:vds.getncattr(att) for att in vds.ncattrs() if att not in xkeys}
+                vatt = {att:vds.getncattr(att) for att in vds.ncattrs()}
                 if var in vatts:
                     vatts[var][xfrte] = vatt
                 else:
