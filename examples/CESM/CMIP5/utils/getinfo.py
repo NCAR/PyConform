@@ -54,7 +54,7 @@ def main(argv=None):
     else:
         vars = [v for v in spec]
     
-    for v in vars:
+    for v in sorted(vars):
         if args.definition:
             if 'definition' in spec[v]:
                 vdef = spec[v]['definition']
