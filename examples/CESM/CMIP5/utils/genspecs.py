@@ -17,7 +17,6 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
-__PARSER__.add_argument('-o', '--output', help='Name of the output specfile')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
