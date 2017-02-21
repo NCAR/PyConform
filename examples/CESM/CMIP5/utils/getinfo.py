@@ -63,6 +63,7 @@ def main(argv=None):
             print '{} = {}'.format(v, vdef)
         else:
             if args.attribute is not None:
+                vatts = {}
                 if args.attribute in spec[v]['attributes']:
                     vatts = {args.attribute:  spec[v]['attributes'][args.attribute]}
             else:
