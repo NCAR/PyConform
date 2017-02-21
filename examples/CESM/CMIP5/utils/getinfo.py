@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 """
-pull
+getinfo
 
 Command-Line Utility to pull out attributes/definitions/etc from a specfile
 
