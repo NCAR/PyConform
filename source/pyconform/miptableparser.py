@@ -494,7 +494,7 @@ class ParseXML(object):
                                     for d in dims:
                                         if d not in axes_list and d != '' and d != 'None':
                                             if 'copy' not in var['id'] and '?' not in d:
-                                                axes_list.append(d) 
+                                                axes_list.append(d)
                             if 'coordinates' in var.keys(): 
                                 if len(var['coordinates']) > 1:
                                     if var['coordinates'][-1] == '|':
@@ -522,44 +522,44 @@ class ParseXML(object):
                         id = dq.inx.grids.label[a]
                         if len(id) > 0:
                             v = dq.inx.grids.uid[id[0]]
+                        ax = {}
+                        if hasattr(v,'units'):
+                            if v.units == "":
+                                ax['units'] = '1'
+                            else: 
+                                ax['units'] = v.units
+                        if hasattr(v,'value'):
+                            ax['value'] = v.value
+                        if hasattr(v,'axis'):
+                            ax['axis'] = v.axis
+                        if hasattr(v,'valid_max'):
+                            if isinstance(v.valid_max, (int, long, float, complex)):        
+                                ax['valid_max'] = v.valid_max
+                        if hasattr(v,'valid_min'):
+                            if isinstance(v.valid_min, (int, long, float, complex)):
+                                ax['valid_min'] = v.valid_min
+                        if hasattr(v,'standardName'):
+                            ax['standard_name'] = v.standardName
+                        if hasattr(v,'type'):
+                            ax['type'] = v.type
+                        if hasattr(v,'id'):
+                            ax['id'] = v.label
+                        if hasattr(v,'positive'):
+                            ax['positive'] = v.positive
+                        if hasattr(v,'title'):
+                            ax['title'] = v.title
+                        if hasattr(v,'bounds'):
+                            ax['bounds'] = v.bounds
+                        if hasattr(v,'requested'):
+                            ax['requested'] = v.requested
+                        if hasattr(v,'boundsValues'):
+                            ax['boundsValues'] = v.boundsValues
+                        if hasattr(v,'coords'):
+                            ax['coords'] = v.coords
+                        axes[a] = ax
                     else:
                         v = a
-                        a = a.label
-                    ax = {}
-                    if hasattr(v,'units'):
-                        if v.units == "":
-                            ax['units'] = '1'
-                        else: 
-                            ax['units'] = v.units
-                    if hasattr(v,'value'):
-                        ax['value'] = v.value
-                    if hasattr(v,'axis'):
-                        ax['axis'] = v.axis
-                    if hasattr(v,'valid_max'):
-                        if isinstance(v.valid_max, (int, long, float, complex)):        
-                            ax['valid_max'] = v.valid_max
-                    if hasattr(v,'valid_min'):
-                        if isinstance(v.valid_min, (int, long, float, complex)):
-                            ax['valid_min'] = v.valid_min
-                    if hasattr(v,'standardName'):
-                        ax['standard_name'] = v.standardName
-                    if hasattr(v,'type'):
-                        ax['type'] = v.type
-                    if hasattr(v,'id'):
-                        ax['id'] = v.label
-                    if hasattr(v,'positive'):
-                        ax['positive'] = v.positive
-                    if hasattr(v,'title'):
-                        ax['title'] = v.title
-                    if hasattr(v,'bounds'):
-                        ax['bounds'] = v.bounds
-                    if hasattr(v,'requested'):
-                        ax['requested'] = v.requested
-                    if hasattr(v,'boundsValues'):
-                        ax['boundsValues'] = v.boundsValues
-                    if hasattr(v,'coords'):
-                        ax['coords'] = v.coords
-                    axes[a] = ax
+                        print "Cannot find link for dimension: ",v
    
                 try:
                     table_dict['variables'] = variables

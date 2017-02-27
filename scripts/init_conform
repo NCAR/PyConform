@@ -139,7 +139,7 @@ def defineVar(v, varName, attributes, definition, experiment):
     f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}{16}.nc".format(
                mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
                varName, grid, version,
-               varName, mipTable, experiment, source_id, ripf, grid, dst))
+               varName, mipTable, source_id, experiment, ripf, grid, dst))
 
     var = {}
     # handle things that still aren't set correctly in the request
@@ -156,6 +156,7 @@ def defineVar(v, varName, attributes, definition, experiment):
     var["definition"] = definition
     var["file"] = {}
     var["file"]["attributes"] = attributes2
+    var["file"]["attributes"]["variant_label"] = ripf
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
     var["file"]["metavars"] = []
