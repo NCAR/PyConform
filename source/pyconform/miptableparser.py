@@ -434,6 +434,8 @@ class ParseXML(object):
                                 var['out_name']= c_var.label #?
 	                    if hasattr(c_var,'positive'):
                                 var['positive']= c_var.positive
+                            if hasattr(c_var,'direction'):
+                                var['direction']= c_var.direction
 	                    if hasattr(c_var,'prov'):
                                 var['prov']= c_var.prov
 	                    if hasattr(c_var,'procNote'):
@@ -546,6 +548,8 @@ class ParseXML(object):
                             ax['id'] = v.label
                         if hasattr(v,'positive'):
                             ax['positive'] = v.positive
+                        if hasattr(v,'direction'):
+                            ax['direction'] = v.direction
                         if hasattr(v,'title'):
                             ax['title'] = v.title
                         if hasattr(v,'bounds'):
