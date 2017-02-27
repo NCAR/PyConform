@@ -12,7 +12,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.indexing import align_index
 from cf_units import Unit
-from operator import mul, div, pow
+from operator import mul, pow
 
 import numpy
 
