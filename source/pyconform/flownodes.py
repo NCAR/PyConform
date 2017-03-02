@@ -662,7 +662,7 @@ class WriteNode(FlowNode):
 
         chunks_ = {d:c for d, c in chunks.iteritems() if d in dims}
         if len(chunks_) == 0:
-            yield slice(None)
+            yield slice(None), slice(None)
         else:
             dsizes = OrderedDict((d, s) for d, s in zip(dims, sizes))
             nchunks = OrderedDict((d, s) for d, s in dsizes.iteritems() if d in chunks_)
@@ -677,6 +677,8 @@ class WriteNode(FlowNode):
                 lchunk = {}
                 rchunk = {}
                 for d, (lb, ub) in bnds.iteritems():
+                    if ub > dsizes[d]:
+                        ub = dsizes[d]
                     lchunk[d] = slice(lb, ub)
                     if d in invdims:
                         rlb = dsizes[d] - lb
@@ -685,9 +687,9 @@ class WriteNode(FlowNode):
                     else:
                         rlb = lb
                         rub = ub
-                        rst = 1
+                        rst = None
                     rchunk[d] = slice(rlb, rub, rst)
-                    yield lchunk, rchunk
+                yield lchunk, rchunk
     
     @staticmethod
     def _direction_(data):
@@ -729,10 +731,10 @@ class WriteNode(FlowNode):
             vinfo = self._vinfos[vname]
             
             # Check if the variable is a coordinate variable or not
-            if len(vinfo.dimensions) == 1 and 'axis' in vinfo.attributes:
+            if len(vinfo.dimensions) == 1 and 'axis' in vnode.attributes:
                 vdata = vnode[:]
-                if 'direction' in vinfo.attributes:                    
-                    vdir_out = vinfo.attributes['direction']
+                if 'direction' in vnode.attributes:                    
+                    vdir_out = vnode.attributes['direction']
                     if vdir_out not in ['increasing', 'decreasing']:
                         raise ValueError(('Unrecognized direction in output coordinate variable '
                                           '{!r} when writing file {!r}').format(vname, self.label))

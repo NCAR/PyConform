@@ -618,7 +618,7 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
-        expected = [slice(None)]
+        expected = [(slice(None), slice(None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -627,7 +627,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
-        expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
+        expected = [({'x': slice(0, 2)}, {'x': slice(0, 2)}), 
+                    ({'x': slice(2, 4)}, {'x': slice(2, 4)})]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -636,7 +637,7 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
-        expected = [slice(None)]
+        expected = [(slice(None), slice(None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -645,10 +646,10 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
-        expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
-                    {'x': slice(2, None), 'y': slice(0, 3)},
-                    {'x': slice(0, 2), 'y': slice(3, None)},
-                    {'x': slice(2, None), 'y': slice(3, None)}]
+        expected = [({'x': slice(0, 2), 'y': slice(0, 3)}, {'x': slice(0, 2), 'y': slice(0, 3)}),
+                    ({'x': slice(2, 4), 'y': slice(0, 3)}, {'x': slice(2, 4), 'y': slice(0, 3)}),
+                    ({'x': slice(0, 2), 'y': slice(3, 5)}, {'x': slice(0, 2), 'y': slice(3, 5)}),
+                    ({'x': slice(2, 4), 'y': slice(3, 5)}, {'x': slice(2, 4), 'y': slice(3, 5)})]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -657,7 +658,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
-        expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
+        expected = [({'x': slice(0, 2)}, {'x': slice(0, 2)}),
+                    ({'x': slice(2, 4)}, {'x': slice(2, 4)})]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -666,10 +668,10 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
         N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
         actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
-        expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
-                    {'x': slice(0, 2), 'y': slice(3, None)},
-                    {'x': slice(2, None), 'y': slice(0, 3)},
-                    {'x': slice(2, None), 'y': slice(3, None)}]
+        expected = [({'x': slice(0, 2), 'y': slice(0, 3)}, {'x': slice(0, 2), 'y': slice(0, 3)}),
+                    ({'x': slice(0, 2), 'y': slice(3, 5)}, {'x': slice(0, 2), 'y': slice(3, 5)}),
+                    ({'x': slice(2, 4), 'y': slice(0, 3)}, {'x': slice(2, 4), 'y': slice(0, 3)}),
+                    ({'x': slice(2, 4), 'y': slice(3, 5)}, {'x': slice(2, 4), 'y': slice(3, 5)})]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
