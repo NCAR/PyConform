@@ -632,6 +632,17 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+    def test_chunk_iter_1D_invert(self):
+        filename = 'test.nc'
+        testname = 'WriteNode({})._chunk_iter_'.format(filename)
+        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2},
+                                                    invdims={'x'})]
+        expected = [({'x': slice(0, 2)}, {'x': slice(4, 2, -1)}), 
+                    ({'x': slice(2, 4)}, {'x': slice(2, 0, -1)})]
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
     def test_chunk_iter_1D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
@@ -653,6 +664,19 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
+    def test_chunk_iter_2D_invert(self):
+        filename = 'test.nc'
+        testname = 'WriteNode({})._chunk_iter_'.format(filename)
+        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3},
+                                                    invdims={'x'})]
+        expected = [({'x': slice(0, 2), 'y': slice(0, 3)}, {'x': slice(4, 2, -1), 'y': slice(0, 3)}),
+                    ({'x': slice(2, 4), 'y': slice(0, 3)}, {'x': slice(2, 0, -1), 'y': slice(0, 3)}),
+                    ({'x': slice(0, 2), 'y': slice(3, 5)}, {'x': slice(4, 2, -1), 'y': slice(3, 5)}),
+                    ({'x': slice(2, 4), 'y': slice(3, 5)}, {'x': slice(2, 0, -1), 'y': slice(3, 5)})]
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
     def test_chunk_iter_2D_unnamed(self):
         filename = 'test.nc'
         testname = 'WriteNode({})._chunk_iter_'.format(filename)
