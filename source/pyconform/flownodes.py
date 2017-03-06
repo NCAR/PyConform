@@ -677,8 +677,7 @@ class WriteNode(FlowNode):
                 lchunk = {}
                 rchunk = {}
                 for d, (lb, ub) in bnds.iteritems():
-                    lub = ub if ub < dsizes[d] else None
-                    lchunk[d] = slice(lb, lub)
+                    lchunk[d] = slice(lb, ub if ub < dsizes[d] else None)
                     if d in invdims:
                         rlb = dsizes[d] - lb - 1
                         rub = dsizes[d] - ub - 1 if ub < dsizes[d] else None
