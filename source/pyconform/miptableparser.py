@@ -362,9 +362,13 @@ class ParseXML(object):
 #        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
         # Get a list of mips for the experiment
-
+#        print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
         e_mip = []
         e_id = dq.inx.experiment.label[exp]
+        if len(e_id)==0:
+            print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m' 
+            print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
+            return {} 
         activity_id = dq.inx.uid[e_id[0]].mip
         e_vars = dq.inx.iref_by_sect[e_id[0]].a
         total_request = {}
