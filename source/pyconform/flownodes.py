@@ -577,8 +577,11 @@ class WriteNode(FlowNode):
 
         # Initialize the variable information
         self._vinfos = {}
+        self._coordinates = []
+        self._variables = []
+        self._invert_dims = set()
 
-    def open(self, provenance=False):
+    def open(self, history=False):
         """
         Open the file for writing, if not open already
         
@@ -630,13 +633,33 @@ class WriteNode(FlowNode):
                 vname = vnode.label
                 vinfo = self._vinfos[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
+
+                # Check if the variable is a coordinate variable or not
+                if len(vinfo.dimensions) == 1 and 'axis' in vattrs:
+                    self._coordinates.append(vnode)
+                    vdata = vnode[:]
+                    if 'direction' in vnode.attributes:                    
+                        vdir_out = vattrs.pop('direction')
+                        if vdir_out not in ['increasing', 'decreasing']:
+                            raise ValueError(('Unrecognized direction in output coordinate variable '
+                                              '{!r} when writing file {!r}').format(vname, self.label))
+                        vdir_inp = WriteNode._direction_(vdata)
+                        if vdir_inp is None:
+                            raise ValueError(('Output coordinate variable {!r} has no calculable '
+                                              'direction').format(vname))
+                        if vdir_inp != vdir_out:
+                            vattrs
+                            self._invert_dims.add(vinfo.dimensions[0])
+                else:
+                    self._variables.append(vnode)
+                    
                 fill_value = vattrs.pop('_FillValue', None)
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
                                                   fill_value=fill_value)
                 for aname, avalue in vattrs.iteritems():
                     ncvar.setncattr(aname, avalue)
-                if provenance:
-                    ncvar.setncattr('conform_prov', vinfo.name)
+                if history:
+                    ncvar.setncattr('history', vinfo.name)
 
     def close(self):
         """
@@ -699,7 +722,7 @@ class WriteNode(FlowNode):
         else:
             return None
 
-    def execute(self, chunks={}, provenance=False, bounds={}):
+    def execute(self, chunks={}, history=False, bounds={}):
         """
         Execute the writing of the WriteNode file at once
         
@@ -712,14 +735,14 @@ class WriteNode(FlowNode):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
-            provenance (bool): Whether to write a provenance attribute generated during execution
+            history (bool): Whether to write a provenance attribute generated during execution
                 for each variable in the file
             bounds (dict):  Bounds on named variables specified in the output specification
                 file.  Data will be written for values within these bounds inclusively.
         """
 
         # Open the file and write the header information (fills the _vinfos)
-        self.open(provenance=provenance)
+        self.open(history=history)
 
         # Loop over all coordinate input nodes
         vnodes = []
