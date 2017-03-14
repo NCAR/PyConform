@@ -408,6 +408,38 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
+    def test_func_invdim_int(self):
+        key = 'invdim'
+        indata = 4
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = np.sqrt(indata)
+        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))\
+
+    def test_func_invdim_float(self):
+        key = 'invdim'
+        indata = 4.0
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = np.sqrt(indata)
+        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_invdim_physarray(self):
+        key = 'invdim'
+        indata = PhysArray(range(5), name='x', units='m^2', dimensions=('1',))
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(np.sqrt(9.0), name='sqrt(x)', units='m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+
 
 #===============================================================================
 # Command-Line Operation
