@@ -321,29 +321,46 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Variable parsing failed')
 
-#     def test_parse_var_index_nested(self):
-#         y0 = parsing.ParsedVariable([['y', 0]])
-#         x1y = parsing.ParsedVariable([['x', 1, y0]])
-#         indata = 'x[1, y[0]]'
-#         actual = parsing.parse_definition(indata)
-#         expected = x1y
-#         testname = 'parse_definition({0!r})'.format(indata)
-#         print_test_message(testname, indata=indata,
-#                            actual=actual, expected=expected)
-#         self.assertEqual(actual, expected,
-#                          'Variable parsing failed')
+    def test_parse_var_slice_none(self):
+        indata = 'x[]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', None]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
 
-#     def test_parse_var_slice_nested(self):
-#         y03 = parsing.ParsedVariable([['y', slice(0,3)]])
-#         x14y = parsing.ParsedVariable([['x', slice(1,4), y03]])
-#         indata = 'x[1:4, y[0:3]]'
-#         actual = parsing.parse_definition(indata)
-#         expected = x14y
-#         testname = 'parse_definition({0!r})'.format(indata)
-#         print_test_message(testname, indata=indata,
-#                            actual=actual, expected=expected)
-#         self.assertEqual(actual, expected,
-#                          'Variable parsing failed')
+    def test_parse_var_slice_empty(self):
+        indata = 'x[:]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', slice(None)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+
+    def test_parse_var_slice_partial_1(self):
+        indata = 'x[1:]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', slice(1, None)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+
+    def test_parse_var_slice_partial_2(self):
+        indata = 'x[:2]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', slice(None, 2)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+
+    def test_parse_var_slice_partial_3(self):
+        indata = 'x[::-1]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', slice(None, None, -1)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+        
 
 #===== NEGATION ================================================================
 
