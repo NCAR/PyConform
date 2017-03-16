@@ -9,10 +9,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from numpy import index_exp
-from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence,\
-    ParseException
+from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence
 from pyparsing import Word, Combine, Forward, Suppress, Group, Optional, ParserElement
-from pyparsing import Literal, CaselessLiteral, QuotedString, ParseException
+from pyparsing import Literal, CaselessLiteral, QuotedString
 
 # To improve performance
 ParserElement.enablePackrat()
