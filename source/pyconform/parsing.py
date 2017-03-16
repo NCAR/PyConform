@@ -117,7 +117,7 @@ _FLOAT_ = (Combine(Word(nums) + _EXP_FLT_) | Combine(_DEC_FLT_ + Optional(_EXP_F
 _FLOAT_.setParseAction(lambda t: float(t[0]))
 
 # QUOTED STRINGS: Any words between quotations
-_STR_ = QuotedString('"', escChar='\\')
+_QSTR_ = QuotedString('"', escChar='\\')
 
 # String _NAME_s ...identifiers for function or variable _NAME_s
 _NAME_ = Word(alphas + "_", alphanums + "_")
@@ -126,7 +126,7 @@ _NAME_ = Word(alphas + "_", alphanums + "_")
 #            ints, _FLOAT_, variables, and even other functions.  Hence,
 #            we need a Forward place-holder to start...
 _EXPR_PARSER_ = Forward()
-_FUNC_ = Group(_NAME_ + (Suppress('(') + Optional(delimitedList(_EXPR_PARSER_)) + Suppress(')')))
+_FUNC_ = Group(_NAME_ + (Suppress('(') + Optional(delimitedList(_QSTR_ | _EXPR_PARSER_)) + Suppress(')')))
 _FUNC_.setParseAction(ParsedFunction)
 
 # VARIABLE NAMES: Can be just string _NAME_s or _NAME_s with blocks
@@ -134,14 +134,17 @@ _FUNC_.setParseAction(ParsedFunction)
 _INDEX_ = Combine(Optional('-') + Word(nums))
 _INDEX_.setParseAction(lambda t: int(t[0]))
 
-_ISLICE_ = _INDEX_ + Optional(Suppress(':') + _INDEX_ + Optional(Suppress(':') + _INDEX_))
+_IDX_OR_NONE_ = Optional(_INDEX_)
+_IDX_OR_NONE_.setParseAction(lambda t: t[0] if len(t) > 0 else [None])
+
+_ISLICE_ = _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_))
 _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
 
 _VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_) + Suppress(']')))
 _VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
-_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE_,
+_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _FUNC_ | _VARIABLE_,
                                     [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
                                     (Literal('/'), 2, opAssoc.RIGHT, _binop_),

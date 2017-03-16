@@ -9,6 +9,7 @@ from pyconform import parsing
 from testutils import print_test_message
 
 import unittest
+import pyparsing
 
 
 #===============================================================================
@@ -87,34 +88,41 @@ class DefinitionParserTests(unittest.TestCase):
 
 #===== QUOTED STRINGS ==========================================================
 
-    def test_parse_quote_int(self):
-        indata = '"1"'
+    def test_parse_quote_funcarg_int(self):
+        indata = 'f("1")'
         actual = parsing.parse_definition(indata)
-        expected = '1'
+        expected = parsing.ParsedFunction([['f', '1']])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
 
-    def test_parse_quote_escaped(self):
-        indata = '"\\"1\\""'
+    def test_parse_quote_nofunc(self):
+        indata = '"Hello, World!"'
+        testname = 'parse_definition({0!r})'.format(indata)
+        expected = pyparsing.ParseException
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, parsing.parse_definition, indata)
+
+    def test_parse_quote_funcarg(self):
+        indata = 'f("Hello, World!")'
         actual = parsing.parse_definition(indata)
-        expected = '"1"'
+        expected = parsing.ParsedFunction([['f', 'Hello, World!']])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
 
-    def test_parse_quote_literal(self):
-        indata = 'Hello, World!'
-        actual = parsing.parse_definition('"' + indata + '"')
-        expected = indata
+    def test_parse_quote_funcarg_escaped(self):
+        indata = 'f("\\"1\\"")'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedFunction([['f', '"1"']])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
 
-    def test_parse_quote_func(self):
-        indata = 'f(x,y,z)'
-        actual = parsing.parse_definition('"' + indata + '"')
-        expected = indata
+    def test_parse_quote_funcarg_func(self):
+        indata = 'g("f(x,y,z)")'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedFunction([['g', 'f(x,y,z)']])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
