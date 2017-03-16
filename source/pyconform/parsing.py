@@ -38,8 +38,8 @@ class ParsedFunction(object):
         return ((type(self) == type(other)) and
                 (self.key == other.key) and
                 (self.args == other.args))
-
-
+        
+        
 #===================================================================================================
 # ParsedUniOp
 #===================================================================================================
@@ -133,12 +133,10 @@ _FUNC_.setParseAction(ParsedFunction)
 #                 of indices (e.g., [1,2,-4])
 _INDEX_ = Combine(Optional('-') + Word(nums))
 _INDEX_.setParseAction(lambda t: int(t[0]))
+
 _ISLICE_ = _INDEX_ + Optional(Suppress(':') + _INDEX_ + Optional(Suppress(':') + _INDEX_))
 _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
-#         variable = Group(_NAME_ + Optional(Suppress('[') +
-#                                            delimitedList(_ISLICE_ |
-#                                                          _EXPR_PARSER_) +
-#                                          Suppress(']')))
+
 _VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_) + Suppress(']')))
 _VARIABLE_.setParseAction(ParsedVariable)
 
@@ -146,11 +144,6 @@ _VARIABLE_.setParseAction(ParsedVariable)
 _EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE_,
                                     [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
-# Using the following gets the order of operations wrong!  ...
-#                                      (oneOf('/ *'), 2, opAssoc.RIGHT, _binop_),
-#                                      (oneOf('- +'), 2, opAssoc.RIGHT, _binop_)])
-# ...However, using the following (which gets order of ops correct) is much slower!
-# ...but enabling packrat parsing speeds it back up!  (see top of file)
                                     (Literal('/'), 2, opAssoc.RIGHT, _binop_),
                                     (Literal('*'), 2, opAssoc.RIGHT, _binop_),
                                     (Literal('-'), 2, opAssoc.RIGHT, _binop_),

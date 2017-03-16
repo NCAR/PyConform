@@ -61,23 +61,23 @@ class ParsedStringTypeTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Types do not match')
 
-    def test_pst_obj(self):
+    def test_pst_func_key(self):
         indata = (['x', 1, -3.2], {})
         pst = parsing.ParsedFunction(indata)
         actual = pst.key
         expected = indata[0][0]
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Names do not match')
+        self.assertEqual(actual, expected, 'Key does not match')
 
-    def test_pst_args(self):
+    def test_pst_func_args(self):
         indata = (['x', 1, -3.2], {})
         pst = parsing.ParsedFunction(indata)
         actual = pst.args
         expected = tuple(indata[0][1:])
         testname = 'ParsedFunction.__init__({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Names do not match')
+        self.assertEqual(actual, expected, 'Args do not match')
 
 
 #===============================================================================
@@ -642,7 +642,8 @@ class DefinitionParserTests(unittest.TestCase):
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Integrated #4 operator parsing failed')
-
+        
+        
 #===============================================================================
 # Command-Line Operation
 #===============================================================================
