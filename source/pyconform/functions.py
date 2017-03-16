@@ -218,21 +218,3 @@ class SquareRootFunction(Function):
             return PhysArray(sqrt(data), units=units, name='sqrt({})'.format(data.name))
         else:
             return sqrt(data)
-
-
-#===================================================================================================
-# SquareRoot
-#===================================================================================================
-class InvertDimensionsFunction(Function):
-    key = 'invdim'
-    numargs = 2
-
-    def __call__(self, data, dname):
-        if isinstance(data, PhysArray):
-            try:
-                units = data.units.root(2)
-            except:
-                raise UnitsError('Cannot take square-root of units {!r}'.format(data.units))
-            return PhysArray(sqrt(data), units=units, name='sqrt({})'.format(data.name))
-        else:
-            return sqrt(data)
