@@ -321,6 +321,22 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Variable parsing failed')
 
+    def test_parse_var_int_slice(self):
+        indata = 'x[3,1:2]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', 3, slice(1, 2, None)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+
+    def test_parse_var_none_slice(self):
+        indata = 'x[,1:2:3]'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedVariable([['x', None, slice(1, 2, 3)]])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Variable parsing failed')
+
     def test_parse_var_slice_none(self):
         indata = 'x[]'
         actual = parsing.parse_definition(indata)
@@ -336,7 +352,7 @@ class DefinitionParserTests(unittest.TestCase):
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Variable parsing failed')
-
+        
     def test_parse_var_slice_partial_1(self):
         indata = 'x[1:]'
         actual = parsing.parse_definition(indata)
@@ -360,6 +376,13 @@ class DefinitionParserTests(unittest.TestCase):
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Variable parsing failed')
+        
+    def test_parse_var_slice_partial_4(self):
+        indata = 'x[::-1::::]'
+        expected = TypeError
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, expected=expected)
+        self.assertRaises(expected, parsing.parse_definition, indata)
         
 
 #===== NEGATION ================================================================

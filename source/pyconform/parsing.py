@@ -9,9 +9,10 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from numpy import index_exp
-from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence
+from pyparsing import nums, alphas, alphanums, oneOf, delimitedList, opAssoc, operatorPrecedence,\
+    ParseException
 from pyparsing import Word, Combine, Forward, Suppress, Group, Optional, ParserElement
-from pyparsing import Literal, CaselessLiteral, QuotedString
+from pyparsing import Literal, CaselessLiteral, QuotedString, ParseException
 
 # To improve performance
 ParserElement.enablePackrat()
@@ -137,10 +138,12 @@ _INDEX_.setParseAction(lambda t: int(t[0]))
 _IDX_OR_NONE_ = Optional(_INDEX_)
 _IDX_OR_NONE_.setParseAction(lambda t: t[0] if len(t) > 0 else [None])
 
-_ISLICE_ = _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_))
+# _ISLICE_ = _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_))
+# _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
+_ISLICE_ = delimitedList(_IDX_OR_NONE_, delim=':')
 _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
 
-_VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_) + Suppress(']')))
+_VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_ | _INDEX_) + Suppress(']')))
 _VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
