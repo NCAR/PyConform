@@ -458,37 +458,37 @@ class DefinitionParserTests(unittest.TestCase):
 #===== POWER ===================================================================
 
     def test_parse_int_pow_int(self):
-        indata = '2^1'
+        indata = '2**1'
         actual = parsing.parse_definition(indata)
-        expected = parsing.ParsedBinOp([['^', 2, 1]])
+        expected = parsing.ParsedBinOp([['**', 2, 1]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_float_pow_float(self):
-        indata = '2.4 ^ 1e7'
+        indata = '2.4 ** 1e7'
         actual = parsing.parse_definition(indata)
-        expected = parsing.ParsedBinOp([['^', 2.4, 1e7]])
+        expected = parsing.ParsedBinOp([['**', 2.4, 1e7]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_func_pow_func(self):
-        indata = 'f() ^ g(1)'
+        indata = 'f() ** g(1)'
         actual = parsing.parse_definition(indata)
         f = parsing.ParsedFunction([['f']])
         g1 = parsing.ParsedFunction([['g', 1]])
-        expected = parsing.ParsedBinOp([['^', f, g1]])
+        expected = parsing.ParsedBinOp([['**', f, g1]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Power operator parsing failed')
 
     def test_parse_var_pow_var(self):
-        indata = 'x[1] ^ y'
+        indata = 'x[1] ** y'
         actual = parsing.parse_definition(indata)
         x1 = parsing.ParsedVariable([['x', 1]])
         y = parsing.ParsedVariable([['y']])
-        expected = parsing.ParsedBinOp([['^', x1, y]])
+        expected = parsing.ParsedBinOp([['**', x1, y]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Power operator parsing failed')
@@ -648,10 +648,10 @@ class DefinitionParserTests(unittest.TestCase):
 #===== Integration =============================================================
 
     def test_parse_integrated_1(self):
-        indata = '2-17.3*x^2'
+        indata = '2-17.3*x**2'
         actual = parsing.parse_definition(indata)
         x = parsing.ParsedVariable([['x']])
-        x2 = parsing.ParsedBinOp([['^', x, 2]])
+        x2 = parsing.ParsedBinOp([['**', x, 2]])
         m17p3x2 = parsing.ParsedBinOp([['*', 17.3, x2]])
         expected = parsing.ParsedBinOp([['-', 2, m17p3x2]])
         testname = 'parse_definition({0!r})'.format(indata)

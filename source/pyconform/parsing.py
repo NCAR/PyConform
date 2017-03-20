@@ -147,7 +147,7 @@ _VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
 _EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _FUNC_ | _VARIABLE_,
-                                    [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
+                                    [(Literal('**'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
                                     (Literal('/'), 2, opAssoc.RIGHT, _binop_),
                                     (Literal('*'), 2, opAssoc.RIGHT, _binop_),
