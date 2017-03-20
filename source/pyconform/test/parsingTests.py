@@ -80,6 +80,15 @@ class ParsedStringTypeTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Args do not match')
 
+    def test_pst_func_kwds(self):
+        indata = (['x', 1, -3.2, ('x', 5)], {})
+        pst = parsing.ParsedFunction(indata)
+        actual = pst.kwds
+        expected = {'x': 5}
+        testname = 'ParsedFunction.__init__({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'Args do not match')
+
 
 #===============================================================================
 # DefinitionParserTests
@@ -92,6 +101,14 @@ class DefinitionParserTests(unittest.TestCase):
         indata = 'f("1")'
         actual = parsing.parse_definition(indata)
         expected = parsing.ParsedFunction([['f', '1']])
+        testname = 'parse_definition({0!r})'.format(indata)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'String parsing failed')
+
+    def test_parse_quote_funcarg_kwd(self):
+        indata = 'f(a="1")'
+        actual = parsing.parse_definition(indata)
+        expected = parsing.ParsedFunction([['f', ('a', '1')]])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
