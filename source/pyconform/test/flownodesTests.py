@@ -592,17 +592,21 @@ class WriteNodeTests(unittest.TestCase):
 
     def setUp(self):
         x = flownodes.DataNode('X', numpy.arange(-5, 10), units='m', dimensions=('x',))
-        self.x = flownodes.ValidateNode('X', x, attributes={'xa1': 'x attribute 1', 'xa2': 'x attribute 2'})
+        self.x = flownodes.ValidateNode('X', x, attributes={'xa1': 'x attribute 1',
+                                                            'xa2': 'x attribute 2'})
         y = flownodes.DataNode('Y', numpy.arange(0, 8), units='m', dimensions=('y',))
-        self.y = flownodes.ValidateNode('Y', y, attributes={'ya1': 'y attribute 1', 'ya2': 'y attribute 2'})
+        self.y = flownodes.ValidateNode('Y', y, attributes={'ya1': 'y attribute 1',
+                                                            'ya2': 'y attribute 2',
+                                                            'direction': 'decreasing'})
         vdata = numpy.arange(15 * 8, dtype=numpy.float64).reshape((15, 8))
         v = flownodes.DataNode('V', vdata, units='K', dimensions=('x', 'y'))
-        self.v = flownodes.ValidateNode('V', v, attributes={'va1': 'v attribute 1', 'va2': 'v attribute 2'})
+        self.v = flownodes.ValidateNode('V', v, attributes={'va1': 'v attribute 1',
+                                                            'va2': 'v attribute 2'})
         self.vars = [self.x, self.y, self.v]
 
-    def tearDown(self):
-        for fname in glob('*.nc'):
-            remove(fname)
+#     def tearDown(self):
+#         for fname in glob('*.nc'):
+#             remove(fname)
 
     def test_init(self):
         filename = 'test.nc'
@@ -727,6 +731,20 @@ class WriteNodeTests(unittest.TestCase):
             print ncf
 
     def test_execute_chunk_2D(self):
+        filename = 'v_x_y_chunk_2D.nc'
+        chunks = {'x': 6, 'y': 3}
+        testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
+        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
+        N.execute(chunks=chunks)
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print
+        with netCDF4.Dataset(filename, 'r') as ncf:
+            print ncf
+
+    def test_execute_chunk_2D_invert(self):
         filename = 'v_x_y_chunk_2D.nc'
         chunks = {'x': 6, 'y': 3}
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)

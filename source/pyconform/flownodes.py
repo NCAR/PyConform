@@ -574,11 +574,9 @@ class WriteNode(FlowNode):
 
         # Set the filehandle
         self._file = None
-
+        
         # Initialize the variable information
         self._vinfos = {}
-        self._coordinates = []
-        self._variables = []
         self._invert_dims = set()
 
     def open(self, history=False):
@@ -592,37 +590,68 @@ class WriteNode(FlowNode):
         if self._file is None:
 
             # Make the necessary subdirectories to open the file
-            labeldir = dirname(self.label)
-            if len(labeldir) > 0 and not exists(labeldir):
+            fname = self.label
+            fdir = dirname(fname)
+            if len(fdir) > 0 and not exists(fdir):
                 try:
-                    makedirs(labeldir)
+                    makedirs(fdir)
                 except:
-                    raise IOError('Failed to create directory for output file {!r}'.format(self.label))
+                    raise IOError('Failed to create directory for output file {!r}'.format(fname))
 
-            # Try to pen the output file for writing
+            # Try to open the output file for writing
             try:
-                self._file = Dataset(self.label, 'w')
+                self._file = Dataset(fname, 'w')
             except:
-                raise IOError('Failed to open output file {!r}'.format(self.label))
+                raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
             self._file.setncatts(self._attributes)
 
-            # Generate and collect information for each input data object
-            self._vinfos = {i.label: i[None] for i in self.inputs}
+            # Scan over variables for coordinates and dimension information
+            dim_sizes = {}
+            for vnode in self.inputs:
+                vname = vnode.label
+                vinfo = vnode[None]
 
-            # Collect the dimension sizes from the initialshape parameter of the input data
-            req_dims = {}
-            for vinfo in self._vinfos.itervalues():
+                # Get dimensions and their sizes
                 for dname, dsize in zip(vinfo.dimensions, vinfo.initshape):
-                    if dname not in req_dims:
-                        req_dims[dname] = dsize
-                    elif req_dims[dname] != dsize:
+                    if dname not in dim_sizes:
+                        dim_sizes[dname] = dsize
+                    elif dim_sizes[dname] != dsize:
                         raise RuntimeError(('Dimension {!r} has inconsistent size: '
-                                            '{}, {}').format(dname, req_dims[dname], dsize))
+                                            '{}, {}').format(dname, dim_sizes[dname], dsize))
 
-            # Create the required dimensions for the variable
-            for dname, dsize in req_dims.iteritems():
+                # Determine coordinates and dimensions to invert
+                if len(vinfo.dimensions) == 1 and 'axis' in vnode.attributes:
+                    if 'direction' in vnode.attributes:                    
+                        vdir_out = vnode.attributes.pop('direction')
+                        if vdir_out not in ['increasing', 'decreasing']:
+                            raise ValueError(('Unrecognized direction in output coordinate variable '
+                                              '{!r} when writing file {!r}').format(vname, fname))
+                        vdir_inp = WriteNode._direction_(vnode[:])
+                        if vdir_inp is None:
+                            raise ValueError(('Output coordinate variable {!r} has no calculable '
+                                              'direction').format(vname))
+                        if vdir_inp != vdir_out:
+                            self._invert_dims.add(vinfo.dimensions[0])
+
+                # Store variable information object                
+                self._vinfos[vname] = vinfo
+            
+            # Record dimension inversion information for history attributes
+            if history:
+                vhist = {}
+                for vname in self._vinfos:
+                    vinfo = self._vinfos[vname]
+                    idimstr = ','.join(d for d in vinfo.dimensions if d in self._invert_dims)
+                    if len(idimstr) > 0:
+                        vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
+                    else:
+                        vhist[vname] = vinfo.name
+
+            # Create the required dimensions in the file
+            for dname in dim_sizes:
+                dsize = dim_sizes[dname]
                 if dname in self._unlimited:
                     self._file.createDimension(dname)
                 else:
@@ -634,32 +663,13 @@ class WriteNode(FlowNode):
                 vinfo = self._vinfos[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
-                # Check if the variable is a coordinate variable or not
-                if len(vinfo.dimensions) == 1 and 'axis' in vattrs:
-                    self._coordinates.append(vnode)
-                    vdata = vnode[:]
-                    if 'direction' in vnode.attributes:                    
-                        vdir_out = vattrs.pop('direction')
-                        if vdir_out not in ['increasing', 'decreasing']:
-                            raise ValueError(('Unrecognized direction in output coordinate variable '
-                                              '{!r} when writing file {!r}').format(vname, self.label))
-                        vdir_inp = WriteNode._direction_(vdata)
-                        if vdir_inp is None:
-                            raise ValueError(('Output coordinate variable {!r} has no calculable '
-                                              'direction').format(vname))
-                        if vdir_inp != vdir_out:
-                            vattrs
-                            self._invert_dims.add(vinfo.dimensions[0])
-                else:
-                    self._variables.append(vnode)
-                    
                 fill_value = vattrs.pop('_FillValue', None)
                 ncvar = self._file.createVariable(vname, str(vinfo.dtype), vinfo.dimensions,
                                                   fill_value=fill_value)
-                for aname, avalue in vattrs.iteritems():
-                    ncvar.setncattr(aname, avalue)
+                for aname in vattrs:
+                    ncvar.setncattr(aname, vattrs[aname])
                 if history:
-                    ncvar.setncattr('history', vinfo.name)
+                    ncvar.setncattr('history', vhist[vname])
 
     def close(self):
         """
@@ -668,6 +678,7 @@ class WriteNode(FlowNode):
         if self._file is not None:
             self._file.close()
             self._vinfos = {}
+            self._invert_dims = set()
             self._file = None
 
     @staticmethod
@@ -683,23 +694,24 @@ class WriteNode(FlowNode):
         if len(dims) != len(sizes):
             raise ValueError('Dimensions and sizes must be same length')
 
-        chunks_ = {d:c for d, c in chunks.iteritems() if d in dims}
+        chunks_ = {d:chunks[d] for d in chunks if d in dims}
         if len(chunks_) == 0:
             yield slice(None), slice(None)
         else:
             dsizes = OrderedDict((d, s) for d, s in zip(dims, sizes))
-            nchunks = OrderedDict((d, s) for d, s in dsizes.iteritems() if d in chunks_)
+            nchunks = OrderedDict((d, dsizes[d]) for d in dsizes if d in chunks_)
             for d in chunks_:
                 nchunks[d] = dsizes[d] / chunks_[d] + int(dsizes[d] % chunks_[d] > 0)
             ntotal = numpy.prod(nchunks.values())
             index = {d: 0 for d in sizes}
             for n in xrange(ntotal):
-                for d, m in nchunks.iteritems():
-                    n, index[d] = divmod(n, m)
-                bnds = {d: (index[d] * c, (index[d] + 1) * c) for d, c in chunks_.iteritems()}
+                for d in nchunks:
+                    n, index[d] = divmod(n, nchunks[d])
+                bnds = {d: (index[d] * chunks_[d], (index[d] + 1) * chunks_[d]) for d in chunks_}
                 lchunk = {}
                 rchunk = {}
-                for d, (lb, ub) in bnds.iteritems():
+                for d in bnds:
+                    lb, ub = bnds[d]
                     lchunk[d] = slice(lb, ub if ub < dsizes[d] else None)
                     if d in invdims:
                         rlb = dsizes[d] - lb - 1
@@ -744,46 +756,15 @@ class WriteNode(FlowNode):
         # Open the file and write the header information (fills the _vinfos)
         self.open(history=history)
 
-        # Loop over all coordinate input nodes
-        vnodes = []
-        invert_dims = set()
+        # Loop over all variable nodes and write data
         for vnode in self.inputs:
-            vname = vnode.label
-            vinfo = self._vinfos[vname]
-            
-            # Check if the variable is a coordinate variable or not
-            if len(vinfo.dimensions) == 1 and 'axis' in vnode.attributes:
-                vdata = vnode[:]
-                if 'direction' in vnode.attributes:                    
-                    vdir_out = vnode.attributes['direction']
-                    if vdir_out not in ['increasing', 'decreasing']:
-                        raise ValueError(('Unrecognized direction in output coordinate variable '
-                                          '{!r} when writing file {!r}').format(vname, self.label))
-                    vdir_inp = WriteNode._direction_(vdata)
-                    if vdir_inp is None:
-                        raise ValueError(('Output coordinate variable {!r} has no calculable '
-                                          'direction').format(vname))
-                    if vdir_inp == vdir_out:
-                        vnodes.append(vnode)
-                    else:
-                        vdata = vdata[::-1]
-                        invert_dims.add(vinfo.dimensions[0])
-
-                ncvar = self._file.variables[vname]
-                ncvar[align_index((slice(None),), ncvar.dimensions)] = vdata[:]
-                
-            else:
-                vnodes.append(vnode)
-                
-        # Loop over all remaining (non-coordinate) variable nodes
-        for vnode in vnodes:
             vname = vnode.label
             vinfo = self._vinfos[vname]
             ncvar = self._file.variables[vname]
 
             # Loop over all chunks for the given variable's dimensions
             for lchunk, rchunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape,
-                                                         chunks=chunks, invdims=invert_dims):
+                                                         chunks=chunks, invdims=self._invert_dims):
                 ncvar[align_index(lchunk, ncvar.dimensions)] = vnode[rchunk]
 
         # Close the file after completion
