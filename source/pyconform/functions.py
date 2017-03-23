@@ -204,24 +204,3 @@ class SquareRootFunction(Function):
             return PhysArray(sqrt(data), units=units, name='sqrt({})'.format(data.name))
         else:
             return sqrt(data)
-
-
-#===================================================================================================
-# InvertDimensionsFunction
-#===================================================================================================
-class InvertDimensionsFunction(Function):
-    key = 'invdims'
-
-    def __call__(self, data, *idims):
-        if isinstance(data, PhysArray):
-            dims_inverted = tuple(d for d in data.dimensions if d in idims)
-            if len(dims_inverted) > 0:
-                fslc = slice(None)
-                rslc = slice(None, None, -1)
-                idx = tuple(rslc if d in idims else fslc for d in data.dimensions)
-                name = 'invdims({},{})'.format(data.name, ','.join(dims_inverted))
-                return PhysArray(data[tuple(idx)], name=name)
-            else:
-                return data
-        else:
-            return data

@@ -399,52 +399,6 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
-    def test_func_invdims_float(self):
-        key = 'invdims'
-        indata = 4.0
-        testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
-        actual = func(indata)
-        expected = indata
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-
-    def test_func_invdims_physarray_noinv(self):
-        key = 'invdims'
-        indata = PhysArray(range(5), name='x', units='m^2', dimensions=('t',))
-        testname = '{}({},y)'.format(key, indata)
-        func = functions.find(key)
-        actual = func(indata, 'y')
-        expected = indata
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-
-    def test_func_invdims_physarray(self):
-        key = 'invdims'
-        indata = PhysArray(range(5), name='x', units='m^2', dimensions=('t',))
-        testname = '{}({},t)'.format(key, indata)
-        func = functions.find(key)
-        actual = func(indata, 't')
-        expected = PhysArray(range(4,-1,-1), name='invdims(x,t)', units='m^2', dimensions=('t',))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-
-    def test_func_invdims_physarray_2D(self):
-        key = 'invdims'
-        indata = PhysArray([[0,1,2], [3,4,5]], name='x', units='m^2', dimensions=('t','u'))
-        testname = '{}({},t,u)'.format(key, indata)
-        func = functions.find(key)
-        actual = func(indata, 't', 'u')
-        expected = PhysArray([[5,4,3], [2,1,0]], name='invdims(x,t,u)', units='m^2', dimensions=('t','u'))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        
 
 #===============================================================================
 # Command-Line Operation
