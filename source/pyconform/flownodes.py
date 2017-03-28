@@ -694,36 +694,35 @@ class WriteNode(FlowNode):
         if len(dims) != len(sizes):
             raise ValueError('Dimensions and sizes must be same length')
 
-        chunks_ = {d:chunks[d] for d in chunks if d in dims}
-        if len(chunks_) == 0:
-            yield slice(None), slice(None)
-        else:
-            dsizes = OrderedDict((d, s) for d, s in zip(dims, sizes))
-            nchunks = OrderedDict((d, dsizes[d]) for d in dsizes if d in chunks_)
-            for d in chunks_:
-                nchunks[d] = dsizes[d] / chunks_[d] + int(dsizes[d] % chunks_[d] > 0)
-            ntotal = numpy.prod(nchunks.values())
-            index = {d: 0 for d in sizes}
-            for n in xrange(ntotal):
-                for d in nchunks:
-                    n, index[d] = divmod(n, nchunks[d])
-                bnds = {d: (index[d] * chunks_[d], (index[d] + 1) * chunks_[d]) for d in chunks_}
-                lchunk = {}
-                rchunk = {}
-                for d in bnds:
-                    lb, ub = bnds[d]
-                    lchunk[d] = slice(lb, ub if ub < dsizes[d] else None)
-                    if d in invdims:
-                        rlb = dsizes[d] - lb - 1
-                        rub = dsizes[d] - ub - 1 if ub < dsizes[d] else None
-                        rst = -1
-                    else:
-                        rlb = lb
-                        rub = ub if ub < dsizes[d] else None
-                        rst = None
-                    rchunk[d] = slice(rlb, rub, rst)
-                yield lchunk, rchunk
+        dsizes = {d:s for d,s in zip(dims, sizes)}
+        chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
+        nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
+        ntotal = numpy.prod([nchunks[d] for d in nchunks])
+        
+        idx = {d:0 for d in dsizes}
+        for n in xrange(ntotal):
+            for d in nchunks:
+                n, idx[d] = divmod(n, nchunks[d])
+            
+            lchunk = {}
+            rchunk = {}
+             
+            bnds = {d: (idx[d] * chunks_[d], (idx[d] + 1) * chunks_[d]) for d in chunks_}
+            for d in bnds:
+                lb, ub = bnds[d]
+                lchunk[d] = slice(lb, ub if ub < dsizes[d] else None)
+                if d in invdims:
+                    rlb = dsizes[d] - lb - 1
+                    rub = dsizes[d] - ub - 1 if ub < dsizes[d] else None
+                    rst = -1
+                else:
+                    rlb = lb
+                    rub = ub if ub < dsizes[d] else None
+                    rst = None
+                rchunk[d] = slice(rlb, rub, rst)
     
+            yield lchunk, rchunk 
+           
     @staticmethod
     def _direction_(data):
         diff = numpy.diff(data)
@@ -765,6 +764,7 @@ class WriteNode(FlowNode):
             # Loop over all chunks for the given variable's dimensions
             for lchunk, rchunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape,
                                                          chunks=chunks, invdims=self._invert_dims):
+                print lchunk, rchunk
                 ncvar[align_index(lchunk, ncvar.dimensions)] = vnode[rchunk]
 
         # Close the file after completion
