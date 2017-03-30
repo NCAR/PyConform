@@ -27,19 +27,37 @@ class ParsedFunction(object):
     def __init__(self, tokens):
         token = tokens[0]
         self.key = token[0]
-        self.args = tuple(token[1:])
+        self.args = []
+        self.kwds = {}
+        for t in token[1:]:
+            if isinstance(t, tuple):
+                self.kwds[t[0]] = t[1]
+            else:
+                self.args.append(t)
+        self.args = tuple(self.args)
     def __repr__(self):
-        return ("<{0} {1}{2!r} ('{3}') at {4}>"
-                ).format(self.__class__.__name__, self.key, self.args, str(self), hex(id(self)))
+        clsname = self.__class__.__name__
+        argstr = ','.join('{!r}'.format(a) for a in self.args)
+        kwdstr = ','.join('{}={!r}'.format(k, self.kwds[k]) for k in self.kwds)
+        if len(self.args) > 0:
+            paramstr = '{},{}'.format(argstr, kwdstr) if len(self.kwds) > 0 else argstr
+        else:
+            paramstr = kwdstr if len(self.kwds) > 0 else ''
+        return ("<{} {}({}) ('{}') at {}>").format(clsname, self.key, paramstr, str(self), hex(id(self)))
     def __str__(self):
-        strargs = '({0})'.format(','.join(str(arg) for arg in self.args))
-        return "{0}{1!s}".format(self.key, strargs)
+        argstr = ','.join('{!s}'.format(a) for a in self.args)
+        kwdstr = ','.join('{}={!s}'.format(k, self.kwds[k]) for k in self.kwds)
+        if len(self.args) > 0:
+            paramstr = '{},{}'.format(argstr, kwdstr) if len(self.kwds) > 0 else argstr
+        else:
+            paramstr = kwdstr if len(self.kwds) > 0 else ''
+        return "{}({!s})".format(self.key, paramstr)
     def __eq__(self, other):
         return ((type(self) == type(other)) and
                 (self.key == other.key) and
                 (self.args == other.args))
-
-
+        
+        
 #===================================================================================================
 # ParsedUniOp
 #===================================================================================================
@@ -48,7 +66,7 @@ class ParsedUniOp(ParsedFunction):
     A parsed unary-operator string-type
     """
     def __str__(self):
-        return "({0}{1!s})".format(self.key, self.args[0])
+        return "({}{!s})".format(self.key, self.args[0])
 
 
 #===================================================================================================
@@ -59,7 +77,7 @@ class ParsedBinOp(ParsedFunction):
     A parsed binary-operator string-type
     """
     def __str__(self):
-        return "({0!s}{1}{2!s})".format(self.args[0], self.key, self.args[1])
+        return "({!s}{}{!s})".format(self.args[0], self.key, self.args[1])
 
 
 #===================================================================================================
@@ -73,13 +91,13 @@ class ParsedVariable(ParsedFunction):
         super(ParsedVariable, self).__init__(tokens)
         self.args = index_exp[self.args] if len(self.args) > 0 else ()
     def __repr__(self):
-        return "<{0} '{1}' at {2}>".format(self.__class__.__name__, str(self), hex(id(self)))
+        return "<{} '{}' at {}>".format(self.__class__.__name__, str(self), hex(id(self)))
     def __str__(self):
         if len(self.args) == 0:
             strargs = ''
         else:
             strargs = str(list(self.args))
-        return "{0}{1}".format(self.key, strargs)
+        return "{}{}".format(self.key, strargs)
 
 
 #===================================================================================================
@@ -117,7 +135,7 @@ _FLOAT_ = (Combine(Word(nums) + _EXP_FLT_) | Combine(_DEC_FLT_ + Optional(_EXP_F
 _FLOAT_.setParseAction(lambda t: float(t[0]))
 
 # QUOTED STRINGS: Any words between quotations
-_STR_ = QuotedString('"', escChar='\\')
+_QSTR_ = QuotedString('"', escChar='\\')
 
 # String _NAME_s ...identifiers for function or variable _NAME_s
 _NAME_ = Word(alphas + "_", alphanums + "_")
@@ -126,31 +144,36 @@ _NAME_ = Word(alphas + "_", alphanums + "_")
 #            ints, _FLOAT_, variables, and even other functions.  Hence,
 #            we need a Forward place-holder to start...
 _EXPR_PARSER_ = Forward()
-_FUNC_ = Group(_NAME_ + (Suppress('(') + Optional(delimitedList(_EXPR_PARSER_)) + Suppress(')')))
+
+# Named Arguments
+_KWDS_ = Group( _NAME_ + Suppress('=') + (_QSTR_ | _EXPR_PARSER_) )
+_KWDS_.setParseAction(lambda t: tuple(*t))
+
+# Functions
+_FUNC_ = Group(_NAME_ + (Suppress('(') + Optional(delimitedList(_QSTR_ | _KWDS_ | _EXPR_PARSER_)) +
+                         Suppress(')')))
 _FUNC_.setParseAction(ParsedFunction)
 
 # VARIABLE NAMES: Can be just string _NAME_s or _NAME_s with blocks
 #                 of indices (e.g., [1,2,-4])
 _INDEX_ = Combine(Optional('-') + Word(nums))
 _INDEX_.setParseAction(lambda t: int(t[0]))
-_ISLICE_ = _INDEX_ + Optional(Suppress(':') + _INDEX_ + Optional(Suppress(':') + _INDEX_))
+
+_IDX_OR_NONE_ = Optional(_INDEX_)
+_IDX_OR_NONE_.setParseAction(lambda t: t[0] if len(t) > 0 else [None])
+
+# _ISLICE_ = _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_ + Optional(Suppress(':') + _IDX_OR_NONE_))
+# _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
+_ISLICE_ = delimitedList(_IDX_OR_NONE_, delim=':')
 _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
-#         variable = Group(_NAME_ + Optional(Suppress('[') +
-#                                            delimitedList(_ISLICE_ |
-#                                                          _EXPR_PARSER_) +
-#                                          Suppress(']')))
-_VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_) + Suppress(']')))
+
+_VARIABLE_ = Group(_NAME_ + Optional(Suppress('[') + delimitedList(_ISLICE_ | _INDEX_) + Suppress(']')))
 _VARIABLE_.setParseAction(ParsedVariable)
 
 # Expression parser
-_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _STR_ | _FUNC_ | _VARIABLE_,
-                                    [(Literal('^'), 2, opAssoc.RIGHT, _binop_),
+_EXPR_PARSER_ << operatorPrecedence(_FLOAT_ | _INT_ | _FUNC_ | _VARIABLE_,
+                                    [(Literal('**'), 2, opAssoc.RIGHT, _binop_),
                                      (oneOf('+ -'), 1, opAssoc.RIGHT, _negop_),
-# Using the following gets the order of operations wrong!  ...
-#                                      (oneOf('/ *'), 2, opAssoc.RIGHT, _binop_),
-#                                      (oneOf('- +'), 2, opAssoc.RIGHT, _binop_)])
-# ...However, using the following (which gets order of ops correct) is much slower!
-# ...but enabling packrat parsing speeds it back up!  (see top of file)
                                     (Literal('/'), 2, opAssoc.RIGHT, _binop_),
                                     (Literal('*'), 2, opAssoc.RIGHT, _binop_),
                                     (Literal('-'), 2, opAssoc.RIGHT, _binop_),

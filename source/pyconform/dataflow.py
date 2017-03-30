@@ -204,7 +204,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, provenance=False, bounds={}):
+    def execute(self, chunks={}, serial=False, history=False, bounds={}):
         """
         Execute the Data Flow
         
@@ -215,7 +215,7 @@ class DataFlow(object):
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
             serial (bool): Whether to run in serial (True) or parallel (False)
-            provenance (bool): Whether to write a provenance attribute generated during execution
+            history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
             bounds (dict):  Bounds on named variables specified in the output specification
                 file.  Data will be written for values within these bounds inclusively.
@@ -260,7 +260,7 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, provenance=provenance, bounds=bounds)
+            self._writenodes[fname].execute(chunks=chunks, history=history, bounds=bounds)
 
         scomm.sync()
         if scomm.is_manager():
