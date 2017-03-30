@@ -589,7 +589,7 @@ class WriteNode(FlowNode):
 
             # Try to open the output file for writing
             try:
-                self._file = Dataset(fname, 'w', data_model=self._filedesc.format)
+                self._file = Dataset(fname, 'w', format=self._filedesc.format)
             except:
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
@@ -655,9 +655,10 @@ class WriteNode(FlowNode):
                 vdesc = self._filedesc.variables[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
-                fill_value = vattrs.pop('_FillValue', None)
-                ncvar = self._file.createVariable(vname, str(vdesc.datatype), vdesc.dimensions.keys(),
-                                                  fill_value=fill_value)
+                vdtype = numpy.dtype(vdesc.datatype)
+                fillval = vattrs.pop('_FillValue', None)
+                vdims = vdesc.dimensions.keys()
+                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval)
 
                 for aname in vattrs:
                     ncvar.setncattr(aname, vattrs[aname])

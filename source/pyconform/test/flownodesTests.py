@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from pyconform.physarray import PhysArray, DimensionsError
 from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
-from testutils import print_test_message
+from testutils import print_test_message, print_ncfile
 from cf_units import Unit
 from os.path import exists
 from os import remove
@@ -605,9 +605,18 @@ class WriteNodeTests(unittest.TestCase):
     """
 
     def setUp(self):
-        xdata = PhysArray(numpy.arange(-5, 10), name='X', units='m', dimensions=('x',))
-        ydata = PhysArray(numpy.arange(0, 8), name='Y', units='m', dimensions=('y',))
-        vdata = PhysArray(xdata * ydata + PhysArray(40.0, units='m^2'), name='V', units='K')
+        NX = 15
+        X0 = -5
+        xdata = PhysArray(numpy.arange(X0, X0+NX, dtype='f'),
+                          name='X', units='m', dimensions=('x',))
+        
+        NY = 8
+        Y0 = 0
+        ydata = PhysArray(numpy.arange(Y0, Y0+NY, dtype='f'),
+                          name='Y', units='m', dimensions=('y',))
+        
+        vdata = PhysArray(numpy.arange(0, NX*NY, dtype='d').reshape(NX,NY),
+                          name='V', units='K', dimensions=('x', 'y'))
 
         self.data = {'X': xdata, 'Y': ydata, 'V': vdata}
         self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X'},
@@ -616,7 +625,6 @@ class WriteNodeTests(unittest.TestCase):
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2'}}
         self.nodes = {n:ValidateNode(n, DataNode(self.data[n]), attributes=self.atts[n])
                       for n in self.data}
-
 
         dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues()
                     for n, s in zip(x.dimensions, x.shape)}
@@ -629,7 +637,7 @@ class WriteNodeTests(unittest.TestCase):
         #for fname in glob('*.nc'):
         #    remove(fname)
         pass
-
+    
     def test_init(self):
         filename = 'test.nc'
         testname = 'WriteNode.__init__({})'.format(filename)
@@ -704,7 +712,7 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_execute_simple(self):
+    def test_execute_simple_default(self):
         filename = 'v_x_y_simple.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
@@ -714,9 +722,33 @@ class WriteNodeTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        print
-        with netCDF4.Dataset(filename, 'r') as ncf:
-            print ncf
+        print_ncfile(filename)
+
+    def test_execute_simple_nc3(self):
+        filename = 'v_x_y_simple_nc3.nc'
+        testname = 'WriteNode({}).execute()'.format(filename)
+        filedesc = FileDesc(filename, format='NETCDF3_CLASSIC', variables=self.vardescs.values(),
+                            attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
+        N.execute(history=True)
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print_ncfile(filename)
+
+    def test_execute_simple_nc4(self):
+        filename = 'v_x_y_simple_nc4.nc'
+        testname = 'WriteNode({}).execute()'.format(filename)
+        filedesc = FileDesc(filename, format='NETCDF4', variables=self.vardescs.values(),
+                            attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
+        N.execute(history=True)
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print_ncfile(filename)
 
     def test_execute_chunk_1D(self):
         filename = 'v_x_y_chunk_1D.nc'
@@ -729,9 +761,7 @@ class WriteNodeTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        print
-        with netCDF4.Dataset(filename, 'r') as ncf:
-            print ncf
+        print_ncfile(filename)
 
     def test_execute_chunk_2D(self):
         filename = 'v_x_y_chunk_2D.nc'
@@ -744,9 +774,7 @@ class WriteNodeTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        print
-        with netCDF4.Dataset(filename, 'r') as ncf:
-            print ncf
+        print_ncfile(filename)
 
     def test_execute_chunk_3D(self):
         filename = 'v_x_y_chunk_2D.nc'
@@ -759,9 +787,8 @@ class WriteNodeTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        print
-        with netCDF4.Dataset(filename, 'r') as ncf:
-            print ncf
+        print_ncfile(filename)
+
 
 #===============================================================================
 # Command-Line Operation
