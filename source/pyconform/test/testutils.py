@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from re import sub
 from os import linesep
+from netCDF4 import Dataset
 
 #===================================================================================================
 # print_test_message
@@ -20,4 +21,28 @@ def print_test_message(testname, **kwds):
             val_str = sub(' +', ' ', repr(kwds[k]).replace(linesep, ' '))
             print ' - {0:<{1}} = {2}'.format(k, nlen, val_str)
     print
+
+
+#===================================================================================================
+# print_ncfile
+#===================================================================================================
+def print_ncfile(filename):
+    with Dataset(filename, 'r') as ncf:
+        print 'File: {!r}'.format(filename)
+        print '   Data Model: {!r}'.format(ncf.data_model)
+        print '   Disk Format: {!r}'.format(ncf.disk_format)
+        print '   Attributes:'
+        for a in sorted(ncf.ncattrs()):
+            print '      {}: {!r}'.format(a, ncf.getncattr(a))
+        print '   Dimensions:'
+        for d in sorted(ncf.dimensions):
+            dobj = ncf.dimensions[d]
+            print '      {}: {} [Unlimited: {}]'.format(d, dobj.size, dobj.isunlimited())
+        print '   Variables:'
+        for v in sorted(ncf.variables):
+            vobj = ncf.variables[v]
+            vdimstr = ','.join(vobj.dimensions)
+            header = '      {!s} {}({}): '.format(vobj.dtype, v, vdimstr)
+            datastr = str(vobj[:]).replace('\n', '\n{}'.format(' ' * len(header)))
+            print '{}{}'.format(header, datastr)
 
