@@ -23,7 +23,6 @@ from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
 from asaptools.partition import WeightBalanced
-from collections import OrderedDict
 
 import numpy
 
