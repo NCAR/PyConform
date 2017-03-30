@@ -589,7 +589,7 @@ class WriteNode(FlowNode):
 
             # Try to open the output file for writing
             try:
-                self._file = Dataset(fname, 'w')
+                self._file = Dataset(fname, 'w', data_model=self._filedesc.format)
             except:
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
