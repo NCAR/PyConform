@@ -65,7 +65,7 @@ class DimensionDesc(object):
     unlimited.
     """
 
-    def __init__(self, name, size=None, unlimited=None):
+    def __init__(self, name, size=None, unlimited=False):
         """
         Initializer
         
@@ -310,7 +310,7 @@ class FileDesc(object):
     file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
     """
 
-    def __init__(self, name, fmt='NETCDF4_CLASSIC', variables=(), attributes={}):
+    def __init__(self, name, format='NETCDF4_CLASSIC', variables=(), attributes={}):  # @ReservedAssignment
         """
         Initializer
         
@@ -324,11 +324,11 @@ class FileDesc(object):
         """
         self._name = name
 
-        if fmt not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
+        if format not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
                           'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA'):
-            err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(fmt, name)
+            err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(format, name)
             raise TypeError(err_msg)
-        self._format = fmt
+        self._format = format
 
         if not _is_list_of_type_(variables, VariableDesc):
             err_msg = ('Variables in file {!r} must be a list or tuple of type '
@@ -565,7 +565,7 @@ class InputDatasetDesc(DatasetDesc):
                     fvars.append(VariableDesc(vname, datatype='{!s}'.format(vobj.dtype),
                                               dimensions=vdims, attributes=vattrs))
 
-                files.append(FileDesc(fname, fmt=ffmt, attributes=fattrs, variables=fvars))
+                files.append(FileDesc(fname, format=ffmt, attributes=fattrs, variables=fvars))
 
         # Call the base class initializer to check self-consistency
         super(InputDatasetDesc, self).__init__(name, files=files)
@@ -675,7 +675,7 @@ class OutputDatasetDesc(DatasetDesc):
                 files[fname] = {}
 
                 if 'format' in fdict:
-                    files[fname]['fmt'] = fdict['format']
+                    files[fname]['format'] = fdict['format']
 
                 if 'attributes' in fdict:
                     files[fname]['attributes'] = fdict['attributes']

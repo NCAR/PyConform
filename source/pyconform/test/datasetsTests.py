@@ -489,7 +489,7 @@ class FileDescTests(unittest.TestCase):
 
     def test_format_valid(self):
         indata = 'NETCDF4'
-        fdesc = FileDesc('test.nc', fmt=indata)
+        fdesc = FileDesc('test.nc', format=indata)
         actual = fdesc.format
         expected = indata
         print_test_message('FileDesc.format == {}'.format(expected),
@@ -499,9 +499,9 @@ class FileDescTests(unittest.TestCase):
     def test_format_invalid(self):
         indata = 'STUFF'
         expected = TypeError
-        print_test_message('FileDesc(fmt={})'.format(indata),
+        print_test_message('FileDesc(format={})'.format(indata),
                            input=indata, expected=expected)
-        self.assertRaises(expected, FileDesc, 'test.nc', fmt=indata)
+        self.assertRaises(expected, FileDesc, 'test.nc', format=indata)
 
     def test_attributes_default(self):
         fdesc = FileDesc('test.nc')
