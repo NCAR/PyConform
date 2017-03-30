@@ -607,11 +607,12 @@ class WriteNodeTests(unittest.TestCase):
     def setUp(self):
         xdata = PhysArray(numpy.arange(-5, 10), name='X', units='m', dimensions=('x',))
         ydata = PhysArray(numpy.arange(0, 8), name='Y', units='m', dimensions=('y',))
-        vdata = PhysArray(xdata * ydata, name='V', units='K')
+        vdata = PhysArray(xdata * ydata + PhysArray(40.0, units='m^2'), name='V', units='K')
 
         self.data = {'X': xdata, 'Y': ydata, 'V': vdata}
-        self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2'},
-                     'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2'},
+        self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X'},
+                     'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2', 'axis': 'Y', 
+                           'direction': 'decreasing'},
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2'}}
         self.nodes = {n:ValidateNode(n, DataNode(self.data[n]), attributes=self.atts[n])
                       for n in self.data}
@@ -625,8 +626,9 @@ class WriteNodeTests(unittest.TestCase):
         self.vardescs = vardescs
 
     def tearDown(self):
-        for fname in glob('*.nc'):
-            remove(fname)
+        #for fname in glob('*.nc'):
+        #    remove(fname)
+        pass
 
     def test_init(self):
         filename = 'test.nc'
@@ -638,69 +640,67 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
-    def test_chunk_iter_all(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
-        expected = [slice(None)]
+    def test_chunk_iter_default(self):
+        dimsizes = [('x', 2), ('y', 3)]
+        testname = 'WriteNode._chunk_iter_({})'.format(dimsizes)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes)]
+        expected = [(slice(0, None, None), slice(0, None, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_1D(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
-        expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_1D_unnamed(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
-        expected = [slice(None)]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'z': 2}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
-        expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
-                    {'x': slice(2, None), 'y': slice(0, 3)},
-                    {'x': slice(0, 2), 'y': slice(3, None)},
-                    {'x': slice(2, None), 'y': slice(3, None)}]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2, 'y': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, 3)), (slice(0, 2), slice(3, None)),
+                    (slice(2, None), slice(0, 3)), (slice(2, None), slice(3, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D_unnamed(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
-        expected = [{'x': slice(0, 2)}, {'x': slice(2, None)}]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2, 'z': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D_reverse(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
-        N = WriteNode(filedesc, inputs=self.nodes.values())
-        actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
-        expected = [{'x': slice(0, 2), 'y': slice(0, 3)},
-                    {'x': slice(0, 2), 'y': slice(3, None)},
-                    {'x': slice(2, None), 'y': slice(0, 3)},
-                    {'x': slice(2, None), 'y': slice(3, None)}]
+        dimsizes = [('y', 5), ('x', 4)]
+        chunks = {'x': 2, 'y': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 3), slice(0, 2)), (slice(3, None), slice(0, 2)),
+                    (slice(0, 3), slice(2, None)), (slice(3, None), slice(2, None))]
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_invert_dims(self):
+        dimsizechunks = [('x', 4, slice(0,2)), ('y', 5, slice(1,3))]
+        idims = {'y'}
+        testname = 'WriteNode._invert_dims({}, idims={})'.format(dimsizechunks, idims)
+        actual = WriteNode._invert_dims(dimsizechunks, idims=idims)
+        expected = (slice(0, 2), slice(3, 1, -1))
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -709,7 +709,7 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute()'.format(filename)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute()
+        N.execute(history=True)
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -724,10 +724,10 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks)
+        N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:
@@ -739,10 +739,10 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks)
+        N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:
@@ -754,10 +754,10 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks)
+        N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:

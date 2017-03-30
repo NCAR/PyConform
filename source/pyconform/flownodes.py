@@ -565,41 +565,85 @@ class WriteNode(FlowNode):
         # Set the filehandle
         self._file = None
 
-        # Initialize the variable information
-        self._vinfos = {}
+        # Initialize set of inverted dimensions
+        self._idims = set()
 
-    def open(self, provenance=False):
+    def open(self, history=False):
         """
         Open the file for writing, if not open already
         
         Parameters:
-            provenance (bool): Whether to write a provenance attribute generated during execution
+            history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
         """
         if self._file is None:
 
             # Make the necessary subdirectories to open the file
-            labeldir = dirname(self.label)
-            if len(labeldir) > 0 and not exists(labeldir):
+            fname = self.label
+            fdir = dirname(fname)
+            if len(fdir) > 0 and not exists(fdir):
                 try:
-                    makedirs(labeldir)
+                    makedirs(fdir)
                 except:
-                    raise IOError('Failed to create directory for output file {!r}'.format(self.label))
+                    raise IOError('Failed to create directory for output file {!r}'.format(fname))
 
             # Try to open the output file for writing
             try:
-                self._file = Dataset(self.label, 'w')
+                self._file = Dataset(fname, 'w')
             except:
-                raise IOError('Failed to open output file {!r}'.format(self.label))
+                raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
             self._file.setncatts(self._filedesc.attributes)
 
-            # Create the required dimensions for the variable
-            for dname, ddesc in self._filedesc.dimensions.iteritems():
+            # Scan over variables for coordinates and dimension information
+            vinfos = {}
+            req_dims = set()
+            for vnode in self.inputs:
+                vname = vnode.label
+                vinfo = vnode[None]
+
+                # Get only dimension descriptors needed by the variables
+                for dname in vinfo.dimensions:
+                    if dname not in self._filedesc.dimensions:
+                        raise KeyError(('Dimension {!r} needed by variable {!r} is not specified '
+                                        'in file {!r}').format(dname, vname, fname))
+                    req_dims.add(dname)
+
+                # Determine coordinates and dimensions to invert
+                if len(vinfo.dimensions) == 1 and 'axis' in vnode.attributes:
+                    if 'direction' in vnode.attributes:                    
+                        vdir_out = vnode.attributes.pop('direction')
+                        if vdir_out not in ['increasing', 'decreasing']:
+                            raise ValueError(('Unrecognized direction in output coordinate variable '
+                                              '{!r} when writing file {!r}').format(vname, fname))
+                        vdir_inp = WriteNode._direction_(vnode[:])
+                        if vdir_inp is None:
+                            raise ValueError(('Output coordinate variable {!r} has no calculable '
+                                              'direction').format(vname))
+                        if vdir_inp != vdir_out:
+                            self._idims.add(vinfo.dimensions[0])
+
+                # Store variable information object                
+                vinfos[vname] = vinfo
+            
+            # Record dimension inversion information for history attributes
+            if history:
+                vhist = {}
+                for vname in vinfos:
+                    vinfo = vinfos[vname]
+                    idimstr = ','.join(d for d in vinfo.dimensions if d in self._idims)
+                    if len(idimstr) > 0:
+                        vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
+                    else:
+                        vhist[vname] = vinfo.name
+
+            # Create the required dimensions in the file
+            for dname in req_dims:
+                ddesc = self._filedesc.dimensions[dname]
                 if not ddesc.is_set():
                     raise RuntimeError(('Cannot create unset dimension {!r} in file '
-                                        '{!r}').format(dname, self.label))
+                                        '{!r}').format(dname, fname))
                 if ddesc.unlimited:
                     self._file.createDimension(dname)
                 else:
@@ -610,13 +654,15 @@ class WriteNode(FlowNode):
                 vname = vnode.label
                 vdesc = self._filedesc.variables[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
+
                 fill_value = vattrs.pop('_FillValue', None)
-                ncvar = self._file.createVariable(vname, vdesc.datatype, vdesc.dimensions.keys(),
+                ncvar = self._file.createVariable(vname, str(vdesc.datatype), vdesc.dimensions.keys(),
                                                   fill_value=fill_value)
-                for aname, avalue in vattrs.iteritems():
-                    ncvar.setncattr(aname, avalue)
-                if provenance:
-                    ncvar.setncattr('conform_prov', vnode[None].name)
+
+                for aname in vattrs:
+                    ncvar.setncattr(aname, vattrs[aname])
+                if history:
+                    ncvar.setncattr('history', vhist[vname])
 
     def close(self):
         """
@@ -624,37 +670,66 @@ class WriteNode(FlowNode):
         """
         if self._file is not None:
             self._file.close()
+            self._idims = set()
             self._file = None
 
     @staticmethod
-    def _chunk_iter_(dims, sizes, chunks={}):
-        if not isinstance(dims, (list, tuple)):
-            raise TypeError('Dimensions must be a tuple')
-        if not isinstance(sizes, (list, tuple)):
-            raise TypeError('Dimension sizes must be a tuple')
+    def _chunk_iter_(dimsizes, chunks={}):
+        if ((not isinstance(dimsizes, (tuple, list))) and
+            (not all(isinstance(ds, tuple) and len(ds)==2 for ds in dimsizes))):
+            raise TypeError('Dimensions must be a tuple or list of dimension-size pairs')
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
-        if len(dims) != len(sizes):
-            raise ValueError('Dimensions and sizes must be same length')
 
-        chunks_ = {d:c for d, c in chunks.iteritems() if d in dims}
-        if len(chunks_) == 0:
-            yield slice(None)
+        dsizes = {d:s for d,s in dimsizes}
+        chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
+        nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
+        ntotal = numpy.prod([nchunks[d] for d in nchunks])
+        
+        idx = {d:0 for d in dsizes}
+        for n in xrange(ntotal):
+            for d in nchunks:
+                n, idx[d] = divmod(n, nchunks[d])
+            chunk = []
+            for d, _ in dimsizes:
+                lb = idx[d] * chunks_[d]
+                ub = (idx[d] + 1) * chunks_[d]
+                chunk.append(slice(lb, ub if ub < dsizes[d] else None))    
+            yield tuple(chunk) 
+    
+    @staticmethod
+    def _invert_dims(dimsizechunks, idims=set()):
+        if ((not isinstance(dimsizechunks, (list, tuple))) and
+            (not all(isinstance(dsc, tuple) and len(dsc)==3 for dsc in dimsizechunks))):
+            raise TypeError('Dimensions must be a tuple')
+        if not isinstance(idims, set):
+            raise TypeError('Dimensions to invert must be a set')
+        
+        ichunk = []
+        for d,s,c in dimsizechunks:
+            ub = s if c.stop is None else c.stop
+            if d in idims:
+                ilb = s - c.start - 1
+                iub = s - ub - 1 if ub < s else None
+                ist = -1
+            else:
+                ilb = c.start
+                iub = c.stop
+                ist = c.step                
+            ichunk.append(slice(ilb,iub,ist))
+        return tuple(ichunk)
+           
+    @staticmethod
+    def _direction_(data):
+        diff = numpy.diff(data)
+        if numpy.all(diff > 0):
+            return 'increasing'
+        elif numpy.all(diff < 0):
+            return 'decreasing'
         else:
-            dsizes = OrderedDict((d, s) for d, s in zip(dims, sizes))
-            nchunks = OrderedDict((d, s) for d, s in dsizes.iteritems() if d in chunks_)
-            for d in chunks_:
-                nchunks[d] = dsizes[d] / chunks_[d] + int(dsizes[d] % chunks_[d] > 0)
-            ntotal = numpy.prod(nchunks.values())
-            index = {d: 0 for d in sizes}
-            for n in xrange(ntotal):
-                for d, m in nchunks.iteritems():
-                    n, index[d] = divmod(n, m)
-                bnds = {d: (index[d] * c, (index[d] + 1) * c) for d, c in chunks_.iteritems()}
-                yield {d: (slice(lb, ub) if ub < dsizes[d] else slice(lb, None))
-                       for d, (lb, ub) in bnds.iteritems()}
+            return None
 
-    def execute(self, chunks={}, provenance=False, bounds={}):
+    def execute(self, chunks={}, history=False, bounds={}):
         """
         Execute the writing of the WriteNode file at once
         
@@ -667,16 +742,16 @@ class WriteNode(FlowNode):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
-            provenance (bool): Whether to write a provenance attribute generated during execution
+            history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
             bounds (dict):  Bounds on named variables specified in the output specification
                 file.  Data will be written for values within these bounds inclusively.
         """
 
-        # Open the file and write the header information (fills the _vinfos)
-        self.open(provenance=provenance)
+        # Open the file and write the header information
+        self.open(history=history)
 
-        # Loop over all variable nodes
+        # Loop over all variable nodes and write data
         for vnode in self.inputs:
 
             # Get the name of the variable node
@@ -684,15 +759,16 @@ class WriteNode(FlowNode):
 
             # Get the header information for this variable node
             vdesc = self._filedesc.variables[vname]
-            vdims = vdesc.dimensions.keys()
-            vshape = [d.size for d in vdesc.dimensions.itervalues()]
+            vdims = [d for d in vdesc.dimensions]
+            vsizes = [vdesc.dimensions[d].size for d in vdesc.dimensions]
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
             # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(vdims, vshape, chunks):
-                ncvar[align_index(chunk, ncvar.dimensions)] = vnode[chunk]
+            for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
+                vdimsizechunks = zip(vdims, vsizes, chunk)
+                ncvar[chunk] = vnode[self._invert_dims(vdimsizechunks, idims=self._idims)]
 
         # Close the file after completion
         self.close()

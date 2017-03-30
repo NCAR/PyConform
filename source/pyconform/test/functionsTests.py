@@ -15,9 +15,9 @@ import numpy as np
 import operator as op
 
 
-#===============================================================================
+#===================================================================================================
 # FindTests
-#===============================================================================
+#===================================================================================================
 class FindTests(unittest.TestCase):
     """
     Unit tests for finding functions and operators
@@ -110,14 +110,6 @@ class FindTests(unittest.TestCase):
         print_test_message(testname, key=key, expected=expected)
         self.assertRaises(KeyError, functions.find_function, key)
 
-    def test_function_numargs_failure(self):
-        key = 'sqrt'
-        numargs = 2
-        testname = 'find_function({!r}, {})'.format(key, numargs)
-        expected = KeyError
-        print_test_message(testname, key=key, numargs=numargs, expected=expected)
-        self.assertRaises(KeyError, functions.find_function, key, numargs)
-
     def test_sqrt(self):
         key = 'sqrt'
         testname = 'find({!r})'.format(key)
@@ -133,7 +125,7 @@ class FindTests(unittest.TestCase):
         expected = functions.MultiplicationOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertIsInstance(actual, expected, '{} failed'.format(testname))
-
+        
     def test_key_failure(self):
         key = '?'
         testname = 'find({!r})'.format(key)
@@ -152,7 +144,6 @@ class FindTests(unittest.TestCase):
     def test_user_defined(self):
         class myfunc(functions.Function):
             key = 'myfunc'
-            numargs = 3
             def __call__(self, x, y, z):
                 return x
 
@@ -335,7 +326,7 @@ class EvaluationTests(unittest.TestCase):
         testname = '({} {} {})'.format(x, key, y)
         func = functions.find(key, 2)
         actual = func(x, y)
-        expected = PhysArray(1.5 / 7.9, name='(x/y)', units='1/1000')
+        expected = PhysArray(1.5 / 7.9, name='(x/y)', units='0.001 1')
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
         np.testing.assert_array_almost_equal(actual, expected, 16,
                                              '{} failed - data'.format(testname))

@@ -362,9 +362,14 @@ class ParseXML(object):
 #        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
         # Get a list of mips for the experiment
-
+#        print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
         e_mip = []
         e_id = dq.inx.experiment.label[exp]
+        if len(e_id)==0:
+            print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m' 
+            print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
+            return {} 
+        activity_id = dq.inx.uid[e_id[0]].mip
         e_vars = dq.inx.iref_by_sect[e_id[0]].a
         total_request = {}
         for ri in e_vars['requestItem']:
@@ -382,7 +387,7 @@ class ParseXML(object):
                 table_info['experiment'] = exp
                 table_info['experiment_id'] = exp
                 table_info['data_specs_version'] = dreq.version
-                table_info['activity_id'] = dr.mip
+                table_info['activity_id'] = activity_id
 
 
                 rl = dq.inx.requestLink.uid[dr.rlid]
@@ -433,6 +438,8 @@ class ParseXML(object):
                                 var['out_name']= c_var.label #?
 	                    if hasattr(c_var,'positive'):
                                 var['positive']= c_var.positive
+                            if hasattr(c_var,'direction'):
+                                var['direction']= c_var.direction
 	                    if hasattr(c_var,'prov'):
                                 var['prov']= c_var.prov
 	                    if hasattr(c_var,'procNote'):
@@ -493,9 +500,11 @@ class ParseXML(object):
                                     for d in dims:
                                         if d not in axes_list and d != '' and d != 'None':
                                             if 'copy' not in var['id'] and '?' not in d:
-                                                axes_list.append(d) 
-                            if var['coordinates'][-1] == '|':
-                                var['coordinates'] = var['coordinates'][:-1] 
+                                                axes_list.append(d)
+                            if 'coordinates' in var.keys(): 
+                                if len(var['coordinates']) > 1:
+                                    if var['coordinates'][-1] == '|':
+                                        var['coordinates'] = var['coordinates'][:-1] 
 
 	                    # Set what we can from the variable section
                             if hasattr(c_var, 'vid'):
@@ -519,44 +528,46 @@ class ParseXML(object):
                         id = dq.inx.grids.label[a]
                         if len(id) > 0:
                             v = dq.inx.grids.uid[id[0]]
+                        ax = {}
+                        if hasattr(v,'units'):
+                            if v.units == "":
+                                ax['units'] = '1'
+                            else: 
+                                ax['units'] = v.units
+                        if hasattr(v,'value'):
+                            ax['value'] = v.value
+                        if hasattr(v,'axis'):
+                            ax['axis'] = v.axis
+                        if hasattr(v,'valid_max'):
+                            if isinstance(v.valid_max, (int, long, float, complex)):        
+                                ax['valid_max'] = v.valid_max
+                        if hasattr(v,'valid_min'):
+                            if isinstance(v.valid_min, (int, long, float, complex)):
+                                ax['valid_min'] = v.valid_min
+                        if hasattr(v,'standardName'):
+                            ax['standard_name'] = v.standardName
+                        if hasattr(v,'type'):
+                            ax['type'] = v.type
+                        if hasattr(v,'id'):
+                            ax['id'] = v.label
+                        if hasattr(v,'positive'):
+                            ax['positive'] = v.positive
+                        if hasattr(v,'direction'):
+                            ax['direction'] = v.direction
+                        if hasattr(v,'title'):
+                            ax['title'] = v.title
+                        if hasattr(v,'bounds'):
+                            ax['bounds'] = v.bounds
+                        if hasattr(v,'requested'):
+                            ax['requested'] = v.requested
+                        if hasattr(v,'boundsValues'):
+                            ax['boundsValues'] = v.boundsValues
+                        if hasattr(v,'coords'):
+                            ax['coords'] = v.coords
+                        axes[a] = ax
                     else:
                         v = a
-                        a = a.label
-                    ax = {}
-                    if hasattr(v,'units'):
-                        if v.units == "":
-                            ax['units'] = '1'
-                        else: 
-                            ax['units'] = v.units
-                    if hasattr(v,'value'):
-                        ax['value'] = v.value
-                    if hasattr(v,'axis'):
-                        ax['axis'] = v.axis
-                    if hasattr(v,'valid_max'):
-                        if isinstance(v.valid_max, (int, long, float, complex)):        
-                            ax['valid_max'] = v.valid_max
-                    if hasattr(v,'valid_min'):
-                        if isinstance(v.valid_min, (int, long, float, complex)):
-                            ax['valid_min'] = v.valid_min
-                    if hasattr(v,'standardName'):
-                        ax['standard_name'] = v.standardName
-                    if hasattr(v,'type'):
-                        ax['type'] = v.type
-                    if hasattr(v,'id'):
-                        ax['id'] = v.label
-                    if hasattr(v,'positive'):
-                        ax['positive'] = v.positive
-                    if hasattr(v,'title'):
-                        ax['title'] = v.title
-                    if hasattr(v,'bounds'):
-                        ax['bounds'] = v.bounds
-                    if hasattr(v,'requested'):
-                        ax['requested'] = v.requested
-                    if hasattr(v,'boundsValues'):
-                        ax['boundsValues'] = v.boundsValues
-                    if hasattr(v,'coords'):
-                        ax['coords'] = v.coords
-                    axes[a] = ax
+                        print "Cannot find link for dimension: ",v
    
                 try:
                     table_dict['variables'] = variables
