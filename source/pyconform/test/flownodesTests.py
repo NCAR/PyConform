@@ -10,6 +10,7 @@ from testutils import print_test_message
 from cf_units import Unit
 from os.path import exists
 from os import remove
+from glob import glob
 
 import unittest
 import numpy
@@ -605,9 +606,10 @@ class WriteNodeTests(unittest.TestCase):
                                                             'va2': 'v attribute 2'})
         self.vars = [self.x, self.y, self.v]
 
-#     def tearDown(self):
-#         for fname in glob('*.nc'):
-#             remove(fname)
+    def tearDown(self):
+        #for fname in glob('*.nc'):
+        #    remove(fname)
+        pass
 
     def test_init(self):
         filename = 'test.nc'
@@ -618,105 +620,67 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
-    def test_chunk_iter_all(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (2, 3))]
-        expected = [({'y': slice(0, None, None), 'x': slice(0, None, None)},
-                     {'y': slice(0, None, None), 'x': slice(0, None, None)})]
+    def test_chunk_iter_default(self):
+        dimsizes = [('x', 2), ('y', 3)]
+        testname = 'WriteNode._chunk_iter_({})'.format(dimsizes)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes)]
+        expected = [(slice(0, None, None), slice(0, None, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_1D(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2})]
-        expected = [({'y': slice(0, None, None), 'x': slice(0, 2, None)},
-                     {'y': slice(0, None, None), 'x': slice(0, 2, None)}),
-                    ({'y': slice(0, None, None), 'x': slice(2, None, None)},
-                     {'y': slice(0, None, None), 'x': slice(2, None, None)})]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_chunk_iter_1D_invert(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2},
-                                                    invdims={'x'})]
-        expected = [({'y': slice(0, None, None), 'x': slice(0, 2, None)},
-                     {'y': slice(0, None, None), 'x': slice(3, 1, -1)}),
-                    ({'y': slice(0, None, None), 'x': slice(2, None, None)},
-                     {'y': slice(0, None, None), 'x': slice(1, None, -1)})]
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
     def test_chunk_iter_1D_unnamed(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'z': 2})]
-        expected = [({'y': slice(0, None, None), 'x': slice(0, None, None)},
-                     {'y': slice(0, None, None), 'x': slice(0, None, None)})]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'z': 2}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3})]
-        expected = [({'y': slice(0, 3, None), 'x': slice(0, 2, None)},
-                     {'y': slice(0, 3, None), 'x': slice(0, 2, None)}),
-                    ({'y': slice(3, None, None), 'x': slice(0, 2, None)},
-                     {'y': slice(3, None, None), 'x': slice(0, 2, None)}),
-                    ({'y': slice(0, 3, None), 'x': slice(2, None, None)},
-                     {'y': slice(0, 3, None), 'x': slice(2, None, None)}),
-                    ({'y': slice(3, None, None), 'x': slice(2, None, None)},
-                     {'y': slice(3, None, None), 'x': slice(2, None, None)})]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2, 'y': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, 3)), (slice(0, 2), slice(3, None)),
+                    (slice(2, None), slice(0, 3)), (slice(2, None), slice(3, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_chunk_iter_2D_invert(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'y': 3},
-                                                    invdims={'x'})]
-        expected = [({'y': slice(0, 3, None), 'x': slice(0, 2, None)},
-                     {'y': slice(0, 3, None), 'x': slice(3, 1, -1)}),
-                    ({'y': slice(3, None, None), 'x': slice(0, 2, None)},
-                     {'y': slice(3, None, None), 'x': slice(3, 1, -1)}),
-                    ({'y': slice(0, 3, None), 'x': slice(2, None, None)},
-                     {'y': slice(0, 3, None), 'x': slice(1, None, -1)}),
-                    ({'y': slice(3, None, None), 'x': slice(2, None, None)},
-                     {'y': slice(3, None, None), 'x': slice(1, None, -1)})]
-        print_test_message(testname, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
     def test_chunk_iter_2D_unnamed(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('x', 'y'), (4, 5), chunks={'x': 2, 'z': 3})]
-        expected = [({'y': slice(0, None, None), 'x': slice(0, 2, None)},
-                     {'y': slice(0, None, None), 'x': slice(0, 2, None)}),
-                    ({'y': slice(0, None, None), 'x': slice(2, None, None)},
-                     {'y': slice(0, None, None), 'x': slice(2, None, None)})]
+        dimsizes = [('x', 4), ('y', 5)]
+        chunks = {'x': 2, 'z': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D_reverse(self):
-        filename = 'test.nc'
-        testname = 'WriteNode({})._chunk_iter_'.format(filename)
-        N = flownodes.WriteNode(filename, *self.vars, ga='global attribute')
-        actual = [chunk for chunk in N._chunk_iter_(('y', 'x'), (5, 4), chunks={'x': 2, 'y': 3})]
-        expected = [({'x': slice(0, 2), 'y': slice(0, 3)}, {'x': slice(0, 2), 'y': slice(0, 3)}),
-                    ({'x': slice(0, 2), 'y': slice(3, None)}, {'x': slice(0, 2), 'y': slice(3, None)}),
-                    ({'x': slice(2, None), 'y': slice(0, 3)}, {'x': slice(2, None), 'y': slice(0, 3)}),
-                    ({'x': slice(2, None), 'y': slice(3, None)}, {'x': slice(2, None), 'y': slice(3, None)})]
+        dimsizes = [('y', 5), ('x', 4)]
+        chunks = {'x': 2, 'y': 3}
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dimsizes, chunks)
+        actual = [chunk for chunk in flownodes.WriteNode._chunk_iter_(dimsizes, chunks=chunks)]
+        expected = [(slice(0, 3), slice(0, 2)), (slice(3, None), slice(0, 2)),
+                    (slice(0, 3), slice(2, None)), (slice(3, None), slice(2, None))]
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_invert_dims(self):
+        dimsizechunks = [('x', 4, slice(0,2)), ('y', 5, slice(1,3))]
+        idims = {'y'}
+        testname = 'WriteNode._invert_dims({}, idims={})'.format(dimsizechunks, idims)
+        actual = flownodes.WriteNode._invert_dims(dimsizechunks, idims=idims)
+        expected = (slice(0, 2), slice(3, 1, -1))
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -741,7 +705,7 @@ class WriteNodeTests(unittest.TestCase):
         N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:
@@ -755,7 +719,7 @@ class WriteNodeTests(unittest.TestCase):
         N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:
@@ -769,7 +733,7 @@ class WriteNodeTests(unittest.TestCase):
         N.execute(chunks=chunks, history=True)
         actual = exists(filename)
         expected = True
-        print_test_message(testname, actual=actual, expected=expected, input=chunks)
+        print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print
         with netCDF4.Dataset(filename, 'r') as ncf:

@@ -577,7 +577,7 @@ class WriteNode(FlowNode):
         
         # Initialize the variable information
         self._vinfos = {}
-        self._invert_dims = set()
+        self._idims = set()
 
     def open(self, history=False):
         """
@@ -633,7 +633,7 @@ class WriteNode(FlowNode):
                             raise ValueError(('Output coordinate variable {!r} has no calculable '
                                               'direction').format(vname))
                         if vdir_inp != vdir_out:
-                            self._invert_dims.add(vinfo.dimensions[0])
+                            self._idims.add(vinfo.dimensions[0])
 
                 # Store variable information object                
                 self._vinfos[vname] = vinfo
@@ -643,7 +643,7 @@ class WriteNode(FlowNode):
                 vhist = {}
                 for vname in self._vinfos:
                     vinfo = self._vinfos[vname]
-                    idimstr = ','.join(d for d in vinfo.dimensions if d in self._invert_dims)
+                    idimstr = ','.join(d for d in vinfo.dimensions if d in self._idims)
                     if len(idimstr) > 0:
                         vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
                     else:
@@ -678,23 +678,18 @@ class WriteNode(FlowNode):
         if self._file is not None:
             self._file.close()
             self._vinfos = {}
-            self._invert_dims = set()
+            self._idims = set()
             self._file = None
 
     @staticmethod
-    def _chunk_iter_(dims, sizes, chunks={}, invdims=set()):
-        if not isinstance(dims, tuple):
-            raise TypeError('Dimensions must be a tuple')
-        if not isinstance(sizes, tuple):
-            raise TypeError('Dimension sizes must be a tuple')
+    def _chunk_iter_(dimsizes, chunks={}):
+        if ((not isinstance(dimsizes, (tuple, list))) and
+            (not all(isinstance(ds, tuple) and len(ds)==2 for ds in dimsizes))):
+            raise TypeError('Dimensions must be a tuple or list of dimension-size pairs')
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
-        if not isinstance(invdims, set):
-            raise TypeError('Inverted dimension names must be a set')
-        if len(dims) != len(sizes):
-            raise ValueError('Dimensions and sizes must be same length')
 
-        dsizes = {d:s for d,s in zip(dims, sizes)}
+        dsizes = {d:s for d,s in dimsizes}
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
         ntotal = numpy.prod([nchunks[d] for d in nchunks])
@@ -703,25 +698,34 @@ class WriteNode(FlowNode):
         for n in xrange(ntotal):
             for d in nchunks:
                 n, idx[d] = divmod(n, nchunks[d])
-            
-            lchunk = {}
-            rchunk = {}
-             
-            bnds = {d: (idx[d] * chunks_[d], (idx[d] + 1) * chunks_[d]) for d in chunks_}
-            for d in bnds:
-                lb, ub = bnds[d]
-                lchunk[d] = slice(lb, ub if ub < dsizes[d] else None)
-                if d in invdims:
-                    rlb = dsizes[d] - lb - 1
-                    rub = dsizes[d] - ub - 1 if ub < dsizes[d] else None
-                    rst = -1
-                else:
-                    rlb = lb
-                    rub = ub if ub < dsizes[d] else None
-                    rst = None
-                rchunk[d] = slice(rlb, rub, rst)
+            chunk = []
+            for d, _ in dimsizes:
+                lb = idx[d] * chunks_[d]
+                ub = (idx[d] + 1) * chunks_[d]
+                chunk.append(slice(lb, ub if ub < dsizes[d] else None))    
+            yield tuple(chunk) 
     
-            yield lchunk, rchunk 
+    @staticmethod
+    def _invert_dims(dimsizechunks, idims=set()):
+        if ((not isinstance(dimsizechunks, (list, tuple))) and
+            (not all(isinstance(dsc, tuple) and len(dsc)==3 for dsc in dimsizechunks))):
+            raise TypeError('Dimensions must be a tuple')
+        if not isinstance(idims, set):
+            raise TypeError('Dimensions to invert must be a set')
+        
+        ichunk = []
+        for d,s,c in dimsizechunks:
+            ub = s if c.stop is None else c.stop
+            if d in idims:
+                ilb = s - c.start - 1
+                iub = s - ub - 1 if ub < s else None
+                ist = -1
+            else:
+                ilb = c.start
+                iub = c.stop
+                ist = c.step                
+            ichunk.append(slice(ilb,iub,ist))
+        return tuple(ichunk)
            
     @staticmethod
     def _direction_(data):
@@ -762,10 +766,10 @@ class WriteNode(FlowNode):
             ncvar = self._file.variables[vname]
 
             # Loop over all chunks for the given variable's dimensions
-            for lchunk, rchunk in WriteNode._chunk_iter_(vinfo.dimensions, vinfo.initshape,
-                                                         chunks=chunks, invdims=self._invert_dims):
-                print lchunk, rchunk
-                ncvar[align_index(lchunk, ncvar.dimensions)] = vnode[rchunk]
+            vdimsizes = zip(vinfo.dimensions, vinfo.initshape)
+            for chunk in WriteNode._chunk_iter_(vdimsizes, chunks=chunks):
+                vdimsizechunks = zip(vinfo.dimensions, vinfo.initshape, chunk)
+                ncvar[chunk] = vnode[self._invert_dims(vdimsizechunks, idims=self._idims)]
 
         # Close the file after completion
         self.close()
