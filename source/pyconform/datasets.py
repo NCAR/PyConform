@@ -718,11 +718,14 @@ class OutputDatasetDesc(DatasetDesc):
 
             # Loop through variables and verify they have valid data types
             for vdesc in vlist:
+                vdtype = vdesc.datatype
+                fformat = fdict['format']
                 try:
-                    OutputDatasetDesc._valid_netcdf_type_(vdesc.datatype, fdict['format'])
+                    OutputDatasetDesc._valid_netcdf_type_(vdtype, fformat)
                 except:
+                    vname = vdesc.name
                     raise ValueError(('File {!r} of format {!r} cannot write variable {!r} with '
-                                      'datatype {!r}').format(fname, fdict['format']))
+                                      'datatype {!r}').format(fname, fformat, vname, vdtype))
                 
             fdict['variables'] = vlist
             filedescs.append(FileDesc(fname, **fdict))
