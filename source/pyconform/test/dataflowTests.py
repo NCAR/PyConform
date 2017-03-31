@@ -14,7 +14,6 @@ from netCDF4 import Dataset as NCDataset
 
 import unittest
 import numpy
-from scipy.stats._continuous_distns import ncf
 
 
 #===================================================================================================

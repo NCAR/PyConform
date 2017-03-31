@@ -716,10 +716,14 @@ class OutputDatasetDesc(DatasetDesc):
                     if set(vdesc.dimensions.keys()).issubset(fdims):
                         vlist.append(vdesc)
 
-            # Loop through variables and verify they have valid data types
+            # Create the file descriptor
+            fdict['variables'] = vlist
+            fdesc = FileDesc(fname, **fdict)
+            
+            # Validate the variable types for the file descriptor
             for vdesc in vlist:
                 vdtype = vdesc.datatype
-                fformat = fdict['format']
+                fformat = fdesc.format
                 try:
                     OutputDatasetDesc._validate_netcdf_type_(vdtype, fformat)
                 except:
@@ -727,9 +731,9 @@ class OutputDatasetDesc(DatasetDesc):
                     raise ValueError(('File {!r} of format {!r} cannot write variable {!r} with '
                                       'datatype {!r}').format(fname, fformat, vname, vdtype))
                 
-            fdict['variables'] = vlist
-            filedescs.append(FileDesc(fname, **fdict))
-
+            # Append the validated file descriptor to the list
+            filedescs.append(fdesc)
+                             
         # Call the base class to run self-consistency checks
         super(OutputDatasetDesc, self).__init__(name, files=filedescs)
 
