@@ -721,7 +721,7 @@ class OutputDatasetDesc(DatasetDesc):
                 vdtype = vdesc.datatype
                 fformat = fdict['format']
                 try:
-                    OutputDatasetDesc._valid_netcdf_type_(vdtype, fformat)
+                    OutputDatasetDesc._validate_netcdf_type_(vdtype, fformat)
                 except:
                     vname = vdesc.name
                     raise ValueError(('File {!r} of format {!r} cannot write variable {!r} with '
@@ -734,7 +734,7 @@ class OutputDatasetDesc(DatasetDesc):
         super(OutputDatasetDesc, self).__init__(name, files=filedescs)
 
     @staticmethod
-    def _valid_netcdf_type_(t, f):
+    def _validate_netcdf_type_(t, f):
         """
         Check if a given type is valid for the given file format
         
@@ -746,7 +746,5 @@ class OutputDatasetDesc(DatasetDesc):
             NC_VER = OutputDatasetDesc._NC_FORMATS_[f]
         else:
             raise ValueError('Unrecognized NetCDF file format {!r}'.format(f))
-        if dtype(t) in OutputDatasetDesc._NC_TYPES_[NC_VER]:
-            return dtype(t)
-        else:
+        if dtype(t) not in OutputDatasetDesc._NC_TYPES_[NC_VER]:
             raise ValueError('Data type {!r} unrecognized in NetCDF file format {!r}'.format(t, f))
