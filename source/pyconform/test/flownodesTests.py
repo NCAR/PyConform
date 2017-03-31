@@ -634,9 +634,8 @@ class WriteNodeTests(unittest.TestCase):
         self.vardescs = vardescs
 
     def tearDown(self):
-        #for fname in glob('*.nc'):
-        #    remove(fname)
-        pass
+        for fname in glob('*.nc'):
+            remove(fname)
     
     def test_init(self):
         filename = 'test.nc'
