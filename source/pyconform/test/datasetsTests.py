@@ -780,8 +780,45 @@ class DatasetDescTests(unittest.TestCase):
         expected = sorted(['t', 'x', 'y', 'w'])
         print_test_message('OutputDatasetDesc.dimensions', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong dimensions')
+    
+    def test_output_dataset_valid_type_str(self):
+        nc3_type_strs = ['S1', 'c', 'i1', 'b', 'i2', 'h', 'i4', 'i', 'f4', 'f', 'f8', 'd']
+        nc4_type_strs = ['u1', 'B', 'u2', 'u4', 'i8', 'l', 'u8']
+        nc4_formats = ['NETCDF4']
+        nc3_formats = ['NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA']
+        for f in nc3_formats:
+            for t in nc3_type_strs:
+                self.assertIsInstance(OutputDatasetDesc._valid_netcdf_type_(t, f), np.dtype,
+                                      'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed'.format(t,f))
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Good'.format(t,f)
+            for t in nc4_type_strs:
+                self.assertRaises(ValueError, OutputDatasetDesc._valid_netcdf_type_, t, f)
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed properly'.format(t,f)
+        for f in nc4_formats:
+            for t in nc3_type_strs + nc4_type_strs:
+                self.assertIsInstance(OutputDatasetDesc._valid_netcdf_type_(t, f), np.dtype,
+                                      'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed'.format(t,f))
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Good'.format(t,f)
 
-
+    def test_output_dataset_valid_type_dtype(self):
+        nc3_types = [np.dtype(t) for t in ('S1', 'c', 'i1', 'b', 'i2', 'h', 'i4', 'i', 'f4', 'f', 'f8', 'd')]
+        nc4_types = [np.dtype(t) for t in ('u1', 'B', 'u2', 'u4', 'i8', 'l', 'u8')]
+        nc4_formats = ['NETCDF4']
+        nc3_formats = ['NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA']
+        for f in nc3_formats:
+            for t in nc3_types:
+                self.assertIsInstance(OutputDatasetDesc._valid_netcdf_type_(t, f), np.dtype,
+                                      'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed'.format(t,f))
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Good'.format(t,f)
+            for t in nc4_types:
+                self.assertRaises(ValueError, OutputDatasetDesc._valid_netcdf_type_, t, f)
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed properly'.format(t,f)
+        for f in nc4_formats:
+            for t in nc3_types + nc4_types:
+                self.assertIsInstance(OutputDatasetDesc._valid_netcdf_type_(t, f), np.dtype,
+                                      'OutputDatasetDesc._valid_netcdf_type_({}, {}): Failed'.format(t,f))
+                print 'OutputDatasetDesc._valid_netcdf_type_({}, {}): Good'.format(t,f)
+        
 #===============================================================================
 # Command-Line Execution
 #===============================================================================

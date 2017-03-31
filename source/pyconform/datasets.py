@@ -601,6 +601,10 @@ class OutputDatasetDesc(DatasetDesc):
             the names of other variables that should be added to the file, in addition to obvious
             metadata variables and the variable containing the 'file' section.
     """
+    _NC_TYPES_ = {3: [dtype(t) for t in ('c', 'i1', 'i2', 'i4', 'f4', 'f8')],
+                  4: [dtype(t) for t in ('c', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8')]}
+    _NC_FORMATS_ = {'NETCDF4': 4, 'NETCDF4_CLASSIC': 3, 'NETCDF3_CLASSIC': 3,
+                    'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3}
 
     def __init__(self, name='output', dsdict=OrderedDict()):
         """
@@ -686,7 +690,7 @@ class OutputDatasetDesc(DatasetDesc):
                     for mvname in fdict['metavars']:
                         if mvname not in files[fname]['variables']:
                             files[fname]['variables'].append(mvname)
-
+                
             else:
                 metavars.append(vname)
 
@@ -712,8 +716,34 @@ class OutputDatasetDesc(DatasetDesc):
                     if set(vdesc.dimensions.keys()).issubset(fdims):
                         vlist.append(vdesc)
 
+            # Loop through variables and verify they have valid data types
+            for vdesc in vlist:
+                try:
+                    OutputDatasetDesc._valid_netcdf_type_(vdesc.datatype, fdict['format'])
+                except:
+                    raise ValueError(('File {!r} of format {!r} cannot write variable {!r} with '
+                                      'datatype {!r}').format(fname, fdict['format']))
+                
             fdict['variables'] = vlist
             filedescs.append(FileDesc(fname, **fdict))
 
         # Call the base class to run self-consistency checks
         super(OutputDatasetDesc, self).__init__(name, files=filedescs)
+
+    @staticmethod
+    def _valid_netcdf_type_(t, f):
+        """
+        Check if a given type is valid for the given file format
+        
+        Parameters:
+            t (str, dtype): The string-type or dtype to check
+            f (str): The file format of the file in whi
+        """
+        if f in OutputDatasetDesc._NC_FORMATS_:
+            NC_VER = OutputDatasetDesc._NC_FORMATS_[f]
+        else:
+            raise ValueError('Unrecognized NetCDF file format {!r}'.format(f))
+        if dtype(t) in OutputDatasetDesc._NC_TYPES_[NC_VER]:
+            return dtype(t)
+        else:
+            raise ValueError('Data type {!r} unrecognized in NetCDF file format {!r}'.format(t, f))
