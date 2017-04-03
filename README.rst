@@ -5,7 +5,7 @@ A package for transforming a NetCDF dataset into a defined format
 suitable for publication according to a defined publication standard.
 
 :AUTHORS: Sheri Mickelson, Kevin Paul
-:COPYRIGHT: 2016, University Corporation for Atmospheric Research
+:COPYRIGHT: 2017, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu) or
@@ -23,16 +23,16 @@ Dependencies
 
 The PyConform package directly depends upon ...
 
-Currently the explicit dependencies are known to be:
+The major dependencies are known to be:
 
-* ASAPTools (>=0.4)
-* PyNIO (>=1.4.1)
-* mpi4py (>=1.3)
+* ASAPTools (>=0.6)
+* netCDF4-python
 
-This implies the dependencies:
+These dependencies imply the dependencies:
 
-* PyNIO depends upon numpy (>=1.5) and netCDF
-* mpi4py depends on numpy (>=1.4) and MPI
+* numpy (>=1.5)
+* netCDF4
+* MPI
 
 Additionally, the entire package is designed to work with Python v2.7 and up
 to (but not including) Python v3.0.
