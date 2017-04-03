@@ -15,20 +15,19 @@ from numpy import sqrt
 #===================================================================================================
 def find(key, numargs=None):
     try:
-        fop = find_operator(key, numargs)
+        fop = find_operator(key, numargs=numargs)
     except:
         pass
     else:
         return fop
+    
+    if numargs is not None:
+        raise KeyError('No operator {!r} with {} arguments found'.format(key, numargs))
 
     try:
-        fop = find_function(key, numargs)
+        fop = find_function(key)
     except:
-        if numargs is not None:
-            raise KeyError(('No operator or function {!r} with {} '
-                            'arguments found').format(key, numargs))
-        else:
-            raise KeyError('No operator or function {!r} found'.format(key))
+        raise KeyError('No operator or function {!r} found'.format(key))
     else:
         return fop
 
@@ -39,10 +38,9 @@ def find(key, numargs=None):
 class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
-    numargs = 2
 
     @abstractmethod
-    def __call__(self, *args):
+    def __call__(self, *args, **kwds):
         return 1
 
 
@@ -168,38 +166,27 @@ def _all_subclasses_(cls):
 
 
 #===================================================================================================
-# Get the function associated with the given key-symbol
-#===================================================================================================
-def find_function(key, numargs=None):
-    funcs = {}
-    for c in _all_subclasses_(Function):
-        if c.key != key:
-            continue
-        if c.numargs not in funcs:
-            funcs[c.numargs] = c
-        else:
-            raise RuntimeError(('Function {!r} with {} arguments is '
-                                'multiply defined').format(c.key, c.numargs))
-    if numargs is None:
-        if len(funcs) == 0:
-            raise KeyError('Function {!r} not found'.format(key))
-        elif len(funcs) == 1:
-            return funcs.values()[0]()
-        else:
-            raise KeyError(('Function {!r} has multiple definitions, '
-                            'number of arguments required').format(key))
-    elif numargs not in funcs:
-        raise KeyError('Function {!r} with {} arguments not found'.format(c.key, c.numargs))
-    else:
-        return funcs[numargs]()
-
-
-#===================================================================================================
 # Function - From which all 'func(...)'-pattern functions derive
 #===================================================================================================
 class Function(FunctionBase):
-    key = 'function'
-    numargs = 1
+    key = 'func'
+
+
+#===================================================================================================
+# Get the function associated with the given key-symbol
+#===================================================================================================
+def find_function(key):
+    func = None
+    for c in _all_subclasses_(Function):
+        if c.key == key:
+            if func is None:
+                func = c
+            else:
+                raise RuntimeError('Function {!r} is multiply defined'.format(key))
+    if func is None:
+        raise KeyError('Function {!r} not found'.format(key))
+    else:
+        return func()
 
 
 #===================================================================================================
@@ -207,7 +194,6 @@ class Function(FunctionBase):
 #===================================================================================================
 class SquareRootFunction(Function):
     key = 'sqrt'
-    numargs = 1
 
     def __call__(self, data):
         if isinstance(data, PhysArray):

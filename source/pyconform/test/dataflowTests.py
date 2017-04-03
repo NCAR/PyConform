@@ -14,7 +14,6 @@ from netCDF4 import Dataset as NCDataset
 
 import unittest
 import numpy
-from scipy.stats._continuous_distns import ncf
 
 
 #===================================================================================================
@@ -80,18 +79,14 @@ class DataFlowTests(unittest.TestCase):
                 vobj[:] = self.vdat[vnam]
             ncf.close()
 
-        self.inpds = datasets.InputDataset('inpds', self.filenames.values())
+        self.inpds = datasets.InputDatasetDesc('inpds', self.filenames.values())
 
-        self.dsdict = OrderedDict()
-        self.dsdict['attributes'] = self.fattribs
-        self.dsdict['variables'] = OrderedDict()
-        vdicts = self.dsdict['variables']
+        vdicts = OrderedDict()
 
         vdicts['L'] = OrderedDict()
         vdicts['L']['datatype'] = 'float32'
         vdicts['L']['dimensions'] = ('l',)
         vdicts['L']['definition'] = tuple(range(5))
-        vdicts['L']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'level'
         vattribs['units'] = '1'
@@ -101,7 +96,6 @@ class DataFlowTests(unittest.TestCase):
         vdicts['X']['datatype'] = 'float64'
         vdicts['X']['dimensions'] = ('x',)
         vdicts['X']['definition'] = 'lon'
-        vdicts['X']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'longitude'
         vattribs['units'] = 'degrees_east'
@@ -111,7 +105,6 @@ class DataFlowTests(unittest.TestCase):
         vdicts['Y']['datatype'] = 'float64'
         vdicts['Y']['dimensions'] = ('y',)
         vdicts['Y']['definition'] = 'lat'
-        vdicts['Y']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'latitude'
         vattribs['units'] = 'degrees_north'
@@ -121,7 +114,6 @@ class DataFlowTests(unittest.TestCase):
         vdicts['T']['datatype'] = 'float64'
         vdicts['T']['dimensions'] = ('t',)
         vdicts['T']['definition'] = 'time'
-        vdicts['T']['filenames'] = ['var1.nc', 'var2.nc', 'var3.nc', 'var4.nc']
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
         vattribs['units'] = 'days since 0001-01-01 00:00:00'
@@ -132,7 +124,11 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V1']['datatype'] = 'float64'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
-        vdicts['V1']['filenames'] = ['var1.nc']
+        fdict = OrderedDict()
+        fdict['filename'] = 'var1.nc'
+        fdict['attributes'] = {'variable': 'V1'}
+        fdict['metavars'] = ['L']
+        vdicts['V1']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 1'
         vattribs['units'] = 'cm'
@@ -142,7 +138,11 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V2']['datatype'] = 'float64'
         vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
-        vdicts['V2']['filenames'] = ['var2.nc']
+        fdict = OrderedDict()
+        fdict['filename'] = 'var2.nc'
+        fdict['attributes'] = {'variable': 'V2'}
+        fdict['metavars'] = ['L']
+        vdicts['V2']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 2'
         vattribs['units'] = 'cm'
@@ -152,7 +152,11 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V3']['datatype'] = 'float64'
         vdicts['V3']['dimensions'] = ('x', 'y', 't')
         vdicts['V3']['definition'] = 'u2'
-        vdicts['V3']['filenames'] = ['var3.nc']
+        fdict = OrderedDict()
+        fdict['filename'] = 'var3.nc'
+        fdict['attributes'] = {'variable': 'V3'}
+        fdict['metavars'] = ['L']
+        vdicts['V3']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 3'
         vattribs['units'] = 'cm'
@@ -162,7 +166,11 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V4']['datatype'] = 'float64'
         vdicts['V4']['dimensions'] = ('t', 'x', 'y')
         vdicts['V4']['definition'] = 'u1'
-        vdicts['V4']['filenames'] = ['var4.nc']
+        fdict = OrderedDict()
+        fdict['filename'] = 'var4.nc'
+        fdict['attributes'] = {'variable': 'V4'}
+        fdict['metavars'] = ['L']
+        vdicts['V4']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'variable 4'
         vattribs['units'] = 'km'
@@ -170,10 +178,12 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_max'] = 20.0
         vdicts['V4']['attributes'] = vattribs
 
-        self.outds = datasets.OutputDataset('outds', self.dsdict)
+        self.dsdict = vdicts
 
-        self.outfiles = dict((vname, vdict['filename']) for vname, vdict
-                             in vdicts.iteritems() if 'filename' in vdict)
+        self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
+
+        self.outfiles = dict((vname, vdict['file']['filename']) for vname, vdict
+                             in vdicts.iteritems() if 'file' in vdict)
 
         for fname in self.outfiles.itervalues():
             if exists(fname):

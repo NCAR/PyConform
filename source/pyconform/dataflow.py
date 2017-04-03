@@ -16,13 +16,13 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
 from pyconform.functions import find
+from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
 from asaptools.partition import WeightBalanced
-from collections import OrderedDict
 
 import numpy
 
@@ -40,59 +40,57 @@ class DataFlow(object):
         Initializer
         
         Parameters:
-            inpds (InputDataset): The input dataset to use as reference when
+            inpds (InputDatasetDesc): The input dataset to use as reference when
                 parsing variable definitions
-            outds (OutputDataset): The output dataset defining the output variables and
+            outds (OutputDatasetDesc): The output dataset defining the output variables and
                 their definitions or data
         """
         # Input dataset
-        if not isinstance(inpds, InputDataset):
-            raise TypeError('Input dataset must be of InputDataset type')
+        if not isinstance(inpds, InputDatasetDesc):
+            raise TypeError('Input dataset must be of InputDatasetDesc type')
         self._ids = inpds
 
         # Output dataset
-        if not isinstance(outds, OutputDataset):
-            raise TypeError('Output dataset must be of OutputDataset type')
+        if not isinstance(outds, OutputDatasetDesc):
+            raise TypeError('Output dataset must be of OutputDatasetDesc type')
         self._ods = outds
 
-        # Initialize the dimension map and the inverse dimension map
-        self._i2omap = {}
-        self._o2imap = {}
-
-        # Separate output variables into variables with 'data' or 'definitions'
-        datavars = {}
-        defnvars = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            if isinstance(vinfo.definition, basestring):
-                defnvars[vname] = vinfo
+        # Separate output variables into variables with data or string 'definitions'
+        datvars = {}
+        defvars = {}
+        for vname, vdesc in self._ods.variables.iteritems():
+            if isinstance(vdesc.definition, basestring):
+                defvars[vname] = vdesc
             else:
-                datavars[vname] = vinfo
+                datvars[vname] = vdesc
 
-        # Create a dictionary to store "source" DataNodes from 'data' attributes
+        # Create a dictionary to store DataNodes from variables with data 'definitions'
         self._datnodes = {}
+        for vname, vdesc in datvars.iteritems():
+            vdata = numpy.array(vdesc.definition, dtype=vdesc.datatype)
+            vunits = vdesc.cfunits()
+            vdims = vdesc.dimensions.keys()
+            varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
+            self._datnodes[vname] = DataNode(varray)
 
-        # First, parse output variables with 'data'
-        for vname, vinfo in datavars.iteritems():
-            vdata = numpy.array(vinfo.definition, dtype=vinfo.datatype)
-            cdnode = DataNode(vname, vdata, units=vinfo.cfunits(), dimensions=vinfo.dimensions)
-            self._datnodes[vname] = cdnode
-
-        # Create a dictionary to store "output variable" DataNodes from 'definition' attributes
+        # Create a dictionary to store FlowNodes for variables with string 'definitions'
         self._defnodes = {}
+        for vname, vdesc in defvars.iteritems():
+            self._defnodes[vname] = self._construct_flow_(parse_definition(vdesc.definition))
 
-        # Parse the output variable definitions
-        for vname, vinfo in defnvars.iteritems():
-            self._defnodes[vname] = self._construct_flow_(parse_definition(vinfo.definition))
-
-        # Gather information about each FlowNode's data
+        # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
 
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
         nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname)
                                 for vname in self._defnodes))[1]
+
+        # Now, we construct the dimension maps
+        self._i2omap = {}
+        self._o2imap = {}
         for vname in nodeorder:
-            out_dims = self._ods.variables[vname].dimensions
+            out_dims = self._ods.variables[vname].dimensions.keys()
             inp_dims = definfos[vname].dimensions
 
             unmapped_out = tuple(d for d in out_dims if d not in self._o2imap)
@@ -108,65 +106,45 @@ class DataFlow(object):
                 self._o2imap[out_dim] = inp_dim
                 self._i2omap[inp_dim] = out_dim
 
-        # Append the necessary dimension mapping
+        # Now that we know how dimensions are mapped, construct the output dimension sizes
+        for dname, ddesc in self._ods.dimensions.iteritems():
+            if not ddesc.is_set():
+                ddesc.set(self._ids.dimensions[self._o2imap[dname]])
+
+        # Append a MapNode to all string-defined nodes (map dimension names)
         for vname in self._defnodes:
             dnode = self._defnodes[vname]
             dinfo = definfos[vname]
-
-            # Map dimensions from input namespace to output namespace
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
             self._defnodes[vname] = MapNode(name, dnode, self._i2omap)
 
         # Now loop through ALL of the variables and create ValidateNodes for validation
         self._varnodes = {}
-        for vname, vinfo in self._ods.variables.iteritems():
+        for vname, vdesc in self._ods.variables.iteritems():
             if vname in self._datnodes:
                 vnode = self._datnodes[vname]
             elif vname in self._defnodes:
                 vnode = self._defnodes[vname]
 
-            self._varnodes[vname] = ValidateNode(vname, vnode, units=vinfo.cfunits(),
-                                                 dimensions=vinfo.dimensions,
-                                                 attributes=vinfo.attributes,
-                                                 dtype=vinfo.datatype)
+            self._varnodes[vname] = ValidateNode(vname, vnode, units=vdesc.cfunits(),
+                                                 dimensions=vdesc.dimensions.keys(),
+                                                 attributes=vdesc.attributes,
+                                                 dtype=vdesc.datatype)
 
-        # Create a dictionary of filenames pointing to list of variables to write into the file
-        fvnames = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            if vinfo.filenames is not None:
-                for fname in vinfo.filenames:
-                    if fname in fvnames:
-                        fvnames[fname].append(vname)
-                    else:
-                        fvnames[fname] = [vname]
-
-        # Create the WriteDataNodes for each time-series output file
+        # Create the WriteNodes for each time-series output file
         writenodes = {}
-        for filename, vnames in fvnames.iteritems():
-            vnodes = tuple(self._varnodes[n] for n in vnames)
-            unlimited = tuple(self._i2omap[d] for d in self._ids.dimensions
-                              if self._ids.dimensions[d].unlimited)
-            attribs = OrderedDict((k, v) for k, v in self._ods.attributes.iteritems())
-            attribs['unlimited'] = unlimited
-            writenodes[filename] = WriteNode(filename, *vnodes, **attribs)
+        for fname, fdesc in self._ods.files.iteritems():
+            vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys())
+            writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
         self._writenodes = writenodes
-
-        # Construct the output dimension sizes
-        odsizes = {}
-        for dname, dinfo in self._ods.dimensions.iteritems():
-            if dinfo is None:
-                odsizes[dname] = self._ids.dimensions[self._o2imap[dname]].size
-            else:
-                odsizes[dname] = dinfo.size
 
         # Compute the bytesizes of each output variable
         bytesizes = {}
-        for vname, vinfo in self._ods.variables.iteritems():
-            vsize = sum(odsizes[d] for d in vinfo.dimensions)
-            if vsize == 0:
-                vsize = 1
-            bytesizes[vname] = vsize * numpy.dtype(vinfo.datatype).itemsize
+        for vname, vdesc in self._ods.variables.iteritems():
+            vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
+            vsize = 1 if vsize == 0 else vsize
+            bytesizes[vname] = vsize * numpy.dtype(vdesc.datatype).itemsize
 
         # Compute the file sizes for each output file
         self._filesizes = {}
@@ -177,15 +155,13 @@ class DataFlow(object):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
             if vname in self._ids.variables:
-                vinfo = self._ids.variables[vname]
-                fname = vinfo.filenames[0]
-                return ReadNode(fname, vname, index=obj.args)
+                return ReadNode(self._ids.variables[vname], index=obj.args)
 
             elif vname in self._datnodes:
                 return self._datnodes[vname]
 
             else:
-                raise KeyError('Variable {0!r} not found or cannot be used as input'.format(vname))
+                raise KeyError('Variable {!r} not found or cannot be used as input'.format(vname))
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
@@ -204,7 +180,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, provenance=False, bounds={}):
+    def execute(self, chunks={}, serial=False, history=False, bounds={}):
         """
         Execute the Data Flow
         
@@ -215,7 +191,7 @@ class DataFlow(object):
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
             serial (bool): Whether to run in serial (True) or parallel (False)
-            provenance (bool): Whether to write a provenance attribute generated during execution
+            history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
             bounds (dict):  Bounds on named variables specified in the output specification
                 file.  Data will be written for values within these bounds inclusively.
@@ -260,7 +236,7 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, provenance=provenance, bounds=bounds)
+            self._writenodes[fname].execute(chunks=chunks, history=history, bounds=bounds)
 
         scomm.sync()
         if scomm.is_manager():

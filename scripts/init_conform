@@ -53,20 +53,28 @@ def parseArgs(argv = None):
     return parser.parse_args(argv)
 
 
-def load(defs):
+def load(defs,key=None):
 
     # Load the definition file - translations from  model variables to requested variables 
 
     def_dict = {}
+    if key == 'ga':
+        def_dict[key] = {}
     for line in defs:
         line = line.strip()
         # hanle comments
         if '#' in line:
+            if 'TABLE' in line:
+                key = line.split(':')[1].strip()
+                def_dict[key] = {}
+            if 'Coords' in line:
+                key = 'Coords'
+                def_dict[key] = {}
             line = line.split('#')[0].strip()
         # slit definition into the two parts
         split = line.split('=')
         if (len(split) == 2):
-            def_dict[split[0].strip()] = split[1].strip()
+            def_dict[key][split[0].strip()] = split[1].strip()
         else:
             if len(line)>0 :
                 print 'Could not parse this line: ',line
@@ -139,7 +147,7 @@ def defineVar(v, varName, attributes, definition, experiment):
     f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}{16}.nc".format(
                mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
                varName, grid, version,
-               varName, mipTable, experiment, source_id, ripf, grid, dst))
+               varName, mipTable, source_id, experiment, ripf, grid, dst))
 
     var = {}
     # handle things that still aren't set correctly in the request
@@ -156,6 +164,7 @@ def defineVar(v, varName, attributes, definition, experiment):
     var["definition"] = definition
     var["file"] = {}
     var["file"]["attributes"] = attributes2
+    var["file"]["attributes"]["variant_label"] = ripf
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
     var["file"]["metavars"] = []
@@ -259,14 +268,15 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
         # Add axes into the variable list
         for v,d in axes.iteritems():
             var_list[v] = defineAxes(d, v)
-            if v in definitions.keys() and 'definition' not in var_list[v].keys():
-                var_list[v]['definition'] = definitions[v]
+            if v in definitions['Coords'].keys() and 'definition' not in var_list[v].keys():
+                var_list[v]['definition'] = definitions['Coords'][v]
 
 
         # For each variable in the definition file, create a file entry in the spec and define it
         for v,d in variables.iteritems():
-            if v in definitions.keys():
-                var_list[v] = defineVar(d, v, attributes, definitions[v], experiment)
+            mip = d['mipTable']
+            if mip in definitions.keys() and v in definitions[mip].keys():
+                var_list[v] = defineVar(d, v, attributes, definitions[mip][v], experiment)
                 realm = d["realm"].replace(' ','_')
                 ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
@@ -378,7 +388,7 @@ def main(argv=None):
     attributes = {}
     if args.globalAttrFile and os.path.isfile(args.globalAttrFile):
         with open(args.globalAttrFile) as y_attributes:
-            attributes = load(y_attributes)
+            attributes = load(y_attributes,key="ga")["ga"]
             #print 'GLOBAL ATTRIBUTES: ',attributes
     else:
         if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
@@ -415,8 +425,9 @@ def main(argv=None):
         for exp in exps: 
             exp_dict = miptableparser.mip_table_parser(exp, mips, tables, variables, type=args.mipTableType)
 
-            # Write the spec files out to disk
-            create_output(exp_dict, definitions, attributes, args.outputpath, args, exp)
+            if len(exp_dict.keys())>0:
+                # Write the spec files out to disk
+                create_output(exp_dict, definitions, attributes, args.outputpath, args, exp)
 
 if __name__ == '__main__':
     main()
