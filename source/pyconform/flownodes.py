@@ -730,7 +730,7 @@ class WriteNode(FlowNode):
         else:
             return None
 
-    def execute(self, chunks={}, history=False, bounds={}):
+    def execute(self, chunks={}, history=False):
         """
         Execute the writing of the WriteNode file at once
         
@@ -745,8 +745,6 @@ class WriteNode(FlowNode):
                 dimension will be assumed to correspond to the slowest-varying index.)
             history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
-            bounds (dict):  Bounds on named variables specified in the output specification
-                file.  Data will be written for values within these bounds inclusively.
         """
 
         # Open the file and write the header information
