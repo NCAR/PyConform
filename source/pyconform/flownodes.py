@@ -597,21 +597,20 @@ class WriteNode(FlowNode):
             self._file.setncatts(self._filedesc.attributes)
 
             # Scan over variables for coordinates and dimension information
-            vinfos = {}
             req_dims = set()
             for vnode in self.inputs:
                 vname = vnode.label
-                vinfo = vnode[None]
+                vdesc = self._filedesc.variables[vname]
 
                 # Get only dimension descriptors needed by the variables
-                for dname in vinfo.dimensions:
+                for dname in vdesc.dimensions:
                     if dname not in self._filedesc.dimensions:
                         raise KeyError(('Dimension {!r} needed by variable {!r} is not specified '
                                         'in file {!r}').format(dname, vname, fname))
                     req_dims.add(dname)
 
                 # Determine coordinates and dimensions to invert
-                if len(vinfo.dimensions) == 1 and 'axis' in vnode.attributes:
+                if len(vdesc.dimensions) == 1 and 'axis' in vnode.attributes:
                     if 'direction' in vnode.attributes:                    
                         vdir_out = vnode.attributes.pop('direction')
                         if vdir_out not in ['increasing', 'decreasing']:
@@ -622,16 +621,14 @@ class WriteNode(FlowNode):
                             raise ValueError(('Output coordinate variable {!r} has no calculable '
                                               'direction').format(vname))
                         if vdir_inp != vdir_out:
-                            self._idims.add(vinfo.dimensions[0])
-
-                # Store variable information object                
-                vinfos[vname] = vinfo
+                            self._idims.add(vdesc.dimensions.values()[0])
             
             # Record dimension inversion information for history attributes
             if history:
                 vhist = {}
-                for vname in vinfos:
-                    vinfo = vinfos[vname]
+                for vnode in self.inputs:
+                    vname = vnode.label
+                    vinfo = vnode[None]
                     idimstr = ','.join(d for d in vinfo.dimensions if d in self._idims)
                     if len(idimstr) > 0:
                         vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
