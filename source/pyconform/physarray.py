@@ -43,7 +43,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None, positive=''):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -69,15 +69,23 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             obj.dimensions = dimensions
 
+        # Set the positive direction for the data
+        if positive == '':
+            if 'positive' not in obj._optinfo:
+                obj.positive = None
+        else:
+            obj.positive = positive
+
         return obj
 
     def __str__(self):
         return '{}'.format(self.name)
 
     def __repr__(self):
+        posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
         return ('{!s}(data={!s}, mask={!s}, fill_value={!s}, units={!r}, name={!r}, dimensions='
-                '{!s})').format(self.__class__.__name__, self.data, self.mask, self.fill_value,
-                                str(self.units), self.name, self.dimensions)
+                '{!s}{})').format(self.__class__.__name__, self.data, self.mask, self.fill_value,
+                                  str(self.units), self.name, self.dimensions, posstr)
 
     @property
     def name(self):
@@ -114,6 +122,23 @@ class PhysArray(numpy.ma.MaskedArray):
         if len(dims) != len(self.shape):
             raise ValueError('Dimensions must have same length as shape')
         self._optinfo['dimensions'] = tuple(dims)
+
+    @property
+    def positive(self):
+        """Positive direction (up or down) for the data"""
+        return self._optinfo['positive']
+
+    @positive.setter
+    def positive(self, pos):
+        """Positive direction (up or down) for the data"""
+        if isinstance(pos, basestring):
+            strpos = str(pos).lower()
+            if strpos not in ['up', 'down']:
+                raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
+            pos = strpos
+        elif pos is not None:
+            raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
+        self._optinfo['positive'] = pos
 
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
@@ -204,17 +229,39 @@ class PhysArray(numpy.ma.MaskedArray):
             return self
         else:
             return self.transpose(obj.dimensions)
+    
+    def flip(self):
+        """
+        Flip the direction of the positive attribute, if set, and correspondingly multiply by -1
+        
+        Does nothing if the positive attribute is not set (i.e., equals None)
+        """
+        if self.positive is not None:
+            nm = self.name
+            self *= -1
+            self.positive = 'up' if self.positive == 'down' else 'down'
+            self.name = '{}({})'.format(self.positive, nm)
+        return self
 
-    def _return_dim_shape_(self, other):
+    def _match_positive_(self, other):
+        if self.positive == other.positive:
+            return other, self.positive
+        elif self.positive is None or other.positive is None:
+            return other, self.positive if other.positive is None else other.positive
+        else:
+            return PhysArray(other).flip(), self.positive
+            
+    def _return_dims_(self, other):
         if self.dimensions == ():
             return other.dimensions
         else:
             return self.dimensions
-
+    
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims,
+        dims = self._return_dims_(other)
+        other, positive = self._match_positive_(other)
+        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, positive=positive,
                          units=self.units, name='({}+{})'.format(self.name, other.name))
 
     def __radd__(self, other):
@@ -226,8 +273,9 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __sub__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims,
+        dims = self._return_dims_(other)
+        other, positive = self._match_positive_(other)
+        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, positive=positive,
                          units=self.units, name='({}-{})'.format(self.name, other.name))
 
     def __rsub__(self, other):
@@ -264,14 +312,24 @@ class PhysArray(numpy.ma.MaskedArray):
             common_dims += (d,)
         osyms = ''.join(symbol_map[d] for d in common_dims)
         expr = '{},{}->{}'.format(lsyms, rsyms, osyms)
-        ounits = self._op_units_(other.units, mul)
         return PhysArray(numpy.ma.MaskedArray(numpy.einsum(expr, self, other),
                                               mask=self.mask + other.mask),
-                         dimensions=common_dims, units=ounits,
+                         dimensions=common_dims, units=self._op_units_(other.units, mul),
                          name='({}*{})'.format(self.name, other.name))
 
+    def _multiply_positive_(self, other):
+        if self.positive == other.positive:
+            return other, None
+        elif self.positive is None or other.positive is None:
+            return other, self.positive if other.positive is None else other.positive
+        else:
+            return PhysArray(other).flip(), None
+            
     def __mul__(self, other):
-        return self._common_dim_multiply_(PhysArray(other))
+        other, positive = self._multiply_positive_(PhysArray(other))
+        data = self._common_dim_multiply_(other)
+        data.positive = positive
+        return data
 
     def __rmul__(self, other):
         return PhysArray(other).__mul__(self)
@@ -282,11 +340,13 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def invert(self):
         return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
-                         name='(1/{!s})'.format(self))
+                         name='(1/{!s})'.format(self), positive=self.positive)
 
     def __div__(self, other):
-        data = self._common_dim_multiply_(PhysArray(other).invert())
+        other, positive = self._multiply_positive_(PhysArray(other))
+        data = self._common_dim_multiply_(other.invert())
         data.name = '({!s}/{!s})'.format(self, other)
+        data.positive = positive
         return data
 
     def __rdiv__(self, other):
@@ -297,9 +357,12 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def __floordiv__(self, other):
-        data = self._common_dim_multiply_(PhysArray(other).invert())
+        other, positive = self._multiply_positive_(PhysArray(other))
+        data = self._common_dim_multiply_(other.invert())
+        data.name = '({!s}//{!s})'.format(self, other)
+        data.positive = positive
         return PhysArray(numpy.ma.floor(data.data), dimensions=data.dimensions, units=data.units,
-                         name='({!s}//{!s})'.format(self, other))
+                         name=data.name, positive=data.positive)
 
     def __rfloordiv__(self, other):
         return PhysArray(other).__floordiv__(self)
@@ -319,8 +382,8 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def __mod__(self, other):
-        other = PhysArray(other)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
+        other, _ = self._match_positive_(PhysArray(other)._transpose_scalar_check_(self))
+        dims = self._return_dims_(other)
         return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims,
                          name='({!s}%{!s})'.format(self, other))
 
@@ -346,8 +409,12 @@ class PhysArray(numpy.ma.MaskedArray):
         units = self._op_units_(other, pow)
         if other.dimensions != ():
             raise DimensionsError('Exponents must be scalar: {}'.format(other))
+        if other.positive is not None:
+            raise ValueError('Exponents cannot have positive attribute: {}'.format(other))
+        positive = None if other.data % 2 == 0 else self.positive
+        print positive
         return PhysArray(super(PhysArray, self).__pow__(other), units=units,
-                         name='({!s}**{!s})'.format(self, other))
+                         name='({!s}**{!s})'.format(self, other), positive=positive)
 
     def __rpow__(self, other):
         return PhysArray(other).__pow__(self)
