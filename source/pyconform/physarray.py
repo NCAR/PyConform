@@ -343,8 +343,8 @@ class PhysArray(numpy.ma.MaskedArray):
                          name='(1/{!s})'.format(self), positive=self.positive)
 
     def __div__(self, other):
-        data, positive = self._multiply_positive_(PhysArray(other).invert())
-        data = self._common_dim_multiply_(data)
+        other, positive = self._multiply_positive_(PhysArray(other))
+        data = self._common_dim_multiply_(other.invert())
         data.name = '({!s}/{!s})'.format(self, other)
         data.positive = positive
         return data
@@ -357,12 +357,12 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def __floordiv__(self, other):
-        data, positive = self._multiply_positive_(PhysArray(other).invert())
-        data = self._common_dim_multiply_(data)
+        other, positive = self._multiply_positive_(PhysArray(other))
+        data = self._common_dim_multiply_(other.invert())
         data.name = '({!s}//{!s})'.format(self, other)
         data.positive = positive
         return PhysArray(numpy.ma.floor(data.data), dimensions=data.dimensions, units=data.units,
-                         name=data.name, positive=self.positive)
+                         name=data.name, positive=data.positive)
 
     def __rfloordiv__(self, other):
         return PhysArray(other).__floordiv__(self)
