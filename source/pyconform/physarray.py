@@ -43,7 +43,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None, positive=None):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -68,6 +68,13 @@ class PhysArray(numpy.ma.MaskedArray):
                 obj.dimensions = tuple(range(len(numpy.shape(inarray))))
         else:
             obj.dimensions = dimensions
+
+        # Set the positive direction for the data
+        if positive is None:
+            if 'positive' not in obj._optinfo:
+                obj.positive = 'none'
+        else:
+            obj.positive = positive
 
         return obj
 
@@ -114,6 +121,19 @@ class PhysArray(numpy.ma.MaskedArray):
         if len(dims) != len(self.shape):
             raise ValueError('Dimensions must have same length as shape')
         self._optinfo['dimensions'] = tuple(dims)
+
+    @property
+    def positive(self):
+        """Positive direction (up or down) for the data"""
+        return self._optinfo['positive']
+
+    @positive.setter
+    def positive(self, pos):
+        """Positive direction (up or down) for the data"""
+        strpos = str(pos).lower()
+        if strpos not in ['up', 'down', 'none']:
+            raise ValueError('Positive attribute must be up, down, or none, not {!r}'.format(pos))
+        self._optinfo['positive'] = strpos
 
     def __getitem__(self, index):
         idx = align_index(index, self.dimensions)
@@ -204,18 +224,49 @@ class PhysArray(numpy.ma.MaskedArray):
             return self
         else:
             return self.transpose(obj.dimensions)
+    
+    def up(self):
+        nm = self.name
+        if self.positive == 'down':
+            self *= -1
+        self.positive = 'up'
+        self.name = 'up({})'.format(nm)
+        return self
 
-    def _return_dim_shape_(self, other):
+    def down(self):
+        nm = self.name
+        if self.positive == 'up':
+            self *= -1
+        self.positive = 'down'
+        self.name = 'down({})'.format(nm)
+        return self
+    
+    @staticmethod
+    def _match_positive_(left, right):
+        if left.positive == 'up':
+            return left, PhysArray(right).up()
+        elif left.positive == 'down':
+            return left, PhysArray(right).down()
+        else:
+            if right.positive == 'up':
+                return PhysArray(left).up(), right
+            elif right.positive == 'down':
+                return PhysArray(left).down(), right
+            else:
+                return left, right            
+            
+    def _return_dims_(self, other):
         if self.dimensions == ():
             return other.dimensions
         else:
             return self.dimensions
-
+    
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims,
-                         units=self.units, name='({}+{})'.format(self.name, other.name))
+        dims = self._return_dims_(other)
+        left, right = PhysArray._match_positive_(self, other)
+        return PhysArray(super(PhysArray, left).__add__(right), dimensions=dims,
+                         units=left.units, name='({}+{})'.format(left.name, right.name))
 
     def __radd__(self, other):
         return PhysArray(other).__add__(self)
@@ -226,9 +277,10 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __sub__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
-        return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims,
-                         units=self.units, name='({}-{})'.format(self.name, other.name))
+        dims = self._return_dims_(other)
+        left, right = PhysArray._match_positive_(self, other)
+        return PhysArray(super(PhysArray, left).__sub__(right), dimensions=dims,
+                         units=left.units, name='({}-{})'.format(left.name, right.name))
 
     def __rsub__(self, other):
         return PhysArray(other).__sub__(self)
@@ -320,7 +372,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __mod__(self, other):
         other = PhysArray(other)._transpose_scalar_check_(self)
-        dims = self._return_dim_shape_(other)
+        dims = self._return_dims_(other)
         return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims,
                          name='({!s}%{!s})'.format(self, other))
 
