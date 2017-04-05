@@ -23,16 +23,16 @@ Dependencies
 
 The PyConform package directly depends upon ...
 
-Currently the explicit dependencies are known to be:
+The major dependencies are known to be:
 
-* ASAPTools (>=0.4)
-* PyNIO (>=1.4.1)
-* mpi4py (>=1.3)
+* ASAPTools (>=0.6)
+* netCDF4-python
 
-This implies the dependencies:
+These dependencies imply the dependencies:
 
-* PyNIO depends upon numpy (>=1.5) and netCDF
-* mpi4py depends on numpy (>=1.4) and MPI
+* numpy (>=1.5)
+* netCDF4
+* MPI
 
 Additionally, the entire package is designed to work with Python v2.7 and up
 to (but not including) Python v3.0.

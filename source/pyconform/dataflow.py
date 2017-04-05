@@ -180,7 +180,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, history=False, bounds={}):
+    def execute(self, chunks={}, serial=False, history=False):
         """
         Execute the Data Flow
         
@@ -193,24 +193,7 @@ class DataFlow(object):
             serial (bool): Whether to run in serial (True) or parallel (False)
             history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
-            bounds (dict):  Bounds on named variables specified in the output specification
-                file.  Data will be written for values within these bounds inclusively.
         """
-        # Check the bounds type
-        if not isinstance(bounds, dict):
-            raise TypeError('Bounds must be specified with a dictionary')
-
-        # Make sure that the specified dimensions are valid
-        for oname, (lbound, ubound) in bounds.iteritems():
-            if oname not in self._ods.variables:
-                raise ValueError('Cannot bound on unknown output variable {!r}'.format(oname))
-            if not isinstance(lbound, int):
-                raise TypeError(('Lower bound invalid for output variable {!r}: '
-                                 '{}').format(oname, lbound))
-            if not isinstance(ubound, int):
-                raise TypeError(('Upper bound invalid for output variable {!r}: '
-                                 '{}').format(oname, ubound))
-
         # Check chunks type
         if not isinstance(chunks, dict):
             raise TypeError('Chunks must be specified with a dictionary')
@@ -236,7 +219,7 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, history=history, bounds=bounds)
+            self._writenodes[fname].execute(chunks=chunks, history=history)
 
         scomm.sync()
         if scomm.is_manager():
