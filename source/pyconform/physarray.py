@@ -43,7 +43,7 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None, positive=None):
+    def __new__(cls, inarray, name=None, units=None, dimensions=None, positive=''):
         obj = numpy.ma.asarray(inarray).view(cls)
 
         # Store a name associated with the object
@@ -70,7 +70,7 @@ class PhysArray(numpy.ma.MaskedArray):
             obj.dimensions = dimensions
 
         # Set the positive direction for the data
-        if positive is None:
+        if positive == '':
             if 'positive' not in obj._optinfo:
                 obj.positive = None
         else:
@@ -382,7 +382,7 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def __mod__(self, other):
-        other = PhysArray(other)._transpose_scalar_check_(self)
+        other, _ = self._match_positive_(PhysArray(other)._transpose_scalar_check_(self))
         dims = self._return_dims_(other)
         return PhysArray(super(PhysArray, self).__mod__(other), dimensions=dims,
                          name='({!s}%{!s})'.format(self, other))
@@ -409,7 +409,10 @@ class PhysArray(numpy.ma.MaskedArray):
         units = self._op_units_(other, pow)
         if other.dimensions != ():
             raise DimensionsError('Exponents must be scalar: {}'.format(other))
-        positive = None if other%2 == 0 else self.positive
+        if other.positive is not None:
+            raise ValueError('Exponents cannot have positive attribute: {}'.format(other))
+        positive = None if other.data % 2 == 0 else self.positive
+        print positive
         return PhysArray(super(PhysArray, self).__pow__(other), units=units,
                          name='({!s}**{!s})'.format(self, other), positive=positive)
 
