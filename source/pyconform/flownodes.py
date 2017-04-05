@@ -469,16 +469,21 @@ class ValidateNode(FlowNode):
         # Check that the dimensions match as expected
         if self._dimensions is not None and self._dimensions != indata.dimensions:
             indata = indata.transpose(self._dimensions)
+        
+        # Check the positive attribute, if specified
+        positive = self.attributes.get('positive', None)
+        if positive is not None and indata.positive != positive:
+            indata.flip()
 
         # Do not validate if index is None (nothing to validate)
         if index is None:
             return indata
 
         # Testing parameters
-        valid_min = self._attributes.get('valid_min', None)
-        valid_max = self._attributes.get('valid_max', None)
-        ok_min_mean_abs = self._attributes.get('ok_min_mean_abs', None)
-        ok_max_mean_abs = self._attributes.get('ok_max_mean_abs', None)
+        valid_min = self.attributes.get('valid_min', None)
+        valid_max = self.attributes.get('valid_max', None)
+        ok_min_mean_abs = self.attributes.get('ok_min_mean_abs', None)
+        ok_max_mean_abs = self.attributes.get('ok_max_mean_abs', None)
 
         # Validate minimum
         if valid_min:
