@@ -21,6 +21,22 @@ class PhysArrayTests(unittest.TestCase):
     Unit tests for the physarray.PhysArray class
     """
 
+    def assertPhysArraysEqual(self, left, right, testname='Test'):
+        numpy.testing.assert_array_equal(left.data, right.data, '{} failed - data'.format(testname))
+        self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+        self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+        self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+        self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+        self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+
+    def assertPhysArraysAlmostEqual(self, left, right, num=8, testname='Test'):
+        numpy.testing.assert_array_almost_equal(left.data, right.data, num, '{} failed - data'.format(testname))
+        self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+        self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+        self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+        self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+        self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+
     def test_init_tuple(self):
         indata = (1, 2, 3)
         testname = 'PhysArray.__init__({})'.format(indata)
@@ -225,7 +241,79 @@ class PhysArrayTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         numpy.testing.assert_array_equal(X.data, numpy.array([1,2,3]), '{} failed'.format(testname))
-    
+
+    def test_flip_none(self):
+        indata = physarray.PhysArray(1.0, name='X')
+        actual = physarray.PhysArray(indata).flip()
+        expected = indata
+        testname = 'PhysArray(positive=None).flip()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
+    def test_flip_up(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='up')
+        actual = physarray.PhysArray(indata).flip()
+        expected = physarray.PhysArray(-1.0, name='down(X)', positive='down')
+        testname = 'PhysArray(positive="up").flip()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+        
+    def test_flip_down(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='down')
+        actual = physarray.PhysArray(indata).flip()
+        expected = physarray.PhysArray(-1.0, name='up(X)', positive='up')
+        testname = 'PhysArray(positive="down").flip()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
+    def test_up_none(self):
+        indata = physarray.PhysArray(1.0, name='X')
+        actual = physarray.PhysArray(indata).up()
+        expected = physarray.PhysArray(1.0, name='X', positive='up')
+        testname = 'PhysArray(positive=None).up()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
+    def test_up_up(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='up')
+        actual = physarray.PhysArray(indata).up()
+        expected = indata
+        testname = 'PhysArray(positive="up").up()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+        
+    def test_up_down(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='down')
+        actual = physarray.PhysArray(indata).up()
+        expected = physarray.PhysArray(-1.0, name='up(X)', positive='up')
+        testname = 'PhysArray(positive="down").up()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
+    def test_down_none(self):
+        indata = physarray.PhysArray(1.0, name='X')
+        actual = physarray.PhysArray(indata).down()
+        expected = physarray.PhysArray(1.0, name='X', positive='down')
+        testname = 'PhysArray(positive=None).down()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
+    def test_down_up(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='up')
+        actual = physarray.PhysArray(indata).down()
+        expected = physarray.PhysArray(-1.0, name='down(X)', positive='down')
+        testname = 'PhysArray(positive="up").down()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+        
+    def test_down_down(self):
+        indata = physarray.PhysArray(1.0, name='X', positive='down')
+        actual = physarray.PhysArray(indata).down()
+        expected = physarray.PhysArray(1.0, name='X', positive='down')
+        testname = 'PhysArray(positive="down").down()'
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
+
     def test_add_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
         test_names = ['(X+Y)', '(X+Y)', '(X+Y)', '(X+Y)', '(X+up(Y))']
@@ -238,10 +326,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X + Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_add_array_array(self):
         X = physarray.PhysArray([[1, 2], [3, 4]], name='X', units='m', dimensions=('u', 'v'))
@@ -253,11 +338,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5001, 7002], [6003, 8004]], units=X.units,
                                        name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_add_num_array(self):
         X = 1.0
@@ -268,11 +349,7 @@ class PhysArrayTests(unittest.TestCase):
                                        name='(1.0+convert(Y, from=0.1, to=1))',
                                        units=Unit(1), dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_almost_equal(actual, expected, 4, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysAlmostEqual(actual, expected, testname=testname)
 
     def test_add_scalar_array(self):
         X = physarray.PhysArray(1.)
@@ -283,11 +360,7 @@ class PhysArrayTests(unittest.TestCase):
                                        name='(1.0+convert(Y, from=0.1, to=1))',
                                        units=X.units, dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_almost_equal(actual, expected, 4, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysAlmostEqual(actual, expected, testname=testname)
 
     def test_add_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='0.1', dimensions=('u', 'v'))
@@ -297,11 +370,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[15, 16], [17, 18]], name='(X+convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_add_array_scalar(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='0.1', dimensions=('u', 'v'))
@@ -311,11 +380,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[15, 16], [17, 18]], name='(X+convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_iadd_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -330,11 +395,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5001., 7002.], [6003., 8004.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_iadd_scalar(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -348,11 +409,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[2001., 2002.], [2003., 2004.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_sub_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
@@ -366,10 +423,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X - Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_sub_array_array(self):
         X = physarray.PhysArray([[1, 2], [3, 4]], name='X', units='m', dimensions=('u', 'v'))
@@ -378,14 +432,10 @@ class PhysArrayTests(unittest.TestCase):
         actual = X - Y
         new_name = ("({}-transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
                     "").format(X.name, Y.name, Y.units, X.units)
-        expected = physarray.PhysArray([[-4999., -6998.], [-5997., -7996.]], units=X.units,
+        expected = physarray.PhysArray([[-4999, -6998], [-5997, -7996]], units=X.units,
                                        name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_sub_num_array(self):
         X = 1.0
@@ -395,11 +445,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[.5, .4], [.3, .2]], name='(1.0-convert(Y, from=0.1, to=1))',
                                        units=Unit(1), dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_almost_equal(actual, expected, 4, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysAlmostEqual(actual, expected, testname=testname)
 
     def test_sub_scalar_array(self):
         X = physarray.PhysArray(1.0)
@@ -409,39 +455,27 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[.5, .4], [.3, .2]], name='(1.0-convert(Y, from=0.1, to=1))',
                                        units=X.units, dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_almost_equal(actual, expected, 4, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysAlmostEqual(actual, expected, testname=testname)
 
     def test_sub_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='0.1', dimensions=('u', 'v'))
         Y = 1
         testname = 'X.__sub__(Y)'
         actual = X - Y
-        expected = physarray.PhysArray([[-5., -4.], [-3., -2.]], name='(X-convert(1, from=1, to=0.1))',
+        expected = physarray.PhysArray([[-5, -4], [-3, -2]], name='(X-convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_sub_array_scalar(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='0.1', dimensions=('u', 'v'))
         Y = physarray.PhysArray(1)
         testname = 'X.__sub__(Y)'
         actual = X - Y
-        expected = physarray.PhysArray([[-5., -4.], [-3., -2.]], name='(X-convert(1, from=1, to=0.1))',
+        expected = physarray.PhysArray([[-5, -4], [-3, -2]], name='(X-convert(1, from=1, to=0.1))',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_isub_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -456,11 +490,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[-4999., -6998.], [-5997., -7996.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mul_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
@@ -474,10 +504,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X * Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
             
     def test_mul_array_array_extend_dims(self):
         X = physarray.PhysArray([[1, 2], [3, 4]], name='X', units='m', dimensions=('t', 'u'))
@@ -489,11 +516,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[[5, 6], [14, 16]], [[15, 18], [28, 32]]], units=new_units,
                                        name=new_name, dimensions=('t', 'u', 'v'))
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mul_array_array(self):
         X = physarray.PhysArray([[1, 2], [3, 4]], name='X', units='m', dimensions=('u', 'v'))
@@ -505,11 +528,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5, 14], [18, 32]], units=new_units,
                                        name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mul_num_array(self):
         X = 2
@@ -519,11 +538,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[10, 12], [14, 16]], name='(2*Y)',
                                        units=Y.units, dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mul_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
@@ -533,11 +548,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[10, 12], [14, 16]], name='(X*2)',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_imul_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -549,14 +560,10 @@ class PhysArrayTests(unittest.TestCase):
         actual *= Y
         new_name = "({}*{})".format(X, Y)
         new_units = Unit('m') * Unit('km')
-        expected = physarray.PhysArray([[5, 14], [18, 32]], name=new_name,
+        expected = physarray.PhysArray([[5., 14.], [18., 32.]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_div_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
@@ -570,10 +577,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X / Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
             
     def test_div_array_array(self):
         X = physarray.PhysArray([[1., 2.], [3., 4.]], name='X', units='km', dimensions=('u', 'v'))
@@ -585,11 +589,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1 / 5., 2 / 7.], [3 / 6., 4 / 8.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_div_num_array(self):
         X = 2.
@@ -599,11 +599,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[2. / 5, 2. / 6], [2. / 7, 2. / 8]], name='(2.0/Y)',
                                        units='1/m', dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_div_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
@@ -613,11 +609,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5 / 2., 6 / 2.], [7 / 2., 8 / 2.]], name='(X/2.0)',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_idiv_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -632,11 +624,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1. / 5, 2. / 7], [3. / 6, 4. / 8]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_floordiv_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
@@ -650,10 +638,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X // Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
             
     def test_floordiv_array_array(self):
         X = physarray.PhysArray([[1., 2.], [3., 4.]], name='X', units='km', dimensions=('u', 'v'))
@@ -665,11 +650,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1 // 5., 2 // 7.], [3 // 6., 4 // 8.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_floordiv_num_array(self):
         X = 20.
@@ -679,11 +660,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[20. // 5, 20. // 6], [20. // 7, 20. // 8]], name='(20.0//Y)',
                                        units='1/m', dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_floordiv_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
@@ -693,11 +670,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5 // 2., 6 // 2.], [7 // 2., 8 // 2.]], name='(X//2.0)',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_ifloordiv_array(self):
         xdata = numpy.array([[5., 6.], [7., 8.]], dtype='d')
@@ -712,11 +685,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5 // 1., 6 // 3.], [7 // 2., 8 // 4.]], name=new_name,
                                        units=new_units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mod_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
@@ -730,10 +699,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X % Y
             expected = physarray.PhysArray(value, name=name, positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
             
     def test_mod_array_array(self):
         X = physarray.PhysArray([[1., 2.], [3., 4.]], name='X', units='km', dimensions=('u', 'v'))
@@ -744,11 +710,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1 % 5., 2 % 7.], [3 % 6., 4 % 8.]],
                                        units=X.units, name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mod_num_array(self):
         X = 20.
@@ -758,11 +720,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[20. % 5, 20. % 6], [20. % 7, 20. % 8]], name='(20.0%Y)',
                                        units='1', dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_mod_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
@@ -772,11 +730,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5 % 2., 6 % 2.], [7 % 2., 8 % 2.]], name='(X%2.0)',
                                        units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_imod_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -791,11 +745,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1. % 5000, 2. % 7000], [3. % 6000, 4. % 8000]],
                                        name=new_name, units=X.units, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_pow_positive(self):
         test_inputs = [(None, 2), (None, 3), ('up', 2), ('down', 3)]
@@ -808,10 +758,7 @@ class PhysArrayTests(unittest.TestCase):
             actual = X ** Y
             expected = physarray.PhysArray(value, name='(X**Y)', positive=positive)
             print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-            self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-            self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-            self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+            self.assertPhysArraysEqual(actual, expected, testname=testname)
             
     def test_pow_array_array(self):
         X = physarray.PhysArray([[1., 2.], [3., 4.]], name='X', units='km', dimensions=('u', 'v'))
@@ -823,11 +770,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1 ** 4., 2 ** 4.], [3 ** 4., 4 ** 4.]],
                                        units=new_units, name=new_name, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_pow_num_array(self):
         X = 2.
@@ -837,11 +780,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray(2. ** 4, name='(2.0**convert(Y, from=2, to=1))',
                                        units='1', dimensions=Y.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_pow_array_num(self):
         X = physarray.PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
@@ -851,11 +790,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[5 ** 2., 6 ** 2.], [7 ** 2., 8 ** 2.]], name='(X**2.0)',
                                        units=X.units ** 2, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_ipow_array(self):
         xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
@@ -869,11 +804,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1. ** 4, 2. ** 4], [3. ** 4, 4. ** 4]], name=new_name,
                                        units=X.units ** 4, dimensions=X.dimensions)
         print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_convert(self):
         xdata = numpy.array(2., dtype='d')
@@ -884,11 +815,7 @@ class PhysArrayTests(unittest.TestCase):
         new_name = "convert({}, from={}, to={})".format(X.name, X.units, indata)
         expected = physarray.PhysArray(2000., name=new_name, units=indata)
         print_test_message(testname, actual=actual, expected=expected, X=X)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_convert_error(self):
         xdata = numpy.array(2., dtype='d')
@@ -909,11 +836,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=indata)
         print_test_message(testname, actual=actual, expected=expected, X=X)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_transpose_axes(self):
         xdata = numpy.array([[1., 2.], [3., 4.]], dtype='d')
@@ -926,11 +849,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=new_dims)
         print_test_message(testname, actual=actual, expected=expected, X=X)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
     def test_transpose_axes_tuple(self):
         xdata = numpy.array([[1., 2.], [3., 4.]], dtype='d')
@@ -943,11 +862,7 @@ class PhysArrayTests(unittest.TestCase):
         expected = physarray.PhysArray([[1., 3.], [2., 4.]], units=X.units,
                                        name=new_name, dimensions=new_dims)
         print_test_message(testname, actual=actual, expected=expected, X=X)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions,
-                         '{} failed - dimensions'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, testname=testname)
 
 
 #===============================================================================

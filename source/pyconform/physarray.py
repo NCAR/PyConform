@@ -243,6 +243,30 @@ class PhysArray(numpy.ma.MaskedArray):
             self.name = '{}({})'.format(self.positive, nm)
         return self
 
+    def up(self):
+        """
+        Set the direction of the positive attribute to 'up' and multiply by -1, if necessary
+        
+        Only multiplies by -1 if the positive attribute is already set to 'down'.
+        """
+        if self.positive is None:
+            self.positive = 'up'
+        elif self.positive == 'down':
+            self = self.flip()
+        return self
+
+    def down(self):
+        """
+        Set the direction of the positive attribute to 'down' and multiply by -1, if necessary
+        
+        Only multiplies by -1 if the positive attribute is already set to 'up'.
+        """
+        if self.positive is None:
+            self.positive = 'down'
+        elif self.positive == 'up':
+            self = self.flip()
+        return self
+
     def _match_positive_(self, other):
         if self.positive == other.positive:
             return other, self.positive
