@@ -254,9 +254,9 @@ class PhysArrayBinOpTests(PhysArrayTests):
         expvals = {(0,1): PhysArray(2.0, name='(1.0+Y)'),
                    (1,0): PhysArray(2.0, name='(X+1.0)'),
                    (1,1): PhysArray(2.0, name='(X+Y)'),
-                   (1,2): PhysArray(2.0, name='(up(X)+Y)', positive='up'),
-                   (2,1): PhysArray(2.0, name='(X+up(Y))', positive='up'),
-                   (1,3): PhysArray(2.0, name='(down(X)+Y)', positive='down'),
+                   (1,2): PhysArray(2.0, name='(X+Y)', positive='up'),
+                   (2,1): PhysArray(2.0, name='(X+Y)', positive='up'),
+                   (1,3): PhysArray(2.0, name='(X+Y)', positive='down'),
                    (2,3): PhysArray(0.0, name='(X+up(Y))', positive='up'),
                    (3,2): PhysArray(0.0, name='(X+down(Y))', positive='down'),
                    (4,5): PhysArray(1.01, name='(X+convert(Y, from=cm, to=m))', units='m'),
@@ -267,13 +267,13 @@ class PhysArrayBinOpTests(PhysArrayTests):
                    (8,10): DimensionsError,
                    (10,10): PhysArray([[2.0, 4.0], [6.0, 8.0]], name='(X+Y)', dimensions=('x', 'y')),
                    (10,11): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(X+transpose(Y, from=[y,x], to=[x,y]))", dimensions=('x', 'y')),
-                   (11,12): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(up(X)+transpose(Y, from=[x,y], to=[y,x]))", dimensions=('y', 'x'), positive='up'),
+                   (11,12): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(X+transpose(Y, from=[x,y], to=[y,x]))", dimensions=('y', 'x'), positive='up'),
                    (12,13): PhysArray([[0.0, -1.0], [1.0, 0.0]], name="(X+up(transpose(Y, from=[y,x], to=[x,y])))", dimensions=('x', 'y'), positive='up')}
         self._test_binary_operator_(operator.add, expvals, 'X + Y')
 
     def test_add_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
-        test_names = ['(X+Y)', '(up(X)+Y)', '(X+down(Y))', '(X+Y)', '(X+up(Y))']
+        test_names = ['(X+Y)', '(X+Y)', '(X+Y)', '(X+Y)', '(X+up(Y))']
         test_values = [3.0, 3.0, 3.0, 3.0, -1.0]
         test_positives = [None, 'up', 'down', 'up', 'up']
         for (xpos, ypos), name, value, positive in zip(test_inputs, test_names, test_values, test_positives):
@@ -370,7 +370,7 @@ class PhysArrayBinOpTests(PhysArrayTests):
 
     def test_sub_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
-        test_names = ['(X-Y)', '(up(X)-Y)', '(X-down(Y))', '(X-Y)', '(X-up(Y))']
+        test_names = ['(X-Y)', '(X-Y)', '(X-Y)', '(X-Y)', '(X-up(Y))']
         test_values = [-1.0, -1.0, -1.0, -1.0, 3.0]
         test_positives = [None, 'up', 'down', 'up', 'up']
         for (xpos, ypos), name, value, positive in zip(test_inputs, test_names, test_values, test_positives):

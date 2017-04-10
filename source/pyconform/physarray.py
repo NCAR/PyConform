@@ -288,11 +288,9 @@ class PhysArray(numpy.ma.MaskedArray):
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         other, positive = self._match_positive_(other)
-        selfnm = self.name if self.positive == positive else '{}({})'.format(positive, self.name)
-        othernm = other.name if other.positive == positive else '{}({})'.format(positive, other.name)
         dims = self._return_dims_(other)
         return PhysArray(super(PhysArray, self).__add__(other), dimensions=dims, positive=positive,
-                         units=self.units, name='({}+{})'.format(selfnm, othernm))
+                         units=self.units, name='({}+{})'.format(self.name, other.name))
 
     def __radd__(self, other):
         return PhysArray(other).__add__(self)
@@ -304,11 +302,9 @@ class PhysArray(numpy.ma.MaskedArray):
     def __sub__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         other, positive = self._match_positive_(other)
-        selfnm = self.name if self.positive == positive else '{}({})'.format(positive, self.name)
-        othernm = other.name if other.positive == positive else '{}({})'.format(positive, other.name)
         dims = self._return_dims_(other)
         return PhysArray(super(PhysArray, self).__sub__(other), dimensions=dims, positive=positive,
-                         units=self.units, name='({}-{})'.format(selfnm, othernm))
+                         units=self.units, name='({}-{})'.format(self.name, other.name))
 
     def __rsub__(self, other):
         return PhysArray(other).__sub__(self)
@@ -352,8 +348,10 @@ class PhysArray(numpy.ma.MaskedArray):
     def _multiply_positive_(self, other):
         if self.positive == other.positive:
             return other, None
-        elif self.positive is None or other.positive is None:
-            return other, self.positive if other.positive is None else other.positive
+        elif self.positive is None:
+            return other, other.positive
+        elif other.positive is None:
+            return other, self.positive
         else:
             return PhysArray(other).flip(), None
             
