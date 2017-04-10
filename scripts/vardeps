@@ -11,6 +11,8 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform import parsing
 from json import load
 from collections import OrderedDict
+from argparse import ArgumentParser
+from os.path import exists
 
 
 #===================================================================================================
@@ -18,18 +20,35 @@ from collections import OrderedDict
 #===================================================================================================
 def cli(argv=None):
     desc = """This tool will analyze a definitions text file or a JSON standardization
-              file and print out information necessary about the input dataset for the
-              standardization procedure to work."""
+              file and print out the variables needed for each defined output variable."""
 
     parser = ArgumentParser(description=desc)
-    parser.add_argument('-d', '--deffile', default=False, type=bool, action='store_true',
+    parser.add_argument('-d', '--deffile', default=False, action='store_true',
                         help=('Flag to use if the file to analyze is a definitions file, '
                               'instead of a JSON-formatted standardization file'))
-    parser.add_argument('filename', default=None, metavar='FILENAME', type=str,
+    parser.add_argument('-f', '--filename', default=None, metavar='FILENAME', type=str,
                         help='Name of the file to read and analyze')
+    parser.add_argument('variables', metavar='VARIABLE', nargs='*', type=str,
+                        help=('Output variables to search for.  If not specified, then '
+                              'search for all output variables.'))
 
     return parser.parse_args(argv)
 
+
+#===================================================================================================
+# variable_search
+#===================================================================================================
+def variable_search(obj, vars=None):
+    if vars is None:
+        vars = set()
+    if isinstance(obj, parsing.ParsedVariable):
+        vars.add(obj.key)
+    elif isinstance(obj, parsing.ParsedFunction):
+        for arg in obj.args:
+            vars = variable_search(arg, vars=vars)
+        for kwd in obj.kwds:
+            vars = variable_search(obj.kwds[kwd], vars=vars)
+    return vars
 
 #===================================================================================================
 # Main Script Function
@@ -60,7 +79,27 @@ def main(argv=None):
             if 'definition' in stddict[var]:
                 vardefs[var] = stddict[var]['definition']
 
-    print vardefs
+    # Determine list of output variables to search for
+    if len(args.variables) == 0:
+        outvars = vardefs.keys()
+    else:
+        outvars = args.variables
+
+    # Use the parser to determine what variables are needed
+    print 'Output Variable Dependencies:'
+    alldeps = set()
+    for var in outvars:
+        if var in vardefs:
+            vdeps = variable_search(parsing.parse_definition(vardefs[var]))
+            alldeps.update(vdeps)
+            print '   {}: {}'.format(var, ', '.join(sorted(vdeps)))
+        else:
+            print '   {}: Not defined.'.format(var)
+
+    print
+    print 'Complete Specification Requires the Following Input Variables:'
+    for var in sorted(alldeps):
+        print '   {}'.format(var)
 
 
 #===================================================================================================
