@@ -5,7 +5,7 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarray import PhysArray, UnitsError
+from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from testutils import print_test_message
 from cf_units import Unit
 
@@ -188,7 +188,7 @@ class PhysArrayTests(unittest.TestCase):
         valid_input = [PhysArray(1.0, name='X', units='m'),
                        PhysArray(1.0, name='X', units='m', positive='up'),
                        PhysArray(1.0, name='X', units='m', positive='down')]
-        valid_output = [PhysArray(1.0, name='X', units='m', positive='up'),
+        valid_output = [PhysArray(1.0, name='up(X)', units='m', positive='up'),
                         PhysArray(1.0, name='X', units='m', positive='up'),
                         PhysArray(-1.0, name='up(X)', units='m', positive='up')]
         for inp, out in zip(valid_input, valid_output):
@@ -202,7 +202,7 @@ class PhysArrayTests(unittest.TestCase):
         valid_input = [PhysArray(1.0, name='X', units='m'),
                        PhysArray(1.0, name='X', units='m', positive='up'),
                        PhysArray(1.0, name='X', units='m', positive='down')]
-        valid_output = [PhysArray(1.0, name='X', units='m', positive='down'),
+        valid_output = [PhysArray(1.0, name='down(X)', units='m', positive='down'),
                         PhysArray(-1.0, name='down(X)', units='m', positive='down'),
                         PhysArray(1.0, name='X', units='m', positive='down')]
         for inp, out in zip(valid_input, valid_output):
@@ -221,47 +221,59 @@ class PhysArrayBinOpTests(PhysArrayTests):
     """
     
     def setUp(self):
-        self.xys = {0: 1.0,
-                    1: PhysArray(1.0),
-                    2: PhysArray(1.0, positive='up'),
-                    3: PhysArray(1.0, positive='down'),
-                    4: PhysArray(1.0, units='m'),
-                    5: PhysArray(1.0, units='cm'),
-                    6: PhysArray(1.0, units=1),
-                    7: PhysArray(1.0, units=.02),
-                    8: PhysArray([1.0, 2.0, 3.0], dimensions=('x',))}
+        self.vs = {0: 1.0,
+                   1: PhysArray(1.0),
+                   2: PhysArray(1.0, positive='up'),
+                   3: PhysArray(1.0, positive='down'),
+                   4: PhysArray(1.0, units='m'),
+                   5: PhysArray(1.0, units='cm'),
+                   6: PhysArray(1.0, units=1),
+                   7: PhysArray(1.0, units=.02),
+                   8: PhysArray([1.0, 2.0, 3.0], dimensions=('x',)),
+                   9: PhysArray([4.0, 5.0, 6.0], dimensions=('y',)),
+                   10: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('x', 'y')),
+                   11: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('y', 'x')),
+                   12: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('x', 'y'), positive='up'),
+                   13: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('y', 'x'), positive='down')}
+
+    def _test_binary_operator_(self, binop, expvals, testname):
+        for i,j in expvals:
+            expected = expvals[(i,j)]
+            X = PhysArray(self.vs[i], name='X') if isinstance(self.vs[i], PhysArray) else self.vs[i]
+            Y = PhysArray(self.vs[j], name='Y') if isinstance(self.vs[j], PhysArray) else self.vs[j]
+                
+            if type(expected) is type and issubclass(expected, Exception):
+                print_test_message(testname, X=X, Y=Y, expected=expected)
+                self.assertRaises(expected, binop, X, Y)
+            else:                        
+                actual = binop(X, Y)
+                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
+                self.assertPhysArraysEqual(actual, expected, testname)
 
     def test_add(self):
-        testname = 'X + Y'
         expvals = {(0,1): PhysArray(2.0, name='(1.0+Y)'),
                    (1,0): PhysArray(2.0, name='(X+1.0)'),
                    (1,1): PhysArray(2.0, name='(X+Y)'),
-                   (1,2): PhysArray(2.0, name='(X+Y)', positive='up'),
-                   (1,3): PhysArray(2.0, name='(X+Y)', positive='down'),
+                   (1,2): PhysArray(2.0, name='(up(X)+Y)', positive='up'),
+                   (2,1): PhysArray(2.0, name='(X+up(Y))', positive='up'),
+                   (1,3): PhysArray(2.0, name='(down(X)+Y)', positive='down'),
                    (2,3): PhysArray(0.0, name='(X+up(Y))', positive='up'),
                    (3,2): PhysArray(0.0, name='(X+down(Y))', positive='down'),
                    (4,5): PhysArray(1.01, name='(X+convert(Y, from=cm, to=m))', units='m'),
                    (6,7): PhysArray(1.02, name='(X+convert(Y, from=0.02, to=1))', units=1),
-                   (1,8): PhysArray([2.0, 3.0, 4.0], name='(X+Y)', dimensions=('x',))}
-        for i,j in expvals:
-            _X_ = self.xys[i]
-            _Y_ = self.xys[j]
-            expected = expvals[(i,j)]
-            X = PhysArray(_X_, name='X') if isinstance(_X_, PhysArray) else _X_
-            Y = PhysArray(_Y_, name='Y') if isinstance(_Y_, PhysArray) else _Y_
-            testname = 'X + Y'
-                
-            if isinstance(expected, Exception):
-                print_test_message(testname, X=X, Y=Y, expected=expected)
-                self.assertRaises(expected, operator.add, X, Y)
-            else:                        
-                actual = X + Y
-                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
-                self.assertPhysArraysEqual(actual, expected, testname)
+                   (1,8): PhysArray([2.0, 3.0, 4.0], name='(X+Y)', dimensions=('x',)),
+                   (8,8): PhysArray([2.0, 4.0, 6.0], name='(X+Y)', dimensions=('x',)),
+                   (8,9): DimensionsError,
+                   (8,10): DimensionsError,
+                   (10,10): PhysArray([[2.0, 4.0], [6.0, 8.0]], name='(X+Y)', dimensions=('x', 'y')),
+                   (10,11): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(X+transpose(Y, from=[y,x], to=[x,y]))", dimensions=('x', 'y')),
+                   (11,12): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(up(X)+transpose(Y, from=[x,y], to=[y,x]))", dimensions=('y', 'x'), positive='up'),
+                   (12,13): PhysArray([[0.0, -1.0], [1.0, 0.0]], name="(X+up(transpose(Y, from=[y,x], to=[x,y])))", dimensions=('x', 'y'), positive='up')}
+        self._test_binary_operator_(operator.add, expvals, 'X + Y')
 
     def test_add_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
-        test_names = ['(X+Y)', '(X+Y)', '(X+Y)', '(X+Y)', '(X+up(Y))']
+        test_names = ['(X+Y)', '(up(X)+Y)', '(X+down(Y))', '(X+Y)', '(X+up(Y))']
         test_values = [3.0, 3.0, 3.0, 3.0, -1.0]
         test_positives = [None, 'up', 'down', 'up', 'up']
         for (xpos, ypos), name, value, positive in zip(test_inputs, test_names, test_values, test_positives):
@@ -358,7 +370,7 @@ class PhysArrayBinOpTests(PhysArrayTests):
 
     def test_sub_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
-        test_names = ['(X-Y)', '(X-Y)', '(X-Y)', '(X-Y)', '(X-up(Y))']
+        test_names = ['(X-Y)', '(up(X)-Y)', '(X-down(Y))', '(X-Y)', '(X-up(Y))']
         test_values = [-1.0, -1.0, -1.0, -1.0, 3.0]
         test_positives = [None, 'up', 'down', 'up', 'up']
         for (xpos, ypos), name, value, positive in zip(test_inputs, test_names, test_values, test_positives):
