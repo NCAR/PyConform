@@ -1,0 +1,70 @@
+#! /usr/bin/env python
+"""
+anlzdefs - Analyze Definitions 
+
+Analyzes all definitions in a definitions file or a standardization JSON file
+
+COPYRIGHT: 2017, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
+from pyconform import parsing
+from json import load
+from collections import OrderedDict
+
+
+#===================================================================================================
+# Command-line Interface
+#===================================================================================================
+def cli(argv=None):
+    desc = """This tool will analyze a definitions text file or a JSON standardization
+              file and print out information necessary about the input dataset for the
+              standardization procedure to work."""
+
+    parser = ArgumentParser(description=desc)
+    parser.add_argument('-d', '--deffile', default=False, type=bool, action='store_true',
+                        help=('Flag to use if the file to analyze is a definitions file, '
+                              'instead of a JSON-formatted standardization file'))
+    parser.add_argument('filename', default=None, metavar='FILENAME', type=str,
+                        help='Name of the file to read and analyze')
+
+    return parser.parse_args(argv)
+
+
+#===================================================================================================
+# Main Script Function
+#===================================================================================================
+def main(argv=None):
+    args = cli(argv)
+
+    # Check that the file exists
+    if not exists(args.filename):
+        raise OSError('File {!r} not found'.format(args.filename))
+    
+    # Read the definitions from the file
+    vardefs = {}
+    if args.deffile:
+        with open(args.filename) as f:
+            for line in f:
+                line = line.strip()
+                if '#' in line:
+                    line = line.split('#')[0].strip()
+                split = line.split('=')
+                if len(split) == 2:
+                    vardefs[split[0].strip()] = split[1].strip()
+                elif len(line)>0 :
+                    print 'Could not parse this line: {!r}'.format(line)
+    else:
+        stddict = load(open(args.filename), object_pairs_hook=OrderedDict)
+        for var in stddict:
+            if 'definition' in stddict[var]:
+                vardefs[var] = stddict[var]['definition']
+
+    print vardefs
+
+
+#===================================================================================================
+# Command-line Operation
+#===================================================================================================
+if __name__ == '__main__':
+    main()
