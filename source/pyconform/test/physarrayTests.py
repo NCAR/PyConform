@@ -221,44 +221,43 @@ class PhysArrayBinOpTests(PhysArrayTests):
     """
     
     def setUp(self):
-        self.xs = [1.0,
-                   PhysArray(1.0, name='X', units=None, dimensions=(), positive=None),
-                   PhysArray(1.0, name='X', units=None, dimensions=(), positive='up'),
-                   PhysArray(1.0, name='X', units=None, dimensions=(), positive='down')]
-        self.ys = [1.0,
-                   PhysArray(1.0, name='Y', units=None, dimensions=(), positive=None),
-                   PhysArray(1.0, name='Y', units=None, dimensions=(), positive='up'),
-                   PhysArray(1.0, name='Y', units=None, dimensions=(), positive='down')]
+        self.xys = {0: 1.0,
+                    1: PhysArray(1.0),
+                    2: PhysArray(1.0, positive='up'),
+                    3: PhysArray(1.0, positive='down'),
+                    4: PhysArray(1.0, units='m'),
+                    5: PhysArray(1.0, units='cm'),
+                    6: PhysArray(1.0, units=1),
+                    7: PhysArray(1.0, units=.02),
+                    8: PhysArray([1.0, 2.0, 3.0], dimensions=('x',))}
 
     def test_add(self):
         testname = 'X + Y'
-        expvals = [[2.0,
-                    PhysArray(2.0, name='(1.0+Y)', units=None, dimensions=(), positive=None),
-                    PhysArray(2.0, name='(1.0+Y)', units=None, dimensions=(), positive='up'),
-                    PhysArray(2.0, name='(1.0+Y)', units=None, dimensions=(), positive='down')],
-                   [PhysArray(2.0, name='(X+1.0)', units=None, dimensions=(), positive=None),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive=None),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='up'),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='down')],
-                   [PhysArray(2.0, name='(X+1.0)', units=None, dimensions=(), positive='up'),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='up'),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='up'),
-                    PhysArray(0.0, name='(X+up(Y))', units=None, dimensions=(), positive='up')],
-                   [PhysArray(2.0, name='(X+1.0)', units=None, dimensions=(), positive='down'),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='down'),
-                    PhysArray(0.0, name='(X+down(Y))', units=None, dimensions=(), positive='down'),
-                    PhysArray(2.0, name='(X+Y)', units=None, dimensions=(), positive='down')]]
-        for i, X in enumerate(self.xs):
-            for j, Y in enumerate(self.ys):
-                testname = 'X + Y'
-                expected = expvals[i][j]
-                if isinstance(expected, Exception):
-                    print_test_message(testname, X=X, Y=Y, expected=expected)
-                    self.assertRaises(expected, operator.add, X, Y)
-                else:                        
-                    actual = X + Y
-                    print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
-                    self.assertPhysArraysEqual(actual, expected, testname)
+        expvals = {(0,1): PhysArray(2.0, name='(1.0+Y)'),
+                   (1,0): PhysArray(2.0, name='(X+1.0)'),
+                   (1,1): PhysArray(2.0, name='(X+Y)'),
+                   (1,2): PhysArray(2.0, name='(X+Y)', positive='up'),
+                   (1,3): PhysArray(2.0, name='(X+Y)', positive='down'),
+                   (2,3): PhysArray(0.0, name='(X+up(Y))', positive='up'),
+                   (3,2): PhysArray(0.0, name='(X+down(Y))', positive='down'),
+                   (4,5): PhysArray(1.01, name='(X+convert(Y, from=cm, to=m))', units='m'),
+                   (6,7): PhysArray(1.02, name='(X+convert(Y, from=0.02, to=1))', units=1),
+                   (1,8): PhysArray([2.0, 3.0, 4.0], name='(X+Y)', dimensions=('x',))}
+        for i,j in expvals:
+            _X_ = self.xys[i]
+            _Y_ = self.xys[j]
+            expected = expvals[(i,j)]
+            X = PhysArray(_X_, name='X') if isinstance(_X_, PhysArray) else _X_
+            Y = PhysArray(_Y_, name='Y') if isinstance(_Y_, PhysArray) else _Y_
+            testname = 'X + Y'
+                
+            if isinstance(expected, Exception):
+                print_test_message(testname, X=X, Y=Y, expected=expected)
+                self.assertRaises(expected, operator.add, X, Y)
+            else:                        
+                actual = X + Y
+                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
+                self.assertPhysArraysEqual(actual, expected, testname)
 
     def test_add_positive(self):
         test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
