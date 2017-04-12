@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 """
-anlzdefs - Analyze Definitions 
+vardeps - Find variable dependencies
 
-Analyzes all definitions in a definitions file or a standardization JSON file
+Find output variable dependencies in a definitions file or a standardization JSON file
 
 COPYRIGHT: 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -24,10 +24,10 @@ def cli(argv=None):
 
     parser = ArgumentParser(description=desc)
     parser.add_argument('-d', '--deffile', default=False, action='store_true',
-                        help=('Flag to use if the file to analyze is a definitions file, '
+                        help=('Flag to use if the file to read is a definitions file, '
                               'instead of a JSON-formatted standardization file'))
     parser.add_argument('-f', '--filename', default=None, metavar='FILENAME', type=str,
-                        help='Name of the file to read and analyze')
+                        help='Name of the file from which variable definitions will be read')
     parser.add_argument('variables', metavar='VARIABLE', nargs='*', type=str,
                         help=('Output variables to search for.  If not specified, then '
                               'search for all output variables.'))
@@ -81,9 +81,9 @@ def main(argv=None):
 
     # Determine list of output variables to search for
     if len(args.variables) == 0:
-        outvars = vardefs.keys()
+        outvars = sorted(vardefs.keys())
     else:
-        outvars = args.variables
+        outvars = sorted(args.variables)
 
     # Use the parser to determine what variables are needed
     print 'Output Variable Dependencies:'
