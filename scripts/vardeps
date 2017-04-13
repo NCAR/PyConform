@@ -50,6 +50,25 @@ def variable_search(obj, vars=None):
             vars = variable_search(obj.kwds[kwd], vars=vars)
     return vars
 
+
+#===================================================================================================
+# print_columnar
+#===================================================================================================
+def print_columnar(x, textwidth=100, indent=0, header=''):
+    hrstrp = '{}  '.format(str(header).rstrip())
+    if len(hrstrp) > indent:
+        indent = len(hrstrp)
+    else:
+        hrstrp = '{: <{indent}}'.format(header, indent=indent)
+    Lmax = max(len(str(i)) for i in x)
+    Nc = (textwidth - indent + 3) // (Lmax + 3)
+    Nr = len(x) // Nc + int(len(x) % Nc > 0)
+    A = [x[i::Nr] for i in xrange(Nr)]
+    print '{}{}'.format(hrstrp, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in A[0]))
+    for row in A[1:]:
+        print '{}{}'.format(' '*indent, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in row))
+        
+        
 #===================================================================================================
 # Main Script Function
 #===================================================================================================
@@ -92,14 +111,13 @@ def main(argv=None):
         if var in vardefs:
             vdeps = variable_search(parsing.parse_definition(vardefs[var]))
             alldeps.update(vdeps)
-            print '   {}: {}'.format(var, ', '.join(sorted(vdeps)))
+            print_columnar(sorted(vdeps), header='   {}:'.format(var))
         else:
             print '   {}: Not defined.'.format(var)
 
     print
     print 'Complete Specification Requires the Following Input Variables:'
-    for var in sorted(alldeps):
-        print '   {}'.format(var)
+    print_columnar(sorted(alldeps), indent=3)
 
 
 #===================================================================================================
