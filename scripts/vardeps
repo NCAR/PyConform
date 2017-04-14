@@ -95,7 +95,7 @@ def main(argv=None):
     else:
         stddict = load(open(args.filename), object_pairs_hook=OrderedDict)
         for var in stddict:
-            if 'definition' in stddict[var]:
+            if 'definition' in stddict[var] and isinstance(stddict[var]['definition'], basestring):
                 vardefs[var] = stddict[var]['definition']
 
     # Determine list of output variables to search for
