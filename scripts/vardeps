@@ -26,7 +26,9 @@ def cli(argv=None):
     parser.add_argument('-d', '--deffile', default=False, action='store_true',
                         help=('Flag to use if the file to read is a definitions file, '
                               'instead of a JSON-formatted standardization file'))
-    parser.add_argument('-f', '--filename', default=None, metavar='FILENAME', type=str,
+    parser.add_argument('-f', '--frequency', default=False, action='store_true',
+                        help='Output variable frequency with their dependencies')
+    parser.add_argument('-n', '--filename', default=None, metavar='FILENAME', type=str,
                         help='Name of the file from which variable definitions will be read')
     parser.add_argument('variables', metavar='VARIABLE', nargs='*', type=str,
                         help=('Output variables to search for.  If not specified, then '
@@ -81,6 +83,7 @@ def main(argv=None):
     
     # Read the definitions from the file
     vardefs = {}
+    varfreqs = {}
     if args.deffile:
         with open(args.filename) as f:
             for line in f:
@@ -97,6 +100,8 @@ def main(argv=None):
         for var in stddict:
             if 'definition' in stddict[var] and isinstance(stddict[var]['definition'], basestring):
                 vardefs[var] = stddict[var]['definition']
+            if 'attributes' in stddict[var] and 'frequency' in stddict[var]['attributes']:
+                varfreqs[var] = stddict[var]['attributes']['frequency']
 
     # Determine list of output variables to search for
     if len(args.variables) == 0:
@@ -109,9 +114,14 @@ def main(argv=None):
     alldeps = set()
     for var in outvars:
         if var in vardefs:
-            vdeps = variable_search(parsing.parse_definition(vardefs[var]))
-            alldeps.update(vdeps)
-            print_columnar(sorted(vdeps), header='   {}:'.format(var))
+            try:
+                vdeps = variable_search(parsing.parse_definition(vardefs[var]))
+                alldeps.update(vdeps)
+                fheader = ' [{}]'.format(varfreqs[var]) if var in varfreqs else ''
+                vheader = '   {}{}:'.format(var, fheader)
+                print_columnar(sorted(vdeps), header=vheader)
+            except:
+                print '   {}: No dependencies.'
         else:
             print '   {}: Not defined.'.format(var)
 
