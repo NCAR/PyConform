@@ -369,6 +369,7 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def invert(self):
+        """Return a new PhysArray with the value of the array inverted (1/value)"""
         return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
                          name='(1/{!s})'.format(self), positive=self.positive)
 
