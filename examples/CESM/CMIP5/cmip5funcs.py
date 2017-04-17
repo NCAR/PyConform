@@ -4,7 +4,6 @@ from Ngl import vinth2p
 from pyconform.physarray import PhysArray
 from pyconform.functions import Function, UnitsError, DimensionsError
 from cf_units import Unit
-from numpy import resize
 
 #===================================================================================================
 # PositiveUpFunction
