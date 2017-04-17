@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from Ngl import vinth2p
 from pyconform.physarray import PhysArray
 from pyconform.functions import Function, UnitsError, DimensionsError
 from cf_units import Unit
@@ -45,101 +46,55 @@ class ChangeUnitsFunction(Function):
             return PhysArray(data, units=units)
 
 
-#===============================================================================
+#===================================================================================================
 # VertInterpFunction
-#===============================================================================
+#===================================================================================================
 class VertInterpFunction(Function):
     key = 'vinth2p'
-    # datai, hbcofa, hbcofb, plevo, psfc, p0
 
+    def __call__(self, datai, hbcofa, hbcofb, plevo, psfc, p0, intyp=1, ixtrp=0):
+        if (not isinstance(datai, PhysArray) or not isinstance(hbcofa, PhysArray) or
+            not isinstance(hbcofb, PhysArray) or not isinstance(plevo, PhysArray) or
+            not isinstance(psfc, PhysArray) or not isinstance(p0, PhysArray)):
+            raise TypeError('vinth2p: arrays must be PhysArrays')
+        
+        if len(datai.dimensions) != 3 or len(datai.dimensions) != 4:
+            raise DimensionsError('vinth2p: interpolated data must be 3D or 4D')
+        if len(hbcofa.dimensions) != 1 or len(hbcofb.dimensions) != 1:
+            raise DimensionsError('vinth2p: hybrid a/b coefficients must be 1D')
+        if len(plevo.dimensions) != 1:
+            raise DimensionsError('vinth2p: output pressure levels must be 1D')
+        if len(p0.dimensions) != 0:
+            raise DimensionsError('vinth2p: reference pressure must be scalar')
 
-    def __call__(self, datai, ha, hb, polevs, ps, p0):
+        dlevi = hbcofa.dimensions[0]
+        if dlevi != hbcofb.dimensions[0]:
+            raise DimensionsError('vinth2p: hybrid a/b coefficients do not have same dimensions')
+        dlevo = plevo.dimensions[0]
         
-        ishape = datai.shape
-        levidx = len(ishape) - 3
-        nolevs = polevs.size
-        oshape = tuple(nolevs if i == levidx else n for i,n in enumerate(ishape))
-        
-        return resize(datai, oshape)
-    
-    @staticmethod
-    def units(diunits, haunits, hbunits, pounits, psunits, p0units):
-        umb = Unit('mb')
-        upa = Unit('Pa')
-        
-        diu = diunits if isinstance(diunits, Unit) else Unit(1)
-        
-        pou = pounits if isinstance(pounits, Unit) else Unit(1)
-        pouret = None
-        if pou != umb:
-            if pou.is_convertible(umb):
-                pouret = umb
-            else:
-                raise UnitsError('Cannot convert units')
-        
-        psu = psunits if isinstance(psunits, Unit) else Unit(1)
-        psuret = None
-        if psu != upa:
-            if psu.is_convertible(upa):
-                psuret = upa
-            else:
-                raise UnitsError('Cannot convert units')
+        for d in psfc.dimensions:
+            if d not in datai.dimensions:
+                raise DimensionsError(('vinth2p: surface pressure dimension {!r} not found '
+                                       'in input data dimensions').format(d))
+        dlat, dlon = psfc.dimensions[-2:]
 
-        p0u = opunits if isinstance(p0units, Unit) else Unit(1)
-        p0uret = None
-        if p0u != umb:
-            if p0u.is_convertible(umb):
-                p0uret = umb
-            else:
-                raise UnitsError('Cannot convert units')
-
-        return diu, (None, None, None, pouret, psuret, p0uret)
-
-    @staticmethod
-    def dimensions(didims, hadims, hbdims, podims, psdims, p0dims):
-        did = didims if isinstance(didims, tuple) else ()
-        if len(did) != 3 and len(did) != 4:
-            raise DimensionsError('vinth2p only accepts 3 or 4 dimensional data')
+        if (dlevi, dlat, dlon) != datai.dimensions[-3:]:
+            raise DimensionsError(('vinth2p: input data dimensions {} inconsistent with the '
+                                   'dimensions of surface pressure {} and hybrid coefficients {}'
+                                   '').format(datai.dimensions, psfc.dimensions, hbcofa.dimensions))
+                
+        _plevo = plevo.convert('mb')
+        _p0 = p0.convert('mb')
+        _psfc = psfc.convert('Pa')
         
-        had = hadims if isinstance(hadims, tuple) else ()
-        if len(had) != 1:
-            raise DimensionsError('Hybrid coefficient a not 1D')
-        ilevd = had[0]
-        hbd = hbdims if isinstance(hbdims, tuple) else ()
-        if len(hbd) != 1:
-            raise DimensionsError('Hybrid coefficient b not 1D')
-        if hbd[0] != ilevd:
-            raise DimensionsError('Hybrid coefficients a and b '
-                                  'have different dimensions')
+        ilev = datai.dimensions.index(dlevi)
 
-        p0d = p0dims if isinstance(p0dims, tuple) else ()
-        if len(p0d) != 0:
-            raise DimensionsError('Reference pressure a not scalar')
+        new_dims = [d for d in datai.dimensions]
+        new_dims[ilev] = dlevo
+        new_dims = tuple(new_dims)
+        
+        new_name = 'vinth2p({}, plevs={})'.format(datai.name, plevo.name)
 
-        pod = podims if isinstance(podims, tuple) else ()
-        if len(pod) != 1:
-            raise DimensionsError('Output pressure levels not 1D')
-        olevd = pod[0]
-        
-        psd = psdims if isinstance(psdims, tuple) else ()
-        for d in psd:
-            if d not in did:
-                raise DimensionsError(('Surface pressure dimension {0} not '
-                                       'found in input data '
-                                       'dimensions').format(d))
-        did_not_in_psd = tuple(d for d in did if d not in psd)
-        if did_not_in_psd != had:
-            print did_not_in_psd
-            raise DimensionsError('Input data dimensions do not match hybrid '
-                                  'coefficients in vertical interpolation')
-        
-        levidx = did.index(ilevd)
-        if levidx != len(did) - 3:
-            raise DimensionsError('Input data level dimension must be second')
-        
-        didret = [d for d in did]
-        didret[levidx] = olevd
-        didret = tuple(didret)
-
-        return didret, (None, None, None, None, None, None)
-    
+        return PhysArray(vinth2p(datai.data, hbcofa.data, hbcofb.data, plevo.data,
+                                 psfc.data, intyp, p0.data, 1, bool(ixtrp)), name=new_name,
+                         dimensions=new_dims, units=datai.units, positive=datai.positive)
