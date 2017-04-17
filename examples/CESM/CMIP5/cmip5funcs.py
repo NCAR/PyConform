@@ -31,6 +31,20 @@ class PositiveDownFunction(Function):
             return PhysArray(data).down()
 
 
+#===================================================================================================
+# ChangeUnitsFunction
+#===================================================================================================
+class ChangeUnitsFunction(Function):
+    key = 'chunits'
+    
+    def __call__(self, data, units):
+        if isinstance(data, PhysArray):
+            data.units = units
+            return data
+        else:
+            return PhysArray(data, units=units)
+
+
 #===============================================================================
 # VertInterpFunction
 #===============================================================================
