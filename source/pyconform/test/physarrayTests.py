@@ -40,16 +40,29 @@ class PhysArrayTests(unittest.TestCase):
         else:
             self.assertEqual(left, right, '{} failed')
 
-    def test_init_data_valid(self):
-        valid_input = [1, 1.3, (1, 2, 3), [1, 2, 3],  numpy.array([1, 2, 3], dtype=numpy.float64),
-                       PhysArray([1, 2, 3]), 'asfeasefa']
-        for indata in valid_input:
-            testname = 'PhysArray.__init__({}, name="X")'.format(indata)
-            X = PhysArray(indata, name='X')
-            actual = type(X)
-            expected = PhysArray
-            print_test_message(testname, indata=indata, actual=actual, expected=expected)
-            self.assertIsInstance(X, expected, '{} failed'.format(testname))
+    def test_init(self):
+        inp = [(1, {}),
+               (1.3, {}),
+               ((1, 2, 3), {}),
+               ([1, 2, 3], {}),
+               (numpy.array([1, 2, 3], dtype=numpy.float64), {}),
+               (PhysArray([1, 2, 3]), {}),
+               ('asfeasefa', {})]
+        exp = [PhysArray(1),
+               PhysArray(1.3),
+               PhysArray((1, 2, 3)),
+               PhysArray([1, 2, 3]),
+               PhysArray(numpy.array([1,2,3], dtype=numpy.float64)),
+               PhysArray([1, 2, 3]),
+               PhysArray('asfeasefa')]
+        for (arg, kwds), expected in zip(inp, exp):
+            argstr = repr(arg)
+            kwdstr = ', '.join('{}={!r}'.format(k, kwds[k]) for k in kwds)
+            initstr = argstr + (', {}'.format(kwdstr) if len(kwds) > 0 else '')
+            testname = 'PhysArray.__init__({})'.format(initstr)
+            actual = PhysArray(arg, **kwds)
+            print_test_message(testname, parameter=arg, keywords=kwds, actual=actual, expected=expected)
+            self.assertPhysArraysEqual(actual, expected, testname)
 
     def test_init_units_default(self):
         testname = 'PhysArray(1.2, name="X").units'
@@ -219,7 +232,21 @@ class PhysArrayBinOpTests(PhysArrayTests):
     """
     Unit tests for binary operators of the PhysArray class
     """
-    
+
+    def _test_binary_operator_(self, binop, expvals, testname):
+        for i,j in expvals:
+            expected = expvals[(i,j)]
+            X = PhysArray(self.vs[i], name='X') if isinstance(self.vs[i], PhysArray) else self.vs[i]
+            Y = PhysArray(self.vs[j], name='Y') if isinstance(self.vs[j], PhysArray) else self.vs[j]
+                
+            if type(expected) is type and issubclass(expected, Exception):
+                print_test_message(testname, X=X, Y=Y, expected=expected)
+                self.assertRaises(expected, binop, X, Y)
+            else:                        
+                actual = binop(X, Y)
+                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
+                self.assertPhysArraysEqual(actual, expected, testname)
+
     def setUp(self):
         self.vs = {0: 1.0,
                    1: PhysArray(1.0),
@@ -235,20 +262,6 @@ class PhysArrayBinOpTests(PhysArrayTests):
                    11: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('y', 'x')),
                    12: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('x', 'y'), positive='up'),
                    13: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('y', 'x'), positive='down')}
-
-    def _test_binary_operator_(self, binop, expvals, testname):
-        for i,j in expvals:
-            expected = expvals[(i,j)]
-            X = PhysArray(self.vs[i], name='X') if isinstance(self.vs[i], PhysArray) else self.vs[i]
-            Y = PhysArray(self.vs[j], name='Y') if isinstance(self.vs[j], PhysArray) else self.vs[j]
-                
-            if type(expected) is type and issubclass(expected, Exception):
-                print_test_message(testname, X=X, Y=Y, expected=expected)
-                self.assertRaises(expected, binop, X, Y)
-            else:                        
-                actual = binop(X, Y)
-                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
-                self.assertPhysArraysEqual(actual, expected, testname)
 
     def test_add(self):
         expvals = {(0,1): PhysArray(2.0, name='(1.0+Y)'),
