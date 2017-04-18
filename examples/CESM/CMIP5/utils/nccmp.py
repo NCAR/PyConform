@@ -85,9 +85,16 @@ def main(argv=None):
         slc = args.range
     
     print '{}:{}:'.format(FILE1, VAR1)
+    for a in ncv1.ncattrs():
+        print '   {}: {}'.format(a, ncv1.getncattr(a))
+    print
     print ncv1[slc]
     print
+    print
     print '{}:{}:'.format(FILE2, VAR2)
+    for a in ncv2.ncattrs():
+        print '   {}: {}'.format(a, ncv2.getncattr(a))
+    print
     print ncv2[slc]
 
 
