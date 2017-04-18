@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 """
-createOutputSpecs 
+PyConform - Command-Line Interface 
 
-Creates the Json output specification file.
+This command-line tool creates the 
 
 COPYRIGHT: 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -26,6 +26,9 @@ date_strings = {'yr': '__YYYY-YYYY__', 'mon': '__YYYYMM-YYYYMM__', 'monClim': '_
                 '3hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__',
                 'subhr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hrClimMon': '__YYYYMMDDHHMM-YYYYMMDDHHMM-clim__'}
 
+#===================================================================================================
+# parseArgs
+#===================================================================================================
 def parseArgs(argv = None):
 
     desc = "This tool creates a specification file that is needed to run PyConform."
@@ -53,9 +56,10 @@ def parseArgs(argv = None):
     return parser.parse_args(argv)
 
 
+#===================================================================================================
+# load - Load the definition file - translations from  model variables to requested variables 
+#===================================================================================================
 def load(defs,key=None):
-
-    # Load the definition file - translations from  model variables to requested variables 
 
     def_dict = {}
     if key == 'ga':
@@ -80,6 +84,10 @@ def load(defs,key=None):
                 print 'Could not parse this line: ',line
     return def_dict
 
+
+#===================================================================================================
+# defineVar
+#===================================================================================================
 def defineVar(v, varName, attributes, definition, experiment):
 
     # Get variables needed to piece together the filename
@@ -186,6 +194,10 @@ def defineVar(v, varName, attributes, definition, experiment):
     # return the variable dictionary with all pieces added
     return var
 
+
+#===================================================================================================
+# defineAxes
+#===================================================================================================
 def defineAxes(v, name):
 
     # define the axes that is used by at least one of the variables in the file
@@ -219,6 +231,9 @@ def defineAxes(v, name):
     return var
 
 
+#===================================================================================================
+# getUserVars
+#===================================================================================================
 def getUserVars(fn):
 
     # create variables from a list supplied by the user
@@ -233,6 +248,9 @@ def getUserVars(fn):
     return variables 
 
 
+#===================================================================================================
+# create_output
+#===================================================================================================
 def create_output(exp_dict, definitions, attributes, output_path, args, experiment):
 
     # create the output json files
@@ -315,6 +333,10 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
     with open(f2, 'w') as outfile:
         json.dump(AllMissing, outfile, sort_keys=True, indent=4)
 
+
+#===================================================================================================
+# create_non_mip_output
+#===================================================================================================
 def create_non_mip_output(variables, definitions, outputpath):
 
     vs = {}
@@ -358,6 +380,9 @@ def create_non_mip_output(variables, definitions, outputpath):
         json.dump(spec, outfile, sort_keys=True, indent=4)
 
 
+#===================================================================================================
+# main
+#===================================================================================================
 def main(argv=None):
    
     args = parseArgs(argv)
@@ -429,5 +454,9 @@ def main(argv=None):
                 # Write the spec files out to disk
                 create_output(exp_dict, definitions, attributes, args.outputpath, args, exp)
 
+
+#===================================================================================================
+# COMMAND-LINE INTERFACE
+#===================================================================================================
 if __name__ == '__main__':
     main()
