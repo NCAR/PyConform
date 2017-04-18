@@ -82,9 +82,10 @@ class PhysArray(numpy.ma.MaskedArray):
         return '{}'.format(self.name)
 
     def __repr__(self):
+        datstr = ' '.join('{!r}'.format(self.data).split())
         posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
         return ('{!s}(data={!s}, mask={!s}, fill_value={!s}, units={!r}, name={!r}, dimensions='
-                '{!s}{})').format(self.__class__.__name__, self.data, self.mask, self.fill_value,
+                '{!s}{})').format(self.__class__.__name__, datstr, self.mask, self.fill_value,
                                   str(self.units), self.name, self.dimensions, posstr)
 
     @property
