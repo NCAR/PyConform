@@ -85,7 +85,7 @@ def main(argv=None):
         slc = args.range
     
     print '{}:{}:'.format(FILE1, VAR1)
-    print '   dimensions: {}'.format(ncv1.dimensions.keys())
+    print '   dimensions: {}'.format(ncv1.dimensions)
     for a in ncv1.ncattrs():
         print '   {}: {}'.format(a, ncv1.getncattr(a))
     print
@@ -93,7 +93,7 @@ def main(argv=None):
     print
     print
     print '{}:{}:'.format(FILE2, VAR2)
-    print '   dimensions: {}'.format(ncv2.dimensions.keys())
+    print '   dimensions: {}'.format(ncv2.dimensions)
     for a in ncv2.ncattrs():
         print '   {}: {}'.format(a, ncv2.getncattr(a))
     print
