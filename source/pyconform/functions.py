@@ -215,6 +215,7 @@ class SquareRootFunction(Function):
                 units = data.units.root(2)
             except:
                 raise UnitsError('Cannot take square-root of units {!r}'.format(data.units))
-            return PhysArray(sqrt(data), units=units, name='sqrt({})'.format(data.name))
+            return PhysArray(sqrt(data.data), units=units, name='sqrt({})'.format(data.name),
+                             dimensions=data.dimensions, positive=data.positive)
         else:
             return sqrt(data)

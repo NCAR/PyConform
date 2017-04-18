@@ -405,13 +405,13 @@ class EvaluationTests(unittest.TestCase):
 
     def test_func_sqrt_physarray(self):
         key = 'sqrt'
-        indata = PhysArray(9.0, name='x', units='m^2')
+        indata = PhysArray([9.0, 16.0, 4.0], name='x', units='m^2')
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         actual = func(indata)
-        expected = PhysArray(np.sqrt(9.0), name='sqrt(x)', units='m')
+        expected = PhysArray([3.0, 4.0, 2.0], name='sqrt(x)', units='m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed - data'.format(testname))
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
