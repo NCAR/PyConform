@@ -4,9 +4,26 @@ from Ngl import vinth2p
 from pyconform.physarray import PhysArray
 from pyconform.functions import Function, UnitsError, DimensionsError
 from cf_units import Unit
-from numpy import diff
+from numpy import diff, mean
 
 
+#===================================================================================================
+# MeanFunction
+#===================================================================================================
+class MeanFunction(Function):
+    key = 'mean'
+    
+    def __call__(self, data, *dimensions):
+        if not isinstance(data, PhysArray):
+            raise TypeError('mean: data must be a PhysArray')
+        indims = [d for d in dimensions if d in data.dimensions]
+        axes = tuple(data.dimensions.index(d) for d in indims)
+        new_dims = tuple(d for d in data.dimensions if d not in indims)
+        return PhysArray(mean(data.data, axis=axes),
+                         units=data.units, dimensions=data.dimensions, positive=data.positive,
+                         name='mean({}, dims={})'.format(data.name, indims))
+        
+        
 #===================================================================================================
 # BoundsFunction
 #===================================================================================================
