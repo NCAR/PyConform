@@ -23,7 +23,13 @@ def _file_var_(arg):
 
 def _range_(arg):
     try:
-        return [int(i) for i in arg.split(',')]
+        vals = []
+        for i in arg.split(','):
+            if i == '':
+                vals.append(None)
+            else:
+                vals.append(int(i))
+        return slice(*vals)
     except:
         raise ArgumentTypeError("Range arguments must be in LOWER,UPPER format")
 
@@ -78,7 +84,7 @@ def main(argv=None):
     if args.range is None:
         slc = slice(None)
     else:
-        slc = slice(*args.range)
+        slc = args.range
     
     print '{}:{}:'.format(FILE1, VAR1)
     print ncv1[slc]
