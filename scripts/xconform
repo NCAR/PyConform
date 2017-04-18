@@ -2,9 +2,10 @@
 """
 PyConform - Command-Line Interface
 
-This is the command-line interface to the PyConform tool.  It takes input from
-the command-line directly, and from an "output specification" file, which
-defines the output dataset entirely.
+This command-line tool is designed to run PyConform, given a "standardization file" (a
+JSON-formatted file specifying the output variables, files and formats, and how to construct
+the output variables from input variables) and a collection of "input NetCDF files" containing
+the data to be standardized.
 
 COPYRIGHT: 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -36,17 +37,6 @@ def chunk(arg):
 
 
 #===================================================================================================
-# bound - Bounds on a named dimension
-#===================================================================================================
-def bound(arg):
-    try:
-        name, lower_str, upper_str = arg.split(',')
-        return name, (lower_str, upper_str)
-    except:
-        raise ArgumentTypeError("Bounds must be formatted as 'name,lower,upper'")
-
-
-#===================================================================================================
 # Command-line Interface
 #===================================================================================================
 def cli(argv=None):
@@ -55,36 +45,29 @@ def cli(argv=None):
               specification file (specfile)."""
 
     parser = ArgumentParser(description=desc)
-    parser.add_argument('-b', '--bound', dest='bounds', default=[],
-                        metavar='NAME,LOWER,UPPER', action='append', type=bound,
-                        help='Set the bounds on a named variable specified in the output '
-                             'specification file.  Data will be written for values within '
-                             'these bounds inclusively.  [Default: no bounds]')
     parser.add_argument('-c', '--chunk', dest='chunks', default=[],
                         metavar='NAME,SIZE', action='append', type=chunk,
-                        help='Chunk sizes for each dimension specified in the '
-                             'output specification file.  Data will be read/written '
-                             'in sizes given by these chunks. [Default: no chunking]')
-    parser.add_argument('-f', '--specfile', default=None, metavar='SPECFILE', type=str,
-                        help='JSON-formatted output specification file '
-                             '[REQUIRED]')
+                        help=('Chunk sizes for each dimension specified in the '
+                              'output specification file.  Data will be read/written '
+                              'in sizes given by these chunks. [Default: no chunking]'))
+    parser.add_argument('-f', '--stdfile', default=None, metavar='STANDARDIZATION', type=str,
+                        help=('JSON-formatted standardization (output specification) file '
+                              '[REQUIRED]'))
     parser.add_argument('-e', '--error', default=False, action='store_true',
-                        help='Whether to error when validation checks do not pass '
-                             '(True) or simply print a warning message (False) '
-                             '[Default: False]')
-    parser.add_argument('-p', '--provenance', default=False, action='store_true',
-                        help="Whether to add a 'conform_prov' attribute to each variable, "
-                             'storing the provenance information generated at execution time '
-                             '[Default: False]')
+                        help=('Whether to error when validation checks do not pass (True) or '
+                              'simply print a warning message (False) [Default: False]'))
+    parser.add_argument('-n', '--no_history', default=False, action='store_true',
+                        help=('Whether to omit the addition of the "history" attribute in each '
+                              'output variable, which stores the provenance information generated '
+                              'at execution time [Default: False]'))
     parser.add_argument('-s', '--serial', default=False, action='store_true',
-                        help='Whether to run in serial (True) or parallel '
-                             '(False). [Default: False]')
+                        help=('Whether to run in serial (True) or parallel '
+                              '(False). [Default: False]'))
     parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
-                        help='Input file path or globstring specifying input '
-                             'data for the PyConform operation.  If no input '
-                             'files are specified, then PyConform will validate '
-                             'the output specification file only, and then '
-                             'exit.  [No default]')
+                        help=('Input file path or globstring specifying input data for the '
+                              'PyConform operation.  If no input files are specified, then '
+                              'PyConform will validate the output specification file only, and '
+                              'then exit.  [No default]'))
 
     return parser.parse_args(argv)
 
