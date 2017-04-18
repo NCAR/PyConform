@@ -153,6 +153,21 @@ class FindTests(unittest.TestCase):
         expected = myfunc
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertIsInstance(actual, expected, '{} failed'.format(testname))
+    
+    def test_list_operators(self):
+        testname = 'list_operators()'
+        actual = functions.list_operators()
+        expected = list(functions.__OPERATORS__.keys())
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_list_functions(self):
+        testname = 'list_functions()'
+        actual = functions.list_functions()
+        expected = ['sqrt']
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
 
 #===============================================================================
 # EvaluationTests
