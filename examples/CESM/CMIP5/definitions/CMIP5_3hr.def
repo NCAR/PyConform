@@ -18,5 +18,5 @@ rsdscs = FSDSC
 rsus = FSDS - FSNS
 rsuscs = FSDSC - FSNSC
 tas = TREFHT
-time = time
+time = mean(time, "tbnd")
 time_bnds = time_bnds
