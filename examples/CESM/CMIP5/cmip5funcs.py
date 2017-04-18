@@ -4,6 +4,46 @@ from Ngl import vinth2p
 from pyconform.physarray import PhysArray
 from pyconform.functions import Function, UnitsError, DimensionsError
 from cf_units import Unit
+from numpy import diff
+
+
+#===================================================================================================
+# BoundsFunction
+#===================================================================================================
+class BoundsFunction(Function):
+    key = 'bounds'
+    
+    def __call__(self, data, bdim='bnds', location=1, endpoints=1):
+        if not isinstance(data, PhysArray):
+            raise TypeError('bounds: data must be a PhysArray')
+        if not isinstance(bdim, basestring):
+            raise TypeError('bounds: bounds dimension name must be a string')
+        if location not in [0,1,2]:
+            raise ValueError('bounds: location must be 0, 1, or 2')
+        if len(data.dimensions) != 1:
+            raise DimensionsError('bounds: data can only be 1D')
+        mod_end = bool(endpoints)
+
+        bnds = PhysArray([1, 1], dimensions=(bdim,))
+        new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
+        dx = diff(data.data)
+        if location == 0:
+            new_data[:-1,1] = data.data[:-1] + dx
+            if mod_end:
+                new_data[-1,1] = data.data[-1] + dx[-1]
+        elif location == 1:
+            hdx = 0.5 * dx
+            new_data[1:,0] = data.data[1:] - hdx
+            new_data[:-1,1] = data.data[:-1] + hdx
+            if mod_end:
+                new_data[0,0] = data.data[0] - hdx[0]
+                new_data[-1,1] = data.data[-1] + hdx[-1]
+        elif location == 2:
+            new_data[1:,0] = data.data[1:] - dx
+            if mod_end:
+                new_data[0,0] = data.data[0] - dx[0]
+        return new_data
+
 
 #===================================================================================================
 # PositiveUpFunction
