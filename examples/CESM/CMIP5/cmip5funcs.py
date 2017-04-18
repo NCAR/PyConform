@@ -20,7 +20,7 @@ class MeanFunction(Function):
         axes = tuple(data.dimensions.index(d) for d in indims)
         new_dims = tuple(d for d in data.dimensions if d not in indims)
         return PhysArray(mean(data.data, axis=axes),
-                         units=data.units, dimensions=data.dimensions, positive=data.positive,
+                         units=data.units, dimensions=new_dims, positive=data.positive,
                          name='mean({}, dims={})'.format(data.name, indims))
         
         
@@ -69,10 +69,7 @@ class PositiveUpFunction(Function):
     key = 'up'
     
     def __call__(self, data):
-        if isinstance(data, PhysArray):
-            return data.up()
-        else:
-            return PhysArray(data).up()
+        return PhysArray(data).up()
 
 
 #===================================================================================================
@@ -82,10 +79,7 @@ class PositiveDownFunction(Function):
     key = 'down'
     
     def __call__(self, data):
-        if isinstance(data, PhysArray):
-            return data.down()
-        else:
-            return PhysArray(data).down()
+        return PhysArray(data).down()
 
 
 #===================================================================================================
@@ -95,11 +89,7 @@ class ChangeUnitsFunction(Function):
     key = 'chunits'
     
     def __call__(self, data, units):
-        if isinstance(data, PhysArray):
-            data.units = units
-            return data
-        else:
-            return PhysArray(data, units=units)
+        return PhysArray(data, units=units)
 
 
 #===================================================================================================
