@@ -36,10 +36,8 @@ def _range_(arg):
 __PARSER__ = ArgumentParser(description='Compare two NetCDF files')
 __PARSER__.add_argument('-r', '--range', default=None, type=_range_, 
                         help='Range of values to display')
-__PARSER__.add_argument('filevar1', type=_file_var_, required=True,
-                        help='Name of first NetCDF file and variable')
-__PARSER__.add_argument('filevar2', type=_file_var_, required=True,
-                        help='Name of second NetCDF file and variable')
+__PARSER__.add_argument('filevar1', type=_file_var_, help='Name of first NetCDF file and variable')
+__PARSER__.add_argument('filevar2', type=_file_var_, help='Name of second NetCDF file and variable')
 
 
 #===================================================================================================
