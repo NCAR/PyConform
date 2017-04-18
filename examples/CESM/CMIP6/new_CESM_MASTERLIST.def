@@ -3,7 +3,7 @@
 ############################
 latitude=lat
 longitude=lon
-time=time
+time=mean(time, "tbnd")
 time1=time
 time2=time
 alevhalf=ilev
@@ -36,6 +36,7 @@ rsdscs=FSDSC
 rsus=FSDS - FSNS
 rsuscs=FSDSC - FSNSC
 tas=TREFHT
+
 ############################
 #  TABLE : 6hrLev
 ############################
@@ -45,6 +46,7 @@ ps=PS
 ta=vinterp(T,plevs)
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
+
 ############################
 #  TABLE : 6hrPlev
 ############################
@@ -52,6 +54,7 @@ psl=PSL
 ta=vinterp(T,plevs)
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
+
 ############################
 #  TABLE : 6hrPlevpt
 ############################
@@ -69,6 +72,7 @@ ts=TS
 tsl=TSOI
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
+
 ############################
 #  TABLE : Amon
 ############################
@@ -131,15 +135,19 @@ ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : AmonAdj
 ############################
+
 ############################
 #  TABLE : LIfxant
 ############################
+
 ############################
 #  TABLE : LIfxgre
 ############################
+
 ############################
 #  TABLE : LImon
 ############################
@@ -153,6 +161,7 @@ snm=QMELT
 snw=H2OSNO
 sootsn=SNOBCMSL + SNODSTMSL + SNOOCMSL
 tsn=SNOTTOPL
+
 ############################
 #  TABLE : LImonant
 ############################
@@ -171,6 +180,7 @@ snm=QMELT
 tas=TREFHT
 ts=TS
 tsn=SNOTTOPL
+
 ############################
 #  TABLE : LImongre
 ############################
@@ -189,18 +199,21 @@ snm=QMELT
 tas=TREFHT
 ts=TS
 tsn=SNOTTOPL
+
 ############################
 #  TABLE : LIyrant
 ############################
 orog=PHIS/g
 sftgif=PCT_GLACIER
 snc=FSNO
+
 ############################
 #  TABLE : LIyrgre
 ############################
 orog=PHIS/g
 sftgif=PCT_GLACIER
 snc=FSNO
+
 ############################
 #  TABLE : Lmon
 ############################
@@ -243,15 +256,18 @@ ra=AR
 rh=HR
 tran=QSOIL + QVEGT
 tsl=TSOI
+
 ############################
 #  TABLE : Oclim
 ############################
+
 ############################
 #  TABLE : Oday
 ############################
 sos=SALT[at topmost level * 1000]
 tos=TEMP[at topmost level]
 tossq=TEMP2
+
 ############################
 #  TABLE : Ofx
 ############################
@@ -260,6 +276,7 @@ basin=REGION_MASK
 deptho=HT
 hfgeou=0
 sftof=0 where KMT
+
 ############################
 #  TABLE : Omon
 ############################
@@ -360,6 +377,7 @@ zossq=SSH2
 zostoga=ave_slc_t from Aixue's SLC code; derived from SSH PD TEMP SALT
 zsatarag=zsatarag
 zsatcalc=zsatcalc
+
 ############################
 #  TABLE : Oyr
 ############################
@@ -396,17 +414,21 @@ po4=PO4
 si=SiO3
 talk=ALK
 zooc=zooC
+
 ############################
 #  TABLE : SIday
 ############################
+
 ############################
 #  TABLE : SImon
 ############################
+
 ############################
 #  TABLE : aerannual
 ############################
 lossch4=CH4_CHML
 lossco=CO_CHML
+
 ############################
 #  TABLE : aerdaily
 ############################
@@ -419,6 +441,7 @@ tas=TREFHT
 tasmax=TREFHTMX
 tasmin=TREFHTMN
 toz=O3 column
+
 ############################
 #  TABLE : aerfixed
 ############################
@@ -426,10 +449,12 @@ areacella=AREA
 landf=LANDFRAC 
  lf
 orog=PHIS/g
+
 ############################
 #  TABLE : aerhourly
 ############################
 ps=PS
+
 ############################
 #  TABLE : aermonthly
 ############################
@@ -529,6 +554,7 @@ wetso4=so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
 wetss=ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
 zg=vinterp(Z3,plevs)
 ztp=TROP_Z
+
 ############################
 #  TABLE : aero
 ############################
@@ -581,6 +607,7 @@ wetoa=pom_a1SFWET+pom_c1SFWET+soa_a1SFWET+soa_a2SFWET+soa_c1SFWET+soa_c2SFWET
 wetso2=WD_SO2
 wetso4=so4_a1SFWET+so4_a2SFWET+so4_a3SFWET+so4_c1SFWET+so4_c2SFWET+so4_c3SFWET
 wetss=ncl_a1SFWET+ncl_a2SFWET+ncl_a2SFWET+ncl_c1SFWET+ncl_c2SFWET+ncl_c3SFWET
+
 ############################
 #  TABLE : cf3hr
 ############################
@@ -610,6 +637,7 @@ prsnc=ZMFLXSNW+HKFLXSNW
 reffclis=REI
 reffclws=REL
 ta=vinterp(T,plevs)
+
 ############################
 #  TABLE : cfDay
 ############################
@@ -653,6 +681,7 @@ va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
 wap500=OMEGA500
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : cfMon
 ############################
@@ -684,6 +713,7 @@ tntc=ZMDT+EVAPTZM+ZMMTT+CMFDT
 tntmp=PTTEND
 tntr=QRL+QRS
 tntscpbl=HPROGCLD/CPAIR+HSED/1004.64
+
 ############################
 #  TABLE : cfOff
 ############################
@@ -696,6 +726,7 @@ cllcalipso=CLDLOW_CAL
 clmcalipso=CLDMED_CAL
 cltcalipso=CLDTOT_CAL
 parasolRefl=RFL_PARASOL
+
 ############################
 #  TABLE : cfSites
 ############################
@@ -721,6 +752,7 @@ ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : day
 ############################
@@ -759,6 +791,7 @@ va=vinterp(V,plevs)
 vsi=vvel_d
 wap=vinterp(OMEGA,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : em1hr
 ############################
@@ -770,6 +803,7 @@ ta=vinterp(T,plevs)
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
+
 ############################
 #  TABLE : em1hrclimmon
 ############################
@@ -778,6 +812,7 @@ rlutcs=FLUTC
 rsdt=SOLIN
 rsut=SOLIN - FSNTOA
 rsutcs=SOLIN - FSNTOAC
+
 ############################
 #  TABLE : em3hr
 ############################
@@ -795,6 +830,7 @@ rsdscs=FSDSC
 rsdt=SOLIN
 rsut=SOLIN - FSNTOA
 rsutcs=SOLIN - FSNTOAC
+
 ############################
 #  TABLE : em3hrpt
 ############################
@@ -810,6 +846,7 @@ huss=QREFHT
 parasolRefl=RFL_PARASOL
 psl=PSL
 tas=TREFHT
+
 ############################
 #  TABLE : emDay
 ############################
@@ -856,6 +893,7 @@ tran=QSOIL + QVEGT
 ts=TS
 tsl=TSOI
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : emDayZ
 ############################
@@ -864,15 +902,18 @@ ta=vinterp(T,plevs)
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : emDaypt
 ############################
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
+
 ############################
 #  TABLE : emFx
 ############################
 sftgif=PCT_GLACIER
+
 ############################
 #  TABLE : emMon
 ############################
@@ -958,14 +999,17 @@ ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
 zooc=zooC
+
 ############################
 #  TABLE : emMonZ
 ############################
 ua=vinterp(U,plevs)
 zmtnt=PTTEND PS
+
 ############################
 #  TABLE : emMonpt
 ############################
+
 ############################
 #  TABLE : emSubhr
 ############################
@@ -989,12 +1033,14 @@ tnt=TTEND_TOT
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
 wap=vinterp(OMEGA,plevs)
+
 ############################
 #  TABLE : emYr
 ############################
 cLitter=TOTLITC
 cSoil=TOTSOMC
 cVeg=TOTVEGC
+
 ############################
 #  TABLE : fx
 ############################
