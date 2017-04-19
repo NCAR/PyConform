@@ -89,14 +89,19 @@ def main(argv=None):
         
     print
     print '[1]:  {}:{}'.format(shortf1, VAR1)
-    print '      dimensions: {}'.format(ncv1.dimensions)
+    print
     for a in ncv1.ncattrs():
         print '      {}: {}'.format(a, ncv1.getncattr(a))
     print
     print '[2]:  {}:{}'.format(shortf2, VAR2)
-    print '      dimensions: {}'.format(ncv2.dimensions)
+    print
     for a in ncv2.ncattrs():
         print '      {}: {}'.format(a, ncv2.getncattr(a))
+    print
+    print 'Dimensions:'
+    print
+    for d1, d2 in zip(ncv1.dimensions, ncv2.dimensions):
+        print '      [1] {} <--> {} [2]'.format(v1, v2)
     print
     print 'Values:'
     print
