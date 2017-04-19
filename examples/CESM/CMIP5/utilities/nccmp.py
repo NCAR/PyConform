@@ -99,10 +99,18 @@ def main(argv=None):
     for a in ncv2.ncattrs():
         print '      {}: {}'.format(a, ncv2.getncattr(a))
     print
-    print 'Dimensions:'
+    print 'Dimensions/Sizes:'
     print
     for d1, d2 in izip_longest(ncv1.dimensions, ncv2.dimensions, fillvalue='---'):
-        print '      [1] {} <--> {} [2]'.format(d1, d2)
+        if d1 == '---':
+            ds1 = 'N/A'
+        else:
+            ds1 = '{} = {}'.format(d1, ncf1.dimensions[d1].size)
+        if d2 == '---':
+            ds2 = 'N/A'
+        else:
+            ds2 = '{} = {}'.format(d2, ncf2.dimensions[d2].size)
+        print '      [1] {} <--> {} [2]'.format(ds1, ds2)
     print
     print 'Values:'
     print
