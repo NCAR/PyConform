@@ -11,6 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 from os.path import isfile
 from argparse import ArgumentParser
 from netCDF4 import Dataset
+from numpy import ravel
 
 #===================================================================================================
 # Argument Parser
@@ -91,7 +92,7 @@ def main(argv=None):
     for a in ncv1.ncattrs():
         print '   {}: {}'.format(a, ncv1.getncattr(a))
     print
-    print ncv1[slc]
+    print ravel(ncv1)[slc]
     print
     print
     print '{}:{}:'.format(shortf2, VAR2)
@@ -99,7 +100,7 @@ def main(argv=None):
     for a in ncv2.ncattrs():
         print '   {}: {}'.format(a, ncv2.getncattr(a))
     print
-    print ncv2[slc]
+    print ravel(ncv2)[slc]
 
 
 #===================================================================================================
