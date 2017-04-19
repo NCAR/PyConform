@@ -105,11 +105,11 @@ def main(argv=None):
         if d1 == '---':
             ds1 = 'N/A'
         else:
-            ds1 = '{} = {}'.format(d1, ncf1.dimensions[d1].size)
+            ds1 = '{} = {}'.format(d1, len(ncf1.dimensions[d1]))
         if d2 == '---':
             ds2 = 'N/A'
         else:
-            ds2 = '{} = {}'.format(d2, ncf2.dimensions[d2].size)
+            ds2 = '{} = {}'.format(d2, len(ncf2.dimensions[d2]))
         print '      [1] {} <--> {} [2]'.format(ds1, ds2)
     print
     print 'Values:'
