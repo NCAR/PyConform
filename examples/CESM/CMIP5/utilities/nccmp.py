@@ -86,21 +86,23 @@ def main(argv=None):
         slc = slice(None)
     else:
         slc = args.range
-    
-    print '{}:{}:'.format(shortf1, VAR1)
-    print '   dimensions: {}'.format(ncv1.dimensions)
+        
+    print
+    print '[1]:  {}:{}'.format(shortf1, VAR1)
+    print '      dimensions: {}'.format(ncv1.dimensions)
     for a in ncv1.ncattrs():
-        print '   {}: {}'.format(a, ncv1.getncattr(a))
+        print '      {}: {}'.format(a, ncv1.getncattr(a))
     print
-    print ravel(ncv1)[slc]
-    print
-    print
-    print '{}:{}:'.format(shortf2, VAR2)
-    print '   dimensions: {}'.format(ncv2.dimensions)
+    print '[2]:  {}:{}'.format(shortf2, VAR2)
+    print '      dimensions: {}'.format(ncv2.dimensions)
     for a in ncv2.ncattrs():
-        print '   {}: {}'.format(a, ncv2.getncattr(a))
+        print '      {}: {}'.format(a, ncv2.getncattr(a))
     print
-    print ravel(ncv2)[slc]
+    print 'Values:'
+    print
+    for v1, v2 in zip(ravel(ncv1)[slc], ravel(ncv2)[slc]):
+        print '      [1] {} <--> {} [2]'.format(v1, v2)
+    print
 
 
 #===================================================================================================
