@@ -12,6 +12,7 @@ from os.path import isfile
 from argparse import ArgumentParser
 from netCDF4 import Dataset
 from numpy import ravel
+from itertools import izip_longest
 
 #===================================================================================================
 # Argument Parser
@@ -100,8 +101,8 @@ def main(argv=None):
     print
     print 'Dimensions:'
     print
-    for d1, d2 in zip(ncv1.dimensions, ncv2.dimensions):
-        print '      [1] {} <--> {} [2]'.format(v1, v2)
+    for d1, d2 in izip_longest(ncv1.dimensions, ncv2.dimensions, fill_value='---'):
+        print '      [1] {} <--> {} [2]'.format(d1, d2)
     print
     print 'Values:'
     print
