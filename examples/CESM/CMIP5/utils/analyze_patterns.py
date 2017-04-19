@@ -151,7 +151,7 @@ def main(argv=None):
                 for v in unmatched:
                     vgsubsets[frt].add(v)
     
-    print 'Variables in groups that do not represent a single set:'
+    print 'Variables in groups that can not represent a single freq/realm/table set:'
     uniqsubsets = [frt for frt in vgsubsets if len(vgsubsets[frt]) > 0]
     if len(uniqsubsets) > 0:
         for frt in uniqsubsets:
@@ -160,7 +160,7 @@ def main(argv=None):
         print "  None"
     print
 
-    print 'Variable groups representing a single freq/realm/model set:'
+    print 'Variable groups representing a single freq/realm/table set:'
     for frt in vgsuperset:
         print "  {}: {}".format(frt, ', '.join(sorted(vgsuperset[frt])))
     print
