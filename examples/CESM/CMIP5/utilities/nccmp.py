@@ -101,7 +101,7 @@ def main(argv=None):
     print
     print 'Dimensions:'
     print
-    for d1, d2 in izip_longest(ncv1.dimensions, ncv2.dimensions, fill_value='---'):
+    for d1, d2 in izip_longest(ncv1.dimensions, ncv2.dimensions, fillvalue='---'):
         print '      [1] {} <--> {} [2]'.format(d1, d2)
     print
     print 'Values:'
