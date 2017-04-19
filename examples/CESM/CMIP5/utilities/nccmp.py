@@ -110,12 +110,12 @@ def main(argv=None):
             ds2 = 'N/A'
         else:
             ds2 = '{} = {}'.format(d2, len(ncf2.dimensions[d2]))
-        print '      [1] {} <--> {} [2]'.format(ds1, ds2)
+        print '      [1]  {} <--> {}  [2]'.format(ds1, ds2)
     print
     print 'Values:'
     print
     for v1, v2 in zip(ravel(ncv1)[slc], ravel(ncv2)[slc]):
-        print '      [1] {} <--> {} [2]'.format(v1, v2)
+        print '      [1]  {} <--> {}  [2]'.format(v1, v2)
     print
 
 
