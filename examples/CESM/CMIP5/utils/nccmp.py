@@ -62,10 +62,12 @@ def main(argv=None):
     FILE1, VAR1 = args.filevar1
     if not isfile(FILE1):
         raise ValueError('NetCDF file {} not found'.format(FILE1))
+    shortf1 = FILE1.split('/')[-1]
 
     FILE2, VAR2 = args.filevar2
     if not isfile(FILE2):
         raise ValueError('NetCDF file {} not found'.format(FILE2))
+    shortf2 = FILE2.split('/')[-1]
 
     ncf1 = Dataset(FILE1)
     if VAR1 in ncf1.variables:
@@ -84,7 +86,7 @@ def main(argv=None):
     else:
         slc = args.range
     
-    print '{}:{}:'.format(FILE1, VAR1)
+    print '{}:{}:'.format(shortf1, VAR1)
     print '   dimensions: {}'.format(ncv1.dimensions)
     for a in ncv1.ncattrs():
         print '   {}: {}'.format(a, ncv1.getncattr(a))
@@ -92,7 +94,7 @@ def main(argv=None):
     print ncv1[slc]
     print
     print
-    print '{}:{}:'.format(FILE2, VAR2)
+    print '{}:{}:'.format(shortf2, VAR2)
     print '   dimensions: {}'.format(ncv2.dimensions)
     for a in ncv2.ncattrs():
         print '   {}: {}'.format(a, ncv2.getncattr(a))
