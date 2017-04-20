@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-analyze_dir_patterns
+analyze_dirpatterns
 
 Command-Line Utility to analyze data directory patterns in CMIP5 data
 
