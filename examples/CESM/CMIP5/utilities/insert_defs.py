@@ -11,6 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 import json
 from os.path import isfile
 from argparse import ArgumentParser
+from make_stdfile import StandardizationEncoder
 
 __PARSER__ = ArgumentParser(description='Push definitions into a JSON standardization file')
 __PARSER__.add_argument('-a', '--all', default=False, action='store_true',
@@ -41,38 +42,32 @@ def main(argv=None):
     STDFILE = args.stdfile
     if not isfile(STDFILE):
         raise ValueError('Standardization file {} not found'.format(STDFILE))
-    
-    with open(SPECFILE) as f:
+    with open(STDFILE) as f:
         stdinfo = json.load(f)
     
     DEFFILE = args.deffile
     if not isfile(DEFFILE):
         raise ValueError('Definitions file {} not found'.format(DEFFILE))
+    with open(DEFFILE) as f:
+        vardefs = {}
+        for line in f:
+            cline = line.split('#')[0].strip()
+            if len(cline) > 0 and '=' in cline:
+                var, vardef = [s.strip() for s in cline.split('=')[:2]]
+                if len(vardef) > 0 and len(var) > 0:
+                    vardefs[var] = vardef
     
-    if args.variable is not None:
-        if args.variable in spec:
-            vars = [args.variable]
-        else:
-            raise ValueError('Variable {} not found in specfile'.format(args.variable))
-    else:
-        vars = [v for v in spec]
-    
-    for v in vars:
-        if args.definition:
-            if 'definition' in spec[v]:
-                vdef = spec[v]['definition']
-            else:
-                vdef = ''
-            print '{} = {}'.format(v, vdef)
-        else:
-            if args.attribute is not None:
-                if args.attribute in spec[v]['attributes']:
-                    vatts = {args.attribute:  spec[v]['attributes'][args.attribute]}
-            else:
-                vatts = spec[v]['attributes']
-            print '{}:'.format(v)
-            for a in vatts:
-                print '   {}: {}'.format(a, vatts[a])
+    for v in stdinfo:
+        if v in vardefs:
+            if 'definition' in stdinfo[v]:
+                if isinstance(stdinfo[v]['definition'], basestring):
+                    print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vardefs[v])
+                    stdinfo[v]['definition'] = vardefs[v]
+                else:
+                    print 'Not overwriting definition for {}'.format(v)
+
+    with open(STDFILE, 'w') as f:
+        json.dump(stdinfo, f, indent=4, cls=StandardizationEncoder)
     
 
 #===================================================================================================

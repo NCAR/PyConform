@@ -31,9 +31,9 @@ def cli(argv=None):
 
 
 #===================================================================================================
-# MyEncoder
+# StandardizationEncoder
 #===================================================================================================
-class MyEncoder(json.JSONEncoder):
+class StandardizationEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, numpy.integer):
             return int(obj)
@@ -78,7 +78,7 @@ def main(argv=None):
     base = pjoin(root, inst, model, expt, freq, realm, table, rip, 'latest')
     vars = listdir(base)
     
-    specinfo = {}
+    stdinfo = {}
     for var in vars:
         vdir = pjoin(base, var)
         vfile = sorted(glob(pjoin(vdir,'*.nc')))[0]
@@ -86,22 +86,22 @@ def main(argv=None):
         fattrs = {str(a):vds.getncattr(a) for a in vds.ncattrs()}
         for v in vds.variables:
             vobj = vds.variables[v]
-            if v not in specinfo:
-                specinfo[v] = {"attributes": {str(a):vobj.getncattr(a) for a in vobj.ncattrs()},
+            if v not in stdinfo:
+                stdinfo[v] = {"attributes": {str(a):vobj.getncattr(a) for a in vobj.ncattrs()},
                                "datatype": str(vobj.dtype),
                                "dimensions": [str(d) for d in vobj.dimensions]}
                 if 'comment' in vobj.ncattrs():
-                    specinfo[v]["definition"] = vobj.getncattr('comment')
+                    stdinfo[v]["definition"] = vobj.getncattr('comment')
                 else:
-                    specinfo[v]["definition"] = ''
+                    stdinfo[v]["definition"] = ''
                 if v == var:
                     fname = '{}_{}_{}_{}_{}_YYYYMM.nc'.format(v,table,model,expt,rip)
-                    specinfo[v]["file"] = {"filename": fname,
+                    stdinfo[v]["file"] = {"filename": fname,
                                            "attributes": fattrs}
     
-    specname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
-    with open(specname, 'w') as f:
-        json.dump(specinfo, f, indent=4, cls=MyEncoder)
+    stdname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
+    with open(stdname, 'w') as f:
+        json.dump(stdinfo, f, indent=4, cls=StandardizationEncoder)
 
     print "Done."
     
