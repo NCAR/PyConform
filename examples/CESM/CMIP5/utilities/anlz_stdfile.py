@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-get_stdinfo
+anlz_stdfile
 
-Command-Line Utility to pull out attributes/definitions/etc from a standardization file
+Command-Line Utility to show attributes/definitions/etc in a standardization file
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details

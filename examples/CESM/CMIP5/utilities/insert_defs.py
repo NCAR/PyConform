@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-put_stdinfo
+insert_defs
 
-Command-Line Utility to push definitions into a specfile
+Command-Line Utility to push definitions into a standardization file
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -12,13 +12,12 @@ import json
 from os.path import isfile
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Push information into a JSON specfile')
-__PARSER__.add_argument('-v', '--variable', default=None, help='Name of variable to push into')
-__PARSER__.add_argument('-a', '--attribute', default=None, help='Name of attribute to pull')
-__PARSER__.add_argument('-d', '--definition', default=False, action='store_true',
-                        help='Pull the definitions (instead of attributes).  '
-                             'Attribute argument ignored, if specified.')
-__PARSER__.add_argument('specfile', help='Name of specfile to pull from')
+__PARSER__ = ArgumentParser(description='Push definitions into a JSON standardization file')
+__PARSER__.add_argument('-a', '--all', default=False, action='store_true',
+                        help=('Overwrite all definitions according to the definitions file. '
+                              'If a definition is not specified, it is considered blank.'))
+__PARSER__.add_argument('stdfile', help='Name of the standardization file')
+__PARSER__.add_argument('deffile', help='Name of the definitions file')
 
 #===================================================================================================
 # cli - Command-Line Interface
@@ -39,12 +38,16 @@ def main(argv=None):
     """
     args = cli(argv)
 
-    SPECFILE = args.specfile
-    if not isfile(SPECFILE):
-        raise ValueError('Specfile {} not found'.format(SPECFILE))
+    STDFILE = args.stdfile
+    if not isfile(STDFILE):
+        raise ValueError('Standardization file {} not found'.format(STDFILE))
     
     with open(SPECFILE) as f:
-        spec = json.load(f)
+        stdinfo = json.load(f)
+    
+    DEFFILE = args.deffile
+    if not isfile(DEFFILE):
+        raise ValueError('Definitions file {} not found'.format(DEFFILE))
     
     if args.variable is not None:
         if args.variable in spec:

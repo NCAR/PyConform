@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-get_varmeta
+make_varmeta
 
 Command-Line Utility to extract variable attributes in CMIP5 data
 
@@ -80,7 +80,7 @@ def main(argv=None):
     print
 
     # Save variable attributes to file
-    with open('variable_attribs.json', 'w') as f:
+    with open('varmeta.json', 'w') as f:
         json.dump(vatts, f, indent=4, cls=MyEncoder)
 
     print "Done."

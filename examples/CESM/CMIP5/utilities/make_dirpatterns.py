@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-get_dirpatterns
+make_dirpatterns
 
 Command-Line Utility to write all CMIP5 file directory patterns to a file
 
@@ -67,7 +67,7 @@ def main(argv=None):
                         ncvars.append([expt, freq, realm, table, ens] + vars)
     
     # Save to file
-    with open('cmip5_patterns.txt', 'w') as f:
+    with open('dirpatterns.txt', 'w') as f:
         for ncvar in ncvars:
             line = ' '.join(ncvar)
             f.write(line + linesep)

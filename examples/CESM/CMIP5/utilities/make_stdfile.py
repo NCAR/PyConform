@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-genspecs
+make_stdfile
 
-Command-Line Utility to generate specfiles from a set of "correct" output files
+Command-Line Utility to make a standardization file from a set of "correct" output files
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -16,7 +16,8 @@ from os import listdir, linesep
 from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Create a specfile from a set of output files')
+__PARSER__ = ArgumentParser(description='Create a standardization file from a set of output files')
+__PARSER__.add_argument('-d', '--deffile', help='Optional definitions file to use')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
