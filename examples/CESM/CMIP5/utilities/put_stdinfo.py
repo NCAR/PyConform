@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-putinfo
+put_stdinfo
 
 Command-Line Utility to push definitions into a specfile
 

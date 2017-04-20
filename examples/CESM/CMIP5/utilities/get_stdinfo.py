@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-getinfo
+get_stdinfo
 
-Command-Line Utility to pull out attributes/definitions/etc from a specfile
+Command-Line Utility to pull out attributes/definitions/etc from a standardization file
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -12,7 +12,7 @@ import json
 from os.path import isfile
 from argparse import ArgumentParser
 
-__PARSER__ = ArgumentParser(description='Pull out information from a JSON specfile')
+__PARSER__ = ArgumentParser(description='Pull out information from a JSON standardization file')
 __PARSER__.add_argument('-v', '--variable', default=None, help='Name of variable to pull from')
 __PARSER__.add_argument('-a', '--attribute', default=None, help='Name of attribute to pull')
 __PARSER__.add_argument('-d', '--definition', default=False, action='store_true',
