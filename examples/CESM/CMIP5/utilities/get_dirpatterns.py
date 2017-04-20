@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-mk_cmip5_dirpatterns
+get_dirpatterns
 
 Command-Line Utility to write all CMIP5 file directory patterns to a file
 

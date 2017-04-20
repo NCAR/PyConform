@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-cmip5_variables
+get_varmeta
 
 Command-Line Utility to extract variable attributes in CMIP5 data
 

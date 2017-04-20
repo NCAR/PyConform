@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-analyze_variables
+analyze_varmeta
 
 Command-Line Utility to analyze variable metadata in CMIP5 data
 
