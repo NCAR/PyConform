@@ -14,9 +14,6 @@ from argparse import ArgumentParser
 from make_stdfile import StandardizationEncoder
 
 __PARSER__ = ArgumentParser(description='Push definitions into a JSON standardization file')
-__PARSER__.add_argument('-a', '--all', default=False, action='store_true',
-                        help=('Overwrite all definitions according to the definitions file. '
-                              'If a definition is not specified, it is considered blank.'))
 __PARSER__.add_argument('stdfile', help='Name of the standardization file')
 __PARSER__.add_argument('deffile', help='Name of the definitions file')
 
