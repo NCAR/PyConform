@@ -46,6 +46,14 @@ class StandardizationEncoder(json.JSONEncoder):
 
 
 #===================================================================================================
+# write_standardization
+#===================================================================================================
+def write_standardization(name, info):
+    with open(name, 'w') as f:
+        json.dump(info, f, indent=4, cls=StandardizationEncoder, sort_keys=True)
+
+
+#===================================================================================================
 # main - Main Program
 #===================================================================================================
 def main(argv=None):
@@ -137,9 +145,7 @@ def main(argv=None):
                                            "attributes": fattrs}
     
     stdname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
-    with open(stdname, 'w') as f:
-        json.dump(stdinfo, f, indent=4, cls=StandardizationEncoder)
-
+    write_standardization(stdname, stdinfo)
     print "Done."
     
 

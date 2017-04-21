@@ -11,7 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 import json
 from os.path import isfile
 from argparse import ArgumentParser
-from make_stdfile import StandardizationEncoder
+from make_stdfile import write_standardization
 
 __PARSER__ = ArgumentParser(description='Push definitions into a JSON standardization file')
 __PARSER__.add_argument('stdfile', help='Name of the standardization file')
@@ -63,8 +63,7 @@ def main(argv=None):
                 else:
                     print 'Not overwriting definition for {}'.format(v)
 
-    with open(STDFILE, 'w') as f:
-        json.dump(stdinfo, f, indent=4, cls=StandardizationEncoder)
+    write_standardization(STDFILE, stdinfo)
     
 
 #===================================================================================================
