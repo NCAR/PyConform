@@ -57,7 +57,7 @@ def main(argv=None):
     
     undefined = []
     missingdfns = []
-    defined = {}
+    defined = []
     for v in sorted(vars):
         if args.definition:
             if 'definition' in spec[v]:
@@ -65,7 +65,7 @@ def main(argv=None):
                 if vdef == '':
                     undefined.append(v)
                 else:
-                    defined[v] = vdef
+                    defined.append((v, vdef))
             else:
                 missing.append(v)
         else:
@@ -80,8 +80,8 @@ def main(argv=None):
                 print '   {}: {}'.format(a, vatts[a])
     
     if args.definition:
-        for v in defined:
-            print '{} = {!r}'.format(v, defined[v])
+        for v, vdef in defined:
+            print '{} = {!r}'.format(v, vdef)
         print
         print 'Undefined Variables: {}'.format(', '.join(undefined))
         if len(missingdfns) > 0:
