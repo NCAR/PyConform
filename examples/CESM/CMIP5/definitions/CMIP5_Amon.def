@@ -20,10 +20,13 @@ hus = vinth2p(Q, hyam, hybm, plev, PS, P0)
 huss = QREFHT
 lat = lat
 lat_bnds = bounds(lat, endpoints=0)
+lev = lev
+lev_bnds = bounds(lev)
 lon = lon
 lon_bnds = bounds(lon)
 mc = up(CMFMC + CMFMCDZM)
 n2o = vinth2p(N2O, hyam, hybm, plev, PS, P0)
+p0 = P0
 pr = chunits(PRECC + PRECL, "kg m-2 s-1")
 prc = chunits(PRECC, "kg m-2 s-1")
 prsn = chunits(PRECSC + PRECSL, "kg m-2 s-1")
