@@ -84,8 +84,9 @@ def main(argv=None):
             print '{} = {!r}'.format(v, defined[v])
         print
         print 'Undefined Variables: {}'.format(', '.join(undefined))
-        print
-        print 'NO DEFINITIONS: {}'.format(', '.join(missingdfns))
+        if len(missingdfns) > 0:
+            print
+            print 'NO DEFINITIONS: {}'.format(', '.join(missingdfns))
     
 
 #===================================================================================================
