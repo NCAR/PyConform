@@ -4,7 +4,7 @@
             "long_name": "vertical coordinate formula term: a(k)"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "hyam", 
         "dimensions": [
             "lev"
         ]
@@ -14,7 +14,7 @@
             "long_name": "vertical coordinate formula term: a(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "bounds(hyam)", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -25,7 +25,7 @@
             "long_name": "vertical coordinate formula term: b(k)"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "hybm", 
         "dimensions": [
             "lev"
         ]
@@ -35,7 +35,7 @@
             "long_name": "vertical coordinate formula term: b(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "bounds(hybm)", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -974,7 +974,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "lev", 
         "dimensions": [
             "lev"
         ]
@@ -987,7 +987,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "", 
+        "definition": "bounds(lev)", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -1086,7 +1086,7 @@
             "units": "Pa"
         }, 
         "datatype": "float32", 
-        "definition": "", 
+        "definition": "P0", 
         "dimensions": []
     }, 
     "plev": {
