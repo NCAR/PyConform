@@ -63,7 +63,7 @@ def main(argv=None):
                     vardefs[v] != stdinfo[v]['definition']):
                     overwrites.append((v,vardefs[v]))
                 else:
-                    unchanged.append[v]
+                    unchanged.append(v)
     
     for v, vdef in overwrites:
         print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vdef)
