@@ -46,13 +46,13 @@ def main(argv=None):
     with open(SPECFILE) as f:
         spec = json.load(f)
     
-    if args.variable is not None:
+    if args.variable is None:
+        vars = [v for v in spec]
+    else:
         if args.variable in spec:
             vars = [args.variable]
         else:
             raise ValueError('Variable {} not found in specfile'.format(args.variable))
-    else:
-        vars = [v for v in spec]
     
     for v in sorted(vars):
         if args.definition:
@@ -63,11 +63,11 @@ def main(argv=None):
             print '{} = {}'.format(v, vdef)
         else:
             if args.attribute is not None:
+                vatts = spec[v]['attributes']
+            else:
                 vatts = {}
                 if args.attribute in spec[v]['attributes']:
                     vatts = {args.attribute:  spec[v]['attributes'][args.attribute]}
-            else:
-                vatts = spec[v]['attributes']
             print '{}:'.format(v)
             for a in vatts:
                 print '   {}: {}'.format(a, vatts[a])
