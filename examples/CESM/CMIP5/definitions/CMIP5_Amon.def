@@ -1,3 +1,7 @@
+a = hyam
+a_bnds = bounds(hyam)
+b = hybm
+b_bnds = bounds(hybm)
 ch4 = vinth2p(CH4, hyam, hybm, plev, PS, P0)
 ci = chunits(FREQZM, "1")
 cl = chunits(CLOUD, "%")
