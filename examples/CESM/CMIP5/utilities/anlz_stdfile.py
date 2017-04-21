@@ -11,6 +11,7 @@ LICENSE: See the LICENSE.rst file for details
 import json
 from os.path import isfile
 from argparse import ArgumentParser
+from tornado.options import define
 
 __PARSER__ = ArgumentParser(description='Pull out information from a JSON standardization file')
 __PARSER__.add_argument('-v', '--variable', default=None, help='Name of variable to pull from')
@@ -54,17 +55,19 @@ def main(argv=None):
         else:
             raise ValueError('Variable {} not found in specfile'.format(args.variable))
     
+    undefined = []
+    missingdfns = []
+    defined = {}
     for v in sorted(vars):
         if args.definition:
             if 'definition' in spec[v]:
                 vdef = spec[v]['definition']
                 if vdef == '':
-                    vdefstr = '{}: Undefined'.format(v)
+                    undefined.append(v)
                 else:
-                    vdefstr = '{} = {!r}'.format(v, vdef)
+                    defined[v] = vdef
             else:
-                vdefstr = '*** NO DEFINITION FIELD for {}'.format(v)
-            print vdefstr
+                missing.append(v)
         else:
             if args.attribute is not None:
                 vatts = spec[v]['attributes']
@@ -75,6 +78,14 @@ def main(argv=None):
             print '{}:'.format(v)
             for a in vatts:
                 print '   {}: {}'.format(a, vatts[a])
+    
+    if args.definition:
+        for v in defined:
+            print '{} = {!r}'.format(v, defined[v])
+        print
+        print 'Undefined Variables: {}'.format(', '.join(undefined))
+        print
+        print 'NO DEFINITIONS: {}'.format(', '.join(missingdfns))
     
 
 #===================================================================================================
