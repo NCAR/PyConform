@@ -58,10 +58,10 @@ def main(argv=None):
         if args.definition:
             if 'definition' in spec[v]:
                 vdef = spec[v]['definition']
-                if len(vdef) > 0:
-                    vdefstr = '{} = {!r}'.format(v, vdef)
-                else:
+                if vdef == '':
                     vdefstr = '{}: Undefined'.format(v)
+                else:
+                    vdefstr = '{} = {!r}'.format(v, vdef)
             else:
                 vdefstr = '*** NO DEFINITION FIELD for {}'.format(v)
             print vdefstr
