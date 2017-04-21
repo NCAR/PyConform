@@ -54,15 +54,23 @@ def main(argv=None):
                 if len(vardef) > 0 and len(var) > 0:
                     vardefs[var] = vardef
     
+    overwrites = []
+    unchanged = []
     for v in stdinfo:
         if v in vardefs:
             if 'definition' in stdinfo[v]:
-                if isinstance(stdinfo[v]['definition'], basestring):
-                    if vardefs[v] != stdinfo[v]['definition']:
-                        print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vardefs[v])
-                        stdinfo[v]['definition'] = vardefs[v]
+                if (isinstance(stdinfo[v]['definition'], basestring) and 
+                    vardefs[v] != stdinfo[v]['definition']):
+                    overwrites.append((v,vardefs[v]))
                 else:
-                    print 'Not overwriting definition for {}'.format(v)
+                    unchanged.append[v]
+    
+    for v, vdef in overwrites:
+        print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vdef)
+        stdinfo[v]['definition'] = vdef
+        print
+    if len(unchanged) > 0:
+        print 'Not overwriting definitions for {}'.format(', '.join(unchanged))
 
     write_standardization(STDFILE, stdinfo)
     
