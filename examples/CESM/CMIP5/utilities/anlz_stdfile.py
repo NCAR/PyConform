@@ -61,7 +61,7 @@ def main(argv=None):
                 if len(vdef) > 0:
                     vdefstr = '{} = {!r}'.format(v, vdef)
                 else:
-                    vdefstr = '{}: Undefined'
+                    vdefstr = '{}: Undefined'.format(v)
             else:
                 vdefstr = '*** NO DEFINITION FIELD for {}'.format(v)
             print vdefstr
