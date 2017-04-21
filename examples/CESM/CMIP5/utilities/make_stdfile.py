@@ -17,7 +17,7 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Create a standardization file from a set of output files')
-__PARSER__.add_argument('-d', '--deffile', help='Optional definitions file to use')
+__PARSER__.add_argument('-c', '--ccps', default=False, action='store_true', help='Assume CCPS-style data output')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
@@ -58,9 +58,26 @@ def main(argv=None):
     if not isdir(ROOT):
         raise ValueError('Root must be a directory')
 
-    # Assume that ROOT directory is of the form:
-    # ROOT = <root>/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/<ensemble>
-    root, inst, model, expt, freq, realm, table, rip = ROOT.rsplit('/', 7)
+    # CCPS-Style of CMIP5 data output (lowest directory where NetCDF files are found):
+    # <root>/<table>/CMOR/CMIP5/output/<institution>/<model>/<experiment>/<frequency>/<realm>/<variable>/<ensemble>
+    
+    # ESGF-Style of CMIP5 data output (lowest directory where NetCDF files are found):
+    # <root>/CMIP5/output1/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/<ensemble>/latest/<variable>
+    
+    # Note: <ensemble> and <variable> are in a different order, so we have to automate the way
+    # that the <ensemble> is chosen.  For this purpose, we take the <ensemble> that has the lowest
+    # alphanumeric sort order.
+    
+    # Hence, the ROOT directory that is supplied should stop before <variable> or <ensemble>:
+    # CCPS: <root>/<table>/CMOR/CMIP5/output/<institution>/<model>/<experiment>/<frequency>/<realm>/
+    # ESGF: <root>/CMIP5/output1/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/
+    
+    # From both of these ROOT strings, we can extract <institution>, <model>, <experiment>,
+    # <frequency>, <realm>, and <table>:
+    if args.ccps:
+        root, table, CMOR, CMIP5, output, inst, model, expt, freq, realm = ROOT.rsplit('/', 9)
+    else:
+        root, inst, model, expt, freq, realm, table = ROOT.rsplit('/', 6)
     
     # Check for consistency
     if inst != 'NCAR' and model != 'CCSM4':
@@ -72,15 +89,35 @@ def main(argv=None):
     print 'Frequency:       {}'.format(freq)
     print 'Realm:           {}'.format(realm)
     print 'Table:           {}'.format(table)
+    
+    # Pick a common ensemble member for all variables
+    vardirs = {}
+    if args.ccps:
+        rips = None
+        for var in listdir(ROOT):
+            vdir = pjoin(ROOT, var)
+            vrips = set(listdir(vdir))
+            if len(vrips) > 0:
+                vardirs[var] = vdir
+                if rips is None:
+                    rips = vrips
+                else:
+                    rips.intersection_update(vrips)
+        rip = sorted(rips)[0]
+        for var in vardirs:
+            vardirs[var] = pjoin(vardirs[var], rip)
+    else:
+        rip = sorted(listdir(ROOT))[0]
+        vdir = pjoin(ROOT, rip, 'latest')
+        for var in listdir(vdir):
+            vardirs[var] = pjoin(vdir, var)
+        
     print 'Ensemble Member: {}'.format(rip)
     print
     
-    base = pjoin(root, inst, model, expt, freq, realm, table, rip, 'latest')
-    vars = listdir(base)
-    
     stdinfo = {}
-    for var in vars:
-        vdir = pjoin(base, var)
+    for var in vardirs:
+        vdir = vardirs[var]
         vfile = sorted(glob(pjoin(vdir,'*.nc')))[0]
         vds = Dataset(vfile)
         fattrs = {str(a):vds.getncattr(a) for a in vds.ncattrs()}
