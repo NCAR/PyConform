@@ -58,8 +58,9 @@ def main(argv=None):
         if v in vardefs:
             if 'definition' in stdinfo[v]:
                 if isinstance(stdinfo[v]['definition'], basestring):
-                    print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vardefs[v])
-                    stdinfo[v]['definition'] = vardefs[v]
+                    if vardefs[v] != stdinfo[v]['definition']:
+                        print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vardefs[v])
+                        stdinfo[v]['definition'] = vardefs[v]
                 else:
                     print 'Not overwriting definition for {}'.format(v)
 
