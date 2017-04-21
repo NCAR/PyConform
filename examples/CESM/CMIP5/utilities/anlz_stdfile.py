@@ -58,9 +58,13 @@ def main(argv=None):
         if args.definition:
             if 'definition' in spec[v]:
                 vdef = spec[v]['definition']
+                if len(vdef) > 0:
+                    vdefstr = '{} = {!r}'.format(v, vdef)
+                else:
+                    vdefstr = '{}: Undefined'
             else:
-                vdef = ''
-            print '{} = {}'.format(v, vdef)
+                vdefstr = '*** NO DEFINITION FIELD for {}'.format(v)
+            print vdefstr
         else:
             if args.attribute is not None:
                 vatts = spec[v]['attributes']
