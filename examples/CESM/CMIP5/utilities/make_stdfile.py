@@ -17,7 +17,10 @@ from os.path import isdir, join as pjoin
 from argparse import ArgumentParser
 
 __PARSER__ = ArgumentParser(description='Create a standardization file from a set of output files')
-__PARSER__.add_argument('-c', '--ccps', default=False, action='store_true', help='Assume CCPS-style data output')
+__PARSER__.add_argument('-c', '--ccps', default=False, action='store_true',
+                        help='Assume CCPS-style data output')
+__PARSER__.add_argument('-s', '--skip', default=[], action='append',
+                        help='Skip writing attributes with the given name')
 __PARSER__.add_argument('root', help='Root directory where output files can be found')
 
 #===================================================================================================
@@ -123,18 +126,21 @@ def main(argv=None):
     print 'Ensemble Member: {}'.format(rip)
     print
     
+    skipatts = set(args.skip)
+    
     stdinfo = {}
     for var in vardirs:
         vdir = vardirs[var]
         vfile = sorted(glob(pjoin(vdir,'*.nc')))[0]
         vds = Dataset(vfile)
-        fattrs = {str(a):vds.getncattr(a) for a in vds.ncattrs()}
+        fattrs = {str(a):vds.getncattr(a) for a in vds.ncattrs() if a not in skipatts}
         for v in vds.variables:
             vobj = vds.variables[v]
             if v not in stdinfo:
-                stdinfo[v] = {"attributes": {str(a):vobj.getncattr(a) for a in vobj.ncattrs()},
-                               "datatype": str(vobj.dtype),
-                               "dimensions": [str(d) for d in vobj.dimensions]}
+                stdinfo[v] = {"attributes": {str(a):vobj.getncattr(a)
+                                             for a in vobj.ncattrs() if a not in skipatts},
+                              "datatype": str(vobj.dtype),
+                              "dimensions": [str(d) for d in vobj.dimensions]}
                 if 'comment' in vobj.ncattrs():
                     stdinfo[v]["definition"] = vobj.getncattr('comment')
                 else:
@@ -142,7 +148,7 @@ def main(argv=None):
                 if v == var:
                     fname = '{}_{}_{}_{}_{}_YYYYMM.nc'.format(v,table,model,expt,rip)
                     stdinfo[v]["file"] = {"filename": fname,
-                                           "attributes": fattrs}
+                                          "attributes": fattrs}
     
     stdname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
     write_standardization(stdname, stdinfo)
