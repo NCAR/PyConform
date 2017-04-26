@@ -110,13 +110,30 @@ def _int_to_indices(n, shape):
 
 
 #===================================================================================================
+# _rand_interior_indices
+#===================================================================================================
+def _rand_interior_indices(shape):
+    indices = []
+    for s in shape:
+        if s > 2:
+            indices.append(randint(1,s-2))
+        elif s==1:
+            indices.append(randint(0,1))
+        else:
+            indices.append(0)
+    return tuple(indices)
+
+
+#===================================================================================================
 # _sample_indices
 #===================================================================================================
-def _sample_indices(shape):
+def _sample_indices(shape, nspot=0):
     samples = []
     size = 2**len(shape)
     for i in xrange(size):
         samples.append(tuple([n*(s-1) for n,s in zip(_int_to_indices(i, [2]*size), shape)]))
+    for i in xrange(nspot):
+        samples.append(_rand_interior_indices(shape))
     return samples
 
     
@@ -170,7 +187,7 @@ def main(argv=None):
             v2 = ncf2.variables[v]
             v1data = {idx:v1[idx] for idx in _sample_indices(v1.shape)}
             v2data = {idx:v2[idx] for idx in _sample_indices(v2.shape)}
-            diff_dicts(v1data, v2data, name='{!r} Data'.format(v))
+            diff_dicts(v1data, v2data, name='Variable {!r} Data'.format(v))
 
 
 #===================================================================================================
