@@ -8,32 +8,17 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from os import linesep
 from os.path import isfile
 from argparse import ArgumentParser
 from netCDF4 import Dataset, Dimension, Variable
-from numpy import ravel
-from itertools import izip_longest
 
 #===================================================================================================
 # Argument Parser
 #===================================================================================================
-def _range_(arg):
-    try:
-        vals = []
-        for i in arg.split(','):
-            if i == '':
-                vals.append(None)
-            else:
-                vals.append(int(i))
-        return slice(*vals)
-    except:
-        raise ArgumentTypeError("Range arguments must be in LOWER,UPPER format")
-
-__PARSER__ = ArgumentParser(description='Compare two NetCDF files')
-__PARSER__.add_argument('-r', '--range', default=slice(0,10), type=_range_, 
-                        help='Range of values to display')
-__PARSER__.add_argument('-a', '--attributes', default=False, action='store_true',
-                        help='Diff attributes instead of values')
+__PARSER__ = ArgumentParser(description='Difference two NetCDF files')
+__PARSER__.add_argument('--header', default=False, action='store_true',
+                        help='Difference header information only')
 __PARSER__.add_argument('file1', type=str, help='Name of first NetCDF file')
 __PARSER__.add_argument('file2', type=str, help='Name of second NetCDF file')
 
@@ -74,16 +59,16 @@ def _cmp(a1,a2):
 #===================================================================================================
 # _str - String producing function
 #===================================================================================================
-def _str(a, len=25):
+def _str(a):
     if a is None:
-        return '-'*len
+        return '-'*5
     elif isinstance(a, Dimension):
-        return '{}[{}{}]'.format(a.name, a.size, '+' if a.isunlimited() else '')[:len]
+        return '{}({}{})'.format(a.name, a.size, '+' if a.isunlimited() else '')
     elif isinstance(a, Variable):
         dstr = '({})'.format(','.join(a.dimensions))
         return '{} {}{}'.format(a.dtype, a.name, dstr)
     else:
-        return str(a)[:len]
+        return str(a)
 
         
 #===================================================================================================
@@ -91,18 +76,21 @@ def _str(a, len=25):
 #===================================================================================================
 def diff_dicts(d1, d2, name='object'):
     d12union = set.union(set(d1), set(d2))
-    if len(d12union) > 0:
-        print
-        print 'Differences found in {}:'.format(name)
-    diffs = False
+    diffs = []
     for k in sorted(d12union):
         d1k = d1.get(k, None)
         d2k = d2.get(k, None)
         if _cmp(d1k, d2k):
-            diffs = True
-            print '   {:10s}:  [1]   {:>25s}  <--->  {:25s}   [2]'.format(k, _str(d1k), _str(d2k))
-    if not diffs:
-        print '   None'
+            diffs.append((str(k), _str(d1k), _str(d2k)))
+    if len(diffs) > 0:
+        print
+        print 'Differences found in {}:'.format(name)
+        klen = max([len(ks) for ks, _, _ in diffs])
+        d1len = max([len(d1s) for _, d1s, _ in diffs])
+        d2len = max([len(d2s) for _, _, d2s in diffs])
+        for ks, d1s, d2s in diffs:
+            print ('   {:{kl}s}:  [1]   {:>{d1}s}  <--->  {:{d2}s}   '
+                   '[2]'.format(ks, d1s, d2s, kl=klen, d1=d1len, d2=d2len))
 
     
 #===================================================================================================
@@ -127,11 +115,6 @@ def main(argv=None):
     ncf1 = Dataset(FILE1)
     ncf2 = Dataset(FILE2)
     
-    if args.range is None:
-        slc = slice(None)
-    else:
-        slc = args.range
-        
     print
     print '[1]:  {}'.format(shortf1)
     print '[2]:  {}'.format(shortf2)
@@ -146,10 +129,14 @@ def main(argv=None):
     f2dims = {d:ncf2.dimensions[d] for d in ncf2.dimensions}
     diff_dicts(f1dims, f2dims, name='File Dimensions')
     
-    # Variables
+    # Variable Header Info
     f1vars = {v:ncf1.variables[v] for v in ncf1.variables}
     f2vars = {v:ncf2.variables[v] for v in ncf2.variables}
     diff_dicts(f1vars, f2vars, name='Variables')
+    
+    # Variable Data
+    if not args.header:
+        pass
 
 
 #===================================================================================================
