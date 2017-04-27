@@ -65,7 +65,7 @@ def _cmp(a1,a2):
 #===================================================================================================
 def _str(a):
     if a is None:
-        return '-'*5
+        return '_'*10
     elif isinstance(a, Dimension):
         return '{}({}{})'.format(a.name, a.size, '+' if a.isunlimited() else '')
     elif isinstance(a, Variable):
@@ -93,8 +93,8 @@ def diff_dicts(d1, d2, name='object'):
         d1len = max([len(d1s) for _, d1s, _ in diffs])
         d2len = max([len(d2s) for _, _, d2s in diffs])
         for ks, d1s, d2s in diffs:
-            print ('   {:{kl}s}:  [1]   {:>{d1}s}  <--->  {:{d2}s}   '
-                   '[2]'.format(ks, d1s, d2s, kl=klen, d1=d1len, d2=d2len))
+            print ('   {:{kl}s}:   {:>{d1}s}   <===>   {:{d2}s}'
+                   ''.format(ks, d1s, d2s, kl=klen, d1=d1len, d2=d2len))
 
 
 #===================================================================================================
@@ -160,8 +160,8 @@ def main(argv=None):
     ncf2 = Dataset(FILE2)
     
     print
-    print '[1]:  {}'.format(shortf1)
-    print '[2]:  {}'.format(shortf2)
+    print 'Displaying differences between the contents of files:'
+    print '   {}   <===>   {}'.format(shortf1, shortf2)
     
     # Global file attributes
     f1atts = {a:ncf1.getncattr(a) for a in ncf1.ncattrs()}
