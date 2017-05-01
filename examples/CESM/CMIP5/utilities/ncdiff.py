@@ -13,6 +13,7 @@ from os.path import isfile
 from argparse import ArgumentParser
 from netCDF4 import Dataset, Dimension, Variable
 from random import randint
+from numpy import ndarray, array_equal
 
 #===================================================================================================
 # Argument Parser
@@ -20,7 +21,9 @@ from random import randint
 __PARSER__ = ArgumentParser(description='Difference two NetCDF files')
 __PARSER__.add_argument('--header', default=False, action='store_true',
                         help='Difference header information only')
-__PARSER__.add_argument('-s', '--spot', default=10, type=int,
+__PARSER__.add_argument('-f', '--full', default=False, action='store_true',
+                        help='Perform full data comparison')
+__PARSER__.add_argument('-s', '--spot', default=0, type=int,
                         help='Number of spot checks in data to difference')
 __PARSER__.add_argument('file1', type=str, help='Name of first NetCDF file')
 __PARSER__.add_argument('file2', type=str, help='Name of second NetCDF file')
@@ -56,6 +59,8 @@ def _cmp(a1,a2):
             return True
         else:
             return a1.dimensions != a2.dimensions
+    elif isinstance(a1, ndarray):
+        return not array_equal(a1, a2)
     else:
         return a1 != a2
 
@@ -185,8 +190,12 @@ def main(argv=None):
         for v in vars:
             v1 = ncf1.variables[v]
             v2 = ncf2.variables[v]
-            v1data = {idx:v1[idx] for idx in _sample_indices(v1.shape)}
-            v2data = {idx:v2[idx] for idx in _sample_indices(v2.shape)}
+            if args.full:
+                v1data = {'[:]': v1[:]}
+                v2data = {'[:]': v2[:]}
+            else:
+                v1data = {idx:v1[idx] for idx in _sample_indices(v1.shape, nspot=args.spot)}
+                v2data = {idx:v2[idx] for idx in _sample_indices(v2.shape, nspot=args.spot)}
             diff_dicts(v1data, v2data, name='Variable {!r} Data'.format(v))
 
 
