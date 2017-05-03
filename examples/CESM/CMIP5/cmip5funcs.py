@@ -129,9 +129,9 @@ class VertInterpFunction(Function):
                                    'dimensions of surface pressure {} and hybrid coefficients {}'
                                    '').format(datai.dimensions, psfc.dimensions, hbcofa.dimensions))
                 
-        _plevo = plevo.convert(Unit('mbar'))
-        _p0 = p0.convert(Unit('mbar'))
-        _psfc = psfc.convert(Unit('Pa'))
+        _plevo = plevo.convert('mbar')
+        _p0 = p0.convert('mbar')
+        _psfc = psfc.convert('Pa')
         
         ilev = datai.dimensions.index(dlevi)
 
