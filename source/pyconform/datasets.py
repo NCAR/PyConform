@@ -325,7 +325,7 @@ class FileDesc(object):
         self._name = name
 
         if format not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
-                          'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA'):
+                          'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA', 'NETCDF3_64BIT'):
             err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(format, name)
             raise TypeError(err_msg)
         self._format = format
@@ -604,7 +604,7 @@ class OutputDatasetDesc(DatasetDesc):
     _NC_TYPES_ = {3: [dtype(t) for t in ('c', 'i1', 'i2', 'i4', 'f4', 'f8')],
                   4: [dtype(t) for t in ('c', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8')]}
     _NC_FORMATS_ = {'NETCDF4': 4, 'NETCDF4_CLASSIC': 3, 'NETCDF3_CLASSIC': 3,
-                    'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3}
+                    'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3, 'NETCDF3_64BIT': 3}
 
     def __init__(self, name='output', dsdict=OrderedDict()):
         """
