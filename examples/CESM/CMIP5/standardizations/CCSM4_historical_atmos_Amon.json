@@ -939,6 +939,33 @@
             "filename": "huss_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
+    "ilev": {
+        "attributes": {
+            "axis": "Z", 
+            "bounds": "ilev_bnds", 
+            "long_name": "hybrid sigma pressure coordinate at intermediate levels", 
+            "positive": "down", 
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "ilev", 
+        "dimensions": [
+            "ilev"
+        ]
+    }, 
+    "ilev_bnds": {
+        "attributes": {
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "bounds(ilev)", 
+        "dimensions": [
+            "ilev", 
+            "bnds"
+        ]
+    }, 
     "lat": {
         "attributes": {
             "axis": "Y", 
@@ -956,12 +983,12 @@
     "lat_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lat, endpoints", 
+        "definition": "bounds(lat, endpoints=0)", 
         "dimensions": [
             "lat", 
             "bnds"
         ]
-    }, 
+    },
     "lev": {
         "attributes": {
             "axis": "Z", 
@@ -1035,7 +1062,7 @@
         "definition": "up(CMFMC + CMFMCDZM)", 
         "dimensions": [
             "time", 
-            "lev", 
+            "ilev", 
             "lat", 
             "lon"
         ], 
