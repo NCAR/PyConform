@@ -241,7 +241,7 @@ class EvalNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, func, *args):
+    def __init__(self, label, func, *args, **kwds):
         """
         Initializer
         
@@ -249,6 +249,7 @@ class EvalNode(FlowNode):
             label: A label to give the FlowNode
             func (callable): A callable function associated with the FlowNode operation
             args (list): Arguments to the function given by 'func'
+            kwds (dict): Keyword arguments to the function given by 'func'
         """
         # Check func parameter
         fpntr = func
@@ -265,20 +266,28 @@ class EvalNode(FlowNode):
             argspec.args.remove('self')
 
         # Check the function arguments
-        max_len = len(argspec.args)
-        if argspec.defaults is None:
-            min_len = max_len
-        else:
-            min_len = max_len - len(argspec.defaults)
-        if len(args) < min_len:
+        nargumnt = len(argspec.args)
+        ndefault = 0 if argspec.defaults is None else len(argspec.defaults)
+        min_args = nargumnt - ndefault
+        max_args = nargumnt if argspec.varargs is None else None
+        if len(args) < min_args:
             raise ValueError(('Too few arguments supplied for FlowNode function {!r}. '
-                              '({} needed, {} supplied)').format(label, min_len, len(args)))
-        if len(args) > max_len:
+                              '({} needed, {} supplied)').format(label, min_args, len(args)))
+        elif max_args is not None and len(args) > max_args:
             raise ValueError(('Too many arguments supplied for FlowNode function {!r}. '
-                              '({} needed, {} supplied)').format(label, max_len, len(args)))
+                              '({} needed, {} supplied)').format(label, max_args, len(args)))
+        if argspec.keywords is None:
+            valid_kwds = set(argspec.args[-ndefault:] if ndefault > 0 else [])
+            for kwd in kwds:
+                if kwd not in valid_kwds:
+                    raise ValueError(('Unrecognized keyword argument {!r} for FlowNode function '
+                                      '{!r}.').format(kwd, label))
 
         # Save the function reference
         self._function = func
+        
+        # Save the keyword arguments
+        self._keywords = kwds
 
         # Call the base class initialization
         super(EvalNode, self).__init__(label, *args)
@@ -288,14 +297,14 @@ class EvalNode(FlowNode):
         Compute and retrieve the data associated with this FlowNode operation
         """
         if len(self.inputs) == 0:
-            data = self._function()
+            data = self._function(**self._keywords)
             if isinstance(data, PhysArray):
                 return data[index]
             else:
                 return data
         else:
             args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
-            return self._function(*args)
+            return self._function(*args, **self._keywords)
 
 
 #===================================================================================================
