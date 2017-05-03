@@ -18,6 +18,7 @@ from collections import OrderedDict
 from argparse import ArgumentParser, ArgumentTypeError
 from warnings import simplefilter
 from datetime import datetime
+from imp import load_source
 
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.dataflow import DataFlow
@@ -63,6 +64,9 @@ def cli(argv=None):
     parser.add_argument('-s', '--serial', default=False, action='store_true',
                         help=('Whether to run in serial (True) or parallel '
                               '(False). [Default: False]'))
+    parser.add_argument('-m', '--module', metavar='MODULE', nargs='*', type=str,
+                        help=('Module file path with user-defined functions that must be loaded '
+                              'before the Conformation operation can be done'))
     parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
                         help=('Input file path or globstring specifying input data for the '
                               'PyConform operation.  If no input files are specified, then '
@@ -105,6 +109,10 @@ def main(argv=None):
     if args.error:
         simplefilter("error", ValidationWarning)
 
+    # Try importing all of the necessary user-defined modules
+    for mod in args.module:
+        load_source(mod)
+        
     # Setup the PyConform data flow
     dataflow = DataFlow(inpds, outds)
 
