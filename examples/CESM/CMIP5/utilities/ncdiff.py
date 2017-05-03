@@ -76,6 +76,17 @@ def _str(a):
     elif isinstance(a, Variable):
         dstr = '({})'.format(','.join(a.dimensions))
         return '{} {}{}'.format(a.dtype, a.name, dstr)
+    elif isinstance(a, ndarray):
+        sa = str(a)
+        n1 = sa.find(linesep)
+        n2 = sa.rfind(linesep)
+        if n2 > n1:
+            astr = sa[:n1] + ' ... ' + sa[n2+1:]
+        elif n1 == n2 and n1 >= 0:
+            astr = sa.replace(linesep, '')
+        else:
+            astr = sa
+        return astr
     else:
         return str(a)
 
