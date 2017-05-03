@@ -78,9 +78,6 @@ def cli(argv=None):
 def main(argv=None):
     args = cli(argv)
     
-    # Construct a dictionary of output bounds
-    bounds = {k:v for k, v in args.bounds}
-    
     # Gather the list of input files
     infiles = []
     for infile in args.infiles:
