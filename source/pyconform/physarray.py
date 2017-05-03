@@ -188,7 +188,7 @@ class PhysArray(numpy.ma.MaskedArray):
             units (Unit): The new units to which to convert the PhysArray
         """
         if self.units.is_convertible(units):
-            return PhysArray._safe_convert_(self, self.units, units)
+            return PhysArray._safe_convert_(self, self.units, Unit(units))
         else:
             raise UnitsError('Cannot convert units {!r} to {!r}'.format(self.units, units))
 
