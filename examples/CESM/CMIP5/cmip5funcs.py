@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 from Ngl import vinth2p
-from pyconform.physarray import PhysArray
-from pyconform.functions import Function, UnitsError, DimensionsError
+from pyconform.physarray import PhysArray, UnitsError, DimensionsError
+from pyconform.functions import Function
 from cf_units import Unit
 from numpy import diff, mean
 
