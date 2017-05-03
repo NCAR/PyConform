@@ -271,11 +271,11 @@ class EvalNode(FlowNode):
         else:
             min_len = max_len - len(argspec.defaults)
         if len(args) < min_len:
-            raise ValueError(('Too few arguments supplied for FlowNode function. '
-                              '({} needed, {} supplied)').format(min_len, len(args)))
+            raise ValueError(('Too few arguments supplied for FlowNode function {!r}. '
+                              '({} needed, {} supplied)').format(label, min_len, len(args)))
         if len(args) > max_len:
-            raise ValueError(('Too many arguments supplied for FlowNode function. '
-                              '({} needed, {} supplied)').format(max_len, len(args)))
+            raise ValueError(('Too many arguments supplied for FlowNode function {!r}. '
+                              '({} needed, {} supplied)').format(label, max_len, len(args)))
 
         # Save the function reference
         self._function = func
