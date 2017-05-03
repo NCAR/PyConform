@@ -64,7 +64,7 @@ def cli(argv=None):
     parser.add_argument('-s', '--serial', default=False, action='store_true',
                         help=('Whether to run in serial (True) or parallel '
                               '(False). [Default: False]'))
-    parser.add_argument('-m', '--module', default=[], metavar='MODULE', nargs='*', type=str,
+    parser.add_argument('-m', '--module', metavar='MODULE', action='append',
                         help=('Module file path with user-defined functions that must be loaded '
                               'before the Conformation operation can be done'))
     parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
