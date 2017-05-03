@@ -110,8 +110,8 @@ def main(argv=None):
         simplefilter("error", ValidationWarning)
 
     # Try importing all of the necessary user-defined modules
-    for mod in args.module:
-        load_source(mod)
+    for i, modpath in enumerate(args.module):
+        load_source('user{}'.format(i), modpath)
         
     # Setup the PyConform data flow
     dataflow = DataFlow(inpds, outds)
