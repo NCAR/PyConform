@@ -19,7 +19,7 @@ from argparse import ArgumentParser, ArgumentTypeError
 from warnings import simplefilter
 from datetime import datetime
 
-from pyconform.datasets import InputDataset, OutputDataset
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.dataflow import DataFlow
 from pyconform.flownodes import ValidationWarning
 
@@ -95,14 +95,14 @@ def main(argv=None):
     dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
 
     # Parse the output Dataset
-    outds = OutputDataset(dsdict=dsdict)
+    outds = OutputDatasetDesc(dsdict=dsdict)
 
     # If no input files, stop here
     if len(infiles) == 0:
         return
 
     # Parse the input Dataset
-    inpds = InputDataset(filenames=infiles)
+    inpds = InputDatasetDesc(filenames=infiles)
 
     # Check for warn/error
     if args.error:
