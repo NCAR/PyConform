@@ -17,8 +17,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
-from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
-from pyconform.functions import find
+from pyconform.parsing import parse_definition
+from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
+from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
@@ -163,10 +164,18 @@ class DataFlow(object):
             else:
                 raise KeyError('Variable {!r} not found or cannot be used as input'.format(vname))
 
-        elif isinstance(obj, ParsedFunction):
+        elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             name = obj.key
             nargs = len(obj.args)
-            func = find(name, numargs=nargs)
+            func = find_operator(name, numargs=nargs)
+            args = [self._construct_flow_(arg) for arg in obj.args]
+            if all(isinstance(o, (int, float)) for o in args):
+                return func(*args)
+            return EvalNode(name, func, *args)
+
+        elif isinstance(obj, ParsedFunction):
+            name = obj.key
+            func = find_function(name)
             args = [self._construct_flow_(arg) for arg in obj.args]
             if all(isinstance(o, (int, float)) for o in args):
                 return func(*args)
