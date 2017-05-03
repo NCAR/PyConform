@@ -111,6 +111,8 @@ class VertInterpFunction(Function):
         print repr(psfc)
         print repr(p0)
 
+        print datai.dimensions
+        
         if len(datai.dimensions) != 3 or len(datai.dimensions) != 4:
             raise DimensionsError('vinth2p: interpolated data must be 3D or 4D')
         if len(hbcofa.dimensions) != 1 or len(hbcofb.dimensions) != 1:
