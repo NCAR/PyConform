@@ -84,12 +84,12 @@ def main(argv=None):
         infiles.extend(glob(infile))
 
     # Check that the specfile exists
-    if not exists(args.specfile):
+    if not exists(args.stdfile):
         raise OSError(('Output specification file {!r} not '
-                       'found').format(args.specfile))
+                       'found').format(args.stdfile))
     
     # Read the specfile into a dictionary
-    dsdict = json_load(open(args.specfile, 'r'), object_pairs_hook=OrderedDict)
+    dsdict = json_load(open(args.stdfile, 'r'), object_pairs_hook=OrderedDict)
 
     # Parse the output Dataset
     outds = OutputDatasetDesc(dsdict=dsdict)
@@ -109,8 +109,8 @@ def main(argv=None):
     dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
-    dataflow.execute(chunks=dict(args.chunks), serial=args.serial,
-                     provenance=args.provenance, bounds=bounds)
+    history = not args.no_history
+    dataflow.execute(chunks=dict(args.chunks), serial=args.serial, history=history)
 
 
 #===================================================================================================
