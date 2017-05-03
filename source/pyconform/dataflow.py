@@ -123,8 +123,8 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                err_msg = 'Cannot map dimensions {} to dimensions {}'.format(inp_dims, out_dims)
-                raise ValueError(err_msg)
+                raise ValueError(('Cannot map dimensions {} to dimensions {} in output variable '
+                                  '{}').format(inp_dims, out_dims, vname))
             if len(unmapped_out) == 0:
                 continue
             for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
