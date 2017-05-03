@@ -104,6 +104,13 @@ class VertInterpFunction(Function):
             not isinstance(psfc, PhysArray) or not isinstance(p0, PhysArray)):
             raise TypeError('vinth2p: arrays must be PhysArrays')
         
+        print repr(datai)
+        print repr(hbcofa)
+        print repr(hbcofb)
+        print repr(plevo)
+        print repr(psfc)
+        print repr(p0)
+
         if len(datai.dimensions) != 3 or len(datai.dimensions) != 4:
             raise DimensionsError('vinth2p: interpolated data must be 3D or 4D')
         if len(hbcofa.dimensions) != 1 or len(hbcofb.dimensions) != 1:
