@@ -96,7 +96,6 @@ class DataFlow(object):
                 warn('Definition not found for output variable {}. Skipping'.format(vname),
                      DefinitionWarning)
                 continue
-                
             try:
                 vnode = self._construct_flow_(parse_definition(vdesc.definition))
             except VariableNotFoundError, err:
