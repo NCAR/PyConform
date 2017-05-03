@@ -53,9 +53,8 @@ class ParsedFunction(object):
             paramstr = kwdstr if len(self.kwds) > 0 else ''
         return "{}({!s})".format(self.key, paramstr)
     def __eq__(self, other):
-        return ((type(self) == type(other)) and
-                (self.key == other.key) and
-                (self.args == other.args))
+        return ((type(self) == type(other)) and (self.key == other.key) and
+                (self.args == other.args) and (self.kwds == other.kwds))
         
         
 #===================================================================================================
