@@ -696,7 +696,7 @@ class WriteNode(FlowNode):
         dsizes = {d:s for d,s in dimsizes}
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
-        ntotal = numpy.prod([nchunks[d] for d in nchunks])
+        ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
         
         idx = {d:0 for d in dsizes}
         for n in xrange(ntotal):
