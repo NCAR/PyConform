@@ -550,7 +550,7 @@ class InputDatasetDesc(DatasetDesc):
                 # Get the file dimensions
                 fdims = OrderedDict()
                 for dname, dobj in ncfile.dimensions.iteritems():
-                    fdims[dname] = DimensionDesc(dname, size=dobj.size, unlimited=dobj.isunlimited())
+                    fdims[dname] = DimensionDesc(dname, size=len(dobj), unlimited=dobj.isunlimited())
 
                 # Parse variables
                 fvars = []
