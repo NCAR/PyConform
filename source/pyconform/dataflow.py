@@ -21,12 +21,27 @@ from pyconform.parsing import parse_definition
 from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
 from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
-from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
+from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode
+from pyconform.flownodes import MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm
 from asaptools.partition import WeightBalanced
+from warnings import warn
 
 import numpy
 
+
+#===================================================================================================
+# DefinitionWarning
+#===================================================================================================
+class DefinitionWarning(Warning):
+    """Warning to indicate that a variable definition might be bad"""
+
+
+#===================================================================================================
+# VariableNotFoundError
+#===================================================================================================
+class VariableNotFoundError(KeyError):
+    """Exception for definitions requiring variables that are not found"""
 
 #===================================================================================================
 # DataFlow
@@ -77,7 +92,17 @@ class DataFlow(object):
         # Create a dictionary to store FlowNodes for variables with string 'definitions'
         self._defnodes = {}
         for vname, vdesc in defvars.iteritems():
-            self._defnodes[vname] = self._construct_flow_(parse_definition(vdesc.definition))
+            if vdesc.definition == '':
+                warn('Definition not found for output variable {}. Skipping'.format(vname),
+                     DefinitionWarning)
+                continue
+                
+            try:
+                vnode = self._construct_flow_(parse_definition(vdesc.definition))
+            except VariableNotFoundError, err:
+                warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
+            else:
+                self._defnodes[vname] = vnode                
 
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
@@ -162,24 +187,26 @@ class DataFlow(object):
                 return self._datnodes[vname]
 
             else:
-                raise KeyError('Variable {!r} not found or cannot be used as input'.format(vname))
+                raise VariableNotFoundError(('Variable {!r} not found or cannot be used as '
+                                             'input').format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             name = obj.key
             nargs = len(obj.args)
-            func = find_operator(name, numargs=nargs)
+            op = find_operator(name, numargs=nargs)
             args = [self._construct_flow_(arg) for arg in obj.args]
-            if all(isinstance(o, (int, float)) for o in args):
-                return func(*args)
-            return EvalNode(name, func, *args)
+            if all(not isinstance(o, FlowNode) for o in args):
+                return op(*args)
+            return EvalNode(name, op, *args)
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
             func = find_function(name)
             args = [self._construct_flow_(arg) for arg in obj.args]
-            if all(isinstance(o, (int, float)) for o in args):
-                return func(*args)
-            return EvalNode(name, func, *args)
+            kwds = {k:self._construct_flow_(obj.kwds[k]) for k in obj.kwds}
+            if all(not isinstance(arg, FlowNode) for arg in args):
+                return func(*args, **kwds)
+            return EvalNode(name, func, *args, **kwds)
 
         else:
             return obj
