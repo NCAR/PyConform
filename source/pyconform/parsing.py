@@ -145,7 +145,7 @@ _NAME_ = Word(alphas + "_", alphanums + "_")
 _EXPR_PARSER_ = Forward()
 
 # Named Arguments
-_KWDS_ = Group( _NAME_ + Suppress('=') + (_QSTR_ | _FLOAT_ | _INT_) )
+_KWDS_ = Group( _NAME_ + Suppress('=') + (_QSTR_ | _EXPR_PARSER_) )
 _KWDS_.setParseAction(lambda t: tuple(*t))
 
 # Functions
