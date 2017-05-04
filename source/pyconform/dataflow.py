@@ -247,7 +247,8 @@ class DataFlow(object):
         if scomm is None:
             scomm = create_comm(serial=bool(serial))
         elif isinstance(scomm, SimpleComm):
-            print 'Inheriting SimpleComm object from parent.  (Ignoring explicit serial argument.)'
+            if scomm.is_manager():
+                print 'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)'
         else:
             raise TypeError('Communication object is not a SimpleComm!')
         
