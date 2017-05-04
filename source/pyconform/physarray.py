@@ -159,9 +159,13 @@ class PhysArray(numpy.ma.MaskedArray):
         super(PhysArray, self).__setitem__(idx, values)
 
     @staticmethod
+    def _unit_str_(units):
+        return '{}'.format(units) + ('|{}'.format(units.calendar) if units.calendar else '')
+    
+    @staticmethod
     def _convert_name_(name, units1, units2):
-        u1_str = '{}'.format(units1) + ('|{}'.format(units1.calendar) if units1.calendar else '')
-        u2_str = '{}'.format(units2) + ('|{}'.format(units2.calendar) if units2.calendar else '')
+        u1_str = PhysArray._unit_str_(units1)
+        u2_str = PhysArray._unit_str_(units2)
         return "convert({}, from={}, to={})".format(name, u1_str, u2_str)
 
     @staticmethod
