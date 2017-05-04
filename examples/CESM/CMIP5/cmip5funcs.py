@@ -88,8 +88,9 @@ class PositiveDownFunction(Function):
 class ChangeUnitsFunction(Function):
     key = 'chunits'
     
-    def __call__(self, data, units):
-        return PhysArray(data, units=units)
+    def __call__(self, data, units=1):
+        uobj = units.units if isinstance(units, PhysArray) else Unit(units)
+        return PhysArray(data, units=uobj)
 
 
 #===================================================================================================

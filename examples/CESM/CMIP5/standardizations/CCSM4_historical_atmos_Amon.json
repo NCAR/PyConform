@@ -2787,7 +2787,7 @@
             "units": "days since 1850-01-01 00:00:00"
         }, 
         "datatype": "float64", 
-        "definition": "mean(time_bnds, \"tbnd\")", 
+        "definition": "chunits(mean(time_bnds, \"tbnd\"), units=time)", 
         "dimensions": [
             "time"
         ]
