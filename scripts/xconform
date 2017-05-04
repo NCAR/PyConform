@@ -20,6 +20,9 @@ from warnings import simplefilter
 from datetime import datetime
 from imp import load_source
 
+from asaptools.simplecomm import create_comm
+from asaptools.partition import Duplicate
+
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.dataflow import DataFlow
 from pyconform.flownodes import ValidationWarning
@@ -82,28 +85,59 @@ def cli(argv=None):
 def main(argv=None):
     args = cli(argv)
     
-    # Gather the list of input files
-    infiles = []
-    for infile in args.infiles:
-        infiles.extend(glob(infile))
-
-    # Check that the specfile exists
-    if not exists(args.stdfile):
-        raise OSError(('Output specification file {!r} not '
-                       'found').format(args.stdfile))
+    # Create the necessary SimpleComm
+    scomm = create_comm(serial=args.serial)
     
-    # Read the specfile into a dictionary
-    dsdict = json_load(open(args.stdfile, 'r'), object_pairs_hook=OrderedDict)
+    # Do setup only on manager node
+    if scomm.is_manager():
+        
+        # Check that the specfile exists
+        if not exists(args.stdfile):
+            raise OSError(('Output specification file {!r} not '
+                           'found').format(args.stdfile))
+        
+        # Read the specfile into a dictionary
+        print 'Reading standardization file: {}'.format(args.stdfile)
+        dsdict = json_load(open(args.stdfile, 'r'), object_pairs_hook=OrderedDict)
+    
+        # Parse the output Dataset
+        print 'Creating output dataset descriptor from standardization file...'
+        outds = OutputDatasetDesc(dsdict=dsdict)
+    
+    else:
+        outds = None
+        
+    # Send the output descriptor to all nodes
+    outds = scomm.partition(outds, func=Duplicate(), involved=True)
+    
+    # Sync
+    scomm.sync()
+    
+    # Continue setup only on manager node
+    if scomm.is_manager():
+    
+        # Gather the list of input files
+        infiles = []
+        for infile in args.infiles:
+            infiles.extend(glob(infile))
+    
+        # If no input files, stop here
+        if len(infiles) == 0:
+            print 'Standardization file validated.'
+            return
+    
+        # Parse the input Dataset
+        print 'Creating input dataset descriptor from {} input files...'.format(len(infiles))
+        inpds = InputDatasetDesc(filenames=infiles)
+    
+    else:
+        inpds = None
 
-    # Parse the output Dataset
-    outds = OutputDatasetDesc(dsdict=dsdict)
+    # Send the input descriptor to all nodes
+    inpds = scomm.partition(inpds, func=Duplicate(), involved=True)
 
-    # If no input files, stop here
-    if len(infiles) == 0:
-        return
-
-    # Parse the input Dataset
-    inpds = InputDatasetDesc(filenames=infiles)
+    # Sync and continue process on all nodes
+    scomm.sync()
 
     # Check for warn/error
     if args.error:
@@ -113,12 +147,14 @@ def main(argv=None):
     for i, modpath in enumerate(args.module):
         load_source('user{}'.format(i), modpath)
         
-    # Setup the PyConform data flow
+    # Setup the PyConform data flow on all nodes
+    if scomm.is_manager():
+        print 'Creating the data flow...'.format(len(infiles))
     dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
     history = not args.no_history
-    dataflow.execute(chunks=dict(args.chunks), serial=args.serial, history=history)
+    dataflow.execute(chunks=dict(args.chunks), scomm=scomm, history=history)
 
 
 #===================================================================================================
