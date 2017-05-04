@@ -442,9 +442,12 @@ class ValidateNode(FlowNode):
         self._dtype = dtype
 
         # Check for dimensions
-        if dimensions is not None and not isinstance(dimensions, (list, tuple)):
-            raise TypeError('Dimensions must be a list or tuple')
-        self._dimensions = dimensions
+        self._dimensions = None
+        if dimensions is not None:
+            if isinstance(dimensions, (list, tuple)):
+                self._dimensions = tuple(dimensions)
+            else:
+                raise TypeError('Dimensions must be a list or tuple')
 
         # Check for units
         if units is not None and not isinstance(units, Unit):
