@@ -172,7 +172,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if isinstance(obj, PhysArray):
             new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2),
                                              mask=obj.mask, dtype=obj.dtype)
-            new_name = PhysArray._convert_name_(obj.name, units1, units2)
+            new_name = PhysArray._convert_name_(obj.name, Unit(units1), Unit(units2))
             return PhysArray(new_array, name=new_name, units=units2, dimensions=obj.dimensions)
         elif isinstance(obj, numpy.ma.MaskedArray):
             return numpy.ma.MaskedArray(units1.convert(obj.data, units2),
@@ -188,7 +188,7 @@ class PhysArray(numpy.ma.MaskedArray):
             units (Unit): The new units to which to convert the PhysArray
         """
         if self.units.is_convertible(units):
-            return PhysArray._safe_convert_(self, self.units, Unit(units))
+            return PhysArray._safe_convert_(self, self.units, units)
         else:
             raise UnitsError('Cannot convert units {!r} to {!r}'.format(self.units, units))
 
