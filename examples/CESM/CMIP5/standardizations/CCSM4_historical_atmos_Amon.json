@@ -56,7 +56,7 @@
             "units": "1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(FREQZM, \"1\")", 
+        "definition": "chunits(FREQZM, units=\"1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -118,7 +118,7 @@
             "units": "%"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(CLOUD, \"%\")", 
+        "definition": "chunits(CLOUD, units=\"%\")", 
         "dimensions": [
             "time", 
             "lev", 
@@ -309,7 +309,7 @@
             "units": "%"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(CLDTOT, \"1\")", 
+        "definition": "chunits(CLDTOT, units=\"1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -764,7 +764,7 @@
             "units": "%"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(RHREFHT, \"%\")", 
+        "definition": "chunits(RHREFHT, units=\"%\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -1163,7 +1163,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(PRECC + PRECL, \"kg m-2 s-1\")", 
+        "definition": "chunits(PRECC + PRECL, units=\"kg m-2 s-1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -1225,7 +1225,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(PRECC, \"kg m-2 s-1\")", 
+        "definition": "chunits(PRECC, units=\"kg m-2 s-1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -1287,7 +1287,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(PRECSC + PRECSL, \"kg m-2 s-1\")", 
+        "definition": "chunits(PRECSC + PRECSL, units=\"kg m-2 s-1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -2354,7 +2354,7 @@
             "units": "1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(FREQSH, \"1\")", 
+        "definition": "chunits(FREQSH, units=\"1\")", 
         "dimensions": [
             "time", 
             "lat", 

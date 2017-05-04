@@ -3,11 +3,11 @@ a_bnds = bounds(hyam)
 b = hybm
 b_bnds = bounds(hybm)
 ch4 = vinth2p(CH4, hyam, hybm, plev, PS, P0)
-ci = chunits(FREQZM, "1")
-cl = chunits(CLOUD, "%")
+ci = chunits(FREQZM, units="1")
+cl = chunits(CLOUD, units="%")
 cli = CLDICE
 clivi = TGCLDIWP
-clt = chunits(CLDTOT, "1")
+clt = chunits(CLDTOT, units="1")
 clw = CLDLIQ
 clwvi = TGCLDLWP
 co2 = vinth2p(CO2, hyam, hybm, plev, PS, P0) * (28.966/44.0)
@@ -15,7 +15,7 @@ evspsbl = QFLX
 hfls = up(LHFLX)
 hfss = up(SHFLX)
 hur = vinth2p(RELHUM, hyam, hybm, plev, PS, P0)
-hurs = chunits(RHREFHT, "%")
+hurs = chunits(RHREFHT, units="%")
 hus = vinth2p(Q, hyam, hybm, plev, PS, P0)
 huss = QREFHT
 lat = lat
@@ -27,9 +27,9 @@ lon_bnds = bounds(lon)
 mc = up(CMFMC + CMFMCDZM)
 n2o = vinth2p(N2O, hyam, hybm, plev, PS, P0)
 p0 = P0
-pr = chunits(PRECC + PRECL, "kg m-2 s-1")
-prc = chunits(PRECC, "kg m-2 s-1")
-prsn = chunits(PRECSC + PRECSL, "kg m-2 s-1")
+pr = chunits(PRECC + PRECL, units="kg m-2 s-1")
+prc = chunits(PRECC, units="kg m-2 s-1")
+prsn = chunits(PRECSC + PRECSL, units="kg m-2 s-1")
 prw = TMQ
 ps = PS
 psl = PSL
@@ -46,7 +46,7 @@ rsuscs = up(FSDSC - FSNSC)
 rsut = up(SOLIN - FSNTOA)
 rsutcs = up(SOLIN - FSNTOAC)
 rtmt = down(FSNT - FLNT)
-sci = chunits(FREQSH, "1")
+sci = chunits(FREQSH, units="1")
 sfcWind = U10
 ta = vinth2p(T, hyam, hybm, plev, PS, P0)
 tas = TREFHT
