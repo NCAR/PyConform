@@ -23,7 +23,7 @@ from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode
 from pyconform.flownodes import MapNode, ValidateNode, WriteNode
-from asaptools.simplecomm import create_comm
+from asaptools.simplecomm import create_comm, SimpleComm
 from asaptools.partition import WeightBalanced
 from warnings import warn
 
@@ -215,7 +215,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, history=False):
+    def execute(self, chunks={}, serial=False, history=False, scomm=None):
         """
         Execute the Data Flow
         
@@ -228,6 +228,8 @@ class DataFlow(object):
             serial (bool): Whether to run in serial (True) or parallel (False)
             history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
+            scomm (SimpleComm): An externally created SimpleComm object to use for managing
+                parallel operation
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -241,15 +243,22 @@ class DataFlow(object):
                 raise TypeError(('Chunk size invalid for output dimension {!r}: '
                                  '{}').format(odname, odsize))
 
-        # Create the simple communicator
-        scomm = create_comm(serial=bool(serial))
+        # Create the simple communicator, if necessary
+        if scomm is None:
+            scomm = create_comm(serial=bool(serial))
+        elif isinstance(scomm, SimpleComm):
+            print 'Inheriting SimpleComm object from parent.  (Ignoring explicit serial argument.)'
+        else:
+            raise TypeError('Communication object is not a SimpleComm!')
+        
+        # Start general output
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
             print 'Beginning execution of data flow...'
 
         # Partition the output files/variables over available parallel (MPI) ranks
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
-        print '{}: Writing files: {}'.format(prefix, ', '.join(fnames))
+        print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
 
         # Loop over output files and write using given chunking
         for fname in fnames:
