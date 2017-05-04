@@ -175,10 +175,12 @@ class ReadNode(FlowNode):
             # Get a reference to the variable
             ncvar = ncfile.variables[self._variable]
 
+            # Get the attributes into a dictionary, for convenience
+            attrs = {a:ncvar.getncattr(a) for a in ncvar.ncattrs()}
+            
             # Read the variable units
-            attrs = ncvar.ncattrs()
-            units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
-            calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
+            units_attr = attrs.get('units', 1)
+            calendar_attr = attrs.get('calendar', None)
             try:
                 units = Unit(units_attr, calendar=calendar_attr)
             except ValueError:
@@ -220,8 +222,11 @@ class ReadNode(FlowNode):
             # Upconvert, if possible
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
+            
+            # Read the positive attribute, if available
+            pos = attrs.get('positive', None)
 
-        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2)
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, positive=pos)
 
 
 #===================================================================================================
@@ -276,19 +281,26 @@ class EvalNode(FlowNode):
         elif max_args is not None and len(args) > max_args:
             raise ValueError(('Too many arguments supplied for FlowNode function {!r}. '
                               '({} needed, {} supplied)').format(label, max_args, len(args)))
+        
+        # Check the function keywords
         if argspec.keywords is None:
             valid_kwds = set(argspec.args[-ndefault:] if ndefault > 0 else [])
-            for kwd in kwds:
-                if kwd not in valid_kwds:
-                    raise ValueError(('Unrecognized keyword argument {!r} for FlowNode function '
-                                      '{!r}.').format(kwd, label))
+        else:
+            valid_kwds = set(kwds)
+
+        # Store the keyword argument values
+        self._keywords = {}
+        for kwd in kwds:
+            if kwd in valid_kwds:
+                kval = kwds[kwd]
+                self._keywords[kwd] = kval[None] if isinstance(kval, FlowNode) else kval
+            else:
+                raise ValueError(('Unrecognized keyword argument {!r} for FlowNode function '
+                                  '{!r}.').format(kwd, label))
 
         # Save the function reference
         self._function = func
         
-        # Save the keyword arguments
-        self._keywords = kwds
-
         # Call the base class initialization
         super(EvalNode, self).__init__(label, *args)
 
@@ -298,10 +310,7 @@ class EvalNode(FlowNode):
         """
         if len(self.inputs) == 0:
             data = self._function(**self._keywords)
-            if isinstance(data, PhysArray):
-                return data[index]
-            else:
-                return data
+            return data[index] if isinstance(data, PhysArray) else data
         else:
             args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
             return self._function(*args, **self._keywords)
