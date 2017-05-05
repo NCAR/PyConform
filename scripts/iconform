@@ -68,7 +68,7 @@ def load(defs,key=None):
                 key = line.split(':')[1].strip()
                 def_dict[key] = {}
             if 'Coords' in line:
-                key = 'Coords'
+                key = 'Coords_'+line.split(':')[1].strip()
                 def_dict[key] = {}
             line = line.split('#')[0].strip()
         # slit definition into the two parts
@@ -182,6 +182,8 @@ def defineVar(v, varName, attributes, definition, experiment):
             var['definition'] =  v['requested']
     if 'coordinates' in v.keys():
         var["dimensions"] = v['coordinates'].split('|')
+    else: 
+        var["dimensions"] = []
 
     # return the variable dictionary with all pieces added
     return var
@@ -268,23 +270,38 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
         # Add axes into the variable list
         for v,d in axes.iteritems():
             var_list[v] = defineAxes(d, v)
-            if v in definitions['Coords'].keys() and 'definition' not in var_list[v].keys():
-                var_list[v]['definition'] = definitions['Coords'][v]
 
 
         # For each variable in the definition file, create a file entry in the spec and define it
         for v,d in variables.iteritems():
             mip = d['mipTable']
-            if mip in definitions.keys() and v in definitions[mip].keys():
-                var_list[v] = defineVar(d, v, attributes, definitions[mip][v], experiment)
+            if mip in definitions.keys():
+                if v in definitions[mip].keys():
+                    if "N/A" in definitions[mip][v].upper():
+                        v_def = ""
+                    else:
+                        v_def = definitions[mip][v]
+                else:
+                    v_def = ""
+                var_list[v] = defineVar(d, v, attributes, v_def, experiment)
                 realm = d["realm"].replace(' ','_')
                 ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
                     TableSpec[ts_key] = {}
                 TableSpec[ts_key][v] = var_list[v]
+                t_realm = None
+                for k1,v1 in definitions.iteritems():
+                    if 'Coords' in k1:
+                        if k1.split('_')[1] in realm:
+                            t_realm = k1.split('_')[1]
                 for dim in var_list[v]["dimensions"]:
                     if dim not in TableSpec[ts_key].keys() and dim != '' and dim != 'None':
-                        TableSpec[ts_key][dim] = var_list[dim] 
+                         TableSpec[ts_key][dim] = var_list[dim]
+                         if dim in definitions['Coords_'+t_realm].keys():
+                             TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
+                         else:
+                             if 'definition' not in  TableSpec[ts_key][dim].keys():
+                                 print "MISSING ",dim," in ",'Coords_',t_realm
             else:
                 AllMissing[t].append(v)
 
