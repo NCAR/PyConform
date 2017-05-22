@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
-from numpy import sqrt
+from numpy import sqrt, mean
 
 
 #===================================================================================================
@@ -229,3 +229,22 @@ class SquareRootFunction(Function):
                              dimensions=data.dimensions, positive=data.positive)
         else:
             return sqrt(data)
+
+
+#===================================================================================================
+# MeanFunction
+#===================================================================================================
+class MeanFunction(Function):
+    key = 'mean'
+    
+    def __call__(self, data, *dimensions):
+        if not isinstance(data, PhysArray):
+            raise TypeError('mean: data must be a PhysArray')
+        indims = [d for d in dimensions if d in data.dimensions]
+        self.add_sumlike_dimensions(*indims)
+        axes = tuple(data.dimensions.index(d) for d in indims)
+        new_dims = tuple(d for d in data.dimensions if d not in indims)
+        dim_str = '[{}]'.format(','.join(str(d) for d in indims))
+        return PhysArray(mean(data.data, axis=axes),
+                         units=data.units, dimensions=new_dims, positive=data.positive,
+                         name='mean({}, dims={})'.format(data.name, dim_str))
