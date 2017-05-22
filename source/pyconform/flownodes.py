@@ -10,6 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
 from pyconform.datasets import VariableDesc, FileDesc
+from pyconform.functions import Function
 from cf_units import Unit
 from inspect import getargspec, ismethod, isfunction
 from os.path import exists, dirname
@@ -303,6 +304,15 @@ class EvalNode(FlowNode):
         
         # Call the base class initialization
         super(EvalNode, self).__init__(label, *args)
+    
+    def sumlike_dimensions(self):
+        """
+        Return the set of sum-like dimensions registered by the node's function
+        """
+        if isinstance(self._function, Function):
+            return self._function.sumlike_dimensions
+        else:
+            return set()
 
     def __getitem__(self, index):
         """
