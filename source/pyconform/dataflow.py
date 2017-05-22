@@ -156,6 +156,25 @@ class DataFlow(object):
                                                  dimensions=vdesc.dimensions.keys(),
                                                  attributes=vdesc.attributes,
                                                  dtype=vdesc.datatype)
+        
+        # Now, for each ValidateNode, get the set of all sum-like dimensions
+        # (these are dimensions that cannot be broken into chunks)
+        unmapped_sumlike_dimensions = set()
+        for vname, vnode in self._varnodes.iteritems():
+            visited = set()
+            tosearch = [vnode]
+            while tosearch:
+                nd = tosearch.pop()
+                if isinstance(nd, EvalNode):
+                    unmapped_sumlike_dimensions.update(nd.sumlike_dimensions)
+                visited.add(nd)
+                tosearch.extend(i for i in nd.inputs if i not in visited)
+        
+        # Map the sum-like dimensions to output dimensions
+        self._sumlike_dimensions = set()
+        for d in unmapped_sumlike_dimensions:
+            self._sumlike_dimensions.add(self._i2omap[d])
+        print 'SUMLIKE: {}'.format(self._sumlike_dimensions)
 
         # Create the WriteNodes for each time-series output file
         writenodes = {}
