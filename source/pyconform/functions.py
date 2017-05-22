@@ -177,6 +177,16 @@ def _all_subclasses_(cls):
 #===================================================================================================
 class Function(FunctionBase):
     key = 'func'
+    
+    def __init__(self):
+        self._sumlike_dimensions = set()
+    
+    @property
+    def sumlike_dimensions(self):
+        return self._sumlike_dimensions
+    
+    def add_sumlike_dimensions(self, *dims):
+        self._sumlike_dimensions.update(set(dims))
 
 
 #===================================================================================================
