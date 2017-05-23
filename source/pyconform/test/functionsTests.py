@@ -164,7 +164,7 @@ class FindTests(unittest.TestCase):
     def test_list_functions(self):
         testname = 'list_functions()'
         actual = functions.list_functions()
-        expected = ['sqrt']
+        expected = ['sqrt', 'mean']
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         
@@ -415,6 +415,38 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
+    def test_func_mean_physarray(self):
+        key = 'mean'
+        indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0], name='x', units='m', dimensions=('t',))
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, 't')
+        expected = PhysArray(3.0, name='mean(x, dims=[t])', units='m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+
+    def test_func_sqrt_sumlike(self):
+        key = 'sqrt'
+        testname = '{}.sumlike_dimensions'.format(key)
+        func = functions.find(key)
+        actual = func.sumlike_dimensions
+        expected = set()
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_mean_sumlike(self):
+        key = 'mean'
+        indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0], name='x', units='m', dimensions=('t',))
+        testname = '{}({}).sumlike_dimensions'.format(key, indata)
+        func = functions.find(key)
+        dummy = func(indata, 't')[None]
+        actual = func.sumlike_dimensions
+        expected = set(['t'])
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
 
 #===============================================================================
 # Command-Line Operation
