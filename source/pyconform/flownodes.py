@@ -304,7 +304,11 @@ class EvalNode(FlowNode):
         
         # Call the base class initialization
         super(EvalNode, self).__init__(label, *args)
+        
+        # Set internal data (sum-like dimensions) with getitem call
+        self[None]
     
+    @property
     def sumlike_dimensions(self):
         """
         Return the set of sum-like dimensions registered by the node's function

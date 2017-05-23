@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from pyconform.physarray import PhysArray, DimensionsError
 from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
+from pyconform.functions import Function
 from testutils import print_test_message, print_ncfile
 from cf_units import Unit
 from os.path import exists
@@ -310,6 +311,25 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
+    def test_sumlike_dimensions(self):
+        class myfunc(Function):
+            key = 'myfunc'
+            def __call__(self, d, *dims):
+                self.add_sumlike_dimensions(*dims)
+                return d
+        d = PhysArray(numpy.arange(1, 5), name='d', units='m', dimensions=('x',))
+        N = EvalNode(1, myfunc(), d, 'x')
+        testname = 'EvalNode.sumlike_dimensions'
+        actual = N.sumlike_dimensions
+        expected = set(['x'])
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        N[0:2]
+        actual = N.sumlike_dimensions
+        expected = set(['x'])
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+                
 
 #===================================================================================================
 # MapNodeTests
