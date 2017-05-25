@@ -810,7 +810,6 @@ class WriteNode(FlowNode):
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
-            print '{} - CHUNKS:            {}'.format(vname, chunks)
 
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
