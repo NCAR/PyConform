@@ -282,7 +282,8 @@ class DataFlow(object):
 
         # Partition the output files/variables over available parallel (MPI) ranks
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
-        print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
+        if scomm.is_manager():
+            print 'Writing {} files: {}'.format(len(fnames), ', '.join(fnames))
 
         # Loop over output files and write using given chunking
         for fname in fnames:

@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from os import remove
 from os.path import exists
 from pyconform import dataflow, datasets
-from testutils import print_test_message
+from testutils import print_test_message, print_ncfile
 from collections import OrderedDict
 from netCDF4 import Dataset as NCDataset
 
@@ -228,9 +228,8 @@ class DataFlowTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        for f in self.outfiles.itervalues():
-            with NCDataset(f, 'r') as ncf:
-                print ncf
+        for f in self.outfiles:
+            print_ncfile(self.outfiles[f])
             print
 
     def test_execute_chunks_1D_x(self):
@@ -248,9 +247,8 @@ class DataFlowTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        for f in self.outfiles.itervalues():
-            with NCDataset(f, 'r') as ncf:
-                print ncf
+        for f in self.outfiles:
+            print_ncfile(self.outfiles[f])
             print
 
     def test_execute_chunks_2D_x_y(self):
@@ -268,9 +266,8 @@ class DataFlowTests(unittest.TestCase):
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        for f in self.outfiles.itervalues():
-            with NCDataset(f, 'r') as ncf:
-                print ncf
+        for f in self.outfiles:
+            print_ncfile(self.outfiles[f])
             print
 
 #===============================================================================
