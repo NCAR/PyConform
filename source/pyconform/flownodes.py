@@ -810,20 +810,14 @@ class WriteNode(FlowNode):
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
-            print '{} - VDESC DIMENSIONS:  {}'.format(vname, vdims)
-            print '{} - VNODE DIMENSIONS:  {}'.format(vname, vnode.dimensions)
-            print '{} - VDESC SIZES:       {}'.format(vname, vsizes)
+            print '{} - CHUNKS:            {}'.format(vname, chunks)
 
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
-                print '{} - LEFT CHUNK: {}'.format(vname, chunk)
-                vdimsizechunks = zip(vdims, vsizes, chunk)
-                rchunk = self._invert_dims(vdimsizechunks, idims=self._idims)
-                print '{} - RIGHT CHUNK: {}'.format(vname, rchunk)
+                ichunk = self._invert_dims(zip(vdims, vsizes, chunk), idims=self._idims)
+                rchunk = OrderedDict((d,c) for d,c in zip(vdims, ichunk))
                 vdata = vnode[rchunk]
-                print '{} - READ SHAPE: {}'.format(vname, vdata.shape)
                 ncvar[chunk] = vdata
-                print '{} - WRITE CHUNK SUCCESSFUL'.format(vname)
 
         # Close the file after completion
         self.close()
