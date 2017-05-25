@@ -509,10 +509,9 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_units_convert(self):
-        N0 = DataNode(PhysArray(numpy.arange(10, dtype=numpy.float64), name='x', units='m',
-                                dimensions=('x',)))
+        N0 = DataNode(PhysArray(numpy.arange(10.0), name='x', units='m', dimensions=('x',)))
         indata = {'units': Unit('km')}
-        testname = ('WARN: ValidateNode({}).__getitem__(:)'
+        testname = ('CONVERT: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
@@ -525,6 +524,17 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
+    def test_dimensions_transpose(self):
+        N0 = DataNode(PhysArray([[1.,2.],[3.,4.]], name='a', units='m', dimensions=('x', 'y')))
+        indata = {'dimensions': ('y', 'x')}
+        testname = ('TRANSPOSE: ValidateNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = ValidateNode('validate(a)', N0, **indata)
+        actual = N1[:].dimensions
+        expected = indata['dimensions']
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        
     def test_time_units_warn(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
                                 dimensions=('x',)))

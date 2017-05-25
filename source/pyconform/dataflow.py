@@ -131,7 +131,7 @@ class DataFlow(object):
                 self._o2imap[out_dim] = inp_dim
                 self._i2omap[inp_dim] = out_dim
 
-        # Now that we know how dimensions are mapped, construct the output dimension sizes
+        # Now that we know how dimensions are mapped, compute the output dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
             if not ddesc.is_set():
                 ddesc.set(self._ids.dimensions[self._o2imap[dname]])
@@ -168,13 +168,11 @@ class DataFlow(object):
                 if isinstance(nd, EvalNode):
                     unmapped_sumlike_dimensions.update(nd.sumlike_dimensions)
                 visited.add(nd)
-                tosearch.extend(i for i in nd.inputs if i not in visited)
+                if isinstance(nd, FlowNode):
+                    tosearch.extend(i for i in nd.inputs if i not in visited)
         
         # Map the sum-like dimensions to output dimensions
-        self._sumlike_dimensions = set()
-        for d in unmapped_sumlike_dimensions:
-            self._sumlike_dimensions.add(self._i2omap[d])
-        print 'SUMLIKE: {}'.format(self._sumlike_dimensions)
+        self._sumlike_dimensions = set(self._i2omap[d] for d in unmapped_sumlike_dimensions)
 
         # Create the WriteNodes for each time-series output file
         writenodes = {}
@@ -254,13 +252,19 @@ class DataFlow(object):
         if not isinstance(chunks, dict):
             raise TypeError('Chunks must be specified with a dictionary')
 
-        # Make sure that the specified dimensions are valid
+        # Make sure that the specified chunking dimensions are valid
         for odname, odsize in chunks.iteritems():
             if odname not in self._o2imap:
                 raise ValueError('Cannot chunk over unknown output dimension {!r}'.format(odname))
             if not isinstance(odsize, int):
                 raise TypeError(('Chunk size invalid for output dimension {!r}: '
                                  '{}').format(odname, odsize))
+        
+        # Check that we are not chunking over any "sum-like" dimensions
+        sumlike_chunk_dims = sorted(d for d in chunks if d in self._sumlike_dimensions)
+        if len(sumlike_chunk_dims) > 0:
+            raise ValueError(('Cannot chunk over dimensions that are summed over (or "sum-like")'
+                              ': {}'.format(', '.join(sumlike_chunk_dims))))
 
         # Create the simple communicator, if necessary
         if scomm is None:

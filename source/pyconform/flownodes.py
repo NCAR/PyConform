@@ -478,6 +478,13 @@ class ValidateNode(FlowNode):
         """
         return self._attributes
 
+    @property
+    def dimensions(self):
+        """
+        Dimensions tuple of the variable returned by the ValidateNode
+        """
+        return self._dimensions
+
     def __getitem__(self, index):
         """
         Compute and retrieve the data associated with this FlowNode operation
@@ -505,9 +512,8 @@ class ValidateNode(FlowNode):
                 indata = indata.convert(self._units)
 
         # Check that the dimensions match as expected
-        if self._dimensions is not None and self._dimensions != indata.dimensions:
-            print self._dimensions, indata.dimensions
-            indata = indata.transpose(self._dimensions)
+        if self.dimensions is not None and self.dimensions != indata.dimensions:
+            indata = indata.transpose(self.dimensions)
         
         # Check the positive attribute, if specified
         positive = self.attributes.get('positive', None)
@@ -804,11 +810,20 @@ class WriteNode(FlowNode):
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
+            print '{} - VDESC DIMENSIONS:  {}'.format(vname, vdims)
+            print '{} - VNODE DIMENSIONS:  {}'.format(vname, vnode.dimensions)
+            print '{} - VDESC SIZES:       {}'.format(vname, vsizes)
 
             # Loop over all chunks for the given variable's dimensions
             for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
+                print '{} - LEFT CHUNK: {}'.format(vname, chunk)
                 vdimsizechunks = zip(vdims, vsizes, chunk)
-                ncvar[chunk] = vnode[self._invert_dims(vdimsizechunks, idims=self._idims)]
+                rchunk = self._invert_dims(vdimsizechunks, idims=self._idims)
+                print '{} - RIGHT CHUNK: {}'.format(vname, rchunk)
+                vdata = vnode[rchunk]
+                print '{} - READ SHAPE: {}'.format(vname, vdata.shape)
+                ncvar[chunk] = vdata
+                print '{} - WRITE CHUNK SUCCESSFUL'.format(vname)
 
         # Close the file after completion
         self.close()

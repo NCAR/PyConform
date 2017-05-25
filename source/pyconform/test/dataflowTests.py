@@ -33,7 +33,7 @@ class DataFlowTests(unittest.TestCase):
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
+        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
@@ -130,7 +130,7 @@ class DataFlowTests(unittest.TestCase):
         fdict['metavars'] = ['L']
         vdicts['V1']['file'] = fdict
         vattribs = OrderedDict()
-        vattribs['standard_name'] = 'variable 1'
+        vattribs['standard_name'] = 'element-wise average of u1 and u2'
         vattribs['units'] = 'cm'
         vdicts['V1']['attributes'] = vattribs
 
@@ -144,7 +144,7 @@ class DataFlowTests(unittest.TestCase):
         fdict['metavars'] = ['L']
         vdicts['V2']['file'] = fdict
         vattribs = OrderedDict()
-        vattribs['standard_name'] = 'variable 2'
+        vattribs['standard_name'] = 'difference of u2 and u1'
         vattribs['units'] = 'cm'
         vdicts['V2']['attributes'] = vattribs
 
@@ -158,7 +158,7 @@ class DataFlowTests(unittest.TestCase):
         fdict['metavars'] = ['L']
         vdicts['V3']['file'] = fdict
         vattribs = OrderedDict()
-        vattribs['standard_name'] = 'variable 3'
+        vattribs['standard_name'] = 'originally u2'
         vattribs['units'] = 'cm'
         vdicts['V3']['attributes'] = vattribs
 
@@ -172,11 +172,26 @@ class DataFlowTests(unittest.TestCase):
         fdict['metavars'] = ['L']
         vdicts['V4']['file'] = fdict
         vattribs = OrderedDict()
-        vattribs['standard_name'] = 'variable 4'
+        vattribs['standard_name'] = 'transposed u1'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
         vattribs['valid_max'] = 20.0
         vdicts['V4']['attributes'] = vattribs
+        
+        vdicts['V5'] = OrderedDict()
+        vdicts['V5']['datatype'] = 'float64'
+        vdicts['V5']['dimensions'] = ('t', 'y')
+        vdicts['V5']['definition'] = 'mean(u1, "lon")'
+        fdict = OrderedDict()
+        fdict['filename'] = 'var5.nc'
+        fdict['attributes'] = {'variable': 'V5'}
+        vdicts['V5']['file'] = fdict
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'mean of u1 along the lon dimension'
+        vattribs['units'] = 'km'
+        vattribs['valid_min'] = 1.0
+        vattribs['valid_max'] = 20.0
+        vdicts['V5']['attributes'] = vattribs
 
         self.dsdict = vdicts
 
@@ -218,10 +233,17 @@ class DataFlowTests(unittest.TestCase):
                 print ncf
             print
 
-    def test_execute_chunks_1D(self):
+    def test_execute_chunks_1D_x(self):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
-        df.execute({'x': 4})
+        expected = ValueError
+        print_test_message(testname, expected=expected)
+        self.assertRaises(expected, df.execute, chunks={'x': 4})
+
+    def test_execute_chunks_1D_y(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute(chunks={'y': 3})
         actual = all(exists(f) for f in self.outfiles.itervalues())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -231,10 +253,17 @@ class DataFlowTests(unittest.TestCase):
                 print ncf
             print
 
-    def test_execute_chunks_2D(self):
+    def test_execute_chunks_2D_x_y(self):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
-        df.execute(chunks=OrderedDict([('x', 4), ('y', 3)]))
+        expected = ValueError
+        print_test_message(testname, expected=expected)
+        self.assertRaises(expected, df.execute, chunks=OrderedDict([('x', 4), ('y', 3)]))
+
+    def test_execute_chunks_2D_t_y(self):
+        testname = 'DataFlow().execute()'
+        df = dataflow.DataFlow(self.inpds, self.outds)
+        df.execute(chunks=OrderedDict([('t', 2), ('y', 3)]))
         actual = all(exists(f) for f in self.outfiles.itervalues())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -243,7 +272,6 @@ class DataFlowTests(unittest.TestCase):
             with NCDataset(f, 'r') as ncf:
                 print ncf
             print
-
 
 #===============================================================================
 # Command-Line Operation
