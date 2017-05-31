@@ -53,7 +53,7 @@ def _cmp(a1,a2):
         else:
             return a1.isunlimited() != a2.isunlimited()
     elif isinstance(a1, Variable):
-        if a1.name != a2.name:
+        if a1._name != a2._name:
             return True
         elif a1.dtype != a2.dtype:
             return True
@@ -75,7 +75,7 @@ def _str(a):
         return '{}({}{})'.format(a._name, len(a), '+' if a.isunlimited() else '')
     elif isinstance(a, Variable):
         dstr = '({})'.format(','.join(a.dimensions))
-        return '{} {}{}'.format(a.dtype, a.name, dstr)
+        return '{} {}{}'.format(a.dtype, a._name, dstr)
     elif isinstance(a, ndarray):
         sa = str(a)
         n1 = sa.find(linesep)
