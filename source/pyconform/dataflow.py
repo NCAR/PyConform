@@ -284,6 +284,7 @@ class DataFlow(object):
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
         if scomm.is_manager():
             print 'Writing {} files: {}'.format(len(fnames), ', '.join(fnames))
+        scomm.sync()
 
         # Loop over output files and write using given chunking
         for fname in fnames:
