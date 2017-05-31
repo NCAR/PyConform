@@ -191,6 +191,21 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_max'] = 20.0
         vdicts['V5']['attributes'] = vattribs
 
+        vdicts['V6'] = OrderedDict()
+        vdicts['V6']['datatype'] = 'float64'
+        vdicts['V6']['dimensions'] = ('t', 'y')
+        vdicts['V6']['definition'] = 'u2[:,:,0]'
+        fdict = OrderedDict()
+        fdict['filename'] = 'var6.nc'
+        fdict['attributes'] = {'variable': 'V6'}
+        vdicts['V6']['file'] = fdict
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'mean of u1 along the lon dimension'
+        vattribs['units'] = 'km'
+        vattribs['valid_min'] = 1.0
+        vattribs['valid_max'] = 20.0
+        vdicts['V6']['attributes'] = vattribs
+
         self.dsdict = vdicts
 
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
