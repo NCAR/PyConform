@@ -172,7 +172,7 @@ class DataFlow(object):
                     tosearch.extend(i for i in nd.inputs if i not in visited)
         
         # Map the sum-like dimensions to output dimensions
-        self._sumlike_dimensions = set(self._i2omap[d] for d in unmapped_sumlike_dimensions)
+        self._sumlike_dimensions = set(self._i2omap[d] for d in unmapped_sumlike_dimensions if d in self._i2omap)
 
         # Create the WriteNodes for each time-series output file
         writenodes = {}
