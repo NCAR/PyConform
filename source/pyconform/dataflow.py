@@ -193,8 +193,6 @@ class DataFlow(object):
         for fname, wnode in self._writenodes.iteritems():
             self._filesizes[fname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
         
-        print self.dimension_map
-
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
