@@ -1019,7 +1019,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(lev, bdim=\"tbnd\")", 
+        "definition": "bounds(lev * 0.001, bdim=\"tbnd\")", 
         "dimensions": [
             "lev", 
             "bnds"
