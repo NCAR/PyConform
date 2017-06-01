@@ -110,7 +110,7 @@ class DataFlow(object):
         # To aid with this, we sort by number of dimensions:
         nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname)
                                 for vname in self._defnodes))[1]
-
+        print nodeorder
         # Now, we construct the dimension maps
         self._i2omap = {}
         self._o2imap = {}
