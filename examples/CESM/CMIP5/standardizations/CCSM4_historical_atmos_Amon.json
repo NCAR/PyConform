@@ -15,7 +15,7 @@
             "long_name": "vertical coordinate formula term: a(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(hyam)", 
+        "definition": "bounds(hyam, bdim=\"tbnd\")", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -37,7 +37,7 @@
             "long_name": "vertical coordinate formula term: b(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(hybm)", 
+        "definition": "bounds(hybm, bdim=\"tbnd\")", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -962,7 +962,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(ilev)", 
+        "definition": "bounds(ilev, bdim=\"tbnd\")", 
         "dimensions": [
             "ilev", 
             "bnds"
@@ -985,7 +985,7 @@
     "lat_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lat, endpoints=0)", 
+        "definition": "bounds(lat, , bdim=\"tbnd\", endpoints=0)", 
         "dimensions": [
             "lat", 
             "bnds"
@@ -1016,7 +1016,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(lev)", 
+        "definition": "bounds(lev, bdim=\"tbnd\")", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -1039,7 +1039,7 @@
     "lon_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lon)", 
+        "definition": "bounds(lon, bdim=\"tbnd\")", 
         "dimensions": [
             "lon", 
             "bnds"
