@@ -699,11 +699,12 @@ class OutputDatasetDesc(DatasetDesc):
         for fname, fdict in files.iteritems():
 
             # Get the variable descriptors for each variable required to be in the file
-            vlist = [variables[vname] for vname in fdict['variables']]
+            vlist = OrderedDict([(vname, variables[vname]) for vname in fdict['variables']])
 
             # Get the unique list of dimension names for required by these variables
             fdims = set()
-            for vdesc in vlist:
+            for vname in vlist:
+                vdesc = vlist[vname]
                 for dname in vdesc.dimensions:
                     fdims.add(dname)
 
@@ -714,14 +715,37 @@ class OutputDatasetDesc(DatasetDesc):
 
                     # Include this variable in the file only if all of its dimensions are included
                     if set(vdesc.dimensions.keys()).issubset(fdims):
-                        vlist.append(vdesc)
+                        vlist[mvname] = vdesc
+            
+            # Loop through the current list of variables and check for any "bounds" or "coordinates" attributes
+            mvnames = set()
+            for vname in vlist:
+                vdesc = vlist[vname]
+                if 'bounds' in vdesc.attributes:
+                    mvname = vdesc.attributes['bounds']
+                    if mvname not in variables:
+                        raise ValueError(('Variable {} references a bounds variable {} that is not '
+                                          'found').format(vdesc.name, mvname))
+                    mvnames.add(mvname)
+                if 'coordinates' in vdesc.attributes:
+                    for mvname in vdesc.attributes['coordinates'].split():
+                        if mvname not in variables:
+                            raise ValueError(('Variable {} references a coordinates variable {} that is not '
+                                              'found').format(vdesc.name, mvname))
+                        mvnames.add(mvname)
+            
+            # Add the bounds and coordinates to the list of variables
+            for mvname in mvnames:
+                if mvname not in vlist:
+                    vlist[mvname] = variables[mvname]
 
             # Create the file descriptor
-            fdict['variables'] = vlist
+            fdict['variables'] = [vlist[vname] for vname in vlist]
             fdesc = FileDesc(fname, **fdict)
             
             # Validate the variable types for the file descriptor
-            for vdesc in vlist:
+            for vname in vlist:
+                vdesc = vlist[vname]
                 vdtype = vdesc.datatype
                 fformat = fdesc.format
                 try:
