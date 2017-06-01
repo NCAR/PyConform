@@ -1,7 +1,8 @@
 {
     "a": {
         "attributes": {
-            "long_name": "vertical coordinate formula term: a(k)"
+            "long_name": "vertical coordinate formula term: a(k)",
+            "bounds": "a_bnds"
         }, 
         "datatype": "float64", 
         "definition": "hyam", 
@@ -22,7 +23,8 @@
     }, 
     "b": {
         "attributes": {
-            "long_name": "vertical coordinate formula term: b(k)"
+            "long_name": "vertical coordinate formula term: b(k)",
+            "bounds": "b_bnds"
         }, 
         "datatype": "float64", 
         "definition": "hybm", 
