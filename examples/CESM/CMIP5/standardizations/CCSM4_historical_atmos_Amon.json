@@ -983,7 +983,9 @@
         ]
     }, 
     "lat_bnds": {
-        "attributes": {}, 
+        "attributes": {
+            "units": "degrees_north"
+        },
         "datatype": "float64", 
         "definition": "bounds(lat, bdim=\"tbnd\", endpoints=0)", 
         "dimensions": [
@@ -1004,7 +1006,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "lev", 
+        "definition": "lev * 0.001", 
         "dimensions": [
             "lev"
         ]
@@ -1038,7 +1040,9 @@
         ]
     }, 
     "lon_bnds": {
-        "attributes": {}, 
+        "attributes": {
+            "units": "degrees_east"
+        }, 
         "datatype": "float64", 
         "definition": "bounds(lon, bdim=\"tbnd\")", 
         "dimensions": [
