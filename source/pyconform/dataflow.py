@@ -122,6 +122,7 @@ class DataFlow(object):
             mapped_inp = tuple(self._o2imap[d] for d in out_dims if d in self._o2imap)
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
+            print '{} / {}'.format(unmapped_out, unmapped_inp)
             if len(unmapped_out) != len(unmapped_inp):
                 raise ValueError(('Cannot map dimensions {} to dimensions {} in output variable '
                                   '{}').format(inp_dims, out_dims, vname))
