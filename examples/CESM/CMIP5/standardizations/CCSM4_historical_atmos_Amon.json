@@ -995,6 +995,7 @@
         "attributes": {
             "axis": "Z", 
             "bounds": "lev_bnds", 
+            "direction": "decreasing",
             "formula": "p = a*p0 + b*ps", 
             "formula_terms": "p0: p0 a: a b: b ps: ps", 
             "long_name": "hybrid sigma pressure coordinate", 
