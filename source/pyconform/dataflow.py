@@ -110,7 +110,7 @@ class DataFlow(object):
         # To aid with this, we sort by number of dimensions:
         nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname)
                                 for vname in self._defnodes))[1]
-        print nodeorder
+
         # Now, we construct the dimension maps
         self._i2omap = {}
         self._o2imap = {}
@@ -122,7 +122,6 @@ class DataFlow(object):
             mapped_inp = tuple(self._o2imap[d] for d in out_dims if d in self._o2imap)
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
-            print '{} / {}'.format(unmapped_out, unmapped_inp)
             if len(unmapped_out) != len(unmapped_inp):
                 raise ValueError(('Cannot map dimensions {} to dimensions {} in output variable '
                                   '{}').format(inp_dims, out_dims, vname))
@@ -193,6 +192,8 @@ class DataFlow(object):
         self._filesizes = {}
         for fname, wnode in self._writenodes.iteritems():
             self._filesizes[fname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
+        
+        print self.dimension_map
 
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
