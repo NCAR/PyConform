@@ -26,6 +26,8 @@ class BoundsFunction(Function):
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
         new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
+        if len(new_data) == 0:
+            return new_data
         dx = diff(data.data)
         if location == 0:
             new_data[:-1,1] = data.data[:-1] + dx
