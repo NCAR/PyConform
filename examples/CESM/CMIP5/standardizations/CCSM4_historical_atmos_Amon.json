@@ -985,7 +985,7 @@
     "lat_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lat, , bdim=\"tbnd\", endpoints=0)", 
+        "definition": "bounds(lat, bdim=\"tbnd\", endpoints=0)", 
         "dimensions": [
             "lat", 
             "bnds"
