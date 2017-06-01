@@ -2672,11 +2672,10 @@
             "original_name": "TAUX", 
             "original_units": "N/m2", 
             "standard_name": "surface_downward_eastward_stress", 
-            "units": "Pa",
-            "positive": "down"
+            "units": "Pa"
         }, 
         "datatype": "float32", 
-        "definition": "up(TAUX)", 
+        "definition": "TAUX", 
         "dimensions": [
             "time", 
             "lat", 
@@ -2735,11 +2734,10 @@
             "original_name": "TAUY", 
             "original_units": "N/m2", 
             "standard_name": "surface_downward_northward_stress", 
-            "units": "Pa",
-            "positive": "down"
+            "units": "Pa"
         }, 
         "datatype": "float32", 
-        "definition": "up(TAUY)", 
+        "definition": "TAUY", 
         "dimensions": [
             "time", 
             "lat", 
