@@ -150,7 +150,12 @@ def main(argv=None):
     # Setup the PyConform data flow on all nodes
     if scomm.is_manager():
         print 'Creating the data flow...'.format(len(infiles))
-    dataflow = DataFlow(inpds, outds)
+        dataflow = DataFlow(inpds, outds)
+    else:
+        dataflow = None
+    
+    # Send the dataflow to all nodes
+    dataflow = scomm.partition(dataflow, func=Duplicate(), involved=True)
 
     # Execute the data flow (write to files)
     history = not args.no_history
