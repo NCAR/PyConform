@@ -671,7 +671,7 @@ class WriteNode(FlowNode):
                             raise ValueError(('Output coordinate variable {!r} has no calculable '
                                               'direction').format(vname))
                         if vdir_inp != vdir_out:
-                            self._idims.add(vdesc.dimensions.values()[0])
+                            self._idims.add(vdesc.dimensions.keys()[0])
             
             # Record dimension inversion information for history attributes
             if history:
