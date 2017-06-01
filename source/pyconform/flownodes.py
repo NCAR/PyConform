@@ -513,6 +513,7 @@ class ValidateNode(FlowNode):
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
+            print '{!r} |--> dims = {}'.format(indata, self.dimensions)
             indata = indata.transpose(self.dimensions)
         
         # Check the positive attribute, if specified
