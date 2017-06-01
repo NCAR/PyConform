@@ -797,6 +797,8 @@ class WriteNode(FlowNode):
         # Open the file and write the header information
         self.open(history=history)
 
+        print self._idims
+        
         # Loop over all variable nodes and write data
         for vnode in self.inputs:
 
