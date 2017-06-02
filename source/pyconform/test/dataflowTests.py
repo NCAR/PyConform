@@ -26,14 +26,16 @@ class DataFlowTests(unittest.TestCase):
 
     def setUp(self):
         self.filenames = OrderedDict([('u1', 'u1.nc'),
-                                      ('u2', 'u2.nc')])
+                                      ('u2', 'u2.nc'),
+                                      ('u3', 'u3.nc')])
         self.cleanInputFiles()
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
         self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9)])
         self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
-                                  ('u2', ('time', 'lat', 'lon'))])
+                                  ('u2', ('time', 'lat', 'lon')),
+                                  ('u3', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
                                             'standard_name': 'latitude'}),
                                    ('lon', {'units': 'degrees_east',
@@ -44,8 +46,11 @@ class DataFlowTests(unittest.TestCase):
                                    ('u1', {'units': 'km',
                                            'standard_name': 'u variable 1'}),
                                    ('u2', {'units': 'm',
-                                           'standard_name': 'u variable 2'})])
-        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd'}
+                                           'standard_name': 'u variable 2'}),
+                                   ('u3', {'units': 'kg',
+                                           'standard_name': 'u variable 3',
+                                           'positive': 'down'})])
+        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd', 'u3': 'f'}
         ydat = numpy.linspace(-90, 90, num=self.dims['lat'],
                               endpoint=True, dtype=self.dtypes['lat'])
         xdat = numpy.linspace(-180, 180, num=self.dims['lon'],
@@ -59,8 +64,10 @@ class DataFlowTests(unittest.TestCase):
                                dtype=self.dtypes['u1']).reshape(ushape)
         u2dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
                                dtype=self.dtypes['u2']).reshape(ushape)
+        u3dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
+                               dtype=self.dtypes['u3']).reshape(ushape)
         self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
-                     'u1': u1dat, 'u2': u2dat}
+                     'u1': u1dat, 'u2': u2dat, 'u3': u3dat}
 
         for vname, fname in self.filenames.iteritems():
             ncf = NCDataset(fname, 'w')
@@ -76,6 +83,8 @@ class DataFlowTests(unittest.TestCase):
                     setattr(vobj, aname, avalue)
                 vobj[:] = self.vdat[vnam]
             ncf.close()
+            print_ncfile(fname)
+            print
 
         self.inpds = datasets.InputDatasetDesc('inpds', self.filenames.values())
 
@@ -200,11 +209,43 @@ class DataFlowTests(unittest.TestCase):
         fdict['attributes'] = {'variable': 'V6'}
         vdicts['V6']['file'] = fdict
         vattribs = OrderedDict()
-        vattribs['standard_name'] = 'mean of u1 along the lon dimension'
+        vattribs['standard_name'] = 'u2 at lowest x-level'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
         vattribs['valid_max'] = 20.0
         vdicts['V6']['attributes'] = vattribs
+
+        vdicts['V7'] = OrderedDict()
+        vdicts['V7']['datatype'] = 'float64'
+        vdicts['V7']['dimensions'] = ('t', 'x', 'y')
+        vdicts['V7']['definition'] = 'down(u2)'
+        fdict = OrderedDict()
+        fdict['filename'] = 'var7.nc'
+        fdict['attributes'] = {'variable': 'V7'}
+        vdicts['V7']['file'] = fdict
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'u2 in upward direction'
+        vattribs['units'] = 'm'
+        vattribs['valid_min'] = 1.0
+        vattribs['valid_max'] = 20.0
+        vattribs['positive'] = 'up'
+        vdicts['V7']['attributes'] = vattribs
+
+        vdicts['V8'] = OrderedDict()
+        vdicts['V8']['datatype'] = 'float64'
+        vdicts['V8']['dimensions'] = ('t', 'x', 'y')
+        vdicts['V8']['definition'] = 'u3'
+        fdict = OrderedDict()
+        fdict['filename'] = 'var8.nc'
+        fdict['attributes'] = {'variable': 'V8'}
+        vdicts['V8']['file'] = fdict
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'u3 in upward direction'
+        vattribs['units'] = 'kg'
+        vattribs['valid_min'] = 1.0
+        vattribs['valid_max'] = 20.0
+        vattribs['positive'] = 'up'
+        vdicts['V8']['attributes'] = vattribs
 
         self.dsdict = vdicts
 
