@@ -459,6 +459,17 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
 
+    def test_func_down_physarray(self):
+        key = 'down'
+        indata = PhysArray(2.5, name='x')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(indata, name='down(x)', positive='down')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
 
 
 #===============================================================================
