@@ -164,7 +164,7 @@ class FindTests(unittest.TestCase):
     def test_list_functions(self):
         testname = 'list_functions()'
         actual = functions.list_functions()
-        expected = ['sqrt', 'mean']
+        expected = ['sqrt', 'mean', 'up', 'down', 'chunits']
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         
@@ -446,7 +446,20 @@ class EvaluationTests(unittest.TestCase):
         expected = set(['t'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
+
+    def test_func_up_physarray(self):
+        key = 'up'
+        indata = PhysArray(2.5, name='x')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(indata, name='up(x)', positive='up')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+
+
 
 #===============================================================================
 # Command-Line Operation

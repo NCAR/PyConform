@@ -48,38 +48,6 @@ class BoundsFunction(Function):
 
 
 #===================================================================================================
-# PositiveUpFunction
-#===================================================================================================
-class PositiveUpFunction(Function):
-    key = 'up'
-    
-    def __call__(self, data):
-        return PhysArray(data).up()
-
-
-#===================================================================================================
-# PositiveDownFunction
-#===================================================================================================
-class PositiveDownFunction(Function):
-    key = 'down'
-    
-    def __call__(self, data):
-        return PhysArray(data).down()
-
-
-#===================================================================================================
-# ChangeUnitsFunction
-#===================================================================================================
-class ChangeUnitsFunction(Function):
-    key = 'chunits'
-    
-    def __call__(self, data, units=1):
-        uobj = units.units if isinstance(units, PhysArray) else Unit(units)
-        new_name = 'chunits({}, to={})'.format(data.name, PhysArray._unit_str_(uobj))
-        return PhysArray(data, name=new_name, units=uobj)
-
-
-#===================================================================================================
 # VertInterpFunction
 #===================================================================================================
 class VertInterpFunction(Function):

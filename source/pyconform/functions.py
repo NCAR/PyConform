@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
 from numpy import sqrt, mean
+from cf_units import Unit
 
 
 #===================================================================================================
@@ -248,3 +249,35 @@ class MeanFunction(Function):
         return PhysArray(mean(data.data, axis=axes),
                          units=data.units, dimensions=new_dims, positive=data.positive,
                          name='mean({}, dims={})'.format(data.name, dim_str))
+
+
+#===================================================================================================
+# PositiveUpFunction
+#===================================================================================================
+class PositiveUpFunction(Function):
+    key = 'up'
+    
+    def __call__(self, data):
+        return PhysArray(data).up()
+
+
+#===================================================================================================
+# PositiveDownFunction
+#===================================================================================================
+class PositiveDownFunction(Function):
+    key = 'down'
+    
+    def __call__(self, data):
+        return PhysArray(data).down()
+
+
+#===================================================================================================
+# ChangeUnitsFunction
+#===================================================================================================
+class ChangeUnitsFunction(Function):
+    key = 'chunits'
+    
+    def __call__(self, data, units=1):
+        uobj = units.units if isinstance(units, PhysArray) else Unit(units)
+        new_name = 'chunits({}, to={})'.format(data.name, PhysArray._unit_str_(uobj))
+        return PhysArray(data, name=new_name, units=uobj)
