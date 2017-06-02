@@ -9,7 +9,6 @@ from pyconform import functions
 from pyconform.physarray import PhysArray
 from cf_units import Unit
 from testutils import print_test_message
-from numpy import ma
 
 import unittest
 import numpy as np
