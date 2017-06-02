@@ -346,7 +346,7 @@ class PhysArray(numpy.ma.MaskedArray):
         osyms = ''.join(symbol_map[d] for d in common_dims)
         expr = '{},{}->{}'.format(lsyms, rsyms, osyms)
         return PhysArray(numpy.ma.MaskedArray(numpy.einsum(expr, self, other),
-                                              mask=self.mask + other.mask),
+                                              mask=(self.mask + other.mask)),
                          dimensions=common_dims, units=self._op_units_(other.units, mul),
                          name='({}*{})'.format(self.name, other.name))
 
