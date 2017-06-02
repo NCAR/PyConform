@@ -46,4 +46,6 @@ def print_ncfile(filename):
             header = '      {!s} {}({}): '.format(vobj.dtype, v, vdimstr)
             datastr = array_str(vobj[:], max_line_width=10000).replace('\n', '\n{}'.format(' ' * len(header)))
             print '{}{}'.format(header, datastr)
+            for vattr in vobj.ncattrs():
+                print '         {}: {}'.format(vattr, vobj.getncattr(vattr))
 
