@@ -9,6 +9,7 @@ from pyconform import functions
 from pyconform.physarray import PhysArray
 from cf_units import Unit
 from testutils import print_test_message
+from numpy import ma
 
 import unittest
 import numpy as np
@@ -447,7 +448,7 @@ class EvaluationTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_func_up_physarray(self):
+    def test_func_up_physarray_none(self):
         key = 'up'
         indata = PhysArray(2.5, name='x')
         testname = '{}({})'.format(key, indata)
@@ -459,25 +460,61 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
 
+    def test_func_up_physarray_up(self):
+        key = 'up'
+        indata = PhysArray(2.5, name='x', positive='up')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(indata, name='x', positive='up')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        
     def test_func_up_physarray_down(self):
         key = 'up'
         indata = PhysArray(2.5, name='x', positive='down')
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         actual = func(indata)
-        expected = PhysArray(-indata, name='up(x)', positive='up')
+        expected = PhysArray(-2.5, name='up(x)', positive='up')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
-        
-    def test_func_down_physarray(self):
+
+    def test_func_down_physarray_none(self):
         key = 'down'
         indata = PhysArray(2.5, name='x')
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         actual = func(indata)
         expected = PhysArray(indata, name='down(x)', positive='down')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+
+    def test_func_down_physarray_down(self):
+        key = 'down'
+        indata = PhysArray(2.5, name='x', positive='down')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(2.5, name='x', positive='down')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+
+    def test_func_down_physarray_up(self):
+        key = 'down'
+        indata = PhysArray(2.5, name='x', positive='up')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)
+        expected = PhysArray(-2.5, name='down(x)', positive='down')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
