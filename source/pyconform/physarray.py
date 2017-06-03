@@ -43,13 +43,17 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, inarray, name=None, units=None, dimensions=None, positive=''):
-        obj = numpy.ma.asarray(inarray).view(cls)
+    def __new__(cls, indata, mask=None, name=None, units=None, dimensions=None, positive=''):
+        obj = numpy.ma.asarray(indata).view(cls)
+        
+        # Add the mask if specified
+        if mask is not None:
+            obj.mask = mask
 
         # Store a name associated with the object
         if name is None:
             if 'name' not in obj._optinfo:
-                obj.name = str(inarray)
+                obj.name = super(PhysArray, obj).__str__()
         else:
             obj.name = name
 
@@ -65,7 +69,7 @@ class PhysArray(numpy.ma.MaskedArray):
         # Store dimension names associated with each axis
         if dimensions is None:
             if 'dimensions' not in obj._optinfo:
-                obj.dimensions = tuple(range(len(numpy.shape(inarray))))
+                obj.dimensions = tuple(range(len(numpy.shape(indata))))
         else:
             obj.dimensions = dimensions
 
