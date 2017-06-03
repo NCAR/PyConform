@@ -82,7 +82,7 @@ class PhysArray(numpy.ma.MaskedArray):
         return '{}'.format(self.name)
 
     def __repr__(self):
-        datstr = ' '.join('{!r}'.format(self.data).split())
+        datstr = super(PhysArray, self).__str__()
         posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
         return ('{!s}(data={!s}, mask={!s}, fill_value={!s}, units={!r}, name={!r}, dimensions='
                 '{!s}{})').format(self.__class__.__name__, datstr, self.mask, self.fill_value,
@@ -109,54 +109,6 @@ class PhysArray(numpy.ma.MaskedArray):
         if not isinstance(units, Unit):
             raise TypeError('Units must be of Unit type')
         self._optinfo['units'] = units
-
-    @property
-    def dimensions(self):
-        """Named dimensions of the data"""
-        return self._optinfo['dimensions']
-
-    @dimensions.setter
-    def dimensions(self, dims):
-        """Named dimensions of the data"""
-        if not isinstance(dims, (list, tuple)):
-            raise TypeError('Dimensions must be a tuple')
-        if len(dims) != len(self.shape):
-            raise ValueError('Dimensions must have same length as shape')
-        self._optinfo['dimensions'] = tuple(dims)
-
-    @property
-    def positive(self):
-        """Positive direction (up or down) for the data"""
-        return self._optinfo['positive']
-
-    @positive.setter
-    def positive(self, pos):
-        """Positive direction (up or down) for the data"""
-        if isinstance(pos, basestring):
-            strpos = str(pos).lower()
-            if strpos not in ['up', 'down']:
-                raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
-            pos = strpos
-        elif pos is not None:
-            raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
-        self._optinfo['positive'] = pos
-
-    def __getitem__(self, index):
-        idx = align_index(index, self.dimensions)
-        if len(idx) == 0:
-            return self
-        else:
-            dimensions = tuple(d for i, d in zip(idx, self.dimensions) if isinstance(i, slice))
-            if dimensions != self.dimensions:
-                return PhysArray(super(PhysArray, self).__getitem__(idx), dimensions=dimensions)
-            else:
-                return super(PhysArray, self).__getitem__(idx)
-
-    def __setitem__(self, index, values):
-        idx = align_index(index, self.dimensions)
-        if isinstance(values, PhysArray):
-            values = values.convert(self.units).transpose(self.dimensions)
-        super(PhysArray, self).__setitem__(idx, values)
 
     @staticmethod
     def _unit_str_(units):
@@ -196,11 +148,19 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             raise UnitsError('Cannot convert units {!r} to {!r}'.format(self.units, units))
 
-    def _convert_scalar_check_(self, units):
-        if self.units != units:
-            return self.convert(units)
-        else:
-            return self
+    @property
+    def dimensions(self):
+        """Named dimensions of the data"""
+        return self._optinfo['dimensions']
+
+    @dimensions.setter
+    def dimensions(self, dims):
+        """Named dimensions of the data"""
+        if not isinstance(dims, (list, tuple)):
+            raise TypeError('Dimensions must be a tuple')
+        if len(dims) != len(self.shape):
+            raise ValueError('Dimensions must have same length as shape')
+        self._optinfo['dimensions'] = tuple(dims)
 
     @staticmethod
     def _transpose_name_(name, idims, odims):
@@ -229,12 +189,23 @@ class PhysArray(numpy.ma.MaskedArray):
         return PhysArray(super(PhysArray, self).transpose(*axes), dimensions=new_dims,
                          name=PhysArray._transpose_name_(self.name, self.dimensions, new_dims))
 
-    def _transpose_scalar_check_(self, obj):
-        if self.dimensions == () or obj.dimensions == () or self.dimensions == obj.dimensions:
-            return self
-        else:
-            return self.transpose(obj.dimensions)
-    
+    @property
+    def positive(self):
+        """Positive direction (up or down) for the data"""
+        return self._optinfo['positive']
+
+    @positive.setter
+    def positive(self, pos):
+        """Positive direction (up or down) for the data"""
+        if isinstance(pos, basestring):
+            strpos = str(pos).lower()
+            if strpos not in ['up', 'down']:
+                raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
+            pos = strpos
+        elif pos is not None:
+            raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
+        self._optinfo['positive'] = pos
+
     def flip(self):
         """
         Flip the direction of the positive attribute, if set, and correspondingly multiply by -1
@@ -274,6 +245,35 @@ class PhysArray(numpy.ma.MaskedArray):
             self = self.flip()
         return self
 
+    def __getitem__(self, index):
+        idx = align_index(index, self.dimensions)
+        if len(idx) == 0:
+            return self
+        else:
+            dimensions = tuple(d for i, d in zip(idx, self.dimensions) if isinstance(i, slice))
+            if dimensions != self.dimensions:
+                return PhysArray(super(PhysArray, self).__getitem__(idx), dimensions=dimensions)
+            else:
+                return super(PhysArray, self).__getitem__(idx)
+
+    def __setitem__(self, index, values):
+        idx = align_index(index, self.dimensions)
+        if isinstance(values, PhysArray):
+            values = values.convert(self.units).transpose(self.dimensions)
+        super(PhysArray, self).__setitem__(idx, values)
+
+    def _convert_scalar_check_(self, units):
+        if self.units != units:
+            return self.convert(units)
+        else:
+            return self
+
+    def _transpose_scalar_check_(self, obj):
+        if self.dimensions == () or obj.dimensions == () or self.dimensions == obj.dimensions:
+            return self
+        else:
+            return self.transpose(obj.dimensions)
+
     def _match_positive_(self, other):
         if self.positive == other.positive:
             return other, self.positive
@@ -283,13 +283,13 @@ class PhysArray(numpy.ma.MaskedArray):
             return other, self.positive
         else:
             return PhysArray(other).flip(), self.positive
-            
+
     def _return_dims_(self, other):
         if self.dimensions == ():
             return other.dimensions
         else:
             return self.dimensions
-    
+
     def __add__(self, other):
         other = PhysArray(other)._convert_scalar_check_(self.units)._transpose_scalar_check_(self)
         other, positive = self._match_positive_(other)
