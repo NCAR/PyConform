@@ -13,6 +13,7 @@ import unittest
 import numpy
 import operator
 from numpy import testing as npt
+from copy import deepcopy
 
 
 
@@ -94,7 +95,7 @@ class PhysArrayTests(unittest.TestCase):
         testname = 'PhysArray([[1,2],[3,4]], name="X").dimensions'
         X = PhysArray([[1,2],[3,4]], name='X')
         actual = X.dimensions
-        expected = (0,1)
+        expected = (1,0)
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
             
@@ -233,20 +234,6 @@ class PhysArrayBinOpTests(PhysArrayTests):
     Unit tests for binary operators of the PhysArray class
     """
 
-    def _test_binary_operator_(self, binop, expvals, testname):
-        for i,j in expvals:
-            expected = expvals[(i,j)]
-            X = PhysArray(self.vs[i], name='X') if isinstance(self.vs[i], PhysArray) else self.vs[i]
-            Y = PhysArray(self.vs[j], name='Y') if isinstance(self.vs[j], PhysArray) else self.vs[j]
-                
-            if type(expected) is type and issubclass(expected, Exception):
-                print_test_message(testname, X=X, Y=Y, expected=expected)
-                self.assertRaises(expected, binop, X, Y)
-            else:                        
-                actual = binop(X, Y)
-                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
-                self.assertPhysArraysEqual(actual, expected, testname)
-
     def setUp(self):
         self.vs = {0: 1.0,
                    1: PhysArray(1.0),
@@ -263,20 +250,36 @@ class PhysArrayBinOpTests(PhysArrayTests):
                    12: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('x', 'y'), positive='up'),
                    13: PhysArray([[1.0, 2.0], [3.0, 4.0]], dimensions=('y', 'x'), positive='down')}
 
+    def _test_binary_operator_(self, binop, expvals, testname):
+        for i,j in expvals:
+            expected = expvals[(i,j)]
+            X = PhysArray(deepcopy(self.vs[i]), name='X') if isinstance(self.vs[i], PhysArray) else deepcopy(self.vs[i])
+            Y = PhysArray(deepcopy(self.vs[j]), name='Y') if isinstance(self.vs[j], PhysArray) else deepcopy(self.vs[j])
+            
+            print '{}: {!r}'.format(i,X)
+            print '{}: {!r}'.format(j,Y)
+            if type(expected) is type and issubclass(expected, Exception):
+                print_test_message(testname, X=X, Y=Y, expected=expected)
+                self.assertRaises(expected, binop, X, Y)
+            else:
+                actual = binop(X, Y)
+                print_test_message(testname, X=X, Y=Y, actual=actual, expected=expected)
+                self.assertPhysArraysEqual(actual, expected, testname)
+
     def test_add(self):
         expvals = {(0,1): PhysArray(2.0, name='(1.0+Y)'),
                    (1,0): PhysArray(2.0, name='(X+1.0)'),
                    (1,1): PhysArray(2.0, name='(X+Y)'),
-                   (1,2): PhysArray(2.0, name='(X+Y)', positive='up'),
-                   (2,1): PhysArray(2.0, name='(X+Y)', positive='up'),
-                   (1,3): PhysArray(2.0, name='(X+Y)', positive='down'),
+                   (1,2): PhysArray(2.0, name='(up(X)+Y)', positive='up'),
+                   (2,1): PhysArray(2.0, name='(X+up(Y))', positive='up'),
+                   (1,3): PhysArray(2.0, name='(down(X)+Y)', positive='down'),
                    (2,3): PhysArray(0.0, name='(X+up(Y))', positive='up'),
                    (3,2): PhysArray(0.0, name='(X+down(Y))', positive='down'),
                    (4,5): PhysArray(1.01, name='(X+convert(Y, from=cm, to=m))', units='m'),
                    (6,7): PhysArray(1.02, name='(X+convert(Y, from=0.02, to=1))', units=1),
                    (1,8): PhysArray([2.0, 3.0, 4.0], name='(X+Y)', dimensions=('x',)),
                    (8,8): PhysArray([2.0, 4.0, 6.0], name='(X+Y)', dimensions=('x',)),
-                   (8,9): DimensionsError,
+                   (8,9): PhysArray([[5., 6., 7.], [6., 7., 8.], [7., 8., 9.]], name='(X+Y)', dimensions=('x','y')),
                    (8,10): DimensionsError,
                    (10,10): PhysArray([[2.0, 4.0], [6.0, 8.0]], name='(X+Y)', dimensions=('x', 'y')),
                    (10,11): PhysArray([[2.0, 5.0], [5.0, 8.0]], name="(X+transpose(Y, from=[y,x], to=[x,y]))", dimensions=('x', 'y')),
@@ -360,7 +363,7 @@ class PhysArrayBinOpTests(PhysArrayTests):
         testname = 'X.__iadd__(Y)'
         actual = X.copy()
         actual += Y
-        new_name = ("({}+transpose(convert({}, from={}, to={}), from=[v,u], to=[u,v]))"
+        new_name = ("({}+convert(transpose({}, from=[v,u], to=[u,v]), from={}, to={}))"
                     "").format(X.name, Y.name, Y.units, X.units)
         expected = PhysArray([[5001., 7002.], [6003., 8004.]], name=new_name,
                                        units=X.units, dimensions=X.dimensions)
