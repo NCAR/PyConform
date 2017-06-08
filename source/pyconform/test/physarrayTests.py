@@ -478,65 +478,48 @@ class PhysArrayBinOpTests(PhysArrayTests):
                    (12,13): PhysArray([[-1., -1.], [-2.0, -1.0]], name='(X//up(transpose(Y, from=[y,x], to=[x,y])))', dimensions=('x', 'y'), positive='up')}
         self._test_binary_operator_(operator.ifloordiv, expvals, 'X //= Y')
 
-    def test_mod_positive(self):
-        test_inputs = [(None, None), (None, 'up'), ('down', None), ('up', 'up'), ('up', 'down')]
-        test_names = ['(X%Y)', '(X%Y)', '(X%Y)', '(X%Y)', '(X%up(Y))']
-        test_values = [1.0, 1.0, 1.0, 1.0, -3.0]
-        test_positives = [None, None, 'down', 'up', 'up']
-        for (xpos, ypos), name, value, positive in zip(test_inputs, test_names, test_values, test_positives):
-            testname = 'X(positive={!r}).__mod__(Y(positive={!r}))'.format(xpos, ypos)
-            X = PhysArray(9.0, name='X', positive=xpos)
-            Y = PhysArray(4.0, name='Y', positive=ypos)
-            actual = X % Y
-            expected = PhysArray(value, name=name, positive=positive)
-            print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-            self.assertPhysArraysEqual(actual, expected, testname=testname)
-            
-    def test_mod_array_array(self):
-        X = PhysArray([[1., 2.], [3., 4.]], name='X', units='km', dimensions=('u', 'v'))
-        Y = PhysArray([[5., 6.], [7., 8.]], name='Y', units='m', dimensions=('v', 'u'))
-        testname = 'X.__mod__(Y)'
-        actual = X % Y
-        new_name = "({}%transpose({}, from=[v,u], to=[u,v]))".format(X.name, Y.name)
-        expected = PhysArray([[1 % 5., 2 % 7.], [3 % 6., 4 % 8.]],
-                                       units=X.units, name=new_name, dimensions=X.dimensions)
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        self.assertPhysArraysEqual(actual, expected, testname=testname)
+    def test_mod(self):
+        expvals = {(0,1): PhysArray(1.0, name='(1.0%Y)'),
+                   (1,0): PhysArray(1.0, name='(X%1.0)'),
+                   (1,1): PhysArray(1.0, name='(X%Y)'),
+                   (1,2): PhysArray(1.0, name='(up(X)%Y)', positive='up'),
+                   (2,1): PhysArray(1.0, name='(X%up(Y))', positive='up'),
+                   (1,3): PhysArray(1.0, name='(down(X)%Y)', positive='down'),
+                   (2,3): PhysArray(-1.0, name='(X%up(Y))', positive='up'),
+                   (3,2): PhysArray(-1.0, name='(X%down(Y))', positive='down'),
+                   (4,5): PhysArray(1.0, name='(X%Y)', units='100'),
+                   (6,7): PhysArray(1.0, name='(X%Y)', units='50'),
+                   (1,8): PhysArray([1.0, 0.5, 1/3.], name='(X%Y)', dimensions=('x',)),
+                   (8,8): PhysArray([1.0, 1.0, 1.0], name='(X%Y)', dimensions=('x',)),
+                   (8,9): PhysArray([[.25, .2, 1/6.], [.5, .4, 1/3.], [.75, 3/5., .5]], dimensions=('x','y'),
+                                    name='(broadcast(X, from=[x], to=[x,y])%transpose(broadcast(Y, from=[y], to=[y,x]), from=[y,x], to=[x,y]))'),
+                   (8,10): DimensionsError,
+                   (10,10): PhysArray([[1.0, 1.0], [1.0, 1.0]], name='(X%Y)', dimensions=('x', 'y')),
+                   (10,11): PhysArray([[1.0, 2/3.], [1.5, 1.0]], name='(X%transpose(Y, from=[y,x], to=[x,y]))', dimensions=('x', 'y')),
+                   (11,12): PhysArray([[1.0, 2/3.], [1.5, 1.0]], name='(up(X)%transpose(Y, from=[x,y], to=[y,x]))', dimensions=('y', 'x'), positive='up'),
+                   (12,13): PhysArray([[-1.0, -2/3.], [-1.5, -1.0]], name='(X%up(transpose(Y, from=[y,x], to=[x,y])))', dimensions=('x', 'y'), positive='up')}
+        self._test_binary_operator_(operator.mod, expvals, 'X % Y')
 
-    def test_mod_num_array(self):
-        X = 20.
-        Y = PhysArray([[5, 6], [7, 8]], name='Y', units='m', dimensions=('v', 'u'))
-        testname = 'X.__rmod__(Y)'
-        actual = X % Y
-        expected = PhysArray([[20. % 5, 20. % 6], [20. % 7, 20. % 8]], name='(20.0%Y)',
-                                       units='1', dimensions=Y.dimensions)
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        self.assertPhysArraysEqual(actual, expected, testname=testname)
-
-    def test_mod_array_num(self):
-        X = PhysArray([[5, 6], [7, 8]], name='X', units='m', dimensions=('u', 'v'))
-        Y = 2.
-        testname = 'X.__mod__(Y)'
-        actual = X % Y
-        expected = PhysArray([[5 % 2., 6 % 2.], [7 % 2., 8 % 2.]], name='(X%2.0)',
-                                       units=X.units, dimensions=X.dimensions)
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        self.assertPhysArraysEqual(actual, expected, testname=testname)
-
-    def test_imod_array(self):
-        xdata = numpy.array([[1, 2], [3, 4]], dtype='d')
-        ydata = numpy.array([[5, 6], [7, 8]], dtype='d')
-        X = PhysArray(xdata, name='X', units='m', dimensions=('u', 'v'))
-        Y = PhysArray(ydata, name='Y', units='km', dimensions=('v', 'u'))
-        testname = 'X.__imod__(Y)'
-        actual = X.copy()
-        actual %= Y
-        new_name = "({}%transpose({}, from=[{}], to=[{}]))".format(X, Y, ','.join(Y.dimensions),
-                                                                   ','.join(X.dimensions))
-        expected = PhysArray([[1. % 5000, 2. % 7000], [3. % 6000, 4. % 8000]],
-                                       name=new_name, units=X.units, dimensions=X.dimensions)
-        print_test_message(testname, actual=actual, expected=expected, X=X, Y=Y)
-        self.assertPhysArraysEqual(actual, expected, testname=testname)
+    def test_imod(self):
+        expvals = {(0,1): PhysArray(1.0, name='(1.0%Y)'),
+                   (1,0): PhysArray(1.0, name='(X%1.0)'),
+                   (1,1): PhysArray(1.0, name='(X%Y)'),
+                   (1,2): PhysArray(1.0, name='(up(X)%Y)', positive='up'),
+                   (2,1): PhysArray(1.0, name='(X%up(Y))', positive='up'),
+                   (1,3): PhysArray(1.0, name='(down(X)%Y)', positive='down'),
+                   (2,3): PhysArray(-1.0, name='(X%up(Y))', positive='up'),
+                   (3,2): PhysArray(-1.0, name='(X%down(Y))', positive='down'),
+                   (4,5): PhysArray(1.0, name='(X%Y)', units='100'),
+                   (6,7): PhysArray(1.0, name='(X%Y)', units='50'),
+                   (1,8): DimensionsError,
+                   (8,8): PhysArray([1.0, 1.0, 1.0], name='(X%Y)', dimensions=('x',)),
+                   (8,9): DimensionsError,
+                   (8,10): DimensionsError,
+                   (10,10): PhysArray([[1.0, 1.0], [1.0, 1.0]], name='(X%Y)', dimensions=('x', 'y')),
+                   (10,11): PhysArray([[1.0, 2/3.], [1.5, 1.0]], name='(X%transpose(Y, from=[y,x], to=[x,y]))', dimensions=('x', 'y')),
+                   (11,12): PhysArray([[1.0, 2/3.], [1.5, 1.0]], name='(up(X)%transpose(Y, from=[x,y], to=[y,x]))', dimensions=('y', 'x'), positive='up'),
+                   (12,13): PhysArray([[-1.0, -2/3.], [-1.5, -1.0]], name='(X%up(transpose(Y, from=[y,x], to=[x,y])))', dimensions=('x', 'y'), positive='up')}
+        self._test_binary_operator_(operator.imod, expvals, 'X %= Y')
 
     def test_pow_positive(self):
         test_inputs = [(None, 2), (None, 3), ('up', 2), ('down', 3)]
