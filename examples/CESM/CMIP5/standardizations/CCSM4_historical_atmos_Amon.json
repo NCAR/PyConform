@@ -165,7 +165,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "ba0538b8-2739-401a-99f7-acc2a8b40163"
             }, 
-            "filename": "cl_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "cl_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["ps", "p0"]
         }
     }, 
     "cli": {
@@ -229,7 +230,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "2ea96d28-93aa-4340-b522-476f40f2c10d"
             }, 
-            "filename": "cli_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "cli_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["ps", "p0"]
         }
     }, 
     "clivi": {
@@ -419,7 +421,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "91ec0e97-c0f7-49fc-ae20-6b5fd5bbcf2e"
             }, 
-            "filename": "clw_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "clw_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["ps", "p0"]
         }
     }, 
     "clwvi": {
@@ -810,7 +813,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "deafca15-2f15-4a48-a929-7a892baa82e0"
             }, 
-            "filename": "hurs_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "hurs_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["height"]
         }
     }, 
     "hus": {
@@ -938,7 +942,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "61a85669-1570-4b06-bbde-0ea319aaca50"
             }, 
-            "filename": "huss_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "huss_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["height"]
         }
     }, 
     "ilev": {
@@ -1111,7 +1116,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "b840b426-0f20-4893-aeab-5c969fab2dd2"
             }, 
-            "filename": "mc_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "mc_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["ps", "p0"]
         }
     }, 
     "p0": {
@@ -2531,7 +2537,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "852cedbf-bbee-4f1f-8a04-d2aa903b418f"
             }, 
-            "filename": "tas_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "tas_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["height"]
         }
     }, 
     "tasmax": {
@@ -2594,7 +2601,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "47ec0131-6efb-422a-bb80-dbfc636d3901"
             }, 
-            "filename": "tasmax_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "tasmax_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["height"]
         }
     }, 
     "tasmin": {
@@ -2657,7 +2665,8 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "5a15286b-bf61-48fb-b104-fea3883dd7cb"
             }, 
-            "filename": "tasmin_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
+            "filename": "tasmin_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
+            "metavars": ["height"]
         }
     }, 
     "tauu": {
