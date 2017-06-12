@@ -519,6 +519,19 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
 
+    def test_func_chunits(self):
+        key = 'chunits'
+        indata = PhysArray(2.5, name='x', units='m')
+        new_units = 'kg'
+        testname = '{}({}, units={})'.format(key, indata, new_units)
+        func = functions.find(key)
+        actual = func(indata, units=new_units)
+        expected = PhysArray(2.5, name='chunits(x, units=kg)', units=new_units)
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+
 
 #===============================================================================
 # Command-Line Operation

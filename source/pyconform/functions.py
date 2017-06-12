@@ -279,5 +279,6 @@ class ChangeUnitsFunction(Function):
     
     def __call__(self, data, units=1):
         uobj = units.units if isinstance(units, PhysArray) else Unit(units)
-        new_name = 'chunits({}, to={})'.format(data.name, PhysArray._unit_str_(uobj))
+        unit_str = '{}{}'.format(uobj, '' if uobj.calendar is None else '|{}'.format(uobj.calendar))
+        new_name = 'chunits({}, units={})'.format(data.name, unit_str)
         return PhysArray(data, name=new_name, units=uobj)
