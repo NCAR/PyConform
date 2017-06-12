@@ -714,7 +714,8 @@ class OutputDatasetDesc(DatasetDesc):
                     vdesc = variables[mvname]
 
                     # Include this variable in the file only if all of its dimensions are included
-                    if set(vdesc.dimensions.keys()).issubset(fdims):
+                    # (Scalar variables are excluded and must be included as metadata explicitly)
+                    if len(vdesc.dimensions) > 0 and set(vdesc.dimensions.keys()).issubset(fdims):
                         vlist[mvname] = vdesc
             
             # Loop through the current list of variables and check for any "bounds" or "coordinates" attributes
