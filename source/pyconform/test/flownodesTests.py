@@ -516,7 +516,7 @@ class ValidateNodeTests(unittest.TestCase):
         N1 = ValidateNode('validate(x)', N0, **indata)
         actual = N1[:]
         expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float64)
-        expected.name = PhysArray._convert_name_('x', Unit('m'), Unit('km'))
+        expected.name = 'convert(x, from=m, to=km)'
         expected.units = Unit('km')
         expected.mask = False
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
