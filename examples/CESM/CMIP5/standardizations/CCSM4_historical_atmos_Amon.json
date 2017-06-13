@@ -15,7 +15,7 @@
             "long_name": "vertical coordinate formula term: a(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(hyam, bdim=\"tbnd\")", 
+        "definition": "bounds(hyam, bdim=\"tbnd\", idata=hyai)", 
         "dimensions": [
             "lev", 
             "bnds"
@@ -37,7 +37,7 @@
             "long_name": "vertical coordinate formula term: b(k+1/2)"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(hybm, bdim=\"tbnd\")", 
+        "definition": "bounds(hybm, bdim=\"tbnd\", idata=hybi)",
         "dimensions": [
             "lev", 
             "bnds"
@@ -967,7 +967,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(ilev, bdim=\"tbnd\")", 
+        "definition": "bounds(ilev, bdim=\"tbnd\", idata=lev)", 
         "dimensions": [
             "ilev", 
             "bnds"
