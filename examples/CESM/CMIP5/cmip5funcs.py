@@ -26,11 +26,12 @@ class BoundsFunction(Function):
         
         self.add_sumlike_dimensions(data.dimensions[0])
         
+        bnds = PhysArray([1, 1], dimensions=(bdim,))
+        new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
+        if len(new_data) == 0:
+            return new_data
+        
         if idata is None:
-            bnds = PhysArray([1, 1], dimensions=(bdim,))
-            new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
-            if len(new_data) == 0:
-                return new_data
             dx = diff(data.data)
             if location == 0:
                 new_data[:-1,1] = data.data[:-1] + dx
@@ -75,15 +76,10 @@ class BoundsFunction(Function):
                 raise ValueError('bounds: interface-data length is {} but should be {} or '
                                  '{}'.format(len(idata), ifc_len, ifc_len-2))
 
-            bnds_data = empty((len(data), 2), dtype=data.dtype)
-            bnds_data[:,0] = ifc_data[:-1]
-            bnds_data[:,1] = ifc_data[1:]
-            
-            new_dims = data.dimensions + (bdim,)
-            new_name = 'bounds({})'.format(data.name)
-            new_units = data.units
-            
-            return PhysArray(bnds_data, mask=data.mask, name=new_name, units=new_units, dimensions=new_dims)
+            new_data[:,0] = ifc_data[:-1]
+            new_data[:,1] = ifc_data[1:]
+
+        return new_data
             
 
 #===================================================================================================
