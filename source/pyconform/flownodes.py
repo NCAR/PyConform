@@ -816,14 +816,15 @@ class WriteNode(FlowNode):
 
             # Loop over all chunks for the given output variable's dimensions
             for chunk in WriteNode._chunk_iter_(vdims, vsizes, chunks=chunks):
-                rchunk = OrderedDict((d,c) for d,c in zip(vdims, chunk))
-                vdata0 = vnode[rchunk]
+                rchunk0 = OrderedDict((d,c) for d,c in zip(vdims, chunk))
+                vdata0 = vnode[rchunk0]
                 ichunk = self._invert_dims(zip(vdims, vsizes, chunk), idims=self._idims)
                 rchunk = OrderedDict((d,c) for d,c in zip(vdims, ichunk))
                 vdata = vnode[rchunk]
                 if vname == 'a_bnds':
                     print '*** dims / chunk = {} / {}'.format(vdims, chunk)
-                    print '*** rchunk = {}'.format(rchunk)
+                    print '*** rchunk = {}'.format(rchunk0)
+                    print '*** ichunk = {}'.format(rchunk)
                     print '*** data[rchunk] = {!r}'.format(vdata0)
                     print '*** data[ichunk] = {!r}'.format(vdata)
                 ncvar[chunk] = vdata
