@@ -293,8 +293,7 @@ class EvalNode(FlowNode):
         self._keywords = {}
         for kwd in kwds:
             if kwd in valid_kwds:
-                kval = kwds[kwd]
-                self._keywords[kwd] = kval[None] if isinstance(kval, FlowNode) else kval
+                self._keywords[kwd] = kwds[kwd]
             else:
                 raise ValueError(('Unrecognized keyword argument {!r} for FlowNode function '
                                   '{!r}.').format(kwd, label))
@@ -322,12 +321,13 @@ class EvalNode(FlowNode):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
+        kwds = {d:self._keywords[d][index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self._keywords}
         if len(self.inputs) == 0:
-            data = self._function(**self._keywords)
+            data = self._function(**kwds)
             return data[index] if isinstance(data, PhysArray) else data
         else:
             args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
-            return self._function(*args, **self._keywords)
+            return self._function(*args, **kwds)
 
 
 #===================================================================================================
