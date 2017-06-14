@@ -724,14 +724,15 @@ class WriteNode(FlowNode):
             self._file = None
 
     @staticmethod
-    def _chunk_iter_(dimsizes, chunks={}):
-        if ((not isinstance(dimsizes, (tuple, list))) and
-            (not all(isinstance(ds, tuple) and len(ds)==2 for ds in dimsizes))):
-            raise TypeError('Dimensions must be a tuple or list of dimension-size pairs')
+    def _chunk_iter_(dims, sizes, chunks={}):
+        if not isinstance(dims, (tuple, list)):
+            raise TypeError('Dimensions must be a tuple or list of dimension names')
+        if not isinstance(sizes, (tuple, list)):
+            raise TypeError('Dimension sizes must be a tuple or list of integer sizes')
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
 
-        dsizes = {d:s for d,s in dimsizes}
+        dsizes = {d:s for d,s in zip(dims, sizes)}
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
         ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
@@ -741,7 +742,7 @@ class WriteNode(FlowNode):
             for d in nchunks:
                 n, idx[d] = divmod(n, nchunks[d])
             chunk = []
-            for d, _ in dimsizes:
+            for d in dims:
                 lb = idx[d] * chunks_[d]
                 ub = (idx[d] + 1) * chunks_[d]
                 chunk.append(slice(lb, ub if ub < dsizes[d] else None))    
@@ -813,15 +814,18 @@ class WriteNode(FlowNode):
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
-            # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
+            # Loop over all chunks for the given output variable's dimensions
+            for chunk in WriteNode._chunk_iter_(vdims, vsizes, chunks=chunks):
+                rchunk = OrderedDict((d,c) for d,c in zip(vdims, chunk))
+                vdata0 = vnode[rchunk]
                 ichunk = self._invert_dims(zip(vdims, vsizes, chunk), idims=self._idims)
                 rchunk = OrderedDict((d,c) for d,c in zip(vdims, ichunk))
                 vdata = vnode[rchunk]
                 if vname == 'a_bnds':
                     print '*** dims / chunk = {} / {}'.format(vdims, chunk)
                     print '*** rchunk = {}'.format(rchunk)
-                    print '*** data[rchunk] = {!r}'.format(vdata[:])
+                    print '*** data[rchunk] = {!r}'.format(vdata0)
+                    print '*** data[ichunk] = {!r}'.format(vdata)
                 ncvar[chunk] = vdata
 
         # Close the file after completion
