@@ -821,7 +821,7 @@ class WriteNode(FlowNode):
                 if vname == 'a_bnds':
                     print '*** dims / chunk = {} / {}'.format(vdims, chunk)
                     print '*** rchunk = {}'.format(rchunk)
-                    print '*** data[rchunk] = {}'.format(vdata[:])
+                    print '*** data[rchunk] = {!r}'.format(vdata[:])
                 ncvar[chunk] = vdata
 
         # Close the file after completion
