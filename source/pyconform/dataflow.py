@@ -295,6 +295,7 @@ class DataFlow(object):
 
         # Standard output
         print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
+        scomm.sync()
         
         # Loop over output files and write using given chunking
         for fname in fnames:
