@@ -123,8 +123,10 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                raise ValueError(('Cannot map dimensions {} to dimensions {} in output variable '
-                                  '{}').format(inp_dims, out_dims, vname))
+                map_str = ', '.join('{}-->{}'.format(k,self._i2omap[k]) for k in self._i2omap)
+                err_msg = ('Cannot map dimensions {} to dimensions {} in output variable {} '
+                           '(MAP: {})').format(inp_dims, out_dims, vname, map_str)
+                raise ValueError(err_msg)
             if len(unmapped_out) == 0:
                 continue
             for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
@@ -203,8 +205,7 @@ class DataFlow(object):
                 return self._datnodes[vname]
 
             else:
-                raise VariableNotFoundError(('Variable {!r} not found or cannot be used as '
-                                             'input').format(vname))
+                raise VariableNotFoundError(('Variable {!r} not found or cannot be used as input').format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             name = obj.key
