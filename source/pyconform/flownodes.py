@@ -406,7 +406,7 @@ class MapNode(FlowNode):
         if inp_dims == out_dims:
             name = inp_info.name
         else:
-            name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
+            name = 'map({},from=[{}],to=[{}])'.format(inp_info.name, idims_str, odims_str)
         return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
