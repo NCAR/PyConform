@@ -683,7 +683,7 @@ class WriteNode(FlowNode):
                     vinfo = vnode[None]
                     idimstr = ','.join(d for d in vinfo.dimensions if d in self._idims)
                     if len(idimstr) > 0:
-                        vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
+                        vhist[vname] = 'invdims({},dims=[{}])'.format(vinfo.name, idimstr)
                     else:
                         vhist[vname] = vinfo.name
 
