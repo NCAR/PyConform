@@ -280,6 +280,9 @@ class DataFlow(object):
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
             print 'Beginning execution of data flow...'
+            print 'Mapping Input Dimensions:'
+            for d in sorted(self._i2omap):
+                print '   {} --> {}'.format(d, self._i2omap[d])
 
         # Partition the output files/variables over available parallel (MPI) ranks
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
