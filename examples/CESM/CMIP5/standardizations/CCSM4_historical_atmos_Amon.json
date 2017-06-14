@@ -1117,7 +1117,7 @@
                 "tracking_id": "b840b426-0f20-4893-aeab-5c969fab2dd2"
             }, 
             "filename": "mc_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["ps", "p0"]
+            "metavars": ["ps", "p0", "a", "b"]
         }
     }, 
     "p0": {
