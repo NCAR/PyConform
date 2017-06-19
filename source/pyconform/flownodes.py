@@ -813,6 +813,10 @@ class WriteNode(FlowNode):
             # Get the header information for this variable node
             vdesc = self._filedesc.variables[vname]
             vdims = OrderedDict((d, vdesc.dimensions[d].size) for d in vdesc.dimensions)
+            
+            common_idims = tuple(d for d in vdims if d in self._idims)
+            if len(common_idims) > 0:
+                print '*** {} should be inverted along axes: {}'.format(vname, common_idims)
 
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
