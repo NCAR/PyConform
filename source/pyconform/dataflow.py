@@ -283,9 +283,12 @@ class DataFlow(object):
             print 'Mapping Input Dimensions to Output Dimensions:'
             for d in sorted(self._i2omap):
                 print '   {} --> {}'.format(d, self._i2omap[d])
-            print 'Chunking over Output Dimensions:'
-            for d in chunks:
-                print '   {}: {}'.format(d, chunks[d])
+            if len(chunks) > 0:
+                print 'Chunking over Output Dimensions:'
+                for d in chunks:
+                    print '   {}: {}'.format(d, chunks[d])
+            else:
+                print 'Not chunking output.'
 
         # Partition the output files/variables over available parallel (MPI) ranks
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
@@ -300,7 +303,11 @@ class DataFlow(object):
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, history=history)
+            if history:
+                self._writenodes[fname].enable_history()
+            else:
+                self._writenodes[fname].disable_history()
+            self._writenodes[fname].execute(chunks=chunks)
 
         scomm.sync()
         if scomm.is_manager():

@@ -14,6 +14,7 @@ from cf_units import Unit
 from os.path import exists
 from os import remove
 from glob import glob
+from collections import OrderedDict
 
 import unittest
 import numpy
@@ -568,10 +569,9 @@ class ValidateNodeTests(unittest.TestCase):
         indata = {'dimensions': ('y',)}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = ValidateNode('validate(x)', N0, **indata)
         expected = DimensionsError
         print_test_message(testname, indata=indata, expected=expected)
-        self.assertRaises(expected, N1.__getitem__, slice(None))
+        self.assertRaises(expected, ValidateNode, 'validate(x)', N0, **indata)
 
     def test_min_warn(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -678,75 +678,73 @@ class WriteNodeTests(unittest.TestCase):
         self.assertIsInstance(N, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_default(self):
-        dims = ('x', 'y')
-        sizes = (2, 3)
-        testname = 'WriteNode._chunk_iter_({}, {})'.format(dims, sizes)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes)]
-        expected = [(slice(0, None, None), slice(0, None, None))]
+        dsizes = OrderedDict([('x', 2), ('y', 3)])
+        testname = 'WriteNode._chunk_iter_({})'.format(dsizes)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes)]
+        expected = [OrderedDict([('x', slice(0, None, None)), ('y', slice(0, None, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_1D(self):
-        dims = ('x', 'y')
-        sizes = (4, 5)
+        dsizes = OrderedDict([('x', 4), ('y', 5)])
         chunks = {'x': 2}
-        testname = 'WriteNode._chunk_iter_({}, {}, chunks={})'.format(dims, sizes, chunks)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes, chunks=chunks)]
-        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes, chunks=chunks)]
+        expected = [OrderedDict([('x', slice(0, 2)), ('y', slice(0, None))]),
+                    OrderedDict([('x', slice(2, None)), ('y', slice(0, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_1D_unnamed(self):
-        dims = ('x', 'y')
-        sizes = (4, 5)
+        dsizes = OrderedDict([('x', 4), ('y', 5)])
         chunks = {'z': 2}
-        testname = 'WriteNode._chunk_iter_({}, {}, chunks={})'.format(dims, sizes, chunks)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes, chunks=chunks)]
-        expected = [(slice(0, None), slice(0, None))]
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes, chunks=chunks)]
+        expected = [OrderedDict([('x', slice(0, None, None)), ('y', slice(0, None, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D(self):
-        dims = ('x', 'y')
-        sizes = (4, 5)
+        dsizes = OrderedDict([('x', 4), ('y', 5)])
         chunks = {'x': 2, 'y': 3}
-        testname = 'WriteNode._chunk_iter_({}, {}, chunks={})'.format(dims, sizes, chunks)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes, chunks=chunks)]
-        expected = [(slice(0, 2), slice(0, 3)), (slice(0, 2), slice(3, None)),
-                    (slice(2, None), slice(0, 3)), (slice(2, None), slice(3, None))]
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes, chunks=chunks)]
+        expected = [OrderedDict([('x', slice(0, 2, None)), ('y', slice(0, 3, None))]),
+                    OrderedDict([('x', slice(0, 2, None)), ('y', slice(3, None, None))]),
+                    OrderedDict([('x', slice(2, None, None)), ('y', slice(0, 3, None))]),
+                    OrderedDict([('x', slice(2, None, None)), ('y', slice(3, None, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D_unnamed(self):
-        dims = ('x', 'y')
-        sizes = (4, 5)
+        dsizes = OrderedDict([('x', 4), ('y', 5)])
         chunks = {'x': 2, 'z': 3}
-        testname = 'WriteNode._chunk_iter_({}, {}, chunks={})'.format(dims, sizes, chunks)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes, chunks=chunks)]
-        expected = [(slice(0, 2), slice(0, None)), (slice(2, None), slice(0, None))]
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes, chunks=chunks)]
+        expected = [OrderedDict([('x', slice(0, 2, None)), ('y', slice(0, None, None))]),
+                    OrderedDict([('x', slice(2, None, None)), ('y', slice(0, None, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_chunk_iter_2D_reverse(self):
-        dims = ('y', 'x')
-        sizes = (5, 4)
+        dsizes = OrderedDict([('y', 5), ('x', 4)])
         chunks = {'x': 2, 'y': 3}
-        testname = 'WriteNode._chunk_iter_({}, {}, chunks={})'.format(dims, sizes, chunks)
-        actual = [chunk for chunk in WriteNode._chunk_iter_(dims, sizes, chunks=chunks)]
-        expected = [(slice(0, 3), slice(0, 2)), (slice(3, None), slice(0, 2)),
-                    (slice(0, 3), slice(2, None)), (slice(3, None), slice(2, None))]
+        testname = 'WriteNode._chunk_iter_({}, chunks={})'.format(dsizes, chunks)
+        actual = [chunk for chunk in WriteNode._chunk_iter_(dsizes, chunks=chunks)]
+        expected = [OrderedDict([('y', slice(0, 3, None)), ('x', slice(0, 2, None))]),
+                    OrderedDict([('y', slice(3, None, None)), ('x', slice(0, 2, None))]),
+                    OrderedDict([('y', slice(0, 3, None)), ('x', slice(2, None, None))]),
+                    OrderedDict([('y', slice(3, None, None)), ('x', slice(2, None, None))])]
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_invert_dims(self):
-        dims = ('x', 'y')
-        sizes = (4, 5)
-        chunks = {'x': slice(0,2), 'y': slice(1,3)}
+        dsizes = OrderedDict([('x', 4), ('y', 5)])
+        chunk = OrderedDict([('x', slice(0,2)), ('y', slice(1,3))])
         idims = {'y'}
-        dimsizechunks = tuple((d,s,chunks[d] if d in chunks else slice(None)) for d,s in zip(dims, sizes))
-        testname = 'WriteNode._invert_dims({}, idims={})'.format(dimsizechunks, idims)
-        actual = WriteNode._invert_dims(dimsizechunks, idims=idims)
-        expected = (slice(0, 2), slice(3, 1, -1))
+        testname = 'WriteNode._invert_dims({}, {}, idims={})'.format(dsizes, chunk, idims)
+        actual = WriteNode._invert_dims_(dsizes, chunk, idims=idims)
+        expected = OrderedDict([('x', slice(0, 2, None)), ('y', slice(3, 1, -1))])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -755,7 +753,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute()'.format(filename)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(history=True)
+        N.enable_history()
+        N.execute()
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -768,7 +767,8 @@ class WriteNodeTests(unittest.TestCase):
         filedesc = FileDesc(filename, format='NETCDF3_CLASSIC', variables=self.vardescs.values(),
                             attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(history=True)
+        N.enable_history()
+        N.execute()
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -781,7 +781,8 @@ class WriteNodeTests(unittest.TestCase):
         filedesc = FileDesc(filename, format='NETCDF4', variables=self.vardescs.values(),
                             attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(history=True)
+        N.enable_history()
+        N.execute()
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -794,7 +795,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks, history=True)
+        N.enable_history()
+        N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
@@ -807,7 +809,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks, history=True)
+        N.enable_history()
+        N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
@@ -820,7 +823,8 @@ class WriteNodeTests(unittest.TestCase):
         testname = 'WriteNode({}).execute(chunks={})'.format(filename, chunks)
         filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
         N = WriteNode(filedesc, inputs=self.nodes.values())
-        N.execute(chunks=chunks, history=True)
+        N.enable_history()
+        N.execute(chunks=chunks)
         actual = exists(filename)
         expected = True
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)

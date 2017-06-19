@@ -97,6 +97,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'level'
         vattribs['units'] = '1'
+        vattribs['axis'] = 'Z'
         vdicts['L']['attributes'] = vattribs
 
         vdicts['X'] = OrderedDict()
@@ -106,6 +107,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'longitude'
         vattribs['units'] = 'degrees_east'
+        vattribs['axis'] = 'X'
         vdicts['X']['attributes'] = vattribs
 
         vdicts['Y'] = OrderedDict()
@@ -115,6 +117,8 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'latitude'
         vattribs['units'] = 'degrees_north'
+        vattribs['direction'] = 'decreasing'
+        vattribs['axis'] = 'Y'
         vdicts['Y']['attributes'] = vattribs
 
         vdicts['T'] = OrderedDict()
@@ -125,6 +129,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['standard_name'] = 'time'
         vattribs['units'] = 'days since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
+        vattribs['axis'] = 'T'
         vdicts['T']['attributes'] = vattribs
 
         vdicts['V1'] = OrderedDict()
@@ -246,7 +251,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_max'] = 20.0
         vattribs['positive'] = 'up'
         vdicts['V8']['attributes'] = vattribs
-
+        
         self.dsdict = vdicts
 
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
