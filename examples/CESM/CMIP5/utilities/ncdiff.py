@@ -199,8 +199,9 @@ def main(argv=None):
                 v1data = {'[:]': v1[:]}
                 v2data = {'[:]': v2[:]}
             else:
-                v1data = {idx:v1[idx] for idx in _sample_indices(v1.shape, nspot=args.spot)}
-                v2data = {idx:v2[idx] for idx in _sample_indices(v2.shape, nspot=args.spot)}
+                idxs = _sample_indices(v1.shape, nspot=args.spot)
+                v1data = {idx:v1[idx] for idx in idxs}
+                v2data = {idx:v2[idx] for idx in idxs}
             vdims = ','.join(str(d) for d in v1.dimensions)
             diff_dicts(v1data, v2data, name='Variable {!s}({}) Data'.format(v, vdims))
 
