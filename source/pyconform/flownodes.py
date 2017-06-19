@@ -20,7 +20,6 @@ from collections import OrderedDict
 from warnings import warn
 
 import numpy
-from boto3.resources.model import Parameter
 
 
 #===================================================================================================
