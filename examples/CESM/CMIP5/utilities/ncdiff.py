@@ -126,9 +126,9 @@ def _rand_interior_indices(shape):
     indices = []
     for s in shape:
         if s > 2:
-            indices.append(randint(1,s-2))
-        elif s==1:
-            indices.append(randint(0,1))
+            indices.append(randint(1,s-1))
+        elif s==2:
+            indices.append(randint(0,2))
         else:
             indices.append(0)
     return tuple(indices)
