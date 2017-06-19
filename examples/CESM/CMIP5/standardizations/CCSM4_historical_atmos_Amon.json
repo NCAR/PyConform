@@ -949,14 +949,15 @@
     "ilev": {
         "attributes": {
             "axis": "Z", 
-            "bounds": "ilev_bnds", 
+            "bounds": "ilev_bnds",
+            "direction": "decreasing",
             "long_name": "hybrid sigma pressure coordinate at intermediate levels", 
             "positive": "down", 
             "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "ilev", 
+        "definition": "ilev * 0.001", 
         "dimensions": [
             "ilev"
         ]
@@ -967,7 +968,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(ilev, bdim=\"tbnd\", idata=lev)", 
+        "definition": "bounds(ilev * 0.001, bdim=\"tbnd\", idata=lev * 0.001)", 
         "dimensions": [
             "ilev", 
             "bnds"
@@ -1024,7 +1025,7 @@
             "units": "1"
         }, 
         "datatype": "float64", 
-        "definition": "bounds(lev * 0.001, bdim=\"tbnd\")", 
+        "definition": "bounds(lev * 0.001, bdim=\"tbnd\", idata=ilev*0.001)", 
         "dimensions": [
             "lev", 
             "bnds"
