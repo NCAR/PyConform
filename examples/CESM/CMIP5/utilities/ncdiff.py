@@ -131,6 +131,7 @@ def _rand_interior_indices(shape):
             indices.append(randint(0,2))
         else:
             indices.append(0)
+    print 'shape = {} <==> randidx = {}'.format(shape, tuple(indices))
     return tuple(indices)
 
 
