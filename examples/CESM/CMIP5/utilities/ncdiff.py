@@ -200,6 +200,7 @@ def main(argv=None):
                 v1data = {'[:]': v1[:]}
                 v2data = {'[:]': v2[:]}
             else:
+                print 'variable: {}'.format(v)
                 idxs = _sample_indices(v1.shape, nspot=args.spot)
                 v1data = {idx:v1[idx] for idx in idxs}
                 v2data = {idx:v2[idx] for idx in idxs}
