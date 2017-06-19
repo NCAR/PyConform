@@ -201,7 +201,8 @@ def main(argv=None):
             else:
                 v1data = {idx:v1[idx] for idx in _sample_indices(v1.shape, nspot=args.spot)}
                 v2data = {idx:v2[idx] for idx in _sample_indices(v2.shape, nspot=args.spot)}
-            diff_dicts(v1data, v2data, name='Variable {!r} Data'.format(v))
+            vdims = ','.join(str(d) for d in v1.dimensions)
+            diff_dicts(v1data, v2data, name='Variable {!s}({}) Data'.format(v, vdims))
 
 
 #=======================================================================================================================
