@@ -825,6 +825,8 @@ class WriteNode(FlowNode):
             for chunk in WriteNode._chunk_iter_(vdims, chunks=chunks):
                 rchunk = self._invert_dims_(vdims, chunk, idims=self._idims)
                 lchunk = tuple(chunk[d] for d in chunk)
+                if len(common_idims) > 0:
+                    print '*** {}: lchunk = {}  <==>  rchunk = {}'.format(vname, lchunk, rchunk)
                 ncvar[lchunk] = vnode[rchunk]
 
         # Close the file after completion
