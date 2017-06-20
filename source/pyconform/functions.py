@@ -174,23 +174,6 @@ def _all_subclasses_(cls):
 
 
 #===================================================================================================
-# Function - From which all 'func(...)'-pattern functions derive
-#===================================================================================================
-class Function(FunctionBase):
-    key = 'func'
-    
-    def __init__(self):
-        self._sumlike_dimensions = set()
-    
-    @property
-    def sumlike_dimensions(self):
-        return self._sumlike_dimensions
-    
-    def add_sumlike_dimensions(self, *dims):
-        self._sumlike_dimensions.update(set(dims))
-
-
-#===================================================================================================
 # Get the function associated with the given key-symbol
 #===================================================================================================
 def find_function(key):
@@ -212,6 +195,23 @@ def find_function(key):
 #===================================================================================================
 def list_functions():
     return [c.key for c in _all_subclasses_(Function)]
+
+
+#===================================================================================================
+# Function - From which all 'func(...)'-pattern functions derive
+#===================================================================================================
+class Function(FunctionBase):
+    key = 'func'
+    
+    def __init__(self):
+        self._sumlike_dimensions = set()
+    
+    @property
+    def sumlike_dimensions(self):
+        return self._sumlike_dimensions
+    
+    def add_sumlike_dimensions(self, *dims):
+        self._sumlike_dimensions.update(set(dims))
 
 
 #===================================================================================================
