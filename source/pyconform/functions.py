@@ -245,10 +245,10 @@ class MeanFunction(Function):
         self.add_sumlike_dimensions(*indims)
         axes = tuple(data.dimensions.index(d) for d in indims)
         new_dims = tuple(d for d in data.dimensions if d not in indims)
-        dim_str = '[{}]'.format(','.join(str(d) for d in indims))
+        dim_str = ','.join(str(d) for d in indims)
         return PhysArray(mean(data.data, axis=axes),
                          units=data.units, dimensions=new_dims, positive=data.positive,
-                         name='mean({}, dims={})'.format(data.name, dim_str))
+                         name='mean({}, dims=[{}])'.format(data.name, dim_str))
 
 
 #===================================================================================================
