@@ -814,10 +814,6 @@ class WriteNode(FlowNode):
             vdesc = self._filedesc.variables[vname]
             vdims = OrderedDict((d, vdesc.dimensions[d].size) for d in vdesc.dimensions)
             
-            common_idims = tuple(d for d in vdims if d in self._idims)
-            if len(common_idims) > 0:
-                print '*** {} should be inverted along axes: {}'.format(vname, common_idims)
-
             # Get the NetCDF variable object
             ncvar = self._file.variables[vname]
 
@@ -825,8 +821,6 @@ class WriteNode(FlowNode):
             for chunk in WriteNode._chunk_iter_(vdims, chunks=chunks):
                 rchunk = self._invert_dims_(vdims, chunk, idims=self._idims)
                 lchunk = tuple(chunk[d] for d in chunk)
-                if len(common_idims) > 0:
-                    print '*** {}: lchunk = {}  <==>  rchunk = {}'.format(vname, lchunk, rchunk)
                 ncvar[lchunk] = vnode[rchunk]
 
         # Close the file after completion
