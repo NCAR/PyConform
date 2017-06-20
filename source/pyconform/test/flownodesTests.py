@@ -320,6 +320,7 @@ class EvalNodeTests(unittest.TestCase):
                 return d
         d = PhysArray(numpy.arange(1, 5), name='d', units='m', dimensions=('x',))
         N = EvalNode(1, myfunc(), d, 'x')
+        N[None]
         testname = 'EvalNode.sumlike_dimensions'
         actual = N.sumlike_dimensions
         expected = set(['x'])
