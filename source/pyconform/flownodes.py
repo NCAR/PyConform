@@ -802,24 +802,31 @@ class WriteNode(FlowNode):
         # Open the file and write the header information
         self._open_()
 
-        # Loop over all variable nodes and write data
-        for vnode in self.inputs:
-
-            # Get the name of the variable node
-            vname = vnode.label
-
-            # Get the header information for this variable node
-            vdesc = self._filedesc.variables[vname]
-            vdims = OrderedDict((d, vdesc.dimensions[d].size) for d in vdesc.dimensions)
+        # Create data structure to keep track of which variable chunks we have written
+        vchunks = {vnode.label:set() for vnode in self.inputs}
+        
+        # Compute the Global Dimension Sizes dictionary
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in self._filedesc.dimensions)
+        
+        # Iterate over the global dimension space
+        for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):
             
-            # Get the NetCDF variable object
-            ncvar = self._file.variables[vname]
-
-            # Loop over all chunks for the given output variable's dimensions
-            for chunk in WriteNode._chunk_iter_(vdims, chunks=chunks):
-                rchunk = self._invert_dims_(vdims, chunk, idims=self._idims)
-                lchunk = tuple(chunk[d] for d in chunk)
-                ncvar[lchunk] = vnode[rchunk]
+            # Invert the necessary dimensions to get the read-chunk
+            rchunk = self._invert_dims_(gdims, chunk, idims=self._idims)
+            
+            # Loop over all variables and write the data, if necessary
+            for vnode in self.inputs:
+                vname = vnode.label
+                vdesc = self._filedesc.variables[vname]
+                ncvar = self._file.variables[vname]
+                
+                # Compute the write-chunk for the given variable
+                wchunk = tuple(chunk[d] for d in vdesc.dimensions)
+                
+                # Write the data to the variable, if it hasn't already been written
+                if repr(wchunk) not in vchunks[vname]:
+                    ncvar[wchunk] = vnode[rchunk]
+                    vchunks[vname].add(repr(wchunk))
 
         # Close the file after completion
         self._close_()
