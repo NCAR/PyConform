@@ -225,7 +225,7 @@ class SquareRootFunction(Function):
             try:
                 units = data.units.root(2)
             except:
-                raise UnitsError('Cannot take square-root of units {!r}'.format(data.units))
+                raise UnitsError('sqrt: Cannot take square-root of units {!r}'.format(data.units))
             return PhysArray(sqrt(data.data), units=units, name='sqrt({})'.format(data.name),
                              dimensions=data.dimensions, positive=data.positive)
         else:
@@ -240,7 +240,9 @@ class MeanFunction(Function):
     
     def __call__(self, data, *dimensions):
         if not isinstance(data, PhysArray):
-            raise TypeError('mean: data must be a PhysArray')
+            raise TypeError('mean: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('mean: Dimensions must be strings')
         indims = [d for d in dimensions if d in data.dimensions]
         self.add_sumlike_dimensions(*indims)
         axes = tuple(data.dimensions.index(d) for d in indims)

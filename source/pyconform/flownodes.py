@@ -321,6 +321,7 @@ class EvalNode(FlowNode):
         for k in self._keywords:
             v = self._keywords[k]
             kwds[k] = v[index] if isinstance(v, (PhysArray, FlowNode)) else v
+
         if len(self.inputs) == 0:
             data = self._function(**kwds)
             return data[index] if isinstance(data, PhysArray) else data

@@ -331,7 +331,7 @@ class EvalNodeTests(unittest.TestCase):
         expected = set(['x'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-                
+                        
 
 #=======================================================================================================================
 # MapNodeTests
