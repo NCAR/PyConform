@@ -10,7 +10,12 @@ from pyconform.physarray import PhysArray, UnitsError
 from numpy import sqrt, mean
 from cf_units import Unit
 
-
+#=======================================================================================================================
+# is_constant - Determine if an argument is a constant (number or string)
+#=======================================================================================================================
+def is_constant(arg):
+    return isinstance(arg, (basestring, float, int))
+    
 #===================================================================================================
 # Find a function or operator based on key and number of arguments
 #===================================================================================================
@@ -40,9 +45,13 @@ class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
 
+    def __init__(self, *args, **kwds):
+        self.arguments = args
+        self.keywords = kwds
+
     @abstractmethod
-    def __call__(self, *args, **kwds):
-        return 1
+    def __getitem__(self):
+        return None
 
 
 ####################################################################################################
@@ -61,7 +70,7 @@ def find_operator(key, numargs=None):
         if len(ops) == 0:
             raise KeyError('Operator {!r} found but not defined'.format(key))
         elif len(ops) == 1:
-            return ops.values()[0]
+            return ops[ops.keys()[0]]
         else:
             raise KeyError(('Operator {!r} has multiple definitions, '
                             'number of arguments required').format(key))
@@ -75,7 +84,7 @@ def find_operator(key, numargs=None):
 # operators
 #===================================================================================================
 def list_operators():
-    return list(__OPERATORS__.keys())
+    return sorted(__OPERATORS__.keys())
 
 
 #===================================================================================================
@@ -84,6 +93,9 @@ def list_operators():
 class Operator(FunctionBase):
     key = '?'
     numargs = 2
+    
+    def __init__(self, *args):
+        super(Operator, self).__init__(*args)
 
 
 #===================================================================================================
@@ -93,7 +105,11 @@ class NegationOperator(Operator):
     key = '-'
     numargs = 1
 
-    def __call__(self, arg):
+    def __init__(self, arg):
+        super(NegationOperator, self).__init__(arg)
+    
+    def __getitem__(self, index):
+        arg = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
         return -arg
 
 
@@ -104,7 +120,12 @@ class AdditionOperator(Operator):
     key = '+'
     numargs = 2
 
-    def __call__(self, left, right):
+    def __init__(self, left, right):
+        super(AdditionOperator, self).__init__(left, right)
+    
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left + right
 
 
@@ -115,7 +136,12 @@ class SubtractionOperator(Operator):
     key = '-'
     numargs = 2
 
-    def __call__(self, left, right):
+    def __init__(self, left, right):
+        super(SubtractionOperator, self).__init__(left, right)
+    
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left - right
 
 
@@ -126,7 +152,12 @@ class PowerOperator(Operator):
     key = '**'
     numargs = 2
 
-    def __call__(self, left, right):
+    def __init__(self, left, right):
+        super(PowerOperator, self).__init__(left, right)
+    
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left ** right
 
 
@@ -137,7 +168,12 @@ class MultiplicationOperator(Operator):
     key = '*'
     numargs = 2
 
-    def __call__(self, left, right):
+    def __init__(self, left, right):
+        super(MultiplicationOperator, self).__init__(left, right)
+    
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left * right
 
 
@@ -148,7 +184,12 @@ class DivisionOperator(Operator):
     key = '-'
     numargs = 2
 
-    def __call__(self, left, right):
+    def __init__(self, left, right):
+        super(DivisionOperator, self).__init__(left, right)
+    
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left / right
 
 
@@ -156,11 +197,11 @@ class DivisionOperator(Operator):
 # Operator map - Fixed to prevent user-redefinition!
 #===================================================================================================
 
-__OPERATORS__ = {'-': {1: NegationOperator(), 2: SubtractionOperator()},
-                 '**': {2: PowerOperator()},
-                 '+': {2: AdditionOperator()},
-                 '*': {2: MultiplicationOperator()},
-                 '/': {2: DivisionOperator()}}
+__OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
+                 '**': {2: PowerOperator},
+                 '+': {2: AdditionOperator},
+                 '*': {2: MultiplicationOperator},
+                 '/': {2: DivisionOperator}}
 
 ####################################################################################################
 ##### FUNCTIONS ####################################################################################
@@ -187,7 +228,7 @@ def find_function(key):
     if func is None:
         raise KeyError('Function {!r} not found'.format(key))
     else:
-        return func()
+        return func
     
 
 #===================================================================================================
@@ -203,8 +244,12 @@ def list_functions():
 class Function(FunctionBase):
     key = 'func'
     
-    def __init__(self):
+    def __init__(self, *args, **kwds):
+        super(Function, self).__init__(*args, **kwds)
         self._sumlike_dimensions = set()
+    
+    def __getitem__(self, index):
+        return None
     
     @property
     def sumlike_dimensions(self):
@@ -220,7 +265,14 @@ class Function(FunctionBase):
 class SquareRootFunction(Function):
     key = 'sqrt'
 
-    def __call__(self, data):
+    def __init__(self, data):
+        super(SquareRootFunction, self).__init__(data)
+    
+    def __getitem__(self, index):
+        if hasattr(self.arguments[0], '__getitem__'):
+            data = self.arguments[0][index]
+        else:
+            data = self.arguments[0]
         if isinstance(data, PhysArray):
             try:
                 units = data.units.root(2)
@@ -237,8 +289,13 @@ class SquareRootFunction(Function):
 #===================================================================================================
 class MeanFunction(Function):
     key = 'mean'
+
+    def __init__(self, data, *dimensions):
+        super(MeanFunction, self).__init__(data, *dimensions)
     
-    def __call__(self, data, *dimensions):
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        dimensions = self.arguments[1:]
         if not isinstance(data, PhysArray):
             raise TypeError('mean: Data must be a PhysArray')
         if not all(isinstance(d, basestring) for d in dimensions):
@@ -258,8 +315,15 @@ class MeanFunction(Function):
 #===================================================================================================
 class PositiveUpFunction(Function):
     key = 'up'
+
+    def __init__(self, data):
+        super(PositiveUpFunction, self).__init__(data)
     
-    def __call__(self, data):
+    def __getitem__(self, index):
+        if hasattr(self.arguments[0], '__getitem__'):
+            data = self.arguments[0][index]
+        else:
+            data = self.arguments[0]
         return PhysArray(data).up()
 
 
@@ -268,8 +332,15 @@ class PositiveUpFunction(Function):
 #===================================================================================================
 class PositiveDownFunction(Function):
     key = 'down'
+
+    def __init__(self, data):
+        super(PositiveDownFunction, self).__init__(data)
     
-    def __call__(self, data):
+    def __getitem__(self, index):
+        if hasattr(self.arguments[0], '__getitem__'):
+            data = self.arguments[0][index]
+        else:
+            data = self.arguments[0]
         return PhysArray(data).down()
 
 
@@ -278,9 +349,15 @@ class PositiveDownFunction(Function):
 #===================================================================================================
 class ChangeUnitsFunction(Function):
     key = 'chunits'
+
+    def __init__(self, data, units=1):
+        super(ChangeUnitsFunction, self).__init__(data, units=units)
     
-    def __call__(self, data, units=1):
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        units = self.keywords['units'] if is_constant(self.keywords['units']) else self.keywords['units'][index]
         uobj = units.units if isinstance(units, PhysArray) else Unit(units)
-        unit_str = '{}{}'.format(uobj, '' if uobj.calendar is None else '|{}'.format(uobj.calendar))
+        cal_str = '' if uobj.calendar is None else '|{}'.format(uobj.calendar)
+        unit_str = '{}{}'.format(uobj, cal_str)
         new_name = 'chunits({}, units={})'.format(data.name, unit_str)
         return PhysArray(data, name=new_name, units=uobj)
