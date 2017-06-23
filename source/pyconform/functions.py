@@ -14,7 +14,7 @@ from cf_units import Unit
 # is_constant - Determine if an argument is a constant (number or string)
 #=======================================================================================================================
 def is_constant(arg):
-    return isinstance(arg, (basestring, float, int))
+    return isinstance(arg, (basestring, float, int)) or arg is None
     
 #===================================================================================================
 # Find a function or operator based on key and number of arguments
@@ -248,7 +248,7 @@ class Function(FunctionBase):
         super(Function, self).__init__(*args, **kwds)
         self._sumlike_dimensions = set()
     
-    def __getitem__(self, index):
+    def __getitem__(self, _):
         return None
     
     @property
@@ -267,18 +267,21 @@ class SquareRootFunction(Function):
 
     def __init__(self, data):
         super(SquareRootFunction, self).__init__(data)
-    
-    def __getitem__(self, index):
-        if hasattr(self.arguments[0], '__getitem__'):
-            data = self.arguments[0][index]
-        else:
-            data = self.arguments[0]
-        if isinstance(data, PhysArray):
+        data_info = data if is_constant(data) else data[None]
+        if isinstance(data_info, PhysArray):
             try:
-                units = data.units.root(2)
+                units = data_info.units.root(2)
             except:
                 raise UnitsError('sqrt: Cannot take square-root of units {!r}'.format(data.units))
-            return PhysArray(sqrt(data.data), units=units, name='sqrt({})'.format(data.name),
+            self._units = units
+        else:
+            self._units = None
+
+    def __getitem__(self, index):
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
+        if isinstance(data, PhysArray):
+            return PhysArray(sqrt(data.data), units=self._units, name='sqrt({})'.format(data.name),
                              dimensions=data.dimensions, positive=data.positive)
         else:
             return sqrt(data)
@@ -293,14 +296,15 @@ class MeanFunction(Function):
     def __init__(self, data, *dimensions):
         super(MeanFunction, self).__init__(data, *dimensions)
         self.add_sumlike_dimensions(*dimensions)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('mean: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('mean: Dimensions must be strings')
     
     def __getitem__(self, index):
         data = self.arguments[0][index]
         dimensions = self.arguments[1:]
-        if not isinstance(data, PhysArray):
-            raise TypeError('mean: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
-            raise TypeError('mean: Dimensions must be strings')
         indims = [d for d in dimensions if d in data.dimensions]
         axes = tuple(data.dimensions.index(d) for d in indims)
         new_dims = tuple(d for d in data.dimensions if d not in indims)
@@ -320,10 +324,8 @@ class PositiveUpFunction(Function):
         super(PositiveUpFunction, self).__init__(data)
     
     def __getitem__(self, index):
-        if hasattr(self.arguments[0], '__getitem__'):
-            data = self.arguments[0][index]
-        else:
-            data = self.arguments[0]
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
         return PhysArray(data).up()
 
 
@@ -337,10 +339,8 @@ class PositiveDownFunction(Function):
         super(PositiveDownFunction, self).__init__(data)
     
     def __getitem__(self, index):
-        if hasattr(self.arguments[0], '__getitem__'):
-            data = self.arguments[0][index]
-        else:
-            data = self.arguments[0]
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
         return PhysArray(data).down()
 
 
