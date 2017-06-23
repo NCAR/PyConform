@@ -2,18 +2,26 @@
 
 from Ngl import vinth2p
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
-from pyconform.functions import Function
+from pyconform.functions import Function, is_constant
 from cf_units import Unit
 from numpy import diff, empty
         
-        
-#===================================================================================================
+
+#=======================================================================================================================
 # BoundsFunction
-#===================================================================================================
+#=======================================================================================================================
 class BoundsFunction(Function):
     key = 'bounds'
     
-    def __call__(self, data, bdim='bnds', location=1, endpoints=1, idata=None):
+    def __init__(self, data, bdim='bnds', location=1, endpoints=1, idata=None):
+        super(BoundsFunction, self).__init__(data, bdim='bnds', location=location, endpoints=endpoints, idata=idata)
+    
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        bdim = self.keywords['bdim']
+        location = self.keywords['location']
+        endpoints = self.keywords['endpoints']
+        
         if not isinstance(data, PhysArray):
             raise TypeError('bounds: data must be a PhysArray')
         if not isinstance(bdim, basestring):
@@ -31,7 +39,7 @@ class BoundsFunction(Function):
         if len(new_data) == 0:
             return new_data
         
-        if idata is None:
+        if self.keywords['idata'] is None:
             dx = diff(data.data)
             if location == 0:
                 new_data[:-1,1] = data.data[:-1] + dx
@@ -51,11 +59,18 @@ class BoundsFunction(Function):
             return new_data
         
         else:
-            if not isinstance(idata, PhysArray):
-                raise TypeError('bounds: interface-data must be a PhysArray')
-            if len(idata.dimensions) != 1:
+            idata_info = self.keywords['idata'][None]
+            if len(idata_info.dimensions) != 1:
                 raise DimensionsError('bounds: interface-data can only be 1D')
-            self.add_sumlike_dimensions(idata.dimensions[0])
+            self.add_sumlike_dimensions(idata_info.dimensions[0])
+            
+            idim = idata_info.dimensions[0]
+            ddim = data.dimensions[0]
+            
+            islice = index[ddim] if ddim in index else slice(None)
+            iindex = {k:index[k] for k in index if k != ddim}
+            iindex[idim] = islice
+            idata = self.keywords['idata'][iindex]
             
             ifc_len = len(data) + 1
             ifc_data = empty(ifc_len, dtype=data.dtype)
@@ -82,13 +97,25 @@ class BoundsFunction(Function):
         return new_data
             
 
-#===================================================================================================
+#=======================================================================================================================
 # VertInterpFunction
-#===================================================================================================
+#=======================================================================================================================
 class VertInterpFunction(Function):
     key = 'vinth2p'
 
-    def __call__(self, datai, hbcofa, hbcofb, plevo, psfc, p0, intyp=1, ixtrp=0):
+    def __init__(self, datai, hbcofa, hbcofb, plevo, psfc, p0, intyp=1, ixtrp=0):
+        super(VertInterpFunction, self).__init__(datai, hbcofa, hbcofb, plevo, psfc, p0, intyp=intyp, ixtrp=ixtrp)
+
+    def __getitem__(self, index):
+        datai = self.arguments[0][index]
+        hbcofa = self.arguments[1][index]
+        hbcofb = self.arguments[2][index]
+        plevo = self.arguments[3][index]
+        psfc = self.arguments[4][index]
+        p0 = self.arguments[5][index]
+        intyp = self.keywords['intyp']
+        ixtrp = self.keywords['ixtrp']
+        
         if not all(isinstance(obj, PhysArray) for obj in (datai, hbcofa, hbcofb, plevo, psfc, p0)):
             raise TypeError('vinth2p: arrays must be PhysArrays')
         
@@ -105,6 +132,7 @@ class VertInterpFunction(Function):
         if dlevi != hbcofb.dimensions[0]:
             raise DimensionsError('vinth2p: hybrid a/b coefficients do not have same dimensions')
         dlevo = plevo.dimensions[0]
+        self.add_sumlike_dimensions(dlevi, dlevo)
         
         for d in psfc.dimensions:
             if d not in datai.dimensions:
