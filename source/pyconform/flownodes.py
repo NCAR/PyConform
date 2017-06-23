@@ -12,7 +12,6 @@ from pyconform.physarray import PhysArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
 from cf_units import Unit
-from inspect import getargspec, ismethod, isfunction
 from os.path import exists, dirname
 from os import makedirs
 from netCDF4 import Dataset
@@ -253,55 +252,18 @@ class EvalNode(FlowNode):
         
         Parameters:
             label: A label to give the FlowNode
-            func (callable): A callable function associated with the FlowNode operation
+            func (class): A Function class
             args (list): Arguments to the function given by 'func'
             kwds (dict): Keyword arguments to the function given by 'func'
         """
-        # Check func parameter
-        fpntr = func
-        if callable(func):
-            if hasattr(func, '__call__') and (isfunction(func.__call__) or ismethod(func.__call__)):
-                fpntr = func.__call__
-            else:
-                fpntr = func
-        else:
-            raise TypeError('Function argument to FlowNode {} is not callable'.format(label))
-
-        argspec = getargspec(fpntr)
-        if ismethod(fpntr) and 'self' in argspec.args:
-            argspec.args.remove('self')
-
-        # Check the function arguments
-        nargumnt = len(argspec.args)
-        ndefault = 0 if argspec.defaults is None else len(argspec.defaults)
-        min_args = nargumnt - ndefault
-        max_args = nargumnt if argspec.varargs is None else None
-        if len(args) < min_args:
-            raise ValueError(('Too few arguments supplied for FlowNode function {!r}. '
-                              '({} needed, {} supplied)').format(label, min_args, len(args)))
-        elif max_args is not None and len(args) > max_args:
-            raise ValueError(('Too many arguments supplied for FlowNode function {!r}. '
-                              '({} needed, {} supplied)').format(label, max_args, len(args)))
+        # Initialize the function object
+        self._function = func(*args, **kwds)
         
-        # Check the function keywords
-        if argspec.keywords is None:
-            valid_kwds = set(argspec.args[-ndefault:] if ndefault > 0 else [])
-        else:
-            valid_kwds = set(kwds)
-
-        # Store the keyword argument values
-        self._keywords = {}
-        for kwd in kwds:
-            if kwd in valid_kwds:
-                self._keywords[kwd] = kwds[kwd]
-            else:
-                raise ValueError(('Unrecognized keyword argument {!r} for FlowNode function {!r}.').format(kwd, label))
-
-        # Save the function reference
-        self._function = func
+        # Include all references as input
+        allargs = tuple(args) + tuple(kwds[k] for k in kwds)
         
         # Call the base class initialization
-        super(EvalNode, self).__init__(label, *args)
+        super(EvalNode, self).__init__(label, *allargs)
     
     @property
     def sumlike_dimensions(self):
@@ -317,17 +279,7 @@ class EvalNode(FlowNode):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
-        kwds = {}
-        for k in self._keywords:
-            v = self._keywords[k]
-            kwds[k] = v[index] if isinstance(v, (PhysArray, FlowNode)) else v
-
-        if len(self.inputs) == 0:
-            data = self._function(**kwds)
-            return data[index] if isinstance(data, PhysArray) else data
-        else:
-            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
-            return self._function(*args, **kwds)
+        return self._function[index]
 
 
 #===================================================================================================

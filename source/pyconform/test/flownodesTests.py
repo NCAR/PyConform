@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from pyconform.physarray import PhysArray, DimensionsError
 from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
-from pyconform.functions import Function
+from pyconform.functions import Function, find_operator
 from testutils import print_test_message, print_ncfile
 from cf_units import Unit
 from os.path import exists
@@ -271,11 +271,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add(self):
-        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = EvalNode(1, lambda x: x, d1)
-        N2 = EvalNode(2, lambda x: x, d2)
-        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), name='X2', units='m', dimensions=('x',))
+        N1 = DataNode(d1)
+        N2 = DataNode(d2)
+        N3 = EvalNode(3, find_operator('+', numargs=2), N1, N2)
         testname = 'EvalNode.__getitem__(:)'
         actual = N3[:]
         expected = d1 + d2
@@ -285,11 +285,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_slice(self):
-        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = EvalNode(1, lambda x: x, d1)
-        N2 = EvalNode(2, lambda x: x, d2)
-        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), name='X2', units='m', dimensions=('x',))
+        N1 = DataNode(d1)
+        N2 = DataNode(d2)
+        N3 = EvalNode(3, find_operator('+', numargs=2), N1, N2)
         testname = 'EvalNode.__getitem__(:2)'
         actual = N3[:2]
         expected = d1[:2] + d2[:2]
@@ -299,11 +299,11 @@ class EvalNodeTests(unittest.TestCase):
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
     def test_getitem_add_none(self):
-        d1 = PhysArray(numpy.arange(1, 5), units='m', dimensions=('x',))
-        d2 = PhysArray(numpy.arange(5, 9), units='m', dimensions=('x',))
-        N1 = EvalNode(1, lambda x: x, d1)
-        N2 = EvalNode(2, lambda x: x, d2)
-        N3 = EvalNode(3, lambda a, b: a + b, N1, N2)
+        d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
+        d2 = PhysArray(numpy.arange(5, 9), name='X2', units='m', dimensions=('x',))
+        N1 = DataNode(d1)
+        N2 = DataNode(d2)
+        N3 = EvalNode(3, find_operator('+', numargs=2), N1, N2)
         testname = 'EvalNode.__getitem__(None)'
         actual = N3[None]
         expected = PhysArray([], units='m', dimensions=('x',))
@@ -315,12 +315,13 @@ class EvalNodeTests(unittest.TestCase):
     def test_sumlike_dimensions(self):
         class myfunc(Function):
             key = 'myfunc'
-            def __call__(self, d, *dims):
+            def __init__(self, d, *dims):
+                super(myfunc, self).__init__(d, *dims)
                 self.add_sumlike_dimensions(*dims)
-                return d
+            def __getitem__(self, _):
+                return self.arguments[0]
         d = PhysArray(numpy.arange(1, 5), name='d', units='m', dimensions=('x',))
-        N = EvalNode(1, myfunc(), d, 'x')
-        N[None]
+        N = EvalNode(1, myfunc, d, 'x')
         testname = 'EvalNode.sumlike_dimensions'
         actual = N.sumlike_dimensions
         expected = set(['x'])
