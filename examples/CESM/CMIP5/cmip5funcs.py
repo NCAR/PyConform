@@ -15,62 +15,62 @@ class BoundsFunction(Function):
     
     def __init__(self, data, bdim='bnds', location=1, endpoints=1, idata=None):
         super(BoundsFunction, self).__init__(data, bdim='bnds', location=location, endpoints=endpoints, idata=idata)
-    
-    def __getitem__(self, index):
-        data = self.arguments[0][index]
-        bdim = self.keywords['bdim']
-        location = self.keywords['location']
-        endpoints = self.keywords['endpoints']
-        
-        if not isinstance(data, PhysArray):
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
             raise TypeError('bounds: data must be a PhysArray')
         if not isinstance(bdim, basestring):
             raise TypeError('bounds: bounds dimension name must be a string')
         if location not in [0,1,2]:
             raise ValueError('bounds: location must be 0, 1, or 2')
-        if len(data.dimensions) != 1:
+        if len(data_info.dimensions) != 1:
             raise DimensionsError('bounds: data can only be 1D')
-        mod_end = bool(endpoints)
-        
-        self.add_sumlike_dimensions(data.dimensions[0])
+        self._mod_end = bool(endpoints)
+        self.add_sumlike_dimensions(data_info.dimensions[0])
+        if idata is None:
+            self._compute_idata = True
+        else:
+            self._compute_idata = False
+            idata_info = idata if is_constant(idata) else idata[None]
+            if not isinstance(idata_info, PhysArray):
+                raise TypeError('bounds: interface-data must be a PhysArray')
+            if len(idata_info.dimensions) != 1:
+                raise DimensionsError('bounds: interface-data can only be 1D')
+            self.add_sumlike_dimensions(idata_info.dimensions[0])
+
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        bdim = self.keywords['bdim']
+        location = self.keywords['location']
         
         bnds = PhysArray([1, 1], dimensions=(bdim,))
         new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
-        if len(new_data) == 0:
+        if index is None:
             return new_data
         
-        if self.keywords['idata'] is None:
+        if self._compute_idata:
             dx = diff(data.data)
             if location == 0:
                 new_data[:-1,1] = data.data[:-1] + dx
-                if mod_end:
+                if self._mod_end:
                     new_data[-1,1] = data.data[-1] + dx[-1]
             elif location == 1:
                 hdx = 0.5 * dx
                 new_data[1:,0] = data.data[1:] - hdx
                 new_data[:-1,1] = data.data[:-1] + hdx
-                if mod_end:
+                if self._mod_end:
                     new_data[0,0] = data.data[0] - hdx[0]
                     new_data[-1,1] = data.data[-1] + hdx[-1]
             elif location == 2:
                 new_data[1:,0] = data.data[1:] - dx
-                if mod_end:
+                if self._mod_end:
                     new_data[0,0] = data.data[0] - dx[0]
             return new_data
         
         else:
-            idata_info = self.keywords['idata'][None]
-            if len(idata_info.dimensions) != 1:
-                raise DimensionsError('bounds: interface-data can only be 1D')
-            self.add_sumlike_dimensions(idata_info.dimensions[0])
-            
-            idim = idata_info.dimensions[0]
             ddim = data.dimensions[0]
-            
-            islice = index[ddim] if ddim in index else slice(None)
-            iindex = {k:index[k] for k in index if k != ddim}
-            iindex[idim] = islice
-            idata = self.keywords['idata'][iindex]
+            dslice = index[ddim] if ddim in index else slice(None)
+            islice = slice(None, None, dslice.step)
+            idata = self.keywords['idata'][islice]
             
             ifc_len = len(data) + 1
             ifc_data = empty(ifc_len, dtype=data.dtype)
