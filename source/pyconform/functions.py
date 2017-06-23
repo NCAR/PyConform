@@ -292,6 +292,7 @@ class MeanFunction(Function):
 
     def __init__(self, data, *dimensions):
         super(MeanFunction, self).__init__(data, *dimensions)
+        self.add_sumlike_dimensions(*dimensions)
     
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -301,7 +302,6 @@ class MeanFunction(Function):
         if not all(isinstance(d, basestring) for d in dimensions):
             raise TypeError('mean: Dimensions must be strings')
         indims = [d for d in dimensions if d in data.dimensions]
-        self.add_sumlike_dimensions(*indims)
         axes = tuple(data.dimensions.index(d) for d in indims)
         new_dims = tuple(d for d in data.dimensions if d not in indims)
         dim_str = ','.join(str(d) for d in indims)
