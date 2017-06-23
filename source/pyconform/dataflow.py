@@ -212,8 +212,6 @@ class DataFlow(object):
             nargs = len(obj.args)
             op = find_operator(name, numargs=nargs)
             args = [self._construct_flow_(arg) for arg in obj.args]
-            if all(not isinstance(o, FlowNode) for o in args):
-                return op(*args)
             return EvalNode(name, op, *args)
 
         elif isinstance(obj, ParsedFunction):
@@ -221,8 +219,6 @@ class DataFlow(object):
             func = find_function(name)
             args = [self._construct_flow_(arg) for arg in obj.args]
             kwds = {k:self._construct_flow_(obj.kwds[k]) for k in obj.kwds}
-            if all(not isinstance(arg, FlowNode) for arg in args):
-                return func(*args, **kwds)
             return EvalNode(name, func, *args, **kwds)
 
         else:
