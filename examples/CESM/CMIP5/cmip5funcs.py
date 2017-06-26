@@ -14,7 +14,7 @@ class BoundsFunction(Function):
     key = 'bounds'
     
     def __init__(self, data, bdim='bnds', location=1, endpoints=1, idata=None):
-        super(BoundsFunction, self).__init__(data, bdim='bnds', location=location, endpoints=endpoints, idata=idata)
+        super(BoundsFunction, self).__init__(data, bdim=bdim, location=location, endpoints=endpoints, idata=idata)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('bounds: data must be a PhysArray')
