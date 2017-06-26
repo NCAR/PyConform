@@ -126,7 +126,7 @@ class VertInterpFunction(Function):
             raise DimensionsError('vinth2p: reference pressure must be scalar')
 
         dlevi = hbcofa_info.dimensions[0]
-        if self._dlevi != hbcofb_info.dimensions[0]:
+        if dlevi != hbcofb_info.dimensions[0]:
             raise DimensionsError('vinth2p: hybrid a/b coefficients do not have same dimensions')
         dlevo = plevo_info.dimensions[0]
         self.add_sumlike_dimensions(dlevi, dlevo)
