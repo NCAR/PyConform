@@ -13,7 +13,7 @@ from os.path import isfile
 from argparse import ArgumentParser
 from netCDF4 import Dataset, Dimension, Variable
 from random import randint
-from numpy import ndarray, array_equal
+from numpy import ndarray, allclose
 
 #=======================================================================================================================
 # Argument Parser
@@ -25,6 +25,10 @@ __PARSER__.add_argument('-f', '--full', default=False, action='store_true',
                         help='Perform full data comparison')
 __PARSER__.add_argument('-s', '--spot', default=0, type=int,
                         help='Number of spot checks in data to difference')
+__PARSER__.add_argument('-r', '--rtol', default=1e-5, type=float,
+                        help='Relative tolerance when comparing numbers')
+__PARSER__.add_argument('-a', '--atol', default=1e-8, type=float,
+                        help='Absolute tolerance when comparing numbers')
 __PARSER__.add_argument('file1', type=str, help='Name of first NetCDF file')
 __PARSER__.add_argument('file2', type=str, help='Name of second NetCDF file')
 
@@ -42,7 +46,7 @@ def cli(argv=None):
 #=======================================================================================================================
 # _cmp - Comparison function
 #=======================================================================================================================
-def _cmp(a1,a2):
+def _cmp(a1,a2,rtol=1e-5,atol=1e-8):
     if a1 is None or a2 is None:
         return True
     elif isinstance(a1, Dimension):
@@ -60,7 +64,7 @@ def _cmp(a1,a2):
         else:
             return a1.dimensions != a2.dimensions
     elif isinstance(a1, ndarray):
-        return not array_equal(a1, a2)
+        return not allclose(a1, a2, rtol, atol)
     else:
         return a1 != a2
 
@@ -88,13 +92,13 @@ def _str(a):
 #=======================================================================================================================
 # diff_dicts
 #=======================================================================================================================
-def diff_dicts(d1, d2, name='object'):
+def diff_dicts(d1, d2, name='object', rtol=1e-5, atol=1e-8):
     d12union = set.union(set(d1), set(d2))
     diffs = []
     for k in sorted(d12union):
         d1k = d1.get(k, None)
         d2k = d2.get(k, None)
-        if _cmp(d1k, d2k):
+        if _cmp(d1k, d2k, rtol=rtol, atol=atol):
             diffs.append((str(k), _str(d1k), _str(d2k)))
     if len(diffs) > 0:
         print
@@ -166,6 +170,9 @@ def main(argv=None):
         raise ValueError('NetCDF file {} not found'.format(FILE2))
     shortf2 = FILE2.split('/')[-1]
 
+    rtol = args.rtol
+    atol = args.atol
+    
     ncf1 = Dataset(FILE1)
     ncf2 = Dataset(FILE2)
     
@@ -203,7 +210,7 @@ def main(argv=None):
                 v1data = {idx:v1[idx] for idx in idxs}
                 v2data = {idx:v2[idx] for idx in idxs}
             vdims = ','.join(str(d) for d in v1.dimensions)
-            diff_dicts(v1data, v2data, name='Variable {!s}({}) Data'.format(v, vdims))
+            diff_dicts(v1data, v2data, name='Variable {!s}({}) Data'.format(v, vdims), rtol=rtol, atol=atol)
 
 
 #=======================================================================================================================
