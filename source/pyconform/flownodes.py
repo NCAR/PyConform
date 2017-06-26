@@ -765,7 +765,6 @@ class WriteNode(FlowNode):
             
             # Invert the necessary dimensions to get the read-chunk
             rchunk = self._invert_dims_(gdims, chunk, idims=self._idims)
-            print '*** {}: chunk = {}'.format(self.label, rchunk)
             
             # Loop over all variables and write the data, if necessary
             for vnode in self.inputs:
