@@ -129,6 +129,7 @@ class DataFlow(object):
                 raise ValueError(err_msg)
             if len(unmapped_out) == 0:
                 continue
+            print '*** {}: mapping {} --> {}'.format(vname, unmapped_inp, unmapped_out)
             for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
                 self._o2imap[out_dim] = inp_dim
                 self._i2omap[inp_dim] = out_dim
