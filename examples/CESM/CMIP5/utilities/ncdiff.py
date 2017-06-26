@@ -64,11 +64,13 @@ def _cmp(a1,a2,rtol=1e-5,atol=1e-8):
         else:
             return a1.dimensions != a2.dimensions
     elif isinstance(a1, ndarray):
-        res = allclose(a1, a2, rtol, atol)
-        print '*** allclose({},{}) = {}'.format(a1,a2,res)
-        return not res
+        return not allclose(a1, a2, rtol, atol)
     else:
-        return a1 != a2
+        try:
+            res = allclose(a1, a2, rtol, atol)
+        except:
+            res = a1 != a2
+        return res
 
 
 #=======================================================================================================================
