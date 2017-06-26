@@ -144,7 +144,7 @@ class VertInterpFunction(Function):
 
         ilev = datai_info.dimensions.index(dlevi)
 
-        new_dims = [d for d in datai.dimensions]
+        new_dims = [d for d in datai_info.dimensions]
         new_dims[ilev] = dlevo
         self._new_dims = tuple(new_dims)
         
