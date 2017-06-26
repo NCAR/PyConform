@@ -67,10 +67,10 @@ def _cmp(a1,a2,rtol=1e-5,atol=1e-8):
         return not allclose(a1, a2, rtol=rtol, atol=atol)
     else:
         try:
-            res = allclose(a1, a2, rtol=rtol, atol=atol)
+            res = not allclose(a1, a2, rtol=rtol, atol=atol)
         except:
             res = a1 != a2
-        return not res
+        return res
 
 
 #=======================================================================================================================
