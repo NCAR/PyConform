@@ -67,13 +67,10 @@ def _cmp(a1,a2,rtol=1e-5,atol=1e-8):
         return not allclose(a1, a2, rtol=rtol, atol=atol)
     else:
         try:
-            print 'allclose({}, {}):'.format(a1, a2)
             res = allclose(a1, a2, rtol=rtol, atol=atol)
         except:
-            print '{} != {}:'.format(a1, a2)
             res = a1 != a2
-        print '       {}'.format(res)
-        return res
+        return not res
 
 
 #=======================================================================================================================
