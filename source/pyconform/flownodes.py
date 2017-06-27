@@ -493,6 +493,7 @@ class ValidateNode(FlowNode):
             if dmin < valid_min:
                 msg = 'valid_min: {} < {} ({!r})'.format(dmin, valid_min, self.label)
                 warn(msg, ValidationWarning)
+                indata = numpy.ma.masked_where(indata <= valid_min, indata)
 
         # Validate maximum
         if valid_max:
@@ -500,6 +501,7 @@ class ValidateNode(FlowNode):
             if dmax > valid_max:
                 msg = 'valid_max: {} > {} ({!r})'.format(dmax, valid_max, self.label)
                 warn(msg, ValidationWarning)
+                indata = numpy.ma.masked_where(indata >= valid_max, indata)
 
         # Compute mean of the absolute value, if necessary
         if ok_min_mean_abs or ok_max_mean_abs:
