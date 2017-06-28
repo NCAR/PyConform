@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
-from numpy import sqrt, mean
+from numpy import sqrt, mean, where
 from cf_units import Unit
 
 #=======================================================================================================================
@@ -361,3 +361,38 @@ class ChangeUnitsFunction(Function):
         unit_str = '{}{}'.format(uobj, cal_str)
         new_name = 'chunits({}, units={})'.format(data.name, unit_str)
         return PhysArray(data, name=new_name, units=uobj)
+
+
+#===================================================================================================
+# LimitFunction
+#===================================================================================================
+class LimitFunction(Function):
+    key = 'limit'
+
+    def __init__(self, data, below=None, above=None):
+        super(LimitFunction, self).__init__(data, below=below, above=above)
+    
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+
+        above_val = self.keywords['above']
+        below_val = self.keywords['below']
+        if above_val is None and below_val is None:
+            return data
+        
+        above_str = ''
+        if above_val is not None:
+            above_ind = where(data > above_val)
+            if len(above_ind) > 0:
+                data[above_ind] = above_val
+                above_str = ', above={}'.format(above_val)
+                
+        below_str = ''
+        if below_val is not None:
+            below_ind = where(data < below_val)
+            if len(below_ind) > 0:
+                data[below_ind] = below_val
+                below_str = ', below={}'.format(below_val)
+
+        new_name = 'limit({}{}{})'.format(data.name, above_str, below_str)
+        return PhysArray(data, name=new_name)
