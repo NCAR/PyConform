@@ -65,6 +65,8 @@ def _cmp(a1,a2,rtol=1e-5,atol=1e-8):
             return a1.dimensions != a2.dimensions
     elif isinstance(a1, ndarray):
         return not allclose(a1, a2, rtol=rtol, atol=atol)
+    elif isinstance(a1, basestring):
+        return a1 != a2
     else:
         try:
             res = not allclose(a1, a2, rtol=rtol, atol=atol)
@@ -199,10 +201,19 @@ def main(argv=None):
     f2vars = {v:ncf2.variables[v] for v in ncf2.variables}
     diff_dicts(f1vars, f2vars, name='Variable Headers')
     
+    f12vars = [v for v in ncf1.variables if v in ncf2.variables]
+    vars = [v for v in f12vars if ncf1.variables[v].shape == ncf2.variables[v].shape]
+
+    # Variable Attributes
+    for v in vars:
+        v1 = ncf1.variables[v]
+        v2 = ncf2.variables[v]
+        v1atts = {attr:v1.getncattr(attr) for attr in v1.ncattrs()}
+        v2atts = {attr:v1.getncattr(attr) for attr in v1.ncattrs()}
+        diff_dicts(v1atts, v2atts, name='Variable {!s} Attributes'.format(v))
+    
     # Variable Data
     if not args.header:
-        f12vars = [v for v in ncf1.variables if v in ncf2.variables]
-        vars = [v for v in f12vars if ncf1.variables[v].shape == ncf2.variables[v].shape]
         for v in vars:
             v1 = ncf1.variables[v]
             v2 = ncf2.variables[v]
