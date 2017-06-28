@@ -1174,11 +1174,10 @@
             "missing_value": 1.0000000200408773e+20, 
             "original_name": "PRECC,PRECL", 
             "standard_name": "precipitation_flux", 
-            "units": "kg m-2 s-1",
-            "valid_min": 1.449e-06
+            "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(1000*(PRECC + PRECL), units=\"kg m-2 s-1\")", 
+        "definition": "limit(chunits(1000*(PRECC + PRECL), units=\"kg m-2 s-1\"), below=1.449e-06)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -1299,11 +1298,10 @@
             "missing_value": 1.0000000200408773e+20, 
             "original_name": "PRECSC,PRECSL", 
             "standard_name": "snowfall_flux", 
-            "units": "kg m-2 s-1",
-            "valid_min": 1.449e-06
+            "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "chunits(1000*(PRECSC + PRECSL), units=\"kg m-2 s-1\")", 
+        "definition": "limit(chunits(1000*(PRECSC + PRECSL), units=\"kg m-2 s-1\"), below=1.449e-06)", 
         "dimensions": [
             "time", 
             "lat", 
