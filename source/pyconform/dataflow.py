@@ -16,7 +16,7 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
 from pyconform.parsing import parse_definition
 from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
 from pyconform.functions import find_operator, find_function
@@ -30,18 +30,12 @@ from warnings import warn
 import numpy
 
 
-#===================================================================================================
-# DefinitionWarning
-#===================================================================================================
-class DefinitionWarning(Warning):
-    """Warning to indicate that a variable definition might be bad"""
-
-
-#===================================================================================================
+#=======================================================================================================================
 # VariableNotFoundError
-#===================================================================================================
-class VariableNotFoundError(KeyError):
-    """Exception for definitions requiring variables that are not found"""
+#=======================================================================================================================
+class VariableNotFoundError(ValueError):
+    """Indicate if an input variable could not be found during construction"""
+
 
 #===================================================================================================
 # DataFlow
@@ -92,10 +86,6 @@ class DataFlow(object):
         # Create a dictionary to store FlowNodes for variables with string 'definitions'
         self._defnodes = {}
         for vname, vdesc in defvars.iteritems():
-            if vdesc.definition == '':
-                warn('Definition not found for output variable {}. Skipping'.format(vname),
-                     DefinitionWarning)
-                continue
             try:
                 vnode = self._construct_flow_(parse_definition(vdesc.definition))
             except VariableNotFoundError, err:
@@ -205,7 +195,7 @@ class DataFlow(object):
                 return self._datnodes[vname]
 
             else:
-                raise VariableNotFoundError(('Variable {!r} not found or cannot be used as input').format(vname))
+                raise VariableNotFoundError('Input variable {!r} not found or cannot be used as input'.format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             name = obj.key

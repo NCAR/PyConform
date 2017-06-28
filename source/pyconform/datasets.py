@@ -14,6 +14,14 @@ from collections import OrderedDict
 from numpy import dtype, array
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
+from warnings import warn
+
+
+#===================================================================================================
+# DefinitionWarning
+#===================================================================================================
+class DefinitionWarning(Warning):
+    """Warning to indicate that a variable definition might be bad"""
 
 
 #===================================================================================================
@@ -633,19 +641,25 @@ class OutputDatasetDesc(DatasetDesc):
                 vkwds['datatype'] = vdict['datatype']
 
             # Get either the 'definition' or the 'data' of the variables
+            def_wrn = ''
             if 'definition' in vdict:
                 vdef = vdict['definition']
                 if isinstance(vdef, basestring):
-                    vkwds['definition'] = vdef
-                    vshape = None
+                    if len(vdef.strip()) > 0:
+                        vkwds['definition'] = vdef
+                        vshape = None
+                    else:
+                        def_wrn = 'Empty definition for output variable {!r} in dataset {!r}.'.format(vname, name)
                 else:
                     vdat = array(vdef, dtype=vkwds['datatype'])
                     vshape = vdat.shape
                     vkwds['definition'] = vdat
             else:
-                err_msg = ('Definition is required for output variable {!r} in dataset '
-                           '{!r}').format(vname, name)
-                raise ValueError(err_msg)
+                def_wrn = 'No definition given for output variable {!r} in dataset {!r}.'.format(vname, name)
+            
+            if len(def_wrn) > 0:
+                warn('{} Skipping output variable {}.'.format(def_wrn, vname), DefinitionWarning)
+                continue
 
             # Get the dimensions of the variable (REQUIRED)
             if 'dimensions' in vdict:
@@ -655,8 +669,7 @@ class OutputDatasetDesc(DatasetDesc):
                     vkwds['dimensions'] = tuple(DimensionDesc(d, s) for d, s in
                                                 zip(vdict['dimensions'], vshape))
             else:
-                err_msg = ('Dimensions are required for variable {!r} in dataset '
-                           '{!r}').format(vname, name)
+                err_msg = 'Dimensions are required for variable {!r} in dataset {!r}'.format(vname, name)
                 raise ValueError(err_msg)
 
             variables[vname] = VariableDesc(vname, **vkwds)
