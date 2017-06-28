@@ -294,6 +294,7 @@ class DataFlow(object):
             else:
                 self._writenodes[fname].disable_history()
             self._writenodes[fname].execute(chunks=chunks)
+            print '{}: Finished writing file: {}'.format(prefix, fname)
 
         scomm.sync()
         if scomm.is_manager():
