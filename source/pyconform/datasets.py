@@ -318,7 +318,7 @@ class FileDesc(object):
     file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
     """
 
-    def __init__(self, name, format='NETCDF4_CLASSIC', variables=(), attributes={}):  # @ReservedAssignment
+    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=2, variables=(), attributes={}):  # @ReservedAssignment
         """
         Initializer
         
@@ -327,6 +327,7 @@ class FileDesc(object):
             fmt (str):  String defining the NetCDF file format (one of 'NETCDF4',
                 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or 
                 'NETCDF3_64BIT_DATA')
+            deflate (int): Level of lossless compression to use in all variables within the file (0-9)
             variables (tuple):  Tuple of VariableDesc objects describing the file variables            
             attributes (dict):  Dict of global attributes in the file
         """
@@ -338,6 +339,12 @@ class FileDesc(object):
             raise TypeError(err_msg)
         self._format = format
 
+        if not isinstance(deflate, int):
+            raise TypeError('Deflate value must be an integer, not {}'.format(deflate))
+        if deflate < 0 or deflate > 9:
+            raise TypeError('Deflate value must be in the range 0-9, not {}'.format(deflate))
+        self._deflate = deflate
+        
         if not _is_list_of_type_(variables, VariableDesc):
             err_msg = ('Variables in file {!r} must be a list or tuple of type '
                        'VariableDesc').format(name)
@@ -375,6 +382,11 @@ class FileDesc(object):
     def format(self):
         """Format of the file"""
         return self._format
+
+    @property
+    def deflate(self):
+        """Deflate level for variables in the file"""
+        return self._deflate
 
     @property
     def attributes(self):
@@ -693,6 +705,9 @@ class OutputDatasetDesc(DatasetDesc):
 
                 if 'format' in fdict:
                     files[fname]['format'] = fdict['format']
+                
+                if 'deflate' in fdict:
+                    files[fname]['deflate'] = fdict['deflate']
 
                 if 'attributes' in fdict:
                     files[fname]['attributes'] = fdict['attributes']

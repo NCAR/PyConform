@@ -666,7 +666,9 @@ class WriteNode(FlowNode):
                 vdtype = numpy.dtype(vdesc.datatype)
                 fillval = vattrs.get('_FillValue', None)
                 vdims = vdesc.dimensions.keys()
-                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval)
+                zlib = self._filedesc.deflate > 0
+                clev = self._filedesc.deflate if zlib else 1
+                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval, zlib=zlib, complevel=clev)
 
                 for aname in vattrs:
                     if aname not in self._unwritten_attributes:
