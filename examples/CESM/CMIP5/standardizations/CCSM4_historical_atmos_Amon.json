@@ -813,8 +813,7 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "deafca15-2f15-4a48-a929-7a892baa82e0"
             }, 
-            "filename": "hurs_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["height"]
+            "filename": "hurs_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
     "hus": {
@@ -942,10 +941,9 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "61a85669-1570-4b06-bbde-0ea319aaca50"
             }, 
-            "filename": "huss_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["height"]
+            "filename": "huss_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
-    }, 
+    },
     "ilev": {
         "attributes": {
             "axis": "Z", 
@@ -2538,8 +2536,7 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "852cedbf-bbee-4f1f-8a04-d2aa903b418f"
             }, 
-            "filename": "tas_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["height"]
+            "filename": "tas_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
     "tasmax": {
@@ -2602,8 +2599,7 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "47ec0131-6efb-422a-bb80-dbfc636d3901"
             }, 
-            "filename": "tasmax_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["height"]
+            "filename": "tasmax_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
     "tasmin": {
@@ -2666,8 +2662,7 @@
                 "title": "CCSM4 model output prepared for CMIP5 historical", 
                 "tracking_id": "5a15286b-bf61-48fb-b104-fea3883dd7cb"
             }, 
-            "filename": "tasmin_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc",
-            "metavars": ["height"]
+            "filename": "tasmin_Amon_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
     "tauu": {

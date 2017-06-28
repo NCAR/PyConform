@@ -1,4 +1,48 @@
 {
+    "a": {
+        "attributes": {
+            "long_name": "vertical coordinate formula term: a(k)",
+            "bounds": "a_bnds"
+        }, 
+        "datatype": "float64", 
+        "definition": "hyam", 
+        "dimensions": [
+            "lev"
+        ]
+    }, 
+    "a_bnds": {
+        "attributes": {
+            "long_name": "vertical coordinate formula term: a(k+1/2)"
+        }, 
+        "datatype": "float64", 
+        "definition": "bounds(hyam, bdim=\"tbnd\", idata=hyai)", 
+        "dimensions": [
+            "lev", 
+            "bnds"
+        ]
+    }, 
+    "b": {
+        "attributes": {
+            "long_name": "vertical coordinate formula term: b(k)",
+            "bounds": "b_bnds"
+        }, 
+        "datatype": "float64", 
+        "definition": "hybm", 
+        "dimensions": [
+            "lev"
+        ]
+    }, 
+    "b_bnds": {
+        "attributes": {
+            "long_name": "vertical coordinate formula term: b(k+1/2)"
+        }, 
+        "datatype": "float64", 
+        "definition": "bounds(hybm, bdim=\"tbnd\", idata=hybi)",
+        "dimensions": [
+            "lev", 
+            "bnds"
+        ]
+    }, 
     "clt": {
         "attributes": {
             "_FillValue": 1.0000000200408773e+20, 
@@ -15,7 +59,7 @@
             "units": "%"
         }, 
         "datatype": "float32", 
-        "definition": "CLDTOT", 
+        "definition": "chunits(CLDTOT, units=\"1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -90,7 +134,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "LHFLX", 
+        "definition": "up(LHFLX)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -153,7 +197,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "SHFLX", 
+        "definition": "up(SHFLX)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -264,6 +308,34 @@
             "filename": "huss_3hr_CCSM4_historical_r6i1p1_YYYYMM.nc"
         }
     }, 
+    "ilev": {
+        "attributes": {
+            "axis": "Z", 
+            "bounds": "ilev_bnds",
+            "direction": "decreasing",
+            "long_name": "hybrid sigma pressure coordinate at intermediate levels", 
+            "positive": "down", 
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "ilev * 0.001", 
+        "dimensions": [
+            "ilev"
+        ]
+    }, 
+    "ilev_bnds": {
+        "attributes": {
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "bounds(ilev * 0.001, bdim=\"tbnd\", idata=lev * 0.001)", 
+        "dimensions": [
+            "ilev", 
+            "bnds"
+        ]
+    }, 
     "lat": {
         "attributes": {
             "axis": "Y", 
@@ -281,9 +353,41 @@
     "lat_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lat, endpoints", 
+        "definition": "bounds(lat, bdim=\"tbnd\", endpoints=0)", 
         "dimensions": [
             "lat", 
+            "bnds"
+        ]
+    }, 
+    "lev": {
+        "attributes": {
+            "axis": "Z", 
+            "bounds": "lev_bnds", 
+            "direction": "decreasing",
+            "formula": "p = a*p0 + b*ps", 
+            "formula_terms": "p0: p0 a: a b: b ps: ps", 
+            "long_name": "hybrid sigma pressure coordinate", 
+            "positive": "down", 
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "lev * 0.001", 
+        "dimensions": [
+            "lev"
+        ]
+    }, 
+    "lev_bnds": {
+        "attributes": {
+            "formula": "p = a*p0 + b*ps", 
+            "formula_terms": "p0: p0 a: a_bnds b: b_bnds ps: ps", 
+            "standard_name": "atmosphere_hybrid_sigma_pressure_coordinate", 
+            "units": "1"
+        }, 
+        "datatype": "float64", 
+        "definition": "bounds(lev * 0.001, bdim=\"tbnd\", idata=ilev*0.001)", 
+        "dimensions": [
+            "lev", 
             "bnds"
         ]
     }, 
@@ -304,10 +408,51 @@
     "lon_bnds": {
         "attributes": {}, 
         "datatype": "float64", 
-        "definition": "bounds(lon)", 
+        "definition": "bounds(lon, bdim=\"tbnd\")", 
         "dimensions": [
             "lon", 
             "bnds"
+        ]
+    }, 
+    "p0": {
+        "attributes": {
+            "long_name": "vertical coordinate formula term: reference pressure", 
+            "units": "Pa"
+        }, 
+        "datatype": "float32", 
+        "definition": "P0", 
+        "dimensions": []
+    }, 
+    "plev": {
+        "attributes": {
+            "axis": "Z", 
+            "long_name": "pressure", 
+            "positive": "down", 
+            "standard_name": "air_pressure", 
+            "units": "Pa"
+        }, 
+        "datatype": "float64", 
+        "definition": [
+            100000, 
+            92500, 
+            85000, 
+            70000, 
+            60000, 
+            50000, 
+            40000, 
+            30000, 
+            25000, 
+            20000, 
+            15000, 
+            10000, 
+            7000, 
+            5000, 
+            3000, 
+            2000, 
+            1000
+        ], 
+        "dimensions": [
+            "plev"
         ]
     }, 
     "pr": {
@@ -325,7 +470,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "PRECC + PRECL", 
+        "definition": "limit(chunits(1000*(PRECC + PRECL), units=\"kg m-2 s-1\"), below=1.449e-06)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -387,7 +532,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "PRECC", 
+        "definition": "chunits(1000*(PRECC), units=\"kg m-2 s-1\")", 
         "dimensions": [
             "time", 
             "lat", 
@@ -449,7 +594,7 @@
             "units": "kg m-2 s-1"
         }, 
         "datatype": "float32", 
-        "definition": "PRECSC + PRECSL", 
+        "definition": "limit(chunits(1000*(PRECSC + PRECSL), units=\"kg m-2 s-1\"), below=1.449e-06)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -574,7 +719,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FLDS", 
+        "definition": "down(FLDS)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -637,7 +782,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FLDSC", 
+        "definition": "down(FLDSC)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -700,7 +845,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FLDS + FLNS", 
+        "definition": "up(FLDS + FLNS)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -763,7 +908,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FSDS", 
+        "definition": "down(FSDS)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -826,7 +971,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FSDSC", 
+        "definition": "down(FSDSC)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -889,7 +1034,7 @@
             "units": "W m-2"
         }, 
         "datatype": "float32", 
-        "definition": "FSDS - FSNS", 
+        "definition": "up(FSDS - FSNS)", 
         "dimensions": [
             "time", 
             "lat", 
@@ -1009,7 +1154,7 @@
             "units": "days since 1850-01-01 00:00:00"
         }, 
         "datatype": "float64", 
-        "definition": "mean(time, \"tbnd\")", 
+        "definition": "chunits(mean(time_bnds, \"tbnd\"), units=time)", 
         "dimensions": [
             "time"
         ]
