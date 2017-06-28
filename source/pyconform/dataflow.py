@@ -219,7 +219,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, history=False, scomm=None):
+    def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None):
         """
         Execute the Data Flow
         
@@ -234,6 +234,7 @@ class DataFlow(object):
                 for each variable in the file
             scomm (SimpleComm): An externally created SimpleComm object to use for managing
                 parallel operation
+            deflate (int): Override all output file deflate levels with given value
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -293,7 +294,7 @@ class DataFlow(object):
                 self._writenodes[fname].enable_history()
             else:
                 self._writenodes[fname].disable_history()
-            self._writenodes[fname].execute(chunks=chunks)
+            self._writenodes[fname].execute(chunks=chunks, deflate=deflate)
             print '{}: Finished writing file: {}'.format(prefix, fname)
 
         scomm.sync()

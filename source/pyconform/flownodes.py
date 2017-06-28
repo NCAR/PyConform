@@ -595,12 +595,12 @@ class WriteNode(FlowNode):
         """
         self._unwritten_attributes.add('history')
 
-    def _open_(self):
+    def _open_(self, deflate=None):
         """
         Open the file for writing, if not open already
         """
         if self._file is None:
-
+            
             # Make the necessary subdirectories to open the file
             fname = self.label
             fdir = dirname(fname)
@@ -666,8 +666,16 @@ class WriteNode(FlowNode):
                 vdtype = numpy.dtype(vdesc.datatype)
                 fillval = vattrs.get('_FillValue', None)
                 vdims = vdesc.dimensions.keys()
-                zlib = self._filedesc.deflate > 0
-                clev = self._filedesc.deflate if zlib else 1
+                if deflate is None:
+                    zlib = self._filedesc.deflate > 0
+                    clev = self._filedesc.deflate if zlib else 1
+                else:
+                    if not isinstance(deflate, int):
+                        raise TypeError('Override deflate value must be an integer')
+                    if deflate < 0 or deflate > 9:
+                        raise TypeError('Override deflate value range from 0 to 9')
+                    zlib = deflate > 0
+                    clev = deflate if zlib else 1
                 ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval, zlib=zlib, complevel=clev)
 
                 for aname in vattrs:
@@ -740,7 +748,7 @@ class WriteNode(FlowNode):
         else:
             return None
 
-    def execute(self, chunks={}):
+    def execute(self, chunks={}, deflate=None):
         """
         Execute the writing of the WriteNode file at once
         
@@ -753,10 +761,11 @@ class WriteNode(FlowNode):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
+            deflate (int): Override the output file deflate level with given value
         """
 
         # Open the file and write the header information
-        self._open_()
+        self._open_(deflate=deflate)
 
         # Create data structure to keep track of which variable chunks we have written
         vchunks = {vnode.label:set() for vnode in self.inputs}

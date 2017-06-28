@@ -54,12 +54,18 @@ def cli(argv=None):
                         help=('Chunk sizes for each dimension specified in the '
                               'output specification file.  Data will be read/written '
                               'in sizes given by these chunks. [Default: no chunking]'))
-    parser.add_argument('-f', '--stdfile', default=None, metavar='STANDARDIZATION', type=str,
-                        help=('JSON-formatted standardization (output specification) file '
-                              '[REQUIRED]'))
+    parser.add_argument('-d', '--deflate', default=None, metavar='DEFLATELEVEL', type=int,
+                        help=('Override deflate levels of all output files with given value.  '
+                              '(can be any integer from 0 to 9, with 0 meaning no compression)'))
     parser.add_argument('-e', '--error', default=False, action='store_true',
                         help=('Whether to error when validation checks do not pass (True) or '
                               'simply print a warning message (False) [Default: False]'))
+    parser.add_argument('-f', '--stdfile', default=None, metavar='STANDARDIZATION', type=str,
+                        help=('JSON-formatted standardization (output specification) file '
+                              '[REQUIRED]'))
+    parser.add_argument('-m', '--module', metavar='MODULE', action='append',
+                        help=('Module file path with user-defined functions that must be loaded '
+                              'before the Conformation operation can be done'))
     parser.add_argument('-n', '--no_history', default=False, action='store_true',
                         help=('Whether to omit the addition of the "history" attribute in each '
                               'output variable, which stores the provenance information generated '
@@ -67,9 +73,6 @@ def cli(argv=None):
     parser.add_argument('-s', '--serial', default=False, action='store_true',
                         help=('Whether to run in serial (True) or parallel '
                               '(False). [Default: False]'))
-    parser.add_argument('-m', '--module', metavar='MODULE', action='append',
-                        help=('Module file path with user-defined functions that must be loaded '
-                              'before the Conformation operation can be done'))
     parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
                         help=('Input file path or globstring specifying input data for the '
                               'PyConform operation.  If no input files are specified, then '
@@ -154,7 +157,7 @@ def main(argv=None):
 
     # Execute the data flow (write to files)
     history = not args.no_history
-    dataflow.execute(chunks=dict(args.chunks), scomm=scomm, history=history)
+    dataflow.execute(chunks=dict(args.chunks), scomm=scomm, history=history, deflate=args.deflate)
 
 
 #===================================================================================================
