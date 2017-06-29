@@ -81,7 +81,7 @@ def main(argv=None):
     
     if args.definition:
         for v, vdef in defined:
-            print '{} = {!r}'.format(v, vdef)
+            print '{} = {}'.format(v, vdef)
         print
         print 'Undefined Variables: {}'.format(', '.join(undefined))
         if len(missingdfns) > 0:
