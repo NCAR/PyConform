@@ -58,7 +58,7 @@ author = u'Kevin Paul, Sheri Mickelson'
 # built documents.
 #
 # Read the version info from the source directory
-exec(open('../../source/pyconform/version.py').read())
+exec(open('../source/pyconform/version.py').read())
 # The short X.Y version.
 version = '.'.join(__version__.split('.')[:-1])
 # The full version, including alpha/beta/rc tags.
