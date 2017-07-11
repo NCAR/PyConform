@@ -1,3 +1,5 @@
 *.spec
 *.pyc
 *.nc
+.DS_Store
+temp

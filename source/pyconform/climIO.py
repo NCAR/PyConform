@@ -4,7 +4,7 @@ Climate I/O Facade
 This defines the facade for netCDF I/O operations, either with netCDF4 or
 PyNIO.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

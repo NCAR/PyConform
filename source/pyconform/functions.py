@@ -1,405 +1,398 @@
 """
 Functions for FunctionEvaluator Actions
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os import linesep
 from abc import ABCMeta, abstractmethod
+from pyconform.physarray import PhysArray, UnitsError
+from numpy import sqrt, mean, where
 from cf_units import Unit
-from numpy import sqrt, transpose
 
-
-class UnitsError(ValueError):
-    pass
-
-
-class DimensionsError(ValueError):
-    pass
-
-
-#===============================================================================
-# List all available functions or operators
-#===============================================================================
-def available():
-    return available_operators().union(available_functions())
-
-
-#===============================================================================
+#=======================================================================================================================
+# is_constant - Determine if an argument is a constant (number or string)
+#=======================================================================================================================
+def is_constant(arg):
+    return isinstance(arg, (basestring, float, int)) or arg is None
+    
+#===================================================================================================
 # Find a function or operator based on key and number of arguments
-#===============================================================================
-def find(key, numargs=2):
-    if (key, numargs) in available_operators():
-        return find_operator(key, numargs)
-    elif (key, numargs) in available_functions():
-        return find_function(key, numargs)
+#===================================================================================================
+def find(key, numargs=None):
+    try:
+        fop = find_operator(key, numargs=numargs)
+    except:
+        pass
     else:
-        raise KeyError(('{0}-arg operator/function with key {1!r} not '
-                        'found').format(numargs, key))
+        return fop
+    
+    if numargs is not None:
+        raise KeyError('No operator {!r} with {} arguments found'.format(key, numargs))
+
+    try:
+        fop = find_function(key)
+    except:
+        raise KeyError('No operator or function {!r} found'.format(key))
+    else:
+        return fop
 
 
-#===============================================================================
-# FunctionalAbstract - base class for Function and Operator Classes
-#===============================================================================
-class FunctionAbstract(object):
+#===================================================================================================
+# FunctionBase - base class for Function and Operator Classes
+#===================================================================================================
+class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
-    numargs = 2
+
+    def __init__(self, *args, **kwds):
+        self.arguments = args
+        self.keywords = kwds
 
     @abstractmethod
-    def units(self, *arg_units):
-        uret = arg_units[0] if isinstance(arg_units[0], Unit) else Unit(1)
-        uarg = (None,) * len(self.numargs)
-        return uret, uarg
-
-    @abstractmethod
-    def dimensions(self, *arg_dims):
-        dret = arg_dims[0] if isinstance(arg_dims[0], tuple) else tuple()
-        darg = (None,) * len(self.numargs)
-        return dret, darg
-    
-    def __call__(self, *args):
-        return 1
-    
-
-################################################################################
-##### OPERATORS ################################################################
-################################################################################
-
-#===============================================================================
-# Get a list of the available functions by function key and number of arguments
-#===============================================================================
-def available_operators():
-    return set(__OPERATORS__.keys())
+    def __getitem__(self):
+        return None
 
 
-#===============================================================================
+####################################################################################################
+##### OPERATORS ####################################################################################
+####################################################################################################
+
+
+#===================================================================================================
 # Get the function associated with the given key-symbol
-#===============================================================================
-def find_operator(key, numargs=2):
-    if (key, numargs) not in __OPERATORS__:
-        raise KeyError(('{0}-arg operator with key {1!r} not '
-                        'found').format(numargs, key))
-    return __OPERATORS__[(key, numargs)]
+#===================================================================================================
+def find_operator(key, numargs=None):
+    if key not in __OPERATORS__:
+        raise KeyError('Operator {!r} not found'.format(key))
+    ops = __OPERATORS__[key]
+    if numargs is None:
+        if len(ops) == 0:
+            raise KeyError('Operator {!r} found but not defined'.format(key))
+        elif len(ops) == 1:
+            return ops[ops.keys()[0]]
+        else:
+            raise KeyError(('Operator {!r} has multiple definitions, '
+                            'number of arguments required').format(key))
+    elif numargs not in ops:
+        raise KeyError('Operator {!r} with {} arguments not found'.format(key, numargs))
+    else:
+        return ops[numargs]
 
 
-#===============================================================================
+#===================================================================================================
+# operators
+#===================================================================================================
+def list_operators():
+    return sorted(__OPERATORS__.keys())
+
+
+#===================================================================================================
 # Operator - From which all 'X op Y'-pattern operators derive
-#===============================================================================
-class Operator(FunctionAbstract):
+#===================================================================================================
+class Operator(FunctionBase):
     key = '?'
     numargs = 2
+    
+    def __init__(self, *args):
+        super(Operator, self).__init__(*args)
 
 
-#===============================================================================
+#===================================================================================================
 # NegationOperator
-#===============================================================================
+#===================================================================================================
 class NegationOperator(Operator):
     key = '-'
     numargs = 1
 
-    @staticmethod
-    def units(unit):
-        uret = unit if isinstance(unit, Unit) else Unit(1)
-        return uret, (None,)
-
-    @staticmethod
-    def dimensions(dims):
-        dret = dims if isinstance(dims, tuple) else ()
-        return dret, (None,)
+    def __init__(self, arg):
+        super(NegationOperator, self).__init__(arg)
     
-    def __call__(self, arg):
+    def __getitem__(self, index):
+        arg = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
         return -arg
-    
 
-#===============================================================================
+
+#===================================================================================================
 # AdditionOperator
-#===============================================================================
+#===================================================================================================
 class AdditionOperator(Operator):
     key = '+'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        if ul == ur:
-            return ul, (None, None)
-        elif ur.is_convertible(ul):
-            return ul, (None, ul)
-        else:
-            raise UnitsError(('Data with units {0!s} and {1!s} cannot be '
-                              'added or subtracted').format(ul, ur))
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        dl = ldims if isinstance(ldims, tuple) else ()
-        dr = rdims if isinstance(rdims, tuple) else ()
-        if dl == ():
-            return dr, (None, None)
-        elif dl == dr or dr == ():
-            return dl, (None, None)
-        elif set(dl) == set(dr):
-            return dl, (None, dl)
-        else:
-            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
-                                   'be added or subtracted').format(dl, dr))
+    def __init__(self, left, right):
+        super(AdditionOperator, self).__init__(left, right)
     
-    def __call__(self, left, right):
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left + right
 
-#===============================================================================
+
+#===================================================================================================
 # SubtractionOperator
-#===============================================================================
+#===================================================================================================
 class SubtractionOperator(Operator):
     key = '-'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        return AdditionOperator.units(lunit, runit)
+    def __init__(self, left, right):
+        super(SubtractionOperator, self).__init__(left, right)
     
-    @staticmethod
-    def dimensions(ldims, rdims):
-        return AdditionOperator.dimensions(ldims, rdims)
-    
-    def __call__(self, left, right):
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left - right
 
-#===============================================================================
+
+#===================================================================================================
 # PowerOperator
-#===============================================================================
+#===================================================================================================
 class PowerOperator(Operator):
-    key = '^'
+    key = '**'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        if not isinstance(runit, (int, float)):
-            raise UnitsError('Exponent in power function must be a '
-                             'unitless scalar')
-        try:
-            upow = lunit ** runit
-        except:
-            raise UnitsError(('Cannot exponentiate units to power '
-                              '{0}').format(runit))
-        uret = upow if isinstance(upow, Unit) else Unit(1)
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        if not isinstance(rdims, (int, float)):
-            raise DimensionsError('Exponent in power function must be a '
-                                  'dimensionless scalar')
-        dret = ldims if isinstance(ldims, tuple) else () 
-        return dret, (None, None)
+    def __init__(self, left, right):
+        super(PowerOperator, self).__init__(left, right)
     
-    def __call__(self, left, right):
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left ** right
 
 
-#===============================================================================
+#===================================================================================================
 # MultiplicationOperator
-#===============================================================================
+#===================================================================================================
 class MultiplicationOperator(Operator):
     key = '*'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        try:
-            uret = ul * ur
-        except:
-            raise UnitsError(('Cannot multiply or divide units {0} and '
-                              '{1}').format(ul, ur))
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        dl = ldims if isinstance(ldims, tuple) else ()
-        dr = rdims if isinstance(rdims, tuple) else ()
-        if dl == ():
-            return dr, (None, None)
-        elif dl == dr or dr == ():
-            return dl, (None, None)
-        elif set(dl) == set(dr):
-            return dl, (None, dl)
-        else:
-            raise DimensionsError(('Data with dimensions {0} and {1} cannot '
-                                   'be multiplied or divided').format(dl, dr))
+    def __init__(self, left, right):
+        super(MultiplicationOperator, self).__init__(left, right)
     
-    def __call__(self, left, right):
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left * right
 
 
-#===============================================================================
+#===================================================================================================
 # DivisionOperator
-#===============================================================================
+#===================================================================================================
 class DivisionOperator(Operator):
     key = '-'
     numargs = 2
 
-    @staticmethod
-    def units(lunit, runit):
-        ul = lunit if isinstance(lunit, Unit) else Unit(1)
-        ur = runit if isinstance(runit, Unit) else Unit(1)
-        try:
-            uret = ul / ur
-        except:
-            raise UnitsError(('Cannot multiply or divide units {0} and '
-                              '{1}').format(ul, ur))
-        return uret, (None, None)
-
-    @staticmethod
-    def dimensions(ldims, rdims):
-        return MultiplicationOperator.dimensions(ldims, rdims)
+    def __init__(self, left, right):
+        super(DivisionOperator, self).__init__(left, right)
     
-    def __call__(self, left, right):
+    def __getitem__(self, index):
+        left = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        right = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
         return left / right
 
 
-#===============================================================================
+#===================================================================================================
 # Operator map - Fixed to prevent user-redefinition!
-#===============================================================================
+#===================================================================================================
 
-__OPERATORS__ = {('-', 1): NegationOperator(),
-                 ('^', 2): PowerOperator(),
-                 ('+', 2): AdditionOperator(),
-                 ('-', 2): SubtractionOperator(),
-                 ('*', 2): MultiplicationOperator(),
-                 ('/', 2): DivisionOperator()}
+__OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
+                 '**': {2: PowerOperator},
+                 '+': {2: AdditionOperator},
+                 '*': {2: MultiplicationOperator},
+                 '/': {2: DivisionOperator}}
 
-################################################################################
-##### FUNCTIONS ################################################################
-################################################################################
+####################################################################################################
+##### FUNCTIONS ####################################################################################
+####################################################################################################
 
-#===============================================================================
+#===================================================================================================
 # Recursively return all subclasses of a given class
-#===============================================================================
+#===================================================================================================
 def _all_subclasses_(cls):
-    return cls.__subclasses__() + [c for s in cls.__subclasses__()
-                                   for c in _all_subclasses_(s)]
+    return cls.__subclasses__() + [c for s in cls.__subclasses__() for c in _all_subclasses_(s)]
 
-#===============================================================================
-# Check that all functions patterns are unique - Needed for User-Defined Funcs
-#===============================================================================
-def check_functions():
-    func_dict = {}
-    func_map = [((c.key, c.numargs), c)
-                for c in _all_subclasses_(Function)]
-    non_unique_patterns = []
-    for func_pattern, class_name in func_map:
-        if func_pattern in func_dict:
-            func_dict[func_pattern].append(class_name)
-            non_unique_patterns.append(func_pattern)
-        else:
-            func_dict[func_pattern] = [class_name]
-    if len(non_unique_patterns) > 0:
-        err_msg = ['Some function patterns are multiply defined:']
-        for func_pattern in non_unique_patterns:
-            func_descr = '{0[1]}-arg {0[0]!r}'.format(func_pattern)
-            class_names = ', '.join(func_dict[func_pattern])
-            err_msg += ['   {0} maps to {1}'.format(func_descr, class_names)]
-        raise RuntimeError(linesep.join(err_msg))
 
-#===============================================================================
-# Get a list of the available functions by function key and number of arguments
-#===============================================================================
-def available_functions():
-    return set((c.key, c.numargs)
-               for c in _all_subclasses_(Function))
-
-#===============================================================================
+#===================================================================================================
 # Get the function associated with the given key-symbol
-#===============================================================================
-def find_function(key, numargs=2):
-    func_map = dict(((c.key, c.numargs), c())
-                    for c in _all_subclasses_(Function))
-    if (key, numargs) not in func_map:
-        raise KeyError(('{0}-arg function with key {1!r} not '
-                        'found').format(numargs, key))
-    return func_map[(key, numargs)]
+#===================================================================================================
+def find_function(key):
+    func = None
+    for c in _all_subclasses_(Function):
+        if c.key == key:
+            if func is None:
+                func = c
+            else:
+                raise RuntimeError('Function {!r} is multiply defined'.format(key))
+    if func is None:
+        raise KeyError('Function {!r} not found'.format(key))
+    else:
+        return func
+    
 
-#===============================================================================
+#===================================================================================================
+# list_functions
+#===================================================================================================
+def list_functions():
+    return [c.key for c in _all_subclasses_(Function)]
+
+
+#===================================================================================================
 # Function - From which all 'func(...)'-pattern functions derive
-#===============================================================================
-class Function(FunctionAbstract):
-    key = 'f'
-    numargs = 1
+#===================================================================================================
+class Function(FunctionBase):
+    key = 'func'
+    
+    def __init__(self, *args, **kwds):
+        super(Function, self).__init__(*args, **kwds)
+        self._sumlike_dimensions = set()
+    
+    def __getitem__(self, _):
+        return None
+    
+    @property
+    def sumlike_dimensions(self):
+        return self._sumlike_dimensions
+    
+    def add_sumlike_dimensions(self, *dims):
+        self._sumlike_dimensions.update(set(dims))
 
-#===============================================================================
+
+#===================================================================================================
 # SquareRoot
-#===============================================================================
+#===================================================================================================
 class SquareRootFunction(Function):
     key = 'sqrt'
-    numargs = 1
 
-    @staticmethod
-    def units(unit):
-        u = unit if isinstance(unit, Unit) else Unit(1)
-        try:
-            uret = u.root(2)
-        except:
-            raise UnitsError(('Cannot take square-root of units {0}').format(u))
-        return uret, (None,)
+    def __init__(self, data):
+        super(SquareRootFunction, self).__init__(data)
+        data_info = data if is_constant(data) else data[None]
+        if isinstance(data_info, PhysArray):
+            try:
+                units = data_info.units.root(2)
+            except:
+                raise UnitsError('sqrt: Cannot take square-root of units {!r}'.format(data.units))
+            self._units = units
+        else:
+            self._units = None
 
-    @staticmethod
-    def dimensions(dims):
-        dret = dims if isinstance(dims, tuple) else ()
-        return dret, (None,)
+    def __getitem__(self, index):
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
+        if isinstance(data, PhysArray):
+            return PhysArray(sqrt(data.data), units=self._units, name='sqrt({})'.format(data.name),
+                             dimensions=data.dimensions, positive=data.positive)
+        else:
+            return sqrt(data)
+
+
+#===================================================================================================
+# MeanFunction
+#===================================================================================================
+class MeanFunction(Function):
+    key = 'mean'
+
+    def __init__(self, data, *dimensions):
+        super(MeanFunction, self).__init__(data, *dimensions)
+        self.add_sumlike_dimensions(*dimensions)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('mean: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('mean: Dimensions must be strings')
     
-    def __call__(self, data):
-        return sqrt(data)
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        dimensions = self.arguments[1:]
+        indims = [d for d in dimensions if d in data.dimensions]
+        axes = tuple(data.dimensions.index(d) for d in indims)
+        new_dims = tuple(d for d in data.dimensions if d not in indims)
+        dim_str = ','.join(str(d) for d in indims)
+        return PhysArray(mean(data.data, axis=axes),
+                         units=data.units, dimensions=new_dims, positive=data.positive,
+                         name='mean({}, dims=[{}])'.format(data.name, dim_str))
 
-#===============================================================================
-# ConvertFunction
-#===============================================================================
-class ConvertFunction(Function):
-    key = 'convert'
-    numargs = 3
 
-    @staticmethod
-    def units(data_units, from_units, to_units):
-        ud = data_units if isinstance(data_units, Unit) else Unit(1)
-        uf = from_units if isinstance(from_units, Unit) else Unit(1)
-        ut = to_units if isinstance(to_units, Unit) else Unit(1)
-        if ud != uf:
-            raise UnitsError(('Input units {0} different from expected '
-                              'units {1}').format(ud, uf))
-        if not uf.is_convertible(ut):
-            raise UnitsError(('Ill-formed convert function.  Cannot convert '
-                              'units {0} to {1}').format(uf, ut))
-        uret = ut
-        return uret, (None, None, None)
+#===================================================================================================
+# PositiveUpFunction
+#===================================================================================================
+class PositiveUpFunction(Function):
+    key = 'up'
 
-    @staticmethod
-    def dimensions(data_dims, from_units, to_units):
-        dret = data_dims if isinstance(data_dims, tuple) else ()
-        return dret, (None, None, None)
+    def __init__(self, data):
+        super(PositiveUpFunction, self).__init__(data)
     
-    def __call__(self, data, from_units, to_units):
-        return from_units.convert(data, to_units)
+    def __getitem__(self, index):
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
+        return PhysArray(data).up()
 
-#===============================================================================
-# TransposeFunction
-#===============================================================================
-class TransposeFunction(Function):
-    key = 'transpose'
-    numargs = 2
 
-    @staticmethod
-    def units(data_units, order):
-        uret = data_units if isinstance(data_units, Unit) else Unit(1)
-        return uret, (None, None)
+#===================================================================================================
+# PositiveDownFunction
+#===================================================================================================
+class PositiveDownFunction(Function):
+    key = 'down'
 
-    @staticmethod
-    def dimensions(data_dims, order):
-        d = data_dims if isinstance(data_dims, tuple) else ()
-        dret = tuple(d[i] for i in order)
-        return dret, (None, None)
+    def __init__(self, data):
+        super(PositiveDownFunction, self).__init__(data)
     
-    def __call__(self, data, order):
-        return transpose(data, order)
+    def __getitem__(self, index):
+        data_r = self.arguments[0]
+        data = data_r if is_constant(data_r) else data_r[index]
+        return PhysArray(data).down()
+
+
+#===================================================================================================
+# ChangeUnitsFunction
+#===================================================================================================
+class ChangeUnitsFunction(Function):
+    key = 'chunits'
+
+    def __init__(self, data, units=1):
+        super(ChangeUnitsFunction, self).__init__(data, units=units)
+    
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        units = self.keywords['units'] if is_constant(self.keywords['units']) else self.keywords['units'][index]
+        uobj = units.units if isinstance(units, PhysArray) else Unit(units)
+        cal_str = '' if uobj.calendar is None else '|{}'.format(uobj.calendar)
+        unit_str = '{}{}'.format(uobj, cal_str)
+        new_name = 'chunits({}, units={})'.format(data.name, unit_str)
+        return PhysArray(data, name=new_name, units=uobj)
+
+
+#===================================================================================================
+# LimitFunction
+#===================================================================================================
+class LimitFunction(Function):
+    key = 'limit'
+
+    def __init__(self, data, below=None, above=None):
+        super(LimitFunction, self).__init__(data, below=below, above=above)
+    
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+
+        above_val = self.keywords['above']
+        below_val = self.keywords['below']
+        if above_val is None and below_val is None:
+            return data
+        
+        above_str = ''
+        if above_val is not None:
+            above_ind = where(data > above_val)
+            if len(above_ind) > 0:
+                data[above_ind] = above_val
+                above_str = ', above={}'.format(above_val)
+                
+        below_str = ''
+        if below_val is not None:
+            below_ind = where(data < below_val)
+            if len(below_ind) > 0:
+                data[below_ind] = below_val
+                below_str = ', below={}'.format(below_val)
+
+        new_name = 'limit({}{}{})'.format(data.name, above_str, below_str)
+        return PhysArray(data, name=new_name)

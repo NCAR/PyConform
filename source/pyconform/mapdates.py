@@ -4,7 +4,7 @@ Date Evaluator
 This evaluates the time slices in the file(s) to define the time period
 between steps and verifies consistancy and sequential steps between files.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
