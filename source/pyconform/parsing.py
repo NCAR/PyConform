@@ -4,7 +4,7 @@ Parsing Module
 This module defines the necessary elements to parse a string variable definition
 into the recognized elements that are used to construct an Operation Graph.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -53,9 +53,8 @@ class ParsedFunction(object):
             paramstr = kwdstr if len(self.kwds) > 0 else ''
         return "{}({!s})".format(self.key, paramstr)
     def __eq__(self, other):
-        return ((type(self) == type(other)) and
-                (self.key == other.key) and
-                (self.args == other.args))
+        return ((type(self) == type(other)) and (self.key == other.key) and
+                (self.args == other.args) and (self.kwds == other.kwds))
         
         
 #===================================================================================================

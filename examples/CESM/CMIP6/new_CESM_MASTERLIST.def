@@ -107,6 +107,7 @@ ps=PS
 ta=vinterp(T,plevs)
 ua=vinterp(U,plevs)
 va=vinterp(V,plevs)
+
 ############################
 #  TABLE : 6hrPlev
 ############################
@@ -116,6 +117,7 @@ hus4=Q
 pr=
 prhmax=
 psl=PSL
+
 rv850=del.x.(U,V)
 sfcWind=
 tas=
@@ -346,6 +348,7 @@ ua=
 va=
 vt100=
 zg=
+
 ############################
 #  TABLE : Amon
 ############################
@@ -424,6 +427,7 @@ va=vinterp(V,plevs)
 vas=
 wap=vinterp(OMEGA,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : CF3hr
 ############################
@@ -650,6 +654,7 @@ cllcalipso=CLDLOW_CAL
 clmcalipso=CLDMED_CAL
 cltcalipso=CLDTOT_CAL
 parasolRefl=RFL_PARASOL
+
 ############################
 #  TABLE : E1hr
 ############################
@@ -669,6 +674,7 @@ vtendnogw27=
 wap=vinterp(OMEGA,plevs)
 wap27=
 zg27=
+
 ############################
 #  TABLE : E1hrClimMon
 ############################
@@ -677,6 +683,7 @@ rlutcs=FSNTOAC-FSNTC+FLNTC
 rsdt=SOLIN
 rsut=SOLIN - FSNTOA
 rsutcs=SOLIN - FSNTOAC
+
 ############################
 #  TABLE : E3hr
 ############################
@@ -699,6 +706,7 @@ rsutcs=SOLIN - FSNTOAC
 sfcWind=
 uas=
 vas=
+
 ############################
 #  TABLE : E3hrPt
 ############################
@@ -1584,6 +1592,7 @@ shrubFrac=PCT_NAT_PFT(9-11)*PCT_LANDUNIT(0)
 tran=QVEGT
 treeFrac=PCT_NAT_PFT(1-8)*PCT_LANDUNIT(0)
 tsl=TSOI
+
 ############################
 #  TABLE : Oclim
 ############################
@@ -1621,6 +1630,7 @@ tnpeot=
 tnpeotb=
 zfullo=
 zhalfo=
+
 ############################
 #  TABLE : Oday
 ############################
@@ -1631,6 +1641,7 @@ sos=SALT[at topmost level * 1000]
 sossq=
 tos=TEMP[at topmost level]
 tossq=TEMP2
+
 ############################
 #  TABLE : Odec
 ############################
@@ -1669,6 +1680,7 @@ masscello=
 sftof=0 where KMT
 thkcello=
 volcello=
+
 ############################
 #  TABLE : Omon
 ############################
@@ -1966,6 +1978,7 @@ zossq=SSH2
 zostoga=ave_slc_t from Aixue's SLC code; derived from SSH PD TEMP SALT
 zsatarag=zsatarag
 zsatcalc=zsatcalc
+
 ############################
 #  TABLE : Oyr
 ############################
@@ -2094,6 +2107,7 @@ zmeso=
 zmicro=
 zmisc=
 zooc=zooC
+
 ############################
 #  TABLE : SIday
 ############################
@@ -2214,6 +2228,7 @@ va=vinterp(V,plevs)
 vas=
 wap=vinterp(OMEGA,plevs)
 zg=vinterp(Z3,plevs)
+
 ############################
 #  TABLE : fx
 ############################

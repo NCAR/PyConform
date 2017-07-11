@@ -1,17 +1,18 @@
 """
 Unit Testing Utilities
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
 from re import sub
 from os import linesep
+from numpy import array_str
 from netCDF4 import Dataset
 
-#===================================================================================================
+#=======================================================================================================================
 # print_test_message
-#===================================================================================================
+#=======================================================================================================================
 def print_test_message(testname, **kwds):
     print '{}:'.format(testname)
     if len(kwds) > 0:
@@ -23,9 +24,9 @@ def print_test_message(testname, **kwds):
     print
 
 
-#===================================================================================================
+#=======================================================================================================================
 # print_ncfile
-#===================================================================================================
+#=======================================================================================================================
 def print_ncfile(filename):
     with Dataset(filename, 'r') as ncf:
         print 'File: {!r}'.format(filename)
@@ -37,12 +38,14 @@ def print_ncfile(filename):
         print '   Dimensions:'
         for d in sorted(ncf.dimensions):
             dobj = ncf.dimensions[d]
-            print '      {}: {} [Unlimited: {}]'.format(d, dobj.size, dobj.isunlimited())
+            print '      {}: {} {}'.format(d, dobj.size, '[Unlimited]' if dobj.isunlimited() else '')
         print '   Variables:'
         for v in sorted(ncf.variables):
             vobj = ncf.variables[v]
             vdimstr = ','.join(vobj.dimensions)
             header = '      {!s} {}({}): '.format(vobj.dtype, v, vdimstr)
-            datastr = str(vobj[:]).replace('\n', '\n{}'.format(' ' * len(header)))
+            datastr = array_str(vobj[:], max_line_width=10000).replace('\n', '\n{}'.format(' ' * len(header)))
             print '{}{}'.format(header, datastr)
+            for vattr in vobj.ncattrs():
+                print '         {}: {}'.format(vattr, vobj.getncattr(vattr))
 

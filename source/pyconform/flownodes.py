@@ -3,15 +3,15 @@ Data Flow Node Classes and Functions
 
 This module contains the classes and functions needed to define nodes in Data Flows.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray
 from pyconform.datasets import VariableDesc, FileDesc
+from pyconform.functions import Function
 from cf_units import Unit
-from inspect import getargspec, ismethod, isfunction
 from os.path import exists, dirname
 from os import makedirs
 from netCDF4 import Dataset
@@ -175,10 +175,12 @@ class ReadNode(FlowNode):
             # Get a reference to the variable
             ncvar = ncfile.variables[self._variable]
 
+            # Get the attributes into a dictionary, for convenience
+            attrs = {a:ncvar.getncattr(a) for a in ncvar.ncattrs()}
+            
             # Read the variable units
-            attrs = ncvar.ncattrs()
-            units_attr = ncvar.getncattr('units') if 'units' in attrs else 1
-            calendar_attr = ncvar.getncattr('calendar') if 'calendar' in attrs else None
+            units_attr = attrs.get('units', 1)
+            calendar_attr = attrs.get('calendar', None)
             try:
                 units = Unit(units_attr, calendar=calendar_attr)
             except ValueError:
@@ -220,8 +222,11 @@ class ReadNode(FlowNode):
             # Upconvert, if possible
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:
                 data = data.astype(numpy.float64)
+            
+            # Read the positive attribute, if available
+            pos = attrs.get('positive', None)
 
-        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2)
+        return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, positive=pos)
 
 
 #===================================================================================================
@@ -241,61 +246,40 @@ class EvalNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, func, *args):
+    def __init__(self, label, func, *args, **kwds):
         """
         Initializer
         
         Parameters:
             label: A label to give the FlowNode
-            func (callable): A callable function associated with the FlowNode operation
+            func (class): A Function class
             args (list): Arguments to the function given by 'func'
+            kwds (dict): Keyword arguments to the function given by 'func'
         """
-        # Check func parameter
-        fpntr = func
-        if callable(func):
-            if hasattr(func, '__call__') and (isfunction(func.__call__) or ismethod(func.__call__)):
-                fpntr = func.__call__
-            else:
-                fpntr = func
-        else:
-            raise TypeError('Function argument to FlowNode {} is not callable'.format(label))
-
-        argspec = getargspec(fpntr)
-        if ismethod(fpntr) and 'self' in argspec.args:
-            argspec.args.remove('self')
-
-        # Check the function arguments
-        max_len = len(argspec.args)
-        if argspec.defaults is None:
-            min_len = max_len
-        else:
-            min_len = max_len - len(argspec.defaults)
-        if len(args) < min_len:
-            raise ValueError(('Too few arguments supplied for FlowNode function. '
-                              '({} needed, {} supplied)').format(min_len, len(args)))
-        if len(args) > max_len:
-            raise ValueError(('Too many arguments supplied for FlowNode function. '
-                              '({} needed, {} supplied)').format(max_len, len(args)))
-
-        # Save the function reference
-        self._function = func
-
+        # Initialize the function object
+        self._function = func(*args, **kwds)
+        
+        # Include all references as input
+        allargs = tuple(args) + tuple(kwds[k] for k in kwds)
+        
         # Call the base class initialization
-        super(EvalNode, self).__init__(label, *args)
+        super(EvalNode, self).__init__(label, *allargs)
+    
+    @property
+    def sumlike_dimensions(self):
+        """
+        Return the set of sum-like dimensions registered by the node's function
+        """
+        if isinstance(self._function, Function):
+            return self._function.sumlike_dimensions
+        else:
+            return set()
 
     def __getitem__(self, index):
         """
         Compute and retrieve the data associated with this FlowNode operation
         """
-        if len(self.inputs) == 0:
-            data = self._function()
-            if isinstance(data, PhysArray):
-                return data[index]
-            else:
-                return data
-        else:
-            args = [d[index] if isinstance(d, (PhysArray, FlowNode)) else d for d in self.inputs]
-            return self._function(*args)
+        return self._function[index]
 
 
 #===================================================================================================
@@ -369,7 +353,10 @@ class MapNode(FlowNode):
         # Return the mapped data
         idims_str = ','.join(inp_dims)
         odims_str = ','.join(out_dims)
-        name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
+        if inp_dims == out_dims:
+            name = inp_info.name
+        else:
+            name = 'map({}, from=[{}], to=[{}])'.format(inp_info.name, idims_str, odims_str)
         return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
@@ -421,9 +408,12 @@ class ValidateNode(FlowNode):
         self._dtype = dtype
 
         # Check for dimensions
-        if dimensions is not None and not isinstance(dimensions, (list, tuple)):
-            raise TypeError('Dimensions must be a list or tuple')
-        self._dimensions = dimensions
+        self._dimensions = None
+        if dimensions is not None:
+            if isinstance(dimensions, (list, tuple)):
+                self._dimensions = tuple(dimensions)
+            else:
+                raise TypeError('Dimensions must be a list or tuple')
 
         # Check for units
         if units is not None and not isinstance(units, Unit):
@@ -432,6 +422,11 @@ class ValidateNode(FlowNode):
 
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
+        
+        # Initialize the history attribute
+        info = self[None]
+        if 'history' not in self.attributes:
+            self.attributes['history'] = info.name
 
     @property
     def attributes(self):
@@ -439,6 +434,13 @@ class ValidateNode(FlowNode):
         Attributes dictionary of the variable returned by the ValidateNode
         """
         return self._attributes
+
+    @property
+    def dimensions(self):
+        """
+        Dimensions tuple of the variable returned by the ValidateNode
+        """
+        return self._dimensions
 
     def __getitem__(self, index):
         """
@@ -467,8 +469,8 @@ class ValidateNode(FlowNode):
                 indata = indata.convert(self._units)
 
         # Check that the dimensions match as expected
-        if self._dimensions is not None and self._dimensions != indata.dimensions:
-            indata = indata.transpose(self._dimensions)
+        if self.dimensions is not None and self.dimensions != indata.dimensions:
+            indata = indata.transpose(self.dimensions)
         
         # Check the positive attribute, if specified
         positive = self.attributes.get('positive', None)
@@ -491,6 +493,7 @@ class ValidateNode(FlowNode):
             if dmin < valid_min:
                 msg = 'valid_min: {} < {} ({!r})'.format(dmin, valid_min, self.label)
                 warn(msg, ValidationWarning)
+                indata = numpy.ma.masked_where(indata <= valid_min, indata)
 
         # Validate maximum
         if valid_max:
@@ -498,6 +501,7 @@ class ValidateNode(FlowNode):
             if dmax > valid_max:
                 msg = 'valid_max: {} > {} ({!r})'.format(dmax, valid_max, self.label)
                 warn(msg, ValidationWarning)
+                indata = numpy.ma.masked_where(indata >= valid_max, indata)
 
         # Compute mean of the absolute value, if necessary
         if ok_min_mean_abs or ok_max_mean_abs:
@@ -541,6 +545,8 @@ class WriteNode(FlowNode):
         Parameters:
             filedesc (FileDesc): File descriptor for the file to write
             inputs (tuple): A tuple of ValidateNodes providing input into the file
+            history (bool): Whether to write a history attribute generated during execution
+                for each variable in the file
         """
         # Check filename
         if not isinstance(filedesc, FileDesc):
@@ -572,17 +578,29 @@ class WriteNode(FlowNode):
 
         # Initialize set of inverted dimensions
         self._idims = set()
+        
+        # Initialize set of unwritten attributes
+        self._unwritten_attributes = {'_FillValue', 'direction', 'history'}
+    
+    def enable_history(self):
+        """
+        Enable writing of the history attribute to the file
+        """
+        if 'history' in self._unwritten_attributes:
+            self._unwritten_attributes.remove('history')
 
-    def open(self, history=False):
+    def disable_history(self):
+        """
+        Disable writing of the history attribute to the file
+        """
+        self._unwritten_attributes.add('history')
+
+    def _open_(self, deflate=None):
         """
         Open the file for writing, if not open already
-        
-        Parameters:
-            history (bool): Whether to write a history attribute generated during execution
-                for each variable in the file
         """
         if self._file is None:
-
+            
             # Make the necessary subdirectories to open the file
             fname = self.label
             fdir = dirname(fname)
@@ -617,7 +635,7 @@ class WriteNode(FlowNode):
                 # Determine coordinates and dimensions to invert
                 if len(vdesc.dimensions) == 1 and 'axis' in vnode.attributes:
                     if 'direction' in vnode.attributes:                    
-                        vdir_out = vnode.attributes.pop('direction')
+                        vdir_out = vnode.attributes['direction']
                         if vdir_out not in ['increasing', 'decreasing']:
                             raise ValueError(('Unrecognized direction in output coordinate variable '
                                               '{!r} when writing file {!r}').format(vname, fname))
@@ -626,20 +644,8 @@ class WriteNode(FlowNode):
                             raise ValueError(('Output coordinate variable {!r} has no calculable '
                                               'direction').format(vname))
                         if vdir_inp != vdir_out:
-                            self._idims.add(vdesc.dimensions.values()[0])
+                            self._idims.add(vdesc.dimensions.keys()[0])
             
-            # Record dimension inversion information for history attributes
-            if history:
-                vhist = {}
-                for vnode in self.inputs:
-                    vname = vnode.label
-                    vinfo = vnode[None]
-                    idimstr = ','.join(d for d in vinfo.dimensions if d in self._idims)
-                    if len(idimstr) > 0:
-                        vhist[vname] = 'invdims({},dims=({}))'.format(vinfo.name, idimstr)
-                    else:
-                        vhist[vname] = vinfo.name
-
             # Create the required dimensions in the file
             for dname in req_dims:
                 ddesc = self._filedesc.dimensions[dname]
@@ -658,16 +664,30 @@ class WriteNode(FlowNode):
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
                 vdtype = numpy.dtype(vdesc.datatype)
-                fillval = vattrs.pop('_FillValue', None)
+                fillval = vattrs.get('_FillValue', None)
                 vdims = vdesc.dimensions.keys()
-                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval)
+                if deflate is None:
+                    zlib = self._filedesc.deflate > 0
+                    clev = self._filedesc.deflate if zlib else 1
+                else:
+                    if not isinstance(deflate, int):
+                        raise TypeError('Override deflate value must be an integer')
+                    if deflate < 0 or deflate > 9:
+                        raise TypeError('Override deflate value range from 0 to 9')
+                    zlib = deflate > 0
+                    clev = deflate if zlib else 1
+                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval, zlib=zlib, complevel=clev)
 
                 for aname in vattrs:
-                    ncvar.setncattr(aname, vattrs[aname])
-                if history:
-                    ncvar.setncattr('history', vhist[vname])
+                    if aname not in self._unwritten_attributes:
+                        avalue = vattrs[aname]
+                        if aname == 'history':
+                            idimstr = ','.join(d for d in vdesc.dimensions if d in self._idims)
+                            if len(idimstr) > 0:
+                                avalue = 'invdims({}, dims=[{}])'.format(avalue, idimstr)                            
+                        ncvar.setncattr(aname, avalue)
 
-    def close(self):
+    def _close_(self):
         """
         Close the file associated with the WriteNode
         """
@@ -677,50 +697,46 @@ class WriteNode(FlowNode):
             self._file = None
 
     @staticmethod
-    def _chunk_iter_(dimsizes, chunks={}):
-        if ((not isinstance(dimsizes, (tuple, list))) and
-            (not all(isinstance(ds, tuple) and len(ds)==2 for ds in dimsizes))):
-            raise TypeError('Dimensions must be a tuple or list of dimension-size pairs')
+    def _chunk_iter_(dsizes, chunks={}):
+        if not isinstance(dsizes, OrderedDict):
+            raise TypeError('Dimensions must be an ordered dictionary of names and sizes')
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
 
-        dsizes = {d:s for d,s in dimsizes}
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
-        ntotal = numpy.prod([nchunks[d] for d in nchunks])
+        ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
         
         idx = {d:0 for d in dsizes}
         for n in xrange(ntotal):
             for d in nchunks:
                 n, idx[d] = divmod(n, nchunks[d])
-            chunk = []
-            for d, _ in dimsizes:
+            chunk = OrderedDict()
+            for d in dsizes:
                 lb = idx[d] * chunks_[d]
                 ub = (idx[d] + 1) * chunks_[d]
-                chunk.append(slice(lb, ub if ub < dsizes[d] else None))    
-            yield tuple(chunk) 
+                chunk[d] = slice(lb, ub if ub < dsizes[d] else None)    
+            yield chunk
     
     @staticmethod
-    def _invert_dims(dimsizechunks, idims=set()):
-        if ((not isinstance(dimsizechunks, (list, tuple))) and
-            (not all(isinstance(dsc, tuple) and len(dsc)==3 for dsc in dimsizechunks))):
-            raise TypeError('Dimensions must be a tuple')
+    def _invert_dims_(dsizes, chunk, idims=set()):
+        if not isinstance(dsizes, OrderedDict):
+            raise TypeError('Dimensions must be an ordered dictionary of names and sizes')
+        if not isinstance(chunk, OrderedDict):
+            raise TypeError('Chunk must be an ordered dictionary of names and slices')
         if not isinstance(idims, set):
             raise TypeError('Dimensions to invert must be a set')
         
-        ichunk = []
-        for d,s,c in dimsizechunks:
-            ub = s if c.stop is None else c.stop
+        ichunk = OrderedDict()
+        for d in dsizes:
+            s = dsizes[d]
+            c = chunk[d]
             if d in idims:
-                ilb = s - c.start - 1
-                iub = s - ub - 1 if ub < s else None
-                ist = -1
+                ub = s if c.stop is None else c.stop
+                ichunk[d] = slice(s - c.start - 1, s - ub - 1 if ub < s else None, -1)
             else:
-                ilb = c.start
-                iub = c.stop
-                ist = c.step                
-            ichunk.append(slice(ilb,iub,ist))
-        return tuple(ichunk)
+                ichunk[d] = c
+        return ichunk
            
     @staticmethod
     def _direction_(data):
@@ -732,7 +748,7 @@ class WriteNode(FlowNode):
         else:
             return None
 
-    def execute(self, chunks={}, history=False):
+    def execute(self, chunks={}, deflate=None):
         """
         Execute the writing of the WriteNode file at once
         
@@ -745,31 +761,37 @@ class WriteNode(FlowNode):
                 chunked.  (Use OrderedDict to preserve order of dimensions, where the first
                 dimension will be assumed to correspond to the fastest-varying index and the last
                 dimension will be assumed to correspond to the slowest-varying index.)
-            history (bool): Whether to write a history attribute generated during execution
-                for each variable in the file
+            deflate (int): Override the output file deflate level with given value
         """
 
         # Open the file and write the header information
-        self.open(history=history)
+        self._open_(deflate=deflate)
 
-        # Loop over all variable nodes and write data
-        for vnode in self.inputs:
-
-            # Get the name of the variable node
-            vname = vnode.label
-
-            # Get the header information for this variable node
-            vdesc = self._filedesc.variables[vname]
-            vdims = [d for d in vdesc.dimensions]
-            vsizes = [vdesc.dimensions[d].size for d in vdesc.dimensions]
-
-            # Get the NetCDF variable object
-            ncvar = self._file.variables[vname]
-
-            # Loop over all chunks for the given variable's dimensions
-            for chunk in WriteNode._chunk_iter_(zip(vdims, vsizes), chunks=chunks):
-                vdimsizechunks = zip(vdims, vsizes, chunk)
-                ncvar[chunk] = vnode[self._invert_dims(vdimsizechunks, idims=self._idims)]
+        # Create data structure to keep track of which variable chunks we have written
+        vchunks = {vnode.label:set() for vnode in self.inputs}
+        
+        # Compute the Global Dimension Sizes dictionary
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in self._filedesc.dimensions)
+        
+        # Iterate over the global dimension space
+        for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):
+            
+            # Invert the necessary dimensions to get the read-chunk
+            rchunk = self._invert_dims_(gdims, chunk, idims=self._idims)
+            
+            # Loop over all variables and write the data, if necessary
+            for vnode in self.inputs:
+                vname = vnode.label
+                vdesc = self._filedesc.variables[vname]
+                ncvar = self._file.variables[vname]
+                
+                # Compute the write-chunk for the given variable
+                wchunk = tuple(chunk[d] for d in vdesc.dimensions)
+                
+                # Write the data to the variable, if it hasn't already been written
+                if repr(wchunk) not in vchunks[vname]:
+                    ncvar[wchunk] = vnode[rchunk]
+                    vchunks[vname].add(repr(wchunk))
 
         # Close the file after completion
-        self.close()
+        self._close_()

@@ -4,7 +4,7 @@ DatasetDesc Interface Class
 This file contains the interface classes to the input and output multi-file
 datasets.
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -14,6 +14,14 @@ from collections import OrderedDict
 from numpy import dtype, array
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
+from warnings import warn
+
+
+#===================================================================================================
+# DefinitionWarning
+#===================================================================================================
+class DefinitionWarning(Warning):
+    """Warning to indicate that a variable definition might be bad"""
 
 
 #===================================================================================================
@@ -310,7 +318,7 @@ class FileDesc(object):
     file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
     """
 
-    def __init__(self, name, format='NETCDF4_CLASSIC', variables=(), attributes={}):  # @ReservedAssignment
+    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=2, variables=(), attributes={}):  # @ReservedAssignment
         """
         Initializer
         
@@ -319,17 +327,24 @@ class FileDesc(object):
             fmt (str):  String defining the NetCDF file format (one of 'NETCDF4',
                 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or 
                 'NETCDF3_64BIT_DATA')
+            deflate (int): Level of lossless compression to use in all variables within the file (0-9)
             variables (tuple):  Tuple of VariableDesc objects describing the file variables            
             attributes (dict):  Dict of global attributes in the file
         """
         self._name = name
 
         if format not in ('NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC',
-                          'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA'):
+                          'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA', 'NETCDF3_64BIT'):
             err_msg = 'NetCDF file format {!r} unrecognized in file {!r}'.format(format, name)
             raise TypeError(err_msg)
         self._format = format
 
+        if not isinstance(deflate, int):
+            raise TypeError('Deflate value must be an integer, not {}'.format(deflate))
+        if deflate < 0 or deflate > 9:
+            raise TypeError('Deflate value must be in the range 0-9, not {}'.format(deflate))
+        self._deflate = deflate
+        
         if not _is_list_of_type_(variables, VariableDesc):
             err_msg = ('Variables in file {!r} must be a list or tuple of type '
                        'VariableDesc').format(name)
@@ -367,6 +382,11 @@ class FileDesc(object):
     def format(self):
         """Format of the file"""
         return self._format
+
+    @property
+    def deflate(self):
+        """Deflate level for variables in the file"""
+        return self._deflate
 
     @property
     def attributes(self):
@@ -550,7 +570,7 @@ class InputDatasetDesc(DatasetDesc):
                 # Get the file dimensions
                 fdims = OrderedDict()
                 for dname, dobj in ncfile.dimensions.iteritems():
-                    fdims[dname] = DimensionDesc(dname, size=dobj.size, unlimited=dobj.isunlimited())
+                    fdims[dname] = DimensionDesc(dname, size=len(dobj), unlimited=dobj.isunlimited())
 
                 # Parse variables
                 fvars = []
@@ -604,7 +624,7 @@ class OutputDatasetDesc(DatasetDesc):
     _NC_TYPES_ = {3: [dtype(t) for t in ('c', 'i1', 'i2', 'i4', 'f4', 'f8')],
                   4: [dtype(t) for t in ('c', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8')]}
     _NC_FORMATS_ = {'NETCDF4': 4, 'NETCDF4_CLASSIC': 3, 'NETCDF3_CLASSIC': 3,
-                    'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3}
+                    'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3, 'NETCDF3_64BIT': 3}
 
     def __init__(self, name='output', dsdict=OrderedDict()):
         """
@@ -633,19 +653,25 @@ class OutputDatasetDesc(DatasetDesc):
                 vkwds['datatype'] = vdict['datatype']
 
             # Get either the 'definition' or the 'data' of the variables
+            def_wrn = ''
             if 'definition' in vdict:
                 vdef = vdict['definition']
                 if isinstance(vdef, basestring):
-                    vkwds['definition'] = vdef
-                    vshape = None
+                    if len(vdef.strip()) > 0:
+                        vkwds['definition'] = vdef
+                        vshape = None
+                    else:
+                        def_wrn = 'Empty definition for output variable {!r} in dataset {!r}.'.format(vname, name)
                 else:
                     vdat = array(vdef, dtype=vkwds['datatype'])
                     vshape = vdat.shape
                     vkwds['definition'] = vdat
             else:
-                err_msg = ('Definition is required for output variable {!r} in dataset '
-                           '{!r}').format(vname, name)
-                raise ValueError(err_msg)
+                def_wrn = 'No definition given for output variable {!r} in dataset {!r}.'.format(vname, name)
+            
+            if len(def_wrn) > 0:
+                warn('{} Skipping output variable {}.'.format(def_wrn, vname), DefinitionWarning)
+                continue
 
             # Get the dimensions of the variable (REQUIRED)
             if 'dimensions' in vdict:
@@ -655,8 +681,7 @@ class OutputDatasetDesc(DatasetDesc):
                     vkwds['dimensions'] = tuple(DimensionDesc(d, s) for d, s in
                                                 zip(vdict['dimensions'], vshape))
             else:
-                err_msg = ('Dimensions are required for variable {!r} in dataset '
-                           '{!r}').format(vname, name)
+                err_msg = 'Dimensions are required for variable {!r} in dataset {!r}'.format(vname, name)
                 raise ValueError(err_msg)
 
             variables[vname] = VariableDesc(vname, **vkwds)
@@ -680,6 +705,9 @@ class OutputDatasetDesc(DatasetDesc):
 
                 if 'format' in fdict:
                     files[fname]['format'] = fdict['format']
+                
+                if 'deflate' in fdict:
+                    files[fname]['deflate'] = fdict['deflate']
 
                 if 'attributes' in fdict:
                     files[fname]['attributes'] = fdict['attributes']
@@ -699,11 +727,12 @@ class OutputDatasetDesc(DatasetDesc):
         for fname, fdict in files.iteritems():
 
             # Get the variable descriptors for each variable required to be in the file
-            vlist = [variables[vname] for vname in fdict['variables']]
+            vlist = OrderedDict([(vname, variables[vname]) for vname in fdict['variables']])
 
             # Get the unique list of dimension names for required by these variables
             fdims = set()
-            for vdesc in vlist:
+            for vname in vlist:
+                vdesc = vlist[vname]
                 for dname in vdesc.dimensions:
                     fdims.add(dname)
 
@@ -713,15 +742,39 @@ class OutputDatasetDesc(DatasetDesc):
                     vdesc = variables[mvname]
 
                     # Include this variable in the file only if all of its dimensions are included
-                    if set(vdesc.dimensions.keys()).issubset(fdims):
-                        vlist.append(vdesc)
+                    # (Scalar variables are excluded and must be included as metadata explicitly)
+                    if len(vdesc.dimensions) > 0 and set(vdesc.dimensions.keys()).issubset(fdims):
+                        vlist[mvname] = vdesc
+            
+            # Loop through the current list of variables and check for any "bounds" or "coordinates" attributes
+            mvnames = set()
+            for vname in vlist:
+                vdesc = vlist[vname]
+                if 'bounds' in vdesc.attributes:
+                    mvname = vdesc.attributes['bounds']
+                    if mvname not in variables:
+                        raise ValueError(('Variable {} references a bounds variable {} that is not '
+                                          'found').format(vdesc.name, mvname))
+                    mvnames.add(mvname)
+                if 'coordinates' in vdesc.attributes:
+                    for mvname in vdesc.attributes['coordinates'].split():
+                        if mvname not in variables:
+                            raise ValueError(('Variable {} references a coordinates variable {} that is not '
+                                              'found').format(vdesc.name, mvname))
+                        mvnames.add(mvname)
+            
+            # Add the bounds and coordinates to the list of variables
+            for mvname in mvnames:
+                if mvname not in vlist:
+                    vlist[mvname] = variables[mvname]
 
             # Create the file descriptor
-            fdict['variables'] = vlist
+            fdict['variables'] = [vlist[vname] for vname in vlist]
             fdesc = FileDesc(fname, **fdict)
             
             # Validate the variable types for the file descriptor
-            for vdesc in vlist:
+            for vname in vlist:
+                vdesc = vlist[vname]
                 vdtype = vdesc.datatype
                 fformat = fdesc.format
                 try:

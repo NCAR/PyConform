@@ -12,19 +12,29 @@ graph edges is assumed to a Numpy.NDArray-like object.
 The action associated with each node is not performed until the data is
 "requested" with the __getitem__ interface, via Node[key].  
 
-COPYRIGHT: 2016, University Corporation for Atmospheric Research
+Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
-from pyconform.parsing import parse_definition, ParsedVariable, ParsedFunction
-from pyconform.functions import find
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
+from pyconform.parsing import parse_definition
+from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
+from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
-from pyconform.flownodes import DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
-from asaptools.simplecomm import create_comm
+from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode
+from pyconform.flownodes import MapNode, ValidateNode, WriteNode
+from asaptools.simplecomm import create_comm, SimpleComm
 from asaptools.partition import WeightBalanced
+from warnings import warn
 
 import numpy
+
+
+#=======================================================================================================================
+# VariableNotFoundError
+#=======================================================================================================================
+class VariableNotFoundError(ValueError):
+    """Indicate if an input variable could not be found during construction"""
 
 
 #===================================================================================================
@@ -76,7 +86,12 @@ class DataFlow(object):
         # Create a dictionary to store FlowNodes for variables with string 'definitions'
         self._defnodes = {}
         for vname, vdesc in defvars.iteritems():
-            self._defnodes[vname] = self._construct_flow_(parse_definition(vdesc.definition))
+            try:
+                vnode = self._construct_flow_(parse_definition(vdesc.definition))
+            except VariableNotFoundError, err:
+                warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
+            else:
+                self._defnodes[vname] = vnode                
 
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
@@ -98,7 +113,9 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                err_msg = 'Cannot map dimensions {} to dimensions {}'.format(inp_dims, out_dims)
+                map_str = ', '.join('{}-->{}'.format(k,self._i2omap[k]) for k in self._i2omap)
+                err_msg = ('Cannot map dimensions {} to dimensions {} in output variable {} '
+                           '(MAP: {})').format(inp_dims, out_dims, vname, map_str)
                 raise ValueError(err_msg)
             if len(unmapped_out) == 0:
                 continue
@@ -106,7 +123,7 @@ class DataFlow(object):
                 self._o2imap[out_dim] = inp_dim
                 self._i2omap[inp_dim] = out_dim
 
-        # Now that we know how dimensions are mapped, construct the output dimension sizes
+        # Now that we know how dimensions are mapped, compute the output dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
             if not ddesc.is_set():
                 ddesc.set(self._ids.dimensions[self._o2imap[dname]])
@@ -131,6 +148,23 @@ class DataFlow(object):
                                                  dimensions=vdesc.dimensions.keys(),
                                                  attributes=vdesc.attributes,
                                                  dtype=vdesc.datatype)
+        
+        # Now, for each ValidateNode, get the set of all sum-like dimensions
+        # (these are dimensions that cannot be broken into chunks)
+        unmapped_sumlike_dimensions = set()
+        for vname, vnode in self._varnodes.iteritems():
+            visited = set()
+            tosearch = [vnode]
+            while tosearch:
+                nd = tosearch.pop()
+                if isinstance(nd, EvalNode):
+                    unmapped_sumlike_dimensions.update(nd.sumlike_dimensions)
+                visited.add(nd)
+                if isinstance(nd, FlowNode):
+                    tosearch.extend(i for i in nd.inputs if i not in visited)
+        
+        # Map the sum-like dimensions to output dimensions
+        self._sumlike_dimensions = set(self._i2omap[d] for d in unmapped_sumlike_dimensions if d in self._i2omap)
 
         # Create the WriteNodes for each time-series output file
         writenodes = {}
@@ -150,7 +184,7 @@ class DataFlow(object):
         self._filesizes = {}
         for fname, wnode in self._writenodes.iteritems():
             self._filesizes[fname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
-
+        
     def _construct_flow_(self, obj):
         if isinstance(obj, ParsedVariable):
             vname = obj.key
@@ -161,16 +195,21 @@ class DataFlow(object):
                 return self._datnodes[vname]
 
             else:
-                raise KeyError('Variable {!r} not found or cannot be used as input'.format(vname))
+                raise VariableNotFoundError('Input variable {!r} not found or cannot be used as input'.format(vname))
+
+        elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
+            name = obj.key
+            nargs = len(obj.args)
+            op = find_operator(name, numargs=nargs)
+            args = [self._construct_flow_(arg) for arg in obj.args]
+            return EvalNode(name, op, *args)
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
-            nargs = len(obj.args)
-            func = find(name, numargs=nargs)
+            func = find_function(name)
             args = [self._construct_flow_(arg) for arg in obj.args]
-            if all(isinstance(o, (int, float)) for o in args):
-                return func(*args)
-            return EvalNode(name, func, *args)
+            kwds = {k:self._construct_flow_(obj.kwds[k]) for k in obj.kwds}
+            return EvalNode(name, func, *args, **kwds)
 
         else:
             return obj
@@ -180,7 +219,7 @@ class DataFlow(object):
         """The internally generated input-to-output dimension name map"""
         return self._i2omap
 
-    def execute(self, chunks={}, serial=False, history=False):
+    def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None):
         """
         Execute the Data Flow
         
@@ -193,33 +232,70 @@ class DataFlow(object):
             serial (bool): Whether to run in serial (True) or parallel (False)
             history (bool): Whether to write a history attribute generated during execution
                 for each variable in the file
+            scomm (SimpleComm): An externally created SimpleComm object to use for managing
+                parallel operation
+            deflate (int): Override all output file deflate levels with given value
         """
         # Check chunks type
         if not isinstance(chunks, dict):
             raise TypeError('Chunks must be specified with a dictionary')
 
-        # Make sure that the specified dimensions are valid
+        # Make sure that the specified chunking dimensions are valid
         for odname, odsize in chunks.iteritems():
             if odname not in self._o2imap:
                 raise ValueError('Cannot chunk over unknown output dimension {!r}'.format(odname))
             if not isinstance(odsize, int):
                 raise TypeError(('Chunk size invalid for output dimension {!r}: '
                                  '{}').format(odname, odsize))
+        
+        # Check that we are not chunking over any "sum-like" dimensions
+        sumlike_chunk_dims = sorted(d for d in chunks if d in self._sumlike_dimensions)
+        if len(sumlike_chunk_dims) > 0:
+            raise ValueError(('Cannot chunk over dimensions that are summed over (or "sum-like")'
+                              ': {}'.format(', '.join(sumlike_chunk_dims))))
 
-        # Create the simple communicator
-        scomm = create_comm(serial=bool(serial))
+        # Create the simple communicator, if necessary
+        if scomm is None:
+            scomm = create_comm(serial=bool(serial))
+        elif isinstance(scomm, SimpleComm):
+            if scomm.is_manager():
+                print 'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)'
+        else:
+            raise TypeError('Communication object is not a SimpleComm!')
+        
+        # Start general output
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
             print 'Beginning execution of data flow...'
+            print 'Mapping Input Dimensions to Output Dimensions:'
+            for d in sorted(self._i2omap):
+                print '   {} --> {}'.format(d, self._i2omap[d])
+            if len(chunks) > 0:
+                print 'Chunking over Output Dimensions:'
+                for d in chunks:
+                    print '   {}: {}'.format(d, chunks[d])
+            else:
+                print 'Not chunking output.'
 
         # Partition the output files/variables over available parallel (MPI) ranks
         fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
-        print '{}: Writing files: {}'.format(prefix, ', '.join(fnames))
+        if scomm.is_manager():
+            print 'Writing {} files across {} MPI processes.'.format(len(self._filesizes), scomm.get_size())
+        scomm.sync()
 
+        # Standard output
+        print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
+        scomm.sync()
+        
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
-            self._writenodes[fname].execute(chunks=chunks, history=history)
+            if history:
+                self._writenodes[fname].enable_history()
+            else:
+                self._writenodes[fname].disable_history()
+            self._writenodes[fname].execute(chunks=chunks, deflate=deflate)
+            print '{}: Finished writing file: {}'.format(prefix, fname)
 
         scomm.sync()
         if scomm.is_manager():
