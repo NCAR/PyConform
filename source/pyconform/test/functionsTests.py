@@ -547,6 +547,49 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
+    def test_func_chunits_calendar(self):
+        key = 'chunits'
+        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        new_cal = 'gregorian'
+        testname = '{}({}, calendar={})'.format(key, indata, new_cal)
+        func = functions.find(key)
+        actual = func(indata, calendar=new_cal)[:]
+        expected = PhysArray(2.5, name='chunits(t, units=days since 1850-01-01|gregorian)',
+                             units=Unit('days since 1850-01-01', calendar=new_cal))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+       
+    def test_func_chunits_refdate(self):
+        key = 'chunits'
+        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        new_ref = '0001-01-01'
+        testname = '{}({}, refdate={})'.format(key, indata, new_ref)
+        func = functions.find(key)
+        actual = func(indata, refdate=new_ref)[:]
+        expected = PhysArray(2.5, name='chunits(t, units=days since {}|noleap)'.format(new_ref),
+                             units=Unit('days since {}'.format(new_ref), calendar='noleap'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+ 
+    def test_func_chunits_refdate_calendar(self):
+        key = 'chunits'
+        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        new_ref = '0001-01-01'
+        new_cal = 'gregorian'
+        testname = '{}({}, refdate={}, calendar={})'.format(key, indata, new_ref, new_cal)
+        func = functions.find(key)
+        actual = func(indata, refdate=new_ref, calendar=new_cal)[:]
+        expected = PhysArray(2.5, name='chunits(t, units=days since {}|{})'.format(new_ref, new_cal),
+                             units=Unit('days since {}'.format(new_ref), calendar=new_cal))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        
     def test_func_limit(self):
         key = 'limit'
         indata = PhysArray([2.5, 7.3, 8.2, 1.4], name='x', units='m', dimensions=('t',))
