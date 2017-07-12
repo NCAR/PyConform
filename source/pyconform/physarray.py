@@ -184,8 +184,8 @@ class PhysArray(numpy.ma.MaskedArray):
         # Because netcdftime datetime conversion always returns an NDArray, even if the
         # original object is a subclass of NDArray, we have to wrap the convert function
         # to safely preserve the object type...  sigh.
-        u1 = Unit(units1)
-        u2 = Unit(units2)
+        u1 = units1 if isinstance(units1, Unit) else Unit(units1)
+        u2 = units2 if isinstance(units2, Unit) else Unit(units2)
         if isinstance(obj, PhysArray):
             new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2), mask=obj.mask, dtype=obj.dtype)
             u1_str = '{}'.format(u1) + ('|{}'.format(u1.calendar) if u1.calendar else '')
@@ -204,7 +204,7 @@ class PhysArray(numpy.ma.MaskedArray):
         Parameters:
             units (Unit): The new units to which to convert the PhysArray
         """
-        uunit = Unit(units)
+        uunit = units if isinstance(units, Unit) else Unit(units)
         if self.units == uunit:
             return self
         elif self.units.is_convertible(uunit):
