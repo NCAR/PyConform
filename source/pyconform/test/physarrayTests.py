@@ -73,12 +73,12 @@ class PhysArrayTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_init_units_valid(self):
-        valid_input = [Unit('m'), 'm', 1, 1e-7]
+        valid_input = [Unit('m'), 'm', 1, 1e-7, Unit('days since 0001-01-01', calendar='noleap')]
         for indata in valid_input:
             testname = 'PhysArray(1.2, name="X", units={!r}).units'.format(indata)
             X = PhysArray(1.2, name='X', units=indata)
             actual = X.units
-            expected = Unit(indata)
+            expected = indata if isinstance(indata, Unit) else Unit(indata)
             print_test_message(testname, units=indata, actual=actual, expected=expected)
             self.assertEqual(actual, expected, '{} failed'.format(testname))
 

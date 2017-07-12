@@ -133,7 +133,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if units is None:
             obj.units = getunits(indata)
         else:
-            obj.units = Unit(units)
+            obj.units = units
 
         # Store dimension names associated with each axis
         if dimensions is None:
@@ -177,7 +177,7 @@ class PhysArray(numpy.ma.MaskedArray):
     @units.setter
     def units(self, units):
         """Units of the data"""
-        self._optinfo['units'] = Unit(units)
+        self._optinfo['units'] = units if isinstance(units, Unit) else Unit(units)
     
     @staticmethod
     def _safe_convert_(obj, units1, units2):
