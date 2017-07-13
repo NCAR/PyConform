@@ -1,32 +1,53 @@
-realization_index = 1
-initialization_index = 1
-physics_index = 1
-forcing_index = 1
-source_type = AOGCM
-branch_method = standard
-grid = native 1x1 degree grid 
-grid_label = gn
-nominal_resolution = 1x1 degree # or 100km?
-version = v20170101
+activity_id = 
+#  branch_method
+branch_time_in_child = 
+branch_time_in_parent = 
+# comment 
+contact = cesm_cmip6@ucar.edu
+Conventions = CF-1.7 CMIP-6.0
+creation_date = 
+data_specs_version = 
+experiment = 
+#  experiment_id
+external_variables = 
+#  forcing_index
+frequency = 
+further_info_url = 
+grids = aerosol,atmos,atmosChem,land,landIce:native 0.9x1.25 finite volume grid; ocean,ocnBgChem,seaIce:native gx1v7 displaced pole grid
+grid = 
+grid_label = gn 
+#  history 
+#  initialization_index
+institution = National Center for Atmospheric Research, Boulder, CO 80301, USA
+institution_id = NCAR
+license = CMIP6 model data produced by the National Center for Atmospheric Research is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License (https://creativecommons.org/licenses/). Consult https://pcmdi.llnl.gov/CMIP6/TermsOfUse for terms of use governing CMIP6 output, including citation requirements and proper acknowledgment. Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in this file)[ and at <some URL maintained by modeling group>]. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.
+mip_era = CMIP6
+nominal_resolution = 100 km 
+#  parent_activity_id 
+#  parent_experiment_id
+parent_mip_era = 
+parent_source_id = 
+parent_time_units = 
+#  parent_variant_label
+#  physics_index 
+product = model-output
+#  realization_index 
+realm = 
+references = Gent P. R., et.al. 2011, The Community Climate System Model version 4. J. Climate, doi:10.1175/2011JCLI4083.1
+source = CESM2 (2017): atmosphere: CAM5 (cam5_4, FV1L26); ocean: POP (pop2_1, 2x3L15); sea_ice: CICE5; land: CLM4.5
+source_id = CESM2
+#  source_type
+#  sub_experiment
+#  sub_experiment_id
+table_id = 
+#  title 
+tracking_id =
+variable_id = 
+#  variant_info
+#  variant_label
+
 netcdf_type = NETCDF4 
 compression = 2
 shuffle = on
-
-#variant_label = 
-#
-institution_id = NCAR
-institution = NCAR (National Center for Atmospheric Research) Boulder, CO, USA
-source_id = CESM2
-source = Community Earth System Model version 2
-mip_era = CMIP6 
-product = output
-sub_experiment = none
-sub_experiment_id = none 
-Convensions = CF-1.7 CMIP-6.0
-further_info_url = http://furtherinfo.es-doc.org/
-tracking_id = hdl:21.14100/
-contact = cesm_data@ucar.edu
-references = Gent P. R., et.al. 2011, The Community Climate System Model version 4. J. Climate, doi:10.1175/2011JCLI4083.1
-license = CMIP6 model data produced by NCAR is licensed under a Creative Commons Attribution \"[*] Share Alike\" 4.0 International License (http://creativecommons.org/licenses/by/4.0/). Use of the data should be acknowledged following guidelines found at https://pcmdi.llnl.gov/home/CMIP6/citation.html. [Permissions beyond the scope of this license may be available at <some URL maintained by modeling group>.] Further information about this data, including some limitations, can be found via the further_info_url (recorded as a global attribute in data files)[and at <some URL maintained by modeling group>]. The data producers and data providers make no warranty, either express or implied, including, but not limited to, warranties of merchantability and fitness for a particular purpose. All liabilities arising from the supply of the information (including any liability arising in negligence) are excluded to the fullest extent permitted by law.
 
 
