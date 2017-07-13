@@ -391,7 +391,7 @@ class ParseXML(object):
                 table_info = {}
                 data = {}
 
-                table_info['experiment'] = exp
+                table_info['experiment'] = dq.inx.uid[e_id[0]].title
                 table_info['experiment_id'] = exp
                 table_info['data_specs_version'] = dreq.version
                 table_info['activity_id'] = activity_id
@@ -475,7 +475,7 @@ class ParseXML(object):
 	                        if hasattr(s_var,'cell_methods'):
                                     var['cell_methods']= s_var.cell_methods
                                 if hasattr(s_var,'coords'):
-                                    if len(s_var.coords)>0:
+                                    #if len(s_var.coords)>0:
                                         if isinstance(s_var.cids,list) :
                                             var['coordinate'] = dq.inx.uid[s_var.cids[0]].label
                                             c = dq.inx.uid[s_var.cids[0]]
@@ -552,7 +552,10 @@ class ParseXML(object):
                             if isinstance(v.valid_min, (int, long, float, complex)):
                                 ax['valid_min'] = v.valid_min
                         if hasattr(v,'standardName'):
-                            ax['standard_name'] = v.standardName
+                            if isinstance(v.standardName, (str)):
+                                ax['standard_name'] = v.standardName
+                            else:
+                                ax['standard_name'] = a
                         if hasattr(v,'type'):
                             ax['type'] = v.type
                         if hasattr(v,'id'):
