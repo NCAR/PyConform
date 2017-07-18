@@ -14,6 +14,7 @@ import miptableparser
 from dateutil.parser import parse
 import datetime
 from dreqPy import dreq
+import uuid
 
 # Map netcdf types to python types
 data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
@@ -78,17 +79,117 @@ def load(defs,key=None):
         # slit definition into the two parts
         split = line.split('=')
         if (len(split) == 2):
-            def_dict[key][split[0].strip()] = split[1].strip()
+            if key == 'ga' and split[1] == '':
+                def_dict[key][split[0].strip()] = "__FILL__"
+            else:
+                def_dict[key][split[0].strip()] = split[1].strip()
         else:
             if len(line)>0 :
                 print 'Could not parse this line: ',line
     return def_dict
 
 
+def fill_missing_glob_attributes(attr, table, v, grids):
+
+    for a,d in attr.iteritems():
+        if "__FILL__" in d:
+            if "activity_id" in a:
+                attr["activity_id"] = table["activity_id"] 
+            elif "creation_date" in a:
+                attr["creation_date"]=""
+            elif "data_specs_version" in a:
+                attr["data_specs_version"] = table["data_specs_version"]
+            elif "experiment" in a:
+                attr["experiment"] = table["experiment"]
+            elif "external_variables" in a:
+                if "cell_measures" in v.keys():
+                    if "areacello" in v["cell_measures"]:
+                        attr["external_variables"] = "areacello"
+                    elif "areacella" in v["cell_measures"]:
+                        attr["external_variables"] = "areacella"
+            elif "frequency" in a:
+                attr["frequency"] = v["frequency"]
+            elif "realm" in a and "realm" in v.keys():
+                attr["realm"] = v["realm"]            
+            elif "table_id" in a:
+                attr["table_id"] = v['mipTable']
+            elif "tracking_id" in a:
+                attr["tracking_id"] = "hdl:21.14100/"+str(uuid.uuid4())
+            elif "variable_id" in a and "variable_id" in v.keys():
+                attr["variable_id"] = v["variable_id"]
+    if "none" not in attr["branch_method"]:
+        #if "branch_time_in_child" in attr.keys():
+        #    attr["branch_time_in_child"] = "Get correct date format"
+        #if "branch_time_in_parent" in attr.keys():
+        #    attr["branch_time_in_parent"] = "Get correct date format"
+        if "parent_mip_era" in attr.keys():
+            attr["parent_mip_era"] = attr["mip_era"]
+        if "parent_source_id" in attr.keys():
+            attr["parent_source_id"] = attr["source_id"]
+        if "parent_time_units" in attr.keys():
+            attr["parent_time_units"] = "days since 0000-01-01"
+    else:
+        if "branch_time_in_child" in attr.keys():
+            attr["branch_time_in_child"] = "none"
+        if "branch_time_in_parent" in attr.keys():
+            attr["branch_time_in_parent"] = "none"
+        if "parent_mip_era" in attr.keys():
+            attr["parent_mip_era"] = "none"
+        if "parent_source_id" in attr.keys():
+            attr["parent_source_id"] = "none"
+        if "parent_time_units" in attr.keys():
+            attr["parent_time_units"] = "none"
+
+    if "variant_label" in attr.keys():
+        pre = attr["variant_label"].split('r')[1]
+        attr["realization_index"] = pre.split('i')[0]
+        pre = pre.split('i')[1]
+        attr["initialization_index"] = pre.split('p')[0]
+        pre = pre.split('p')[1]
+        attr["physics_index"] = pre.split('f')[0]
+        pre = pre.split('f')[1]
+        attr["forcing_index"] = pre
+
+    if "further_info_url" in attr.keys():
+        if "__FILL__" in attr["further_info_url"]:       
+                mip_era = attr['mip_era']
+                institution_id = attr['institution_id']
+                source_id = attr['source_id']
+                experiment_id = attr['experiment_id']
+                sub_experiment_id = attr['sub_experiment_id']
+                ripf = attr["variant_label"]
+                info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment_id, sub_experiment_id, ripf)
+                attr['further_info_url'] = "http://furtherinfo.es-doc.org/" + info_url
+    if "grid" in attr.keys():
+        if len(attr["realm"])>0:
+            attr["grid"] = grids[attr["realm"].split()[0]]
+        else:
+            attr["grid"] = "CAN NOT FIND GRID - NO REALM IN DATAREQ"
+
+    return attr
+
 #===================================================================================================
 # defineVar
 #===================================================================================================
-def defineVar(v, varName, attributes, definition, experiment):
+def defineVar(v, varName, attr, table_info, definition, experiment):
+
+    v2 = dict(v)
+    for key,value in v.iteritems(): # remove all attributes that do not have values
+        if value == '':
+            v2.pop(key,None)
+
+    attributes = dict(attr)
+
+    if "grids" in attributes.keys():
+        p1 = attributes["grids"].split(';')
+        grids = {}
+        for p in p1:
+            g = p.split(':')[1]
+            for model in p.split(':')[0].split(','):
+                grids[model.strip()] = g
+    attributes.pop('grids',None)
+
+    attributes = fill_missing_glob_attributes(attributes, table_info, v, grids)
 
     # Get variables needed to piece together the filename
     ripf_list = ['realization_index','initialization_index','physics_index','forcing_index']
@@ -105,41 +206,26 @@ def defineVar(v, varName, attributes, definition, experiment):
     institution_id = attributes['institution_id']
     source_id = attributes['source_id']
     grid = attributes['grid_label']
-    version = attributes['version']
+    version = "vXXXXXXXX"
     sub_experiment_id = attributes['sub_experiment_id']
-    #today = datetime.datetime.now()
-    #version = 'v'+str(today.year).zfill(4)+str(today.month).zfill(2)+str(today.day).zfill(2)
-    # modify and add to the global attributes that are requested
-    v2 = dict(v)
-    for key,value in v.iteritems(): # remove all attributes that do not have values
-        if value == '':
-            v2.pop(key,None)
 
-    attributes2 = dict(attributes)
-
-    attributes2["variable_id"] = v["variable_id"]
-    if "realm" in v.keys():
-        attributes2["realm"] = v["realm"]
-    attributes2["creation_date"]=""
-    attributes2.pop('version',None)
-
-    f_format = attributes2["netcdf_type"]
+    f_format = attributes["netcdf_type"]
     valid_formats = ['NETCDF4','NETCDF4_CLASSIC','NETCDF3_CLASSIC','NETCDF3_64BIT_OFFSET','NETCDF3_64BIT_DATA']
     if f_format not in valid_formats:
        print 'ERROR: ', f_format, ' is not a valid format.  Please choose from ',valid_formats
        sys.exit(-9) 
-    attributes2.pop('netcdf_type',None)
+    attributes.pop('netcdf_type',None)
    
     if 'NETCDF4' in f_format: 
-        if 'compression' in attributes2.keys():
-            compression = attributes2['compression'] 
-            attributes2.pop('compression',None)
+        if 'compression' in attributes.keys():
+            compression = attributes['compression'] 
+            attributes.pop('compression',None)
         else:
             compression = None
 
-        if 'shuffle' in attributes2.keys():
-            shuffle = attributes2['shuffle']
-            attributes2.pop('shuffle',None)
+        if 'shuffle' in attributes.keys():
+            shuffle = attributes['shuffle']
+            attributes.pop('shuffle',None)
         else:
             shuffle = None 
     else:
@@ -158,20 +244,12 @@ def defineVar(v, varName, attributes, definition, experiment):
                varName, mipTable, source_id, experiment, ripf, grid, dst))
 
     var = {}
-    # handle things that still aren't set correctly in the request
-#    for k1,v1 in v.iteritems():
-#        if not isinstance(v1,(list,str,float)):
-#            v[k1] = "None"
-
-    # create proper url for the further_info_url global attribute
-    info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment, sub_experiment_id, ripf) 
-    attributes2['further_info_url'] = attributes2['further_info_url'] + info_url
 
     # put together the dictionary entry for this variable    
     var["attributes"] = v2
     var["definition"] = definition
     var["file"] = {}
-    var["file"]["attributes"] = attributes2
+    var["file"]["attributes"] = attributes
     var["file"]["attributes"]["variant_label"] = ripf
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
@@ -274,7 +352,7 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
         variables = table_dict['variables']
         axes = table_dict['axes']
         table_info = table_dict['table_info']
-        attributes.update(table_info)
+        #attributes.update(table_info)
         if 'generic_levels' in table_info.keys():
             g_levels = table_info['generic_levels']
             g_split = g_levels.split(' ')
@@ -301,25 +379,26 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
                         v_def = definitions[mip][v]
                 else:
                     v_def = ""
-                var_list[v] = defineVar(d, v, attributes, v_def, experiment)
+                var_list[v] = defineVar(d, v, attributes, table_info, v_def, experiment)
                 realm = d["realm"].replace(' ','_')
                 ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
                     TableSpec[ts_key] = {}
                 TableSpec[ts_key][v] = var_list[v]
-                t_realm = None
+                t_realm = "NoRealm"
                 for k1,v1 in definitions.iteritems():
                     if 'Coords' in k1:
                         if k1.split('_')[1] in realm:
-                            t_realm = k1.split('_')[1]
+                            t_realm = k1.split('_')[1].strip()
                 for dim in var_list[v]["dimensions"]:
                     if dim not in TableSpec[ts_key].keys() and dim != '' and dim != 'None':
                          TableSpec[ts_key][dim] = var_list[dim]
-                         if dim in definitions['Coords_'+t_realm].keys():
-                             TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
-                         else:
-                             if 'definition' not in  TableSpec[ts_key][dim].keys():
-                                 print "MISSING ",dim," in ",'Coords_',t_realm
+                         if 'Coords_'+t_realm in definitions.keys():
+                             if dim in definitions['Coords_'+t_realm].keys():
+                                 TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
+                             else:
+                                 if 'definition' not in  TableSpec[ts_key][dim].keys():
+                                     print "MISSING "+dim+" in "+'Coords_'+t_realm
             else:
                 AllMissing[t].append(v)
 
@@ -428,14 +507,21 @@ def main(argv=None):
 
     # Open/Read the global attributes file
     attributes = {}
-    if args.globalAttrFile and os.path.isfile(args.globalAttrFile):
-        with open(args.globalAttrFile) as y_attributes:
-            attributes = load(y_attributes,key="ga")["ga"]
-            #print 'GLOBAL ATTRIBUTES: ',attributes
-    else:
-        if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
-            print 'Global Attributes file does not exist: ',args.globalAttrFile
-            os.sys.exit(1)
+    if args.globalAttrFile:
+        for gaFile in args.globalAttrFile.split(","):
+            if os.path.isfile(gaFile):
+                if "json" in gaFile:
+                    with open(gaFile) as gaF: 
+                        ga = json.load(gaF)
+                    attributes.update(ga)             
+                else:
+                    with open(gaFile) as y_attributes:
+                        attributes = load(y_attributes,key="ga")["ga"]
+                        #print 'GLOBAL ATTRIBUTES: ',attributes
+            else:
+                if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
+                    print 'Global Attributes file does not exist: ',args.globalAttrFile
+                    os.sys.exit(1)
 
     # Open/Read the MIP table
     #if args.mipTableType != None and args.exp != None:
