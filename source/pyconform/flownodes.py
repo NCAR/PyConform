@@ -385,14 +385,13 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
+    def __init__(self, label, dnode, dimensions=None, dtype=None, attributes={}):
         """
         Initializer
         
         Parameters:
             label: The label associated with this FlowNode
             dnode (FlowNode): FlowNode that provides input into this FlowNode
-            units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             dtype (dtype): The NumPy dtype of the data to return
             attributes (dict): Attributes to associate with the new variable
@@ -414,11 +413,6 @@ class ValidateNode(FlowNode):
                 self._dimensions = tuple(dimensions)
             else:
                 raise TypeError('Dimensions must be a list or tuple')
-
-        # Check for units
-        if units is not None and not isinstance(units, Unit):
-            raise TypeError('Units must be a Unit object')
-        self._units = units
 
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
@@ -462,11 +456,16 @@ class ValidateNode(FlowNode):
                             '{!r}').format(indata.dtype, odtype, self.label)
 
         # Check that units match as expected
-        if self._units is not None and self._units != indata.units:
-            if index is None:
-                indata.units = self._units
-            else:
-                indata = indata.convert(self._units)
+        if 'units' in self.attributes:
+            if indata.units.is_time_reference():
+                if 'calendar' not in self.attributes:
+                    self.attributes['calendar'] = indata.units.calendar
+            ounits = Unit(self.attributes['units'], calendar=self.attributes.get('calendar', None))
+            if ounits != indata.units:
+                if index is None:
+                    indata.units = ounits
+                else:
+                    indata = indata.convert(ounits)
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:

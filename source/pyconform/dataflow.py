@@ -144,10 +144,8 @@ class DataFlow(object):
             elif vname in self._defnodes:
                 vnode = self._defnodes[vname]
 
-            self._varnodes[vname] = ValidateNode(vname, vnode, units=vdesc.cfunits(),
-                                                 dimensions=vdesc.dimensions.keys(),
-                                                 attributes=vdesc.attributes,
-                                                 dtype=vdesc.datatype)
+            self._varnodes[vname] = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
+                                                 attributes=vdesc.attributes, dtype=vdesc.datatype)
         
         # Now, for each ValidateNode, get the set of all sum-like dimensions
         # (these are dimensions that cannot be broken into chunks)
