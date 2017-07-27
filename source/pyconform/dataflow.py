@@ -94,7 +94,15 @@ class DataFlow(object):
                 self._defnodes[vname] = vnode                
 
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
-        definfos = dict((vname, vnode[None]) for vname, vnode in self._defnodes.iteritems())
+        definfos = {}
+        for vname, vnode in self._defnodes.iteritems():
+            try:
+                vinfo = vnode[None]
+            except err:
+                vdef = self._ods.variables[vname]
+                err_msg = 'ERROR: Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
+            else:
+                definfos[vname] = vinfo
 
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
