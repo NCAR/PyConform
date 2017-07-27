@@ -101,6 +101,7 @@ class DataFlow(object):
             except Exception, err:
                 vdef = self._ods.variables[vname]
                 err_msg = 'ERROR: Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
+                raise RuntimeError(err_msg)
             else:
                 definfos[vname] = vinfo
 
