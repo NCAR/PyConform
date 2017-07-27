@@ -98,7 +98,7 @@ class DataFlow(object):
         for vname, vnode in self._defnodes.iteritems():
             try:
                 vinfo = vnode[None]
-            except err:
+            except Exception, err:
                 vdef = self._ods.variables[vname]
                 err_msg = 'ERROR: Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
             else:
