@@ -212,7 +212,7 @@ class ReadNode(FlowNode):
             index12 = join(shape0, index1, index2)
 
             # Retrieve the data from file, unpacking if necessary
-            if 'scale_factor' in attrs or 'add_offset' in attrs:
+            if 'scale_factor' in attrs or 'add_offset' in attrs and not ncvar.scale:
                 scale_factor = attrs.get('scale_factor', 1)
                 add_offset = attrs.get('add_offset', 0)
                 data = scale_factor * ncvar[index12] + add_offset
