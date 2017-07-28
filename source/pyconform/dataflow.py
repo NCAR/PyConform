@@ -153,8 +153,15 @@ class DataFlow(object):
             elif vname in self._defnodes:
                 vnode = self._defnodes[vname]
 
-            self._varnodes[vname] = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
-                                                 attributes=vdesc.attributes, dtype=vdesc.datatype)
+            try:
+                validnode = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
+                                         attributes=vdesc.attributes, dtype=vdesc.datatype)
+            except:
+                vdef = vdesc.definition
+                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
+                raise RuntimeError(err_msg)
+
+            self._varnodes[vname] = validnode
         
         # Now, for each ValidateNode, get the set of all sum-like dimensions
         # (these are dimensions that cannot be broken into chunks)
