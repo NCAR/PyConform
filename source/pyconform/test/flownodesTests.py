@@ -132,7 +132,7 @@ class ReadNodeTests(unittest.TestCase):
                                        units='K', dimensions=self.dimensions, name='v')}
 
         dimdescs = {d:DimensionDesc(d, s) for d, s in self.shape.iteritems()}
-        vardescs = {vn:VariableDesc(vn, datatype=str(vd.dtype), attributes={'units': str(vd.units)},
+        vardescs = {vn:VariableDesc(vn, datatype=vd.dtype, attributes={'units': str(vd.units)},
                                     dimensions=[dimdescs[dd] for dd in vd.dimensions])
                     for vn, vd in self.vardata.iteritems()}
         self.filedesc = FileDesc(self.filename, variables=vardescs.values())
@@ -670,7 +670,7 @@ class WriteNodeTests(unittest.TestCase):
 
         dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues()
                     for n, s in zip(x.dimensions, x.shape)}
-        vardescs = {n:VariableDesc(n, datatype=str(self.data[n].dtype), attributes=self.atts[n],
+        vardescs = {n:VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
                                    dimensions=[dimdescs[d] for d in self.data[n].dimensions])
                     for n in self.data}
         self.vardescs = vardescs

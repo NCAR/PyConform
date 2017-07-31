@@ -91,7 +91,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts = OrderedDict()
 
         vdicts['L'] = OrderedDict()
-        vdicts['L']['datatype'] = 'float32'
+        vdicts['L']['datatype'] = 'float'
         vdicts['L']['dimensions'] = ('l',)
         vdicts['L']['definition'] = tuple(range(5))
         vattribs = OrderedDict()
@@ -101,7 +101,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['L']['attributes'] = vattribs
 
         vdicts['X'] = OrderedDict()
-        vdicts['X']['datatype'] = 'float64'
+        vdicts['X']['datatype'] = 'double'
         vdicts['X']['dimensions'] = ('x',)
         vdicts['X']['definition'] = 'lon'
         vattribs = OrderedDict()
@@ -111,7 +111,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['X']['attributes'] = vattribs
 
         vdicts['Y'] = OrderedDict()
-        vdicts['Y']['datatype'] = 'float64'
+        vdicts['Y']['datatype'] = 'double'
         vdicts['Y']['dimensions'] = ('y',)
         vdicts['Y']['definition'] = 'lat'
         vattribs = OrderedDict()
@@ -122,7 +122,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['Y']['attributes'] = vattribs
 
         vdicts['T'] = OrderedDict()
-        vdicts['T']['datatype'] = 'float64'
+        vdicts['T']['datatype'] = 'double'
         vdicts['T']['dimensions'] = ('t',)
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
@@ -133,7 +133,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['T']['attributes'] = vattribs
 
         vdicts['V1'] = OrderedDict()
-        vdicts['V1']['datatype'] = 'float64'
+        vdicts['V1']['datatype'] = 'double'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
         fdict = OrderedDict()
@@ -147,7 +147,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V1']['attributes'] = vattribs
 
         vdicts['V2'] = OrderedDict()
-        vdicts['V2']['datatype'] = 'float64'
+        vdicts['V2']['datatype'] = 'double'
         vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
         fdict = OrderedDict()
@@ -161,7 +161,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V2']['attributes'] = vattribs
 
         vdicts['V3'] = OrderedDict()
-        vdicts['V3']['datatype'] = 'float64'
+        vdicts['V3']['datatype'] = 'double'
         vdicts['V3']['dimensions'] = ('x', 'y', 't')
         vdicts['V3']['definition'] = 'u2'
         fdict = OrderedDict()
@@ -175,7 +175,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V3']['attributes'] = vattribs
 
         vdicts['V4'] = OrderedDict()
-        vdicts['V4']['datatype'] = 'float64'
+        vdicts['V4']['datatype'] = 'double'
         vdicts['V4']['dimensions'] = ('t', 'x', 'y')
         vdicts['V4']['definition'] = 'u1'
         fdict = OrderedDict()
@@ -191,7 +191,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V4']['attributes'] = vattribs
         
         vdicts['V5'] = OrderedDict()
-        vdicts['V5']['datatype'] = 'float64'
+        vdicts['V5']['datatype'] = 'double'
         vdicts['V5']['dimensions'] = ('t', 'y')
         vdicts['V5']['definition'] = 'mean(u1, "lon")'
         fdict = OrderedDict()
@@ -206,7 +206,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V5']['attributes'] = vattribs
 
         vdicts['V6'] = OrderedDict()
-        vdicts['V6']['datatype'] = 'float64'
+        vdicts['V6']['datatype'] = 'double'
         vdicts['V6']['dimensions'] = ('t', 'y')
         vdicts['V6']['definition'] = 'u2[:,:,0]'
         fdict = OrderedDict()
@@ -221,7 +221,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V6']['attributes'] = vattribs
 
         vdicts['V7'] = OrderedDict()
-        vdicts['V7']['datatype'] = 'float64'
+        vdicts['V7']['datatype'] = 'double'
         vdicts['V7']['dimensions'] = ('t', 'x', 'y')
         vdicts['V7']['definition'] = 'down(u2)'
         fdict = OrderedDict()
@@ -237,7 +237,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V7']['attributes'] = vattribs
 
         vdicts['V8'] = OrderedDict()
-        vdicts['V8']['datatype'] = 'float64'
+        vdicts['V8']['datatype'] = 'double'
         vdicts['V8']['dimensions'] = ('t', 'x', 'y')
         vdicts['V8']['definition'] = 'u3'
         fdict = OrderedDict()
