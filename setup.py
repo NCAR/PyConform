@@ -21,6 +21,6 @@ setup(name='PyConform',
       packages=['pyconform'],
       package_dir={'pyconform': 'source/pyconform'},
       package_data={'pyconform': ['LICENSE.rst']},
-      scripts=['scripts/iconform', 'scripts/xconform'],
+      scripts=['scripts/iconform', 'scripts/xconform', 'scripts/vardeps'],
       install_requires=['asaptools', 'netCDF4', 'pyparsing']
       )

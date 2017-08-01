@@ -10,16 +10,20 @@ LICENSE: See the LICENSE.rst file for details
 
 import argparse, os, sys
 import json
-import miptableparser 
+from pyconform import miptableparser 
 from dateutil.parser import parse
 import datetime
 from dreqPy import dreq
 import uuid
 
 # Map netcdf types to python types
-data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
-              'float': 'float32', 'real': 'float32', 'double': 'float64', 
-              'character':'char', 'integer':'int32'}
+#data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
+#              'float': 'float32', 'real': 'float32', 'double': 'float64', 
+#              'character':'char', 'integer':'int32'}
+data_types = {'char': 'char', 'byte': 'byte', 'short': 'short', 'int': 'int',
+              'float': 'float', 'real': 'real', 'double': 'double',
+              'character':'char', 'integer':'int'}
+
 
 # The way the date should be formatted in the filenames
 date_strings = {'yr': '__YYYY-YYYY__', 'mon': '__YYYYMM-YYYYMM__', 'monClim': '__YYYYMM-YYYYMM-clim__', 
@@ -53,6 +57,8 @@ def parseArgs(argv = None):
                         help='A file containing cf-compliant names to derive.')
     parser.add_argument('-o', '--outputpath', default=os.getcwd(), type=str,
                         help='Output pathname for the output specification file(s).')
+    parser.add_argument('-p', '--outdir', default=os.getcwd(), type=str,
+                        help='Output pathname for the conformer output files(s). This will be appended to each output file.')
 
     return parser.parse_args(argv)
 
@@ -86,6 +92,7 @@ def load(defs,key=None):
         else:
             if len(line)>0 :
                 print 'Could not parse this line: ',line
+
     return def_dict
 
 
@@ -127,7 +134,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
         if "parent_source_id" in attr.keys():
             attr["parent_source_id"] = attr["source_id"]
         if "parent_time_units" in attr.keys():
-            attr["parent_time_units"] = "days since 0000-01-01"
+            attr["parent_time_units"] = "days since 0000-01-01 00:00:00"
     else:
         if "branch_time_in_child" in attr.keys():
             attr["branch_time_in_child"] = "none"
@@ -171,7 +178,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 #===================================================================================================
 # defineVar
 #===================================================================================================
-def defineVar(v, varName, attr, table_info, definition, experiment):
+def defineVar(v, varName, attr, table_info, definition, experiment, out_dir):
 
     v2 = dict(v)
     for key,value in v.iteritems(): # remove all attributes that do not have values
@@ -238,8 +245,8 @@ def defineVar(v, varName, attr, table_info, definition, experiment):
         dst = date_strings[v["frequency"]]
     else:
         dst = ''
-    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}{16}.nc".format(
-               mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
+    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
+               out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
                varName, grid, version,
                varName, mipTable, source_id, experiment, ripf, grid, dst))
 
@@ -262,12 +269,13 @@ def defineVar(v, varName, attr, table_info, definition, experiment):
     if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] != None:
         var["datatype"]  = data_types[v['type']]
     else:
-        var["datatype"] = 'None'
+        var["datatype"] = 'real' #  This is done because some of the variables in the request have no type listed yet
     if 'requested' in v.keys():
         if v['requested'] != '':
             var['definition'] =  v['requested']
     if 'coordinates' in v.keys():
-        var["dimensions"] = v['coordinates'].split('|')
+        var["dimensions"] = list(reversed(v['coordinates'].split('|')))
+        var["attributes"].pop('coordinates')
     else: 
         var["dimensions"] = []
 
@@ -289,6 +297,9 @@ def defineAxes(v, name):
     for key,value in v.iteritems():
         if value == '':
             v2.pop(key,None)
+    # Hardcode this value in for time.  Not ideal, but the request has it listed as "days since ?" and this will fail.
+    if 'time' in name:
+        v2["units"] = "days since 0000-01-01 00:00:00"
 
     # put everything into a variable dictionary
     var["attributes"] = v2
@@ -331,7 +342,7 @@ def getUserVars(fn):
 #===================================================================================================
 # create_output
 #===================================================================================================
-def create_output(exp_dict, definitions, attributes, output_path, args, experiment):
+def create_output(exp_dict, definitions, attributes, output_path, args, experiment, out_dir):
 
     # create the output json files
 
@@ -363,13 +374,10 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
 
         var_list = {}
 
-        # Add axes into the variable list
-        for v,d in axes.iteritems():
-            var_list[v] = defineAxes(d, v)
-
 
         # For each variable in the definition file, create a file entry in the spec and define it
         for v,d in variables.iteritems():
+            ts_key = None
             mip = d['mipTable']
             if mip in definitions.keys():
                 if v in definitions[mip].keys():
@@ -379,7 +387,7 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
                         v_def = definitions[mip][v]
                 else:
                     v_def = ""
-                var_list[v] = defineVar(d, v, attributes, table_info, v_def, experiment)
+                var_list[v] = defineVar(d, v, attributes, table_info, v_def, experiment, out_dir)
                 realm = d["realm"].replace(' ','_')
                 ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
@@ -392,41 +400,31 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
                             t_realm = k1.split('_')[1].strip()
                 for dim in var_list[v]["dimensions"]:
                     if dim not in TableSpec[ts_key].keys() and dim != '' and dim != 'None':
-                         TableSpec[ts_key][dim] = var_list[dim]
+                         TableSpec[ts_key][dim] = defineAxes(axes[dim], dim)
                          if 'Coords_'+t_realm in definitions.keys():
                              if dim in definitions['Coords_'+t_realm].keys():
                                  TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
                              else:
                                  if 'definition' not in  TableSpec[ts_key][dim].keys():
-                                     print "MISSING "+dim+" in "+'Coords_'+t_realm
+                                     print "MISSING "+dim+" in "+'Coords_'+t_realm+" (for variable "+v+")"
             else:
                 AllMissing[t].append(v)
 
         ReqSpec["variables"] = var_list
 
-        # Write the JSON request spec file
-        f = output_path + '/' +experiment + '/byRequest/' + experiment + '_' + identifier + '_spec.json'
-        if not os.path.exists(output_path+'/' +experiment + '/byRequest/'):
-            os.makedirs(output_path + '/' +experiment + '/byRequest/')
-        with open(f, 'w') as outfile:
-            json.dump(ReqSpec["variables"], outfile, sort_keys=True, indent=4)
         
-
     # create json files per MIP+table
-    if not os.path.exists(output_path+'/' +experiment + '/byTable/'):
-        os.makedirs(output_path + '/' +experiment + '/byTable/')
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
     for n,t in TableSpec.iteritems():
         spec = {}
-        f = output_path + '/' +experiment + '/byTable/' + experiment + '_' + n + '_spec.json'
+        f = output_path + experiment + '_' + n + '_spec.json'
         spec["variables"] = t
         with open(f, 'w') as outfile:
             json.dump(t, outfile, sort_keys=True, indent=4)
 
-    f1 = output_path + '/' +experiment + '/byTable/MISSING_DEFS.json'
+    f1 = output_path + '/MISSING_DEFS.json'
     with open(f1, 'w') as outfile:
-        json.dump(AllMissing, outfile, sort_keys=True, indent=4)
-    f2 = output_path + '/' +experiment + '/byRequest/MISSING_DEFS.json'
-    with open(f2, 'w') as outfile:
         json.dump(AllMissing, outfile, sort_keys=True, indent=4)
 
 
@@ -555,7 +553,7 @@ def main(argv=None):
 
             if len(exp_dict.keys())>0:
                 # Write the spec files out to disk
-                create_output(exp_dict, definitions, attributes, args.outputpath, args, exp)
+                create_output(exp_dict, definitions, attributes, args.outputpath, args, exp, args.outdir)
 
 
 #===================================================================================================
