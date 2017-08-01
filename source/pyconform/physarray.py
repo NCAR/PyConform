@@ -118,6 +118,8 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __new__(cls, indata, mask=None, name=None, units=None, dimensions=None, positive=''):
         obj = numpy.ma.asarray(indata).view(cls)
+        if obj.dtype.char in ('S', 'U'):
+            return CharArray(indata, name=name, dimensions=dimensions)
         
         # Add the mask if specified
         if mask is not None:
@@ -524,3 +526,89 @@ class PhysArray(numpy.ma.MaskedArray):
         self.units **= other
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
+
+
+#=======================================================================================================================
+# CharArray
+#=======================================================================================================================
+class CharArray(PhysArray):
+    """
+    Special kind of PhysArray to deal with string arrays
+    """
+    
+    def __new__(cls, indata, name=None, dimensions=None):
+        arr = numpy.asarray(indata, dtype='U')
+        if len(arr.shape) == 0:
+            arr = arr.reshape(1).view('U1')
+        else:
+            strlen = arr.dtype.itemsize / 4
+            shape = arr.shape + (strlen,)
+            arr = arr.view('U1').reshape(shape)
+        obj = numpy.ma.masked_where(arr == '', arr).view(cls)
+        obj.fill_value = ''
+        
+        # Store a name associated with the object
+        if name is None:
+            ndat = arr.view('U{}'.format(arr.shape[-1])).reshape(arr.shape[:-1])
+            obj.name = getname(ndat)
+        else:
+            obj.name = name
+
+        # Store units of the data
+        obj.units = Unit('no unit')
+
+        # Store dimension names associated with each axis
+        if dimensions is None:
+            obj.dimensions = getdimensions(arr)
+        else:
+            obj.dimensions = dimensions
+
+        # Set the positive direction for the data
+        obj.positive = None
+
+        return obj
+
+    def __repr__(self):
+        prndat = self.data.view('U{}'.format(self.shape[-1])).reshape(self.shape[:-1])
+        datstr = str(prndat).replace(linesep, ' ')
+        posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
+        return ('{!s}(data={!s}, name={!r}, dimensions='
+                '{!s}{})').format(self.__class__.__name__, datstr, self.name, self.dimensions, posstr)
+    @property
+    def units(self):
+        """Units of the data"""
+        return self._optinfo['units']
+        
+    @units.setter
+    def units(self, units):
+        new_units = units if isinstance(units, Unit) else Unit(units)
+        if not new_units.is_no_unit():
+            raise UnitsError('CharArrays cannot have units.')
+        self._optinfo['units'] = new_units
+
+    @property
+    def positive(self):
+        """Positive direction (up or down) for the data"""
+        return self._optinfo['positive']
+
+    @positive.setter
+    def positive(self, pos):
+        if pos is not None:
+            raise ValueError('CharArrays cannot be assigned a positive attribute')
+        self._optinfo['positive'] = pos
+
+    def convert(self, units):
+        try:
+            new_self = PhysArray.convert(self, units)
+        except UnitsError:
+            raise UnitsError('CharArrays do not have units and cannot be converted to units {}'.format(units))
+        return new_self
+
+    def transpose(self, *dims):
+        if dims[-1] != self.dimensions[-1]:
+            raise DimensionsError('The last dimension of a CharArray must always be the string length.  '
+                                  'Cannot be transposed.')
+        return PhysArray.transpose(self, *dims)
+
+    def invert(self):
+        raise NotImplementedError('CharArrays cannot be inverted')

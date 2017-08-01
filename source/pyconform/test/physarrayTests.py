@@ -5,7 +5,7 @@ Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
+from pyconform.physarray import PhysArray, CharArray, UnitsError, DimensionsError
 from testutils import print_test_message
 from cf_units import Unit
 
@@ -47,14 +47,16 @@ class PhysArrayTests(unittest.TestCase):
                ([1, 2, 3], {}),
                (numpy.array([1, 2, 3], dtype=numpy.float64), {}),
                (PhysArray([1, 2, 3]), {}),
-               ('asfeasefa', {})]
+               ('asfeasefa', {}),
+               (['asfeasefa', 'asfe', 'e'], {})]
         exp = [PhysArray(1),
                PhysArray(1.3),
                PhysArray((1, 2, 3)),
                PhysArray([1, 2, 3]),
                PhysArray(numpy.array([1,2,3], dtype=numpy.float64)),
                PhysArray([1, 2, 3]),
-               PhysArray('asfeasefa')]
+               CharArray('asfeasefa'),
+               CharArray(['asfeasefa', 'asfe', 'e'])]
         for (arg, kwds), expected in zip(inp, exp):
             argstr = repr(arg)
             kwdstr = ', '.join('{}={!r}'.format(k, kwds[k]) for k in kwds)
@@ -123,6 +125,15 @@ class PhysArrayTests(unittest.TestCase):
             expected = ValueError
             print_test_message(testname, units=indata, expected=expected)
             self.assertRaises(expected, PhysArray, [1,2,3], dimensions=indata, name='X')
+
+    def test_init_char(self):
+        valid_input = [['asef', 'ae', 'dfht'], ('shfudnej', 'x')]
+        for indata in valid_input:
+            testname = 'PhysArray({}, name="X", dimensions=(x,n))'.format(indata)
+            actual = PhysArray(indata, name='X', dimensions=('x','n'))
+            expected = CharArray(indata, name='X', dimensions=('x','n'))
+            print_test_message(testname, actual=actual, expected=expected)
+            self.assertPhysArraysEqual(actual, expected, testname)
 
     def test_positive_default(self):
         nlist = range(3)
