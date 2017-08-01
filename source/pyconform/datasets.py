@@ -11,10 +11,11 @@ LICENSE: See the LICENSE.rst file for details
 from os import linesep
 from os.path import exists
 from collections import OrderedDict
-from numpy import dtype, array
+from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
 from warnings import warn
+from pyconform.physarray import PhysArray, CharArray
 
 
 #===================================================================================================
@@ -289,7 +290,7 @@ class VariableDesc(object):
 
     def units(self):
         """Retrieve the units attribute, if it exists, otherwise 1"""
-        return self.attributes.get('units', 1)
+        return self.attributes.get('units', 'no unit')
 
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
@@ -659,6 +660,7 @@ class OutputDatasetDesc(DatasetDesc):
         # Look over all variables in the dataset dictionary
         variables = OrderedDict()
         metavars = []
+        strlendims = {}
         for vname, vdict in dsdict.iteritems():
             vkwds = {}
 
@@ -680,10 +682,8 @@ class OutputDatasetDesc(DatasetDesc):
                         vshape = None
                     else:
                         def_wrn = 'Empty definition for output variable {!r} in dataset {!r}.'.format(vname, name)
-                elif vkwds['datatype'] == 'c':
-                    vshape = None
                 else:
-                    vshape = array(vdef, dtype=vkwds['datatype']).shape
+                    vshape = PhysArray(vdef).shape
                 vkwds['definition'] = vdef
             else:
                 def_wrn = 'No definition given for output variable {!r} in dataset {!r}.'.format(vname, name)

@@ -77,7 +77,7 @@ class DataFlow(object):
         # Create a dictionary to store DataNodes from variables with data 'definitions'
         self._datnodes = {}
         for vname, vdesc in datvars.iteritems():
-            vdata = numpy.array(vdesc.definition, dtype=vdesc.datatype)
+            vdata = numpy.array(vdesc.definition, dtype=vdesc.dtype)
             vunits = vdesc.cfunits()
             vdims = vdesc.dimensions.keys()
             varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
@@ -155,8 +155,8 @@ class DataFlow(object):
 
             try:
                 validnode = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
-                                         attributes=vdesc.attributes, dtype=vdesc.datatype)
-            except:
+                                         attributes=vdesc.attributes, dtype=vdesc.dtype)
+            except Exception, err:
                 vdef = vdesc.definition
                 err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
                 raise RuntimeError(err_msg)
@@ -192,7 +192,7 @@ class DataFlow(object):
         for vname, vdesc in self._ods.variables.iteritems():
             vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
             vsize = 1 if vsize == 0 else vsize
-            bytesizes[vname] = vsize * numpy.dtype(vdesc.datatype).itemsize
+            bytesizes[vname] = vsize * vdesc.dtype.itemsize
 
         # Compute the file sizes for each output file
         self._filesizes = {}

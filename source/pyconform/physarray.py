@@ -223,9 +223,9 @@ class PhysArray(numpy.ma.MaskedArray):
     def dimensions(self, dims):
         """Named dimensions of the data"""
         if not isinstance(dims, (list, tuple)):
-            raise TypeError('Dimensions must be a tuple')
+            raise TypeError('Dimensions must be a tuple, not {}'.format(type(dims)))
         if len(dims) != len(self.shape):
-            raise ValueError('Dimensions must have same length as shape')
+            raise ValueError('Dimensions {} must have same length as shape {}'.format(dims, self.shape))
         self._optinfo['dimensions'] = tuple(dims)
     
     def transpose(self, *dims):
@@ -537,19 +537,19 @@ class CharArray(PhysArray):
     """
     
     def __new__(cls, indata, name=None, dimensions=None):
-        arr = numpy.asarray(indata, dtype='U')
+        arr = numpy.asarray(indata, dtype='S')
         if len(arr.shape) == 0:
-            arr = arr.reshape(1).view('U1')
+            arr = arr.reshape(1).view('S1')
         else:
-            strlen = arr.dtype.itemsize / 4
-            shape = arr.shape + (strlen,)
-            arr = arr.view('U1').reshape(shape)
+            strlen = arr.dtype.itemsize
+            shape = arr.shape + ((strlen,) if strlen > 1 else tuple())
+            arr = arr.view('S1').reshape(shape)
         obj = numpy.ma.masked_where(arr == '', arr).view(cls)
         obj.fill_value = ''
         
         # Store a name associated with the object
         if name is None:
-            ndat = arr.view('U{}'.format(arr.shape[-1])).reshape(arr.shape[:-1])
+            ndat = arr.view('S{}'.format(arr.shape[-1])).reshape(arr.shape[:-1])
             obj.name = getname(ndat)
         else:
             obj.name = name
@@ -569,7 +569,7 @@ class CharArray(PhysArray):
         return obj
 
     def __repr__(self):
-        prndat = self.data.view('U{}'.format(self.shape[-1])).reshape(self.shape[:-1])
+        prndat = self.data.view('S{}'.format(self.shape[-1])).reshape(self.shape[:-1])
         datstr = str(prndat).replace(linesep, ' ')
         posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
         return ('{!s}(data={!s}, name={!r}, dimensions='

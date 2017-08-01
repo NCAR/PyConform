@@ -348,8 +348,8 @@ class VariableDescTests(unittest.TestCase):
     def test_units_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.units()
-        expected = Unit('1')
-        print_test_message('VariableDesc.units() == 1', actual=actual, expected=expected)
+        expected = Unit('no unit')
+        print_test_message('VariableDesc.units() == nounit', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Default VariableDesc.units() not None')
 
     def test_units(self):
@@ -379,7 +379,7 @@ class VariableDescTests(unittest.TestCase):
     def test_cfunits_default(self):
         vdesc = VariableDesc('time')
         actual = vdesc.cfunits()
-        expected = Unit(1)
+        expected = Unit('no unit')
         print_test_message('VariableDesc.cfunits() == None', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Default VariableDesc.cfunits() not None')
 

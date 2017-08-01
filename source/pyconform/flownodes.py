@@ -662,7 +662,7 @@ class WriteNode(FlowNode):
                 vdesc = self._filedesc.variables[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
-                vdtype = numpy.dtype(vdesc.datatype)
+                vdtype = vdesc.dtype
                 fillval = vattrs.get('_FillValue', None)
                 vdims = vdesc.dimensions.keys()
                 if deflate is None:

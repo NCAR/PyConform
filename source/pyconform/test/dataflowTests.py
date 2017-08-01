@@ -32,8 +32,12 @@ class DataFlowTests(unittest.TestCase):
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9)])
-        self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
+        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3)])
+        self.vdims = OrderedDict([('time', ('time',)),
+                                  ('lat', ('lat',)),
+                                  ('lon', ('lon',)),
+                                  ('cat', ('ncat', 'strlen')),
+                                  ('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon')),
                                   ('u3', ('time', 'lat', 'lon'))])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
@@ -43,6 +47,7 @@ class DataFlowTests(unittest.TestCase):
                                    ('time', {'units': 'days since 1979-01-01 0:0:0',
                                              'calendar': 'noleap',
                                              'standard_name': 'time'}),
+                                   ('cat', {'standard_name': 'categories'}),
                                    ('u1', {'units': 'km',
                                            'standard_name': 'u variable 1'}),
                                    ('u2', {'units': 'm',
@@ -50,37 +55,33 @@ class DataFlowTests(unittest.TestCase):
                                    ('u3', {'units': 'kg',
                                            'standard_name': 'u variable 3',
                                            'positive': 'down'})])
-        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd', 'u3': 'f'}
-        ydat = numpy.linspace(-90, 90, num=self.dims['lat'],
-                              endpoint=True, dtype=self.dtypes['lat'])
-        xdat = numpy.linspace(-180, 180, num=self.dims['lon'],
-                              endpoint=False, dtype=self.dtypes['lon'])
-        xdat = -xdat[::-1]
-        tdat = numpy.linspace(0, self.dims['time'], num=self.dims['time'],
-                              endpoint=False, dtype=self.dtypes['time'])
-        ulen = reduce(lambda x, y: x * y, self.dims.itervalues(), 1)
-        ushape = tuple(d for d in self.dims.itervalues())
-        u1dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
-                               dtype=self.dtypes['u1']).reshape(ushape)
-        u2dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
-                               dtype=self.dtypes['u2']).reshape(ushape)
-        u3dat = numpy.linspace(0, ulen, num=ulen, endpoint=False,
-                               dtype=self.dtypes['u3']).reshape(ushape)
-        self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
-                     'u1': u1dat, 'u2': u2dat, 'u3': u3dat}
+        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'cat': 'c', 'u1': 'd', 'u2': 'd', 'u3': 'f'}
+        
+        ulen = reduce(lambda x, y: x * y, (self.dims[d] for d in self.vdims['u1']), 1)
+        ushape = tuple(self.dims[d] for d in self.vdims['u1'])
+        self.vdat = {'lat': numpy.linspace(-90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']),
+                     'lon': -numpy.linspace(-180, 180, num=self.dims['lon'], dtype=self.dtypes['lon'])[::-1],
+                     'time': numpy.linspace(0, self.dims['time'], num=self.dims['time'], dtype=self.dtypes['time']),
+                     'cat': numpy.asarray(['left', 'middle', 'right'], dtype='S').view(self.dtypes['cat']),
+                     'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(ushape),
+                     'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(ushape),
+                     'u3': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u3']).reshape(ushape)}
 
-        for vname, fname in self.filenames.iteritems():
+        for vname in self.filenames:
+            fname = self.filenames[vname]
             ncf = NCDataset(fname, 'w')
             ncf.setncatts(self.fattribs)
             ncvars = {}
-            for dname, dvalue in self.dims.iteritems():
-                dsize = dvalue if dname != 'time' else None
+            for dname in self.dims:
+                dsize = self.dims[dname] if dname != 'time' else None
                 ncf.createDimension(dname, dsize)
-                ncvars[dname] = ncf.createVariable(dname, 'd', (dname,))
-            ncvars[vname] = ncf.createVariable(vname, 'd', self.vdims[vname])
-            for vnam, vobj in ncvars.iteritems():
-                for aname, avalue in self.vattrs[vnam].iteritems():
-                    setattr(vobj, aname, avalue)
+            for uname in [u for u in self.vdims if u not in self.filenames]:
+                ncvars[uname] = ncf.createVariable(uname, self.dtypes[uname], self.vdims[uname])
+            ncvars[vname] = ncf.createVariable(vname, self.dtypes[vname], self.vdims[vname])
+            for vnam in ncvars:
+                vobj = ncvars[vnam]
+                for aname in self.vattrs[vnam]:
+                    setattr(vobj, aname, self.vattrs[vnam][aname])
                 vobj[:] = self.vdat[vnam]
             ncf.close()
             print_ncfile(fname)
@@ -99,6 +100,14 @@ class DataFlowTests(unittest.TestCase):
         vattribs['units'] = '1'
         vattribs['axis'] = 'Z'
         vdicts['L']['attributes'] = vattribs
+
+        vdicts['C'] = OrderedDict()
+        vdicts['C']['datatype'] = 'char'
+        vdicts['C']['dimensions'] = ('c','n')
+        vdicts['C']['definition'] = 'cat'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'category'
+        vdicts['C']['attributes'] = vattribs
 
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'double'
@@ -139,7 +148,7 @@ class DataFlowTests(unittest.TestCase):
         fdict = OrderedDict()
         fdict['filename'] = 'var1.nc'
         fdict['attributes'] = {'variable': 'V1'}
-        fdict['metavars'] = ['L']
+        fdict['metavars'] = ['L', 'C']
         vdicts['V1']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'element-wise average of u1 and u2'
@@ -286,7 +295,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().dimension_map'
         df = dataflow.DataFlow(self.inpds, self.outds)
         actual = df.dimension_map
-        expected = {'lat': 'y', 'lon': 'x', 'time': 't'}
+        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x', 'ncat': 'c', 'time': 't'}
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
