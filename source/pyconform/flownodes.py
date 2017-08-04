@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.indexing import index_str, join, align_index, index_tuple
-from pyconform.physarray import PhysArray
+from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
 from cf_units import Unit
@@ -789,7 +789,10 @@ class WriteNode(FlowNode):
                 
                 # Write the data to the variable, if it hasn't already been written
                 if repr(wchunk) not in vchunks[vname]:
-                    ncvar[wchunk] = vnode[rchunk]
+                    vdata = vnode[rchunk]
+                    if isinstance(vdata, CharArray):
+                        vdata = vdata.stretch(ncvar.shape[-1])
+                    ncvar[wchunk] = vdata
                     vchunks[vname].add(repr(wchunk))
 
         # Close the file after completion

@@ -77,7 +77,10 @@ class DataFlow(object):
         # Create a dictionary to store DataNodes from variables with data 'definitions'
         self._datnodes = {}
         for vname, vdesc in datvars.iteritems():
-            vdata = numpy.array(vdesc.definition, dtype=vdesc.dtype)
+            if vdesc.datatype == 'char':
+                vdata = numpy.asarray(vdesc.definition, dtype='S')
+            else:
+                vdata = numpy.asarray(vdesc.definition, dtype=vdesc.dtype)
             vunits = vdesc.cfunits()
             vdims = vdesc.dimensions.keys()
             varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
@@ -107,8 +110,7 @@ class DataFlow(object):
 
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
-        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname)
-                                for vname in self._defnodes))[1]
+        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in self._defnodes))[1]
 
         # Now, we construct the dimension maps
         self._i2omap = {}
@@ -134,8 +136,10 @@ class DataFlow(object):
 
         # Now that we know how dimensions are mapped, compute the output dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
-            if not ddesc.is_set():
-                ddesc.set(self._ids.dimensions[self._o2imap[dname]])
+            if dname in self._o2imap:
+                idd = self._ids.dimensions[self._o2imap[dname]]
+                if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
+                    ddesc.set(idd)
 
         # Append a MapNode to all string-defined nodes (map dimension names)
         for vname in self._defnodes:
@@ -148,10 +152,7 @@ class DataFlow(object):
         # Now loop through ALL of the variables and create ValidateNodes for validation
         self._varnodes = {}
         for vname, vdesc in self._ods.variables.iteritems():
-            if vname in self._datnodes:
-                vnode = self._datnodes[vname]
-            elif vname in self._defnodes:
-                vnode = self._defnodes[vname]
+            vnode = self._datnodes[vname] if vname in self._datnodes else self._defnodes[vname]
 
             try:
                 validnode = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),

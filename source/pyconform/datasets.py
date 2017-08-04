@@ -15,7 +15,7 @@ from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
 from warnings import warn
-from pyconform.physarray import PhysArray, CharArray
+from pyconform.physarray import PhysArray
 
 
 #===================================================================================================
@@ -74,7 +74,7 @@ class DimensionDesc(object):
     unlimited.
     """
 
-    def __init__(self, name, size=None, unlimited=False):
+    def __init__(self, name, size=None, unlimited=False, stringlen=False):
         """
         Initializer
         
@@ -82,10 +82,12 @@ class DimensionDesc(object):
             name (str): Dimension name
             size (int): Dimension size
             unlimited (bool): Whether the dimension is unlimited or not
+            stringlen (bool): Whether the dimension represents a string length or not
         """
         self._name = name
         self._size = int(size) if size is not None else None
         self._unlimited = bool(unlimited)
+        self._stringlen = bool(stringlen)
 
     @property
     def name(self):
@@ -101,6 +103,11 @@ class DimensionDesc(object):
     def unlimited(self):
         """Boolean indicating whether the dimension is unlimited or not"""
         return self._unlimited
+
+    @property
+    def stringlen(self):
+        """Boolean indicating whether the dimension represents a string length or not"""
+        return self._stringlen
 
     def is_set(self):
         """
@@ -528,7 +535,7 @@ class DatasetDesc(object):
 
         for fname, fdesc in self._files.iteritems():
             for vdesc in fdesc.variables.itervalues():
-                vdesc.files[fname] = fdesc
+                vdesc.files[fname] = fdesc     
 
     @property
     def name(self):
@@ -588,18 +595,22 @@ class InputDatasetDesc(DatasetDesc):
                 for aname in ncfile.ncattrs():
                     fattrs[aname] = ncfile.getncattr(aname)
 
-                # Get the file dimensions
-                fdims = OrderedDict()
-                for dname, dobj in ncfile.dimensions.iteritems():
-                    fdims[dname] = DimensionDesc(dname, size=len(dobj), unlimited=dobj.isunlimited())
-
-                # Parse variables
+                # Parse variables and their dimensions
                 fvars = []
+                fdims = OrderedDict()
                 for vname, vobj in ncfile.variables.iteritems():
 
                     vattrs = OrderedDict()
                     for vattr in vobj.ncattrs():
                         vattrs[vattr] = vobj.getncattr(vattr)
+
+                    for dname in vobj.dimensions:
+                        if dname not in fdims:
+                            dobj = ncfile.dimensions[dname]
+                            size = len(dobj)
+                            unlimited = dobj.isunlimited()
+                            slen = True if dname == vobj.dimensions[-1] and vobj.dtype == dtype('S1') else False
+                            fdims[dname] = DimensionDesc(dname, size=size, unlimited=unlimited, stringlen=slen)
 
                     vdims = [fdims[dname] for dname in vobj.dimensions]
 
@@ -660,7 +671,6 @@ class OutputDatasetDesc(DatasetDesc):
         # Look over all variables in the dataset dictionary
         variables = OrderedDict()
         metavars = []
-        strlendims = {}
         for vname, vdict in dsdict.iteritems():
             vkwds = {}
 
@@ -694,10 +704,12 @@ class OutputDatasetDesc(DatasetDesc):
 
             # Get the dimensions of the variable (REQUIRED)
             if 'dimensions' in vdict:
+                vdims = vdict['dimensions']
+                sldim = vdims[-1] if vkwds['datatype'] == 'char' else None
                 if vshape is None:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d) for d in vdict['dimensions'])
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, stringlen=(sldim==d)) for d in vdims)
                 else:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d, s) for d, s in zip(vdict['dimensions'], vshape))
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, size=s, stringlen=(sldim==d)) for d, s in zip(vdims, vshape))
             else:
                 err_msg = 'Dimensions are required for variable {!r} in dataset {!r}'.format(vname, name)
                 raise ValueError(err_msg)

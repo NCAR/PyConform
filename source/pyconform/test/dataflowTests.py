@@ -109,6 +109,14 @@ class DataFlowTests(unittest.TestCase):
         vattribs['standard_name'] = 'category'
         vdicts['C']['attributes'] = vattribs
 
+        vdicts['B'] = OrderedDict()
+        vdicts['B']['datatype'] = 'char'
+        vdicts['B']['dimensions'] = ('b', 'n')
+        vdicts['B']['definition'] = ['a', 'bc', 'def']
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'category'
+        vdicts['B']['attributes'] = vattribs
+
         vdicts['X'] = OrderedDict()
         vdicts['X']['datatype'] = 'double'
         vdicts['X']['dimensions'] = ('x',)
@@ -162,7 +170,7 @@ class DataFlowTests(unittest.TestCase):
         fdict = OrderedDict()
         fdict['filename'] = 'var2.nc'
         fdict['attributes'] = {'variable': 'V2'}
-        fdict['metavars'] = ['L']
+        fdict['metavars'] = ['L', 'B']
         vdicts['V2']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'difference of u2 and u1'

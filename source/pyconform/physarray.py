@@ -54,6 +54,41 @@ def getmask(obj):
 
 
 #=======================================================================================================================
+# getdtype
+#=======================================================================================================================
+def getdtype(obj):
+    """
+    Get the dtype associated with an object
+    """
+    return numpy.asarray(obj).dtype
+
+
+#=======================================================================================================================
+# ischartype
+#=======================================================================================================================
+def ischartype(obj):
+    """
+    Return whether the object is a string/character type
+    """
+    return getdtype(obj).char in ('S', 'U')
+
+
+#=======================================================================================================================
+# getshape
+#=======================================================================================================================
+def getshape(obj):
+    """
+    Get the shape associated with an object
+    """
+    if isinstance(obj, PhysArray):
+        return obj.shape
+    elif ischartype(obj):
+        return CharArray._chararray_(obj).shape
+    else:
+        return numpy.shape(obj)
+
+
+#=======================================================================================================================
 # getname
 #=======================================================================================================================
 def getname(obj):
@@ -75,6 +110,8 @@ def getunits(obj):
     """
     if isinstance(obj, PhysArray):
         return obj.units
+    elif ischartype(obj):
+        return Unit('no unit')
     else:
         return Unit(1)
 
@@ -89,7 +126,7 @@ def getdimensions(obj):
     if isinstance(obj, PhysArray):
         return obj.dimensions
     else:
-        return tuple(reversed(range(len(numpy.shape(obj)))))
+        return tuple(reversed(range(len(getshape(obj)))))
 
 
 #=======================================================================================================================
@@ -535,22 +572,21 @@ class CharArray(PhysArray):
     """
     Special kind of PhysArray to deal with string arrays
     """
-    
+
     def __new__(cls, indata, name=None, dimensions=None):
-        arr = numpy.asarray(indata, dtype='S')
-        if len(arr.shape) == 0:
-            arr = arr.reshape(1).view('S1')
+        obj = numpy.ma.asarray(indata, dtype='S')
+        if len(obj.shape) == 0:
+            obj = obj.reshape(1).view('S1')
         else:
-            strlen = arr.dtype.itemsize
-            shape = arr.shape + ((strlen,) if strlen > 1 else tuple())
-            arr = arr.view('S1').reshape(shape)
-        obj = numpy.ma.masked_where(arr == '', arr).view(cls)
+            strlen = obj.dtype.itemsize
+            shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
+            obj = obj.view('S1').reshape(shape)
+        obj = numpy.ma.masked_where(obj == '', obj).view(cls)
         obj.fill_value = ''
         
         # Store a name associated with the object
         if name is None:
-            ndat = arr.view('S{}'.format(arr.shape[-1])).reshape(arr.shape[:-1])
-            obj.name = getname(ndat)
+            obj.name = getname(indata)
         else:
             obj.name = name
 
@@ -559,7 +595,7 @@ class CharArray(PhysArray):
 
         # Store dimension names associated with each axis
         if dimensions is None:
-            obj.dimensions = getdimensions(arr)
+            obj.dimensions = getdimensions(indata)
         else:
             obj.dimensions = dimensions
 
@@ -568,12 +604,29 @@ class CharArray(PhysArray):
 
         return obj
 
+    @staticmethod
+    def _chararray_(indata):
+        obj = CharArray._strarray_(indata)
+        if len(obj.shape) == 0:
+            obj = obj.reshape(1).view('S1')
+        else:
+            strlen = obj.dtype.itemsize
+            shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
+            obj = obj.view('S1').reshape(shape)
+        return obj
+
+    @staticmethod
+    def _strarray_(indata):
+        return numpy.asarray(indata, dtype='S')
+    
     def __repr__(self):
-        prndat = self.data.view('S{}'.format(self.shape[-1])).reshape(self.shape[:-1])
+        if self.shape[-1] > 0:
+            prndat = self.data.view('S{}'.format(self.shape[-1])).reshape(self.shape[:-1])
+        else:
+            prndat = self.data
         datstr = str(prndat).replace(linesep, ' ')
-        posstr = '' if self.positive is None else ', positive={!r}'.format(self.positive)
         return ('{!s}(data={!s}, name={!r}, dimensions='
-                '{!s}{})').format(self.__class__.__name__, datstr, self.name, self.dimensions, posstr)
+                '{!s})').format(self.__class__.__name__, datstr, self.name, self.dimensions)
     @property
     def units(self):
         """Units of the data"""
@@ -605,10 +658,18 @@ class CharArray(PhysArray):
         return new_self
 
     def transpose(self, *dims):
-        if dims[-1] != self.dimensions[-1]:
-            raise DimensionsError('The last dimension of a CharArray must always be the string length.  '
-                                  'Cannot be transposed.')
+        if set(dims) == set(self.dimensions) and dims[-1] != self.dimensions[-1]:
+            raise DimensionsError('The last dimension of a CharArray must always be the string length. '
+                                  'Cannot transpose.')
         return PhysArray.transpose(self, *dims)
 
     def invert(self):
         raise NotImplementedError('CharArrays cannot be inverted')
+
+    def stretch(self, newlen):
+        if newlen > self.shape[-1]:
+            pad = numpy.zeros((self.shape[:-1] + (newlen-self.shape[-1],)), dtype='S')
+            pad = numpy.ma.masked_where(pad == '', pad)
+            return CharArray(numpy.ma.concatenate((self, pad), axis=-1), name=self.name, dimensions=self.dimensions)
+        else:
+            return self
