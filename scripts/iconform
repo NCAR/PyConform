@@ -423,9 +423,9 @@ def create_output(exp_dict, definitions, attributes, output_path, args, experime
         with open(f, 'w') as outfile:
             json.dump(t, outfile, sort_keys=True, indent=4)
 
-    f1 = output_path + '/MISSING_DEFS.json'
-    with open(f1, 'w') as outfile:
-        json.dump(AllMissing, outfile, sort_keys=True, indent=4)
+    #f1 = output_path + '/MISSING_DEFS.json'
+    #with open(f1, 'w') as outfile:
+    #    json.dump(AllMissing, outfile, sort_keys=True, indent=4)
 
 
 #===================================================================================================
