@@ -63,7 +63,7 @@ def cli(argv=None):
     parser.add_argument('-f', '--stdfile', default=None, metavar='STANDARDIZATION', type=str,
                         help=('JSON-formatted standardization (output specification) file '
                               '[REQUIRED]'))
-    parser.add_argument('-m', '--module', metavar='MODULE', action='append',
+    parser.add_argument('-m', '--module', default=None, metavar='MODULE', action='append',
                         help=('Module file path with user-defined functions that must be loaded '
                               'before the Conformation operation can be done'))
     parser.add_argument('-n', '--no_history', default=False, action='store_true',
@@ -147,8 +147,9 @@ def main(argv=None):
         simplefilter("error", ValidationWarning)
 
     # Try importing all of the necessary user-defined modules
-    for i, modpath in enumerate(args.module):
-        load_source('user{}'.format(i), modpath)
+    if args.module is not None:
+        for i, modpath in enumerate(args.module):
+            load_source('user{}'.format(i), modpath)
         
     # Setup the PyConform data flow on all nodes
     if scomm.is_manager():
