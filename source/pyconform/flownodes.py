@@ -12,6 +12,7 @@ from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
 from cf_units import Unit
+from datetime import datetime
 from os.path import exists, dirname
 from os import makedirs
 from netCDF4 import Dataset
@@ -615,6 +616,7 @@ class WriteNode(FlowNode):
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
+            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
             self._file.setncatts(self._filedesc.attributes)
 
             # Scan over variables for coordinates and dimension information
