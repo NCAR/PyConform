@@ -143,8 +143,7 @@ class ReadNode(FlowNode):
         # Check that the variable exists in the file
         with Dataset(self._filepath, 'r') as ncfile:
             if variable.name not in ncfile.variables:
-                raise OSError('Variable {!r} not found in NetCDF file: '
-                              '{!r}'.format(variable.name, self._filepath))
+                raise OSError('Variable {!r} not found in NetCDF file: {!r}'.format(variable.name, self._filepath))
         self._variable = variable.name
 
         # Check if the index means "all"

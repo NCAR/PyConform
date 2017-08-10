@@ -32,8 +32,9 @@ class DataFlowTests(unittest.TestCase):
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3)])
+        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3), ('bnds', 2)])
         self.vdims = OrderedDict([('time', ('time',)),
+                                  ('time_bnds', ('time', 'bnds')),
                                   ('lat', ('lat',)),
                                   ('lon', ('lon',)),
                                   ('cat', ('ncat', 'strlen')),
@@ -47,6 +48,7 @@ class DataFlowTests(unittest.TestCase):
                                    ('time', {'units': 'days since 1979-01-01 0:0:0',
                                              'calendar': 'noleap',
                                              'standard_name': 'time'}),
+                                   ('time_bnds', {'units': 'days since 1979-01-01 0:0:0'}),
                                    ('cat', {'standard_name': 'categories'}),
                                    ('u1', {'units': 'km',
                                            'standard_name': 'u variable 1'}),
@@ -55,13 +57,14 @@ class DataFlowTests(unittest.TestCase):
                                    ('u3', {'units': 'kg',
                                            'standard_name': 'u variable 3',
                                            'positive': 'down'})])
-        self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'cat': 'c', 'u1': 'd', 'u2': 'd', 'u3': 'f'}
+        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd', 'time_bnds': 'd', 'cat': 'c', 'u1': 'f', 'u2': 'f', 'u3': 'f'}
         
         ulen = reduce(lambda x, y: x * y, (self.dims[d] for d in self.vdims['u1']), 1)
         ushape = tuple(self.dims[d] for d in self.vdims['u1'])
         self.vdat = {'lat': numpy.linspace(-90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']),
                      'lon': -numpy.linspace(-180, 180, num=self.dims['lon'], dtype=self.dtypes['lon'])[::-1],
-                     'time': numpy.linspace(0, self.dims['time'], num=self.dims['time'], dtype=self.dtypes['time']),
+                     'time': numpy.arange(self.dims['time'], dtype=self.dtypes['time']),
+                     'time_bnds': numpy.array([[i,i+1] for i in range(self.dims['time'])], dtype=self.dtypes['time_bnds']),
                      'cat': numpy.asarray(['left', 'middle', 'right'], dtype='S').view(self.dtypes['cat']),
                      'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(ushape),
                      'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(ushape),
@@ -141,13 +144,20 @@ class DataFlowTests(unittest.TestCase):
         vdicts['T'] = OrderedDict()
         vdicts['T']['datatype'] = 'double'
         vdicts['T']['dimensions'] = ('t',)
-        vdicts['T']['definition'] = 'time'
+        vdicts['T']['definition'] = 'mean(chunits(time_bnds, units=time), "bnds")'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
         vattribs['units'] = 'days since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
+        vattribs['bounds'] = 'T_bnds'
         vattribs['axis'] = 'T'
         vdicts['T']['attributes'] = vattribs
+
+        vdicts['T_bnds'] = OrderedDict()
+        vdicts['T_bnds']['datatype'] = 'double'
+        vdicts['T_bnds']['dimensions'] = ('t', 'd')
+        vdicts['T_bnds']['definition'] = 'time_bnds'
+        vdicts['T_bnds']['attributes'] = OrderedDict()
 
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'double'
@@ -303,7 +313,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().dimension_map'
         df = dataflow.DataFlow(self.inpds, self.outds)
         actual = df.dimension_map
-        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x', 'ncat': 'c', 'time': 't'}
+        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x', 'ncat': 'c', 'time': 't', 'bnds': 'd'}
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -362,5 +372,4 @@ class DataFlowTests(unittest.TestCase):
 # Command-Line Operation
 #===============================================================================
 if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
