@@ -214,9 +214,9 @@ class PhysArray(numpy.ma.MaskedArray):
         return self._optinfo['units']
 
     @units.setter
-    def units(self, units):
+    def units(self, u):
         """Units of the data"""
-        self._optinfo['units'] = units if isinstance(units, Unit) else Unit(units)
+        self._optinfo['units'] = u if isinstance(u, Unit) else Unit(u)
     
     @staticmethod
     def _safe_convert_(obj, units1, units2):
