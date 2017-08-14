@@ -194,7 +194,8 @@ class DataFlow(object):
 
         # Compute the bytesizes of each output variable
         bytesizes = {}
-        for vname, vdesc in self._ods.variables.iteritems():
+        for vname in valid_vars:
+            vdesc = self._ods.variables[vname]
             vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
             vsize = 1 if vsize == 0 else vsize
             bytesizes[vname] = vsize * vdesc.dtype.itemsize
