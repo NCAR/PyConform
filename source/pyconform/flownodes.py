@@ -465,7 +465,11 @@ class ValidateNode(FlowNode):
                 if index is None:
                     indata.units = ounits
                 else:
-                    indata = indata.convert(ounits)
+                    try:
+                        indata = indata.convert(ounits)
+                    except Exception, err:
+                        err_msg = 'When validating output variable {}: {}'.format(self.label, err)
+                        raise RuntimeError(err_msg)
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
