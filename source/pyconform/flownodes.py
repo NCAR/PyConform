@@ -771,7 +771,11 @@ class WriteNode(FlowNode):
         vchunks = {vnode.label:set() for vnode in self.inputs}
         
         # Compute the Global Dimension Sizes dictionary from the input variable nodes
-        inputdims = set(d for d in self._filedesc.variables[vnode.label].dimensions for vnode in self.inputs)
+        inputdims = []
+        for vnode in self.inputs:
+            for d in self._filedesc.variables[vnode.label].dimensions:
+                if d not in inputdims:
+                    inputdims.append(d)
         gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in inputdims)
         
         # Iterate over the global dimension space
