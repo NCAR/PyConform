@@ -152,6 +152,9 @@ class DataFlow(object):
         # Now loop through ALL of the variables and create ValidateNodes for validation
         self._varnodes = {}
         for vname, vdesc in self._ods.variables.iteritems():
+            if vname not in self._datnodes and vname not in self._defnodes:
+                continue
+            
             vnode = self._datnodes[vname] if vname in self._datnodes else self._defnodes[vname]
 
             try:
