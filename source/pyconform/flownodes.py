@@ -703,6 +703,8 @@ class WriteNode(FlowNode):
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
 
+        print '*** dsizes = {}'.format(dsizes)
+        print '*** chunks = {}'.format(chunks)
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
         ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
