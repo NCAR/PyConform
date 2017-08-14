@@ -152,7 +152,7 @@ class DataFlow(object):
         # Get the list of valid ("included") variables
         valid_vars = self._datnodes.keys() + self._defnodes.keys()          
 
-        # Now loop through ALL of the variables and create ValidateNodes for validation
+        # Now loop through ALL of the valid variables and create ValidateNodes for validation
         self._varnodes = {}
         for vname in valid_vars:
             vdesc = self._ods.variables[vname]

@@ -703,8 +703,6 @@ class WriteNode(FlowNode):
         if not isinstance(chunks, dict):
             raise TypeError('Dimension chunks must be a dictionary')
 
-        print '*** dsizes = {}'.format(dsizes)
-        print '*** chunks = {}'.format(chunks)
         chunks_ = {d:chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {d:int(dsizes[d]//chunks_[d]) + int(dsizes[d]%chunks_[d]>0) for d in dsizes}
         ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
@@ -772,8 +770,9 @@ class WriteNode(FlowNode):
         # Create data structure to keep track of which variable chunks we have written
         vchunks = {vnode.label:set() for vnode in self.inputs}
         
-        # Compute the Global Dimension Sizes dictionary
-        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in self._filedesc.dimensions)
+        # Compute the Global Dimension Sizes dictionary from the input variable nodes
+        inputdims = set(d for d in self._filedesc.variables[vnode.label].dimensions for vnode in self.inputs)
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in inputdims)
         
         # Iterate over the global dimension space
         for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):
