@@ -94,8 +94,8 @@ class DataFlow(object):
             except VariableNotFoundError, err:
                 warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
             else:
-                self._defnodes[vname] = vnode                
-
+                self._defnodes[vname] = vnode      
+        
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = {}
         for vname, vnode in self._defnodes.iteritems():
@@ -149,12 +149,13 @@ class DataFlow(object):
             name = 'map({!s}, to={})'.format(vname, map_dims)
             self._defnodes[vname] = MapNode(name, dnode, self._i2omap)
 
+        # Get the list of valid ("included") variables
+        valid_vars = self._datnodes.keys() + self._defnodes.keys()          
+
         # Now loop through ALL of the variables and create ValidateNodes for validation
         self._varnodes = {}
-        for vname, vdesc in self._ods.variables.iteritems():
-            if vname not in self._datnodes and vname not in self._defnodes:
-                continue
-            
+        for vname in valid_vars:
+            vdesc = self._ods.variables[vname]
             vnode = self._datnodes[vname] if vname in self._datnodes else self._defnodes[vname]
 
             try:
@@ -187,7 +188,7 @@ class DataFlow(object):
         # Create the WriteNodes for each time-series output file
         writenodes = {}
         for fname, fdesc in self._ods.files.iteritems():
-            vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys())
+            vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys() if n in valid_vars)
             writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
         self._writenodes = writenodes
 
