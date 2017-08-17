@@ -620,7 +620,7 @@ class WriteNode(FlowNode):
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
-            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             self._file.setncatts(self._filedesc.attributes)
 
             # Scan over variables for coordinates and dimension information
