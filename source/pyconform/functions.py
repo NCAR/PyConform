@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
-from numpy import sqrt, mean, where
+from numpy.ma import sqrt, mean, where
 from cf_units import Unit
 
 #=======================================================================================================================
