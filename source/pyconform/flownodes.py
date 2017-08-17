@@ -28,11 +28,59 @@ import numpy
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
+
 #===================================================================================================
 # UnitsWarning
 #===================================================================================================
 class UnitsWarning(Warning):
     """Warning for units errors"""
+
+
+#=======================================================================================================================
+# iter_dfs - Depth-First Search Iterator
+#=======================================================================================================================
+def iter_dfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Depth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop()
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
+
+#=======================================================================================================================
+# iter_bfs - Breadth-First Search Iterator
+#=======================================================================================================================
+def iter_bfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Breadth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop(0)
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
 
 #===================================================================================================
 # FlowNode
