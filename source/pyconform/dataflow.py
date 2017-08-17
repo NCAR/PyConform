@@ -21,7 +21,7 @@ from pyconform.parsing import parse_definition
 from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
 from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
-from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode
+from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
 from pyconform.flownodes import MapNode, ValidateNode, WriteNode
 from asaptools.simplecomm import create_comm, SimpleComm
 from asaptools.partition import WeightBalanced
@@ -65,40 +65,91 @@ class DataFlow(object):
             raise TypeError('Output dataset must be of OutputDatasetDesc type')
         self._ods = outds
 
-        # Separate output variables into variables with data or string 'definitions'
-        datvars = {}
-        defvars = {}
-        for vname, vdesc in self._ods.variables.iteritems():
-            if isinstance(vdesc.definition, basestring):
-                defvars[vname] = vdesc
-            else:
-                datvars[vname] = vdesc
+        # Create a dictionary of DataNodes from variables with non-string definitions
+        datnodes = self._create_data_nodes_()
 
-        # Create a dictionary to store DataNodes from variables with data 'definitions'
-        self._datnodes = {}
-        for vname, vdesc in datvars.iteritems():
-            if vdesc.datatype == 'char':
-                vdata = numpy.asarray(vdesc.definition, dtype='S')
-            else:
-                vdata = numpy.asarray(vdesc.definition, dtype=vdesc.dtype)
-            vunits = vdesc.cfunits()
-            vdims = vdesc.dimensions.keys()
-            varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
-            self._datnodes[vname] = DataNode(varray)
+        # Create a dictionary to store FlowNodes for variables with string definitions
+        defnodes = self._create_definition_nodes_(datnodes)
 
-        # Create a dictionary to store FlowNodes for variables with string 'definitions'
-        self._defnodes = {}
-        for vname, vdesc in defvars.iteritems():
-            try:
-                vnode = self._construct_flow_(parse_definition(vdesc.definition))
-            except VariableNotFoundError, err:
-                warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
-            else:
-                self._defnodes[vname] = vnode      
+        # Construct the dimension map and append MopNodes
+        defnodes = self._map_dimensions_(defnodes)
+
+        # Create the validate nodes for each valid output variable
+        valnodes = self._create_validate_nodes_(datnodes, defnodes)
         
+        # Get the set of all sum-like dimensions (dimensions that cannot be broken into chunks)
+        self._sumlike_dimensions = self._find_sumlike_dimensions_(valnodes)
+
+        # Create the WriteNodes for each time-series output file
+        self._writenodes = self._create_write_nodes_(valnodes)
+
+        # Compute the bytesizes of each output variable
+        varsizes = self._compute_variable_sizes_(valnodes)
+
+        # Compute the file sizes for each output file
+        self._filesizes = self._compute_file_sizes(varsizes)
+
+    def _create_data_nodes_(self):
+        datnodes = {}
+        for vname in self._ods.variables:
+            vdesc = self._ods.variables[vname]
+            if not isinstance(vdesc.definition, basestring):
+                if vdesc.datatype == 'char':
+                    vdata = numpy.asarray(vdesc.definition, dtype='S')
+                else:
+                    vdata = numpy.asarray(vdesc.definition, dtype=vdesc.dtype)
+                vunits = vdesc.cfunits()
+                vdims = vdesc.dimensions.keys()
+                varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
+                datnodes[vname] = DataNode(varray)
+        return datnodes
+
+    def _create_definition_nodes_(self, datnodes):        
+        defnodes = {}
+        for vname in self._ods.variables:
+            vdesc = self._ods.variables[vname]
+            if isinstance(vdesc.definition, basestring):
+                try:
+                    vnode = self._construct_flow_(parse_definition(vdesc.definition), datnodes=datnodes)
+                except VariableNotFoundError, err:
+                    warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
+                else:
+                    defnodes[vname] = vnode
+        return defnodes      
+
+    def _construct_flow_(self, obj, datnodes={}):
+        if isinstance(obj, ParsedVariable):
+            vname = obj.key
+            if vname in self._ids.variables:
+                return ReadNode(self._ids.variables[vname], index=obj.args)
+
+            elif vname in datnodes:
+                return datnodes[vname]
+
+            else:
+                raise VariableNotFoundError('Input variable {!r} not found or cannot be used as input'.format(vname))
+
+        elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
+            name = obj.key
+            nargs = len(obj.args)
+            op = find_operator(name, numargs=nargs)
+            args = [self._construct_flow_(arg, datnodes=datnodes) for arg in obj.args]
+            return EvalNode(name, op, *args)
+
+        elif isinstance(obj, ParsedFunction):
+            name = obj.key
+            func = find_function(name)
+            args = [self._construct_flow_(arg, datnodes=datnodes) for arg in obj.args]
+            kwds = {k:self._construct_flow_(obj.kwds[k], datnodes=datnodes) for k in obj.kwds}
+            return EvalNode(name, func, *args, **kwds)
+
+        else:
+            return obj
+
+    def _map_dimensions_(self, defnodes):
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
         definfos = {}
-        for vname, vnode in self._defnodes.iteritems():
+        for vname, vnode in defnodes.iteritems():
             try:
                 vinfo = vnode[None]
             except Exception, err:
@@ -107,10 +158,10 @@ class DataFlow(object):
                 raise RuntimeError(err_msg)
             else:
                 definfos[vname] = vinfo
-
+        
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
-        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in self._defnodes))[1]
+        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in defnodes))[1]
 
         # Now, we construct the dimension maps
         self._i2omap = {}
@@ -140,23 +191,28 @@ class DataFlow(object):
                 idd = self._ids.dimensions[self._o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
                     ddesc.set(idd)
-
+        
         # Append a MapNode to all string-defined nodes (map dimension names)
-        for vname in self._defnodes:
-            dnode = self._defnodes[vname]
+        for vname in defnodes:
+            dnode = defnodes[vname]
             dinfo = definfos[vname]
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
-            self._defnodes[vname] = MapNode(name, dnode, self._i2omap)
+            defnodes[vname] = MapNode(name, dnode, self._i2omap)
+        
+        return defnodes
 
-        # Get the list of valid ("included") variables
-        valid_vars = self._datnodes.keys() + self._defnodes.keys()          
+    @property
+    def dimension_map(self):
+        """The internally generated input-to-output dimension name map"""
+        return self._i2omap
 
-        # Now loop through ALL of the valid variables and create ValidateNodes for validation
-        self._varnodes = {}
+    def _create_validate_nodes_(self, datnodes, defnodes):
+        valid_vars = datnodes.keys() + defnodes.keys()          
+        valnodes = {}
         for vname in valid_vars:
             vdesc = self._ods.variables[vname]
-            vnode = self._datnodes[vname] if vname in self._datnodes else self._defnodes[vname]
+            vnode = datnodes[vname] if vname in datnodes else defnodes[vname]
 
             try:
                 validnode = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
@@ -166,78 +222,47 @@ class DataFlow(object):
                 err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
                 raise RuntimeError(err_msg)
 
-            self._varnodes[vname] = validnode
-        
-        # Now, for each ValidateNode, get the set of all sum-like dimensions
-        # (these are dimensions that cannot be broken into chunks)
+            valnodes[vname] = validnode
+        return valnodes
+    
+    def _find_sumlike_dimensions_(self, valnodes):
         unmapped_sumlike_dimensions = set()
-        for vname, vnode in self._varnodes.iteritems():
-            visited = set()
-            tosearch = [vnode]
-            while tosearch:
-                nd = tosearch.pop()
+        for vname in valnodes:
+            vnode = valnodes[vname]
+            for nd in iter_dfs(vnode):
                 if isinstance(nd, EvalNode):
                     unmapped_sumlike_dimensions.update(nd.sumlike_dimensions)
-                visited.add(nd)
-                if isinstance(nd, FlowNode):
-                    tosearch.extend(i for i in nd.inputs if i not in visited)
         
         # Map the sum-like dimensions to output dimensions
-        self._sumlike_dimensions = set(self._i2omap[d] for d in unmapped_sumlike_dimensions if d in self._i2omap)
+        return set(self._i2omap[d] for d in unmapped_sumlike_dimensions if d in self._i2omap)
 
-        # Create the WriteNodes for each time-series output file
+    def _create_write_nodes_(self, valnodes):
         writenodes = {}
-        for fname, fdesc in self._ods.files.iteritems():
-            vnodes = tuple(self._varnodes[n] for n in fdesc.variables.keys() if n in valid_vars)
-            writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
-        self._writenodes = writenodes
+        for fname in self._ods.files:
+            fdesc = self._ods.files[fname]
+            vmissing = tuple(vname for vname in fdesc.variables if vname not in valnodes)
+            if vmissing:
+                warn('Skipping output file {} due to missing required variables: '
+                     '{}'.format(fname, ', '.join(sorted(vmissing))), DefinitionWarning)
+            else:
+                vnodes = tuple(valnodes[vname] for vname in fdesc.variables)
+                writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
+        return writenodes
 
-        # Compute the bytesizes of each output variable
+    def _compute_variable_sizes_(self, valnodes):
         bytesizes = {}
-        for vname in valid_vars:
+        for vname in valnodes:
             vdesc = self._ods.variables[vname]
             vsize = sum(ddesc.size for ddesc in vdesc.dimensions.itervalues())
             vsize = 1 if vsize == 0 else vsize
             bytesizes[vname] = vsize * vdesc.dtype.itemsize
-
-        # Compute the file sizes for each output file
-        self._filesizes = {}
+        return bytesizes
+    
+    def _compute_file_sizes(self, varsizes):
+        filesizes = {}
         for fname, wnode in self._writenodes.iteritems():
-            self._filesizes[fname] = sum(bytesizes[vnode.label] for vnode in wnode.inputs)
-        
-    def _construct_flow_(self, obj):
-        if isinstance(obj, ParsedVariable):
-            vname = obj.key
-            if vname in self._ids.variables:
-                return ReadNode(self._ids.variables[vname], index=obj.args)
-
-            elif vname in self._datnodes:
-                return self._datnodes[vname]
-
-            else:
-                raise VariableNotFoundError('Input variable {!r} not found or cannot be used as input'.format(vname))
-
-        elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
-            name = obj.key
-            nargs = len(obj.args)
-            op = find_operator(name, numargs=nargs)
-            args = [self._construct_flow_(arg) for arg in obj.args]
-            return EvalNode(name, op, *args)
-
-        elif isinstance(obj, ParsedFunction):
-            name = obj.key
-            func = find_function(name)
-            args = [self._construct_flow_(arg) for arg in obj.args]
-            kwds = {k:self._construct_flow_(obj.kwds[k]) for k in obj.kwds}
-            return EvalNode(name, func, *args, **kwds)
-
-        else:
-            return obj
-
-    @property
-    def dimension_map(self):
-        """The internally generated input-to-output dimension name map"""
-        return self._i2omap
+            filesizes[fname] = sum(varsizes[vnode.label] for vnode in wnode.inputs)
+        return filesizes
 
     def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None):
         """
