@@ -71,8 +71,14 @@ class DataFlow(object):
         # Create a dictionary to store FlowNodes for variables with string definitions
         defnodes = self._create_definition_nodes_(datnodes)
 
-        # Construct the dimension map and append MopNodes
-        defnodes = self._map_dimensions_(defnodes)
+        # Compute the definition node info objects (zero-sized physarrays)
+        definfos = self._compute_node_infos_(defnodes)
+        
+        # Construct the dimension map
+        self._i2omap, self._o2imap = self._compute_dimension_maps_(definfos)
+        
+        # Create the map nodes
+        defnodes = self._create_map_nodes_(defnodes, definfos)
 
         # Create the validate nodes for each valid output variable
         valnodes = self._create_validate_nodes_(datnodes, defnodes)
@@ -146,52 +152,63 @@ class DataFlow(object):
         else:
             return obj
 
-    def _map_dimensions_(self, defnodes):
+    def _compute_node_infos_(self, nodes):
         # Gather information about each FlowNode's metadata (via empty PhysArrays)
-        definfos = {}
-        for vname, vnode in defnodes.iteritems():
+        infos = {}
+        for name in nodes:
+            node = nodes[name] 
             try:
-                vinfo = vnode[None]
+                info = node[None]
             except Exception, err:
-                vdef = self._ods.variables[vname].definition
-                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
+                ndef = self._ods.variables[name].definition
+                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(name, ndef, str(err))
                 raise RuntimeError(err_msg)
             else:
-                definfos[vname] = vinfo
+                infos[name] = info
+        return infos
         
+    def _compute_dimension_maps_(self, definfos):
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
-        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in defnodes))[1]
+        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in definfos))[1]
 
         # Now, we construct the dimension maps
-        self._i2omap = {}
-        self._o2imap = {}
+        i2omap = {}
+        o2imap = {}
         for vname in nodeorder:
             out_dims = self._ods.variables[vname].dimensions.keys()
             inp_dims = definfos[vname].dimensions
 
-            unmapped_out = tuple(d for d in out_dims if d not in self._o2imap)
-            mapped_inp = tuple(self._o2imap[d] for d in out_dims if d in self._o2imap)
+            unmapped_out = tuple(d for d in out_dims if d not in o2imap)
+            mapped_inp = tuple(o2imap[d] for d in out_dims if d in o2imap)
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                map_str = ', '.join('{}-->{}'.format(k,self._i2omap[k]) for k in self._i2omap)
+                map_str = ', '.join('{}-->{}'.format(k, i2omap[k]) for k in i2omap)
                 err_msg = ('Cannot map dimensions {} to dimensions {} in output variable {} '
                            '(MAP: {})').format(inp_dims, out_dims, vname, map_str)
                 raise ValueError(err_msg)
             if len(unmapped_out) == 0:
                 continue
             for out_dim, inp_dim in zip(unmapped_out, unmapped_inp):
-                self._o2imap[out_dim] = inp_dim
-                self._i2omap[inp_dim] = out_dim
+                o2imap[out_dim] = inp_dim
+                i2omap[inp_dim] = out_dim
 
         # Now that we know how dimensions are mapped, compute the output dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
-            if dname in self._o2imap:
-                idd = self._ids.dimensions[self._o2imap[dname]]
+            if dname in o2imap:
+                idd = self._ids.dimensions[o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
                     ddesc.set(idd)
         
+        return i2omap, o2imap
+
+    @property
+    def dimension_map(self):
+        """The internally generated input-to-output dimension name map"""
+        return self._i2omap
+
+    def _create_map_nodes_(self, defnodes, definfos):
         # Append a MapNode to all string-defined nodes (map dimension names)
         for vname in defnodes:
             dnode = defnodes[vname]
@@ -199,13 +216,7 @@ class DataFlow(object):
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
             defnodes[vname] = MapNode(name, dnode, self._i2omap)
-        
         return defnodes
-
-    @property
-    def dimension_map(self):
-        """The internally generated input-to-output dimension name map"""
-        return self._i2omap
 
     def _create_validate_nodes_(self, datnodes, defnodes):
         valid_vars = datnodes.keys() + defnodes.keys()          
