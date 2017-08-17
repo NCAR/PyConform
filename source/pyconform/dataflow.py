@@ -209,14 +209,14 @@ class DataFlow(object):
         return self._i2omap
 
     def _create_map_nodes_(self, defnodes, definfos):
-        # Append a MapNode to all string-defined nodes (map dimension names)
+        mapnodes = {}
         for vname in defnodes:
             dnode = defnodes[vname]
             dinfo = definfos[vname]
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
             name = 'map({!s}, to={})'.format(vname, map_dims)
-            defnodes[vname] = MapNode(name, dnode, self._i2omap)
-        return defnodes
+            mapnodes[vname] = MapNode(name, dnode, self._i2omap)
+        return mapnodes
 
     def _create_validate_nodes_(self, datnodes, defnodes):
         valid_vars = datnodes.keys() + defnodes.keys()          
