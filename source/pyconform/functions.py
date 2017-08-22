@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.physarray import PhysArray, UnitsError
+from pyconform.physarray import PhysArray, UnitsError, getmask
 from numpy.ma import sqrt, mean, where
 from cf_units import Unit
 
@@ -281,7 +281,7 @@ class SquareRootFunction(Function):
         data_r = self.arguments[0]
         data = data_r if is_constant(data_r) else data_r[index]
         if isinstance(data, PhysArray):
-            return PhysArray(sqrt(data.data), units=self._units, name='sqrt({})'.format(data.name),
+            return PhysArray(sqrt(data.data), mask=getmask(data), units=self._units, name='sqrt({})'.format(data.name),
                              dimensions=data.dimensions, positive=data.positive)
         else:
             return sqrt(data)
@@ -309,9 +309,8 @@ class MeanFunction(Function):
         axes = tuple(data.dimensions.index(d) for d in indims)
         new_dims = tuple(d for d in data.dimensions if d not in indims)
         dim_str = ','.join(str(d) for d in indims)
-        return PhysArray(mean(data.data, axis=axes),
-                         units=data.units, dimensions=new_dims, positive=data.positive,
-                         name='mean({}, dims=[{}])'.format(data.name, dim_str))
+        return PhysArray(mean(data.data, axis=axes), mask=getmask(data), units=data.units, dimensions=new_dims,
+                         positive=data.positive, name='mean({}, dims=[{}])'.format(data.name, dim_str))
 
 
 #===================================================================================================
