@@ -483,7 +483,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def invert(self):
         """Return a new PhysArray with the value of the array inverted (1/value)"""
-        return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
+        return PhysArray(1.0 / self, dimensions=self.dimensions, units=self.units.invert(),
                          name='(1/{!s})'.format(self), positive=self.positive)
 
     def __div__(self, other):
@@ -563,6 +563,22 @@ class PhysArray(numpy.ma.MaskedArray):
         self.units **= other
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
+
+    def mean(self, dimensions=None):
+        axis = tuple(self.dimensions.index(d) for d in dimensions)
+        if self._mask is numpy.ma.nomask:
+            result = super(numpy.ma.MaskedArray, self).mean(axis=axis)
+        else:
+            dsum = self.sum(axis=axis)
+            cnt = self.count(axis=axis)
+            if cnt.shape == () and (cnt == 0):
+                result = numpy.ma.masked
+            else:
+                result = dsum * 1. / cnt
+        new_dims = tuple(d for d in self.dimensions if d not in dimensions)
+        dim_str = ','.join(str(d) for d in dimensions)
+        return PhysArray(result, name='mean({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+                         positive=self.positive, units=self.units)
 
 
 #=======================================================================================================================
