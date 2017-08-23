@@ -1,6 +1,13 @@
+"""
+Functions Unit Tests
+
+Copyright 2017, University Corporation for Atmospheric Research
+LICENSE: See the LICENSE.rst file for details
+"""
+
 import numpy as np
 from cStringIO import StringIO
-from mkTestData import DataMaker
+from pyconform.test.makeTestData import DataMaker
 from pyconform import mapdates
 import unittest
 
