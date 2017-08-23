@@ -566,18 +566,28 @@ class PhysArray(numpy.ma.MaskedArray):
         return self
 
     def mean(self, dimensions=None):
-        dims = self.dimensions if dimensions is None else dimensions
-        axis = tuple(self.dimensions.index(d) for d in dims)
-        meanval = self.view(numpy.ma.MaskedArray).mean(axis=axis)
+        if dimensions is None:
+            dims = self.dimensions
+            meanval = self.view(numpy.ma.MaskedArray).mean()
+        else:
+            dims = dimensions
+            meanval = self.view(numpy.ma.MaskedArray)
+            for axis in tuple(self.dimensions.index(d) for d in dims):
+                meanval = meanval.mean(axis=axis)
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
         return PhysArray(meanval, name='mean({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
                          positive=self.positive, units=self.units)
 
     def sum(self, dimensions=None):
-        dims = self.dimensions if dimensions is None else dimensions
-        axis = tuple(self.dimensions.index(d) for d in dims)
-        meanval = self.view(numpy.ma.MaskedArray).sum(axis=axis)
+        if dimensions is None:
+            dims = self.dimensions
+            meanval = self.view(numpy.ma.MaskedArray).mean()
+        else:
+            dims = dimensions
+            meanval = self.view(numpy.ma.MaskedArray)
+            for axis in tuple(self.dimensions.index(d) for d in dims):
+                meanval = meanval.mean(axis=axis)
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
         return PhysArray(meanval, name='sum({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
