@@ -1,5 +1,5 @@
 """
-Functions Unit Tests
+MapDates Unit Tests
 
 Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
