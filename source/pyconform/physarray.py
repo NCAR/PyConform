@@ -572,7 +572,8 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             dims = dimensions
             meanval = self.view(numpy.ma.MaskedArray)
-            for axis in tuple(self.dimensions.index(d) for d in dims):
+            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
+            for axis in axes:
                 meanval = meanval.mean(axis=axis)
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
@@ -586,7 +587,8 @@ class PhysArray(numpy.ma.MaskedArray):
         else:
             dims = dimensions
             meanval = self.view(numpy.ma.MaskedArray)
-            for axis in tuple(self.dimensions.index(d) for d in dims):
+            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
+            for axis in axes:
                 meanval = meanval.mean(axis=axis)
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
