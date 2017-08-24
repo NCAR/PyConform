@@ -28,11 +28,59 @@ import numpy
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
+
 #===================================================================================================
 # UnitsWarning
 #===================================================================================================
 class UnitsWarning(Warning):
     """Warning for units errors"""
+
+
+#=======================================================================================================================
+# iter_dfs - Depth-First Search Iterator
+#=======================================================================================================================
+def iter_dfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Depth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop()
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
+
+#=======================================================================================================================
+# iter_bfs - Breadth-First Search Iterator
+#=======================================================================================================================
+def iter_bfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Breadth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop(0)
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
 
 #===================================================================================================
 # FlowNode
@@ -465,7 +513,11 @@ class ValidateNode(FlowNode):
                 if index is None:
                     indata.units = ounits
                 else:
-                    indata = indata.convert(ounits)
+                    try:
+                        indata = indata.convert(ounits)
+                    except Exception, err:
+                        err_msg = 'When validating output variable {}: {}'.format(self.label, err)
+                        raise RuntimeError(err_msg)
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
@@ -616,7 +668,7 @@ class WriteNode(FlowNode):
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
-            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')
+            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             self._file.setncatts(self._filedesc.attributes)
 
             # Scan over variables for coordinates and dimension information
@@ -770,8 +822,13 @@ class WriteNode(FlowNode):
         # Create data structure to keep track of which variable chunks we have written
         vchunks = {vnode.label:set() for vnode in self.inputs}
         
-        # Compute the Global Dimension Sizes dictionary
-        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in self._filedesc.dimensions)
+        # Compute the Global Dimension Sizes dictionary from the input variable nodes
+        inputdims = []
+        for vnode in self.inputs:
+            for d in self._filedesc.variables[vnode.label].dimensions:
+                if d not in inputdims:
+                    inputdims.append(d)
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in inputdims)
         
         # Iterate over the global dimension space
         for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):

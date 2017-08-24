@@ -429,18 +429,45 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
-    def test_func_mean_physarray(self):
+    def test_func_mean_ndarray(self):
         key = 'mean'
-        indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0], name='x', units='m', dimensions=('t',))
+        indata = PhysArray([1.0, 2.0, 3.0], name='x', units='m', dimensions=('t',))
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
-        actual = func(indata, 't')[:]
-        expected = PhysArray(3.0, name='mean(x, dims=[t])', units='m')
+        fobj = func(indata, 't')
+        actual = fobj[:]
+        expected = PhysArray(2.0, name='mean(x, dims=[t])', units='m')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        
+    def test_func_mean_physarray(self):
+        key = 'mean'
+        indata = PhysArray([1.0, 2.0, 3.0], mask=[False, False, True], name='x', units='m', dimensions=('t',))
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        fobj = func(indata, 't')
+        actual = fobj[:]
+        expected = PhysArray(1.5, name='mean(x, dims=[t])', units='m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
         self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
 
+    def test_func_mean_physarray_2d(self):
+        key = 'mean'
+        indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [True, False]], name='x', units='m', dimensions=('t','u'))
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        fobj = func(indata, 't')
+        actual = fobj[:]
+        expected = PhysArray([1.0, 3.0], name='mean(x, dims=[t])', units='m', dimensions=('u',))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        
     def test_func_sqrt_sumlike(self):
         key = 'sqrt'
         testname = '{}.sumlike_dimensions'.format(key)

@@ -683,7 +683,7 @@ class OutputDatasetDesc(DatasetDesc):
             if 'datatype' in vdict:
                 vkwds['datatype'] = vdict['datatype']
 
-            # Get either the 'definition' or the 'data' of the variables
+            # Get either the 'definition' (string definition or data) of the variables
             def_wrn = ''
             if 'definition' in vdict:
                 vdef = vdict['definition']

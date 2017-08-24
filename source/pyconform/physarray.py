@@ -254,7 +254,7 @@ class PhysArray(numpy.ma.MaskedArray):
     @property
     def dimensions(self):
         """Named dimensions of the data"""
-        return self._optinfo['dimensions']
+        return self._optinfo['dimensions']            
 
     @dimensions.setter
     def dimensions(self, dims):
@@ -465,6 +465,7 @@ class PhysArray(numpy.ma.MaskedArray):
         return other
 
     def __mul__(self, other):
+        print self.data, self.mask, self._optinfo
         result = PhysArray(self)
         other = result._mul_div_init_(other)
         return PhysArray(super(PhysArray, result).__mul__(other), name='({}*{})'.format(result.name, other.name),
@@ -483,7 +484,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def invert(self):
         """Return a new PhysArray with the value of the array inverted (1/value)"""
-        return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
+        return PhysArray(1.0 / self, dimensions=self.dimensions, units=self.units.invert(),
                          name='(1/{!s})'.format(self), positive=self.positive)
 
     def __div__(self, other):
@@ -564,6 +565,36 @@ class PhysArray(numpy.ma.MaskedArray):
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
 
+    def mean(self, dimensions=None):
+        if dimensions is None:
+            dims = self.dimensions
+            meanval = self.view(numpy.ma.MaskedArray).mean()
+        else:
+            dims = dimensions
+            meanval = self.view(numpy.ma.MaskedArray)
+            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
+            for axis in axes:
+                meanval = meanval.mean(axis=axis)
+        new_dims = tuple(d for d in self.dimensions if d not in dims)
+        dim_str = ','.join(str(d) for d in dims)
+        return PhysArray(meanval, name='mean({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+                         positive=self.positive, units=self.units)
+
+    def sum(self, dimensions=None):
+        if dimensions is None:
+            dims = self.dimensions
+            meanval = self.view(numpy.ma.MaskedArray).mean()
+        else:
+            dims = dimensions
+            meanval = self.view(numpy.ma.MaskedArray)
+            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
+            for axis in axes:
+                meanval = meanval.mean(axis=axis)
+        new_dims = tuple(d for d in self.dimensions if d not in dims)
+        dim_str = ','.join(str(d) for d in dims)
+        return PhysArray(meanval, name='sum({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+                         positive=self.positive, units=self.units)
+        
 
 #=======================================================================================================================
 # CharArray

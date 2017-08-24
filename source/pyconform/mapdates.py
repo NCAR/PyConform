@@ -31,7 +31,7 @@ def __get_time_info__(f, io):
 
     Returns:
         date_info (dict): Contains file information, such as time period(t_per), time step(t_step), 
-                          first/last step(t0 and tn), slice counts(cnt). 
+            first/last step(t0 and tn), slice counts(cnt). 
         average (int): The average of all time slices.
     """
     date_info = {}
@@ -117,8 +117,7 @@ def __check_date_alignment__(keys, date_info):
     Parameters:
         keys (list): A list of time slice references that are in correct time order.
         date_info (dict): Contains file information, such as time period(t_per), time step(t_step), 
-                          first/last step(t0 and tn), slice counts(cnt).
-
+            first/last step(t0 and tn), slice counts(cnt).
     """
     prev_last = date_info[keys[0]]['tn']
     t_step = date_info[keys[0]]['t_step']
