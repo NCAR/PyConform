@@ -11,7 +11,7 @@ from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
-from cf_units import Unit
+from cf_units import Unit, num2date
 from datetime import datetime
 from os.path import exists, dirname
 from os import makedirs
@@ -515,9 +515,9 @@ class ValidateNode(FlowNode):
                 else:
                     try:
                         indata = indata.convert(ounits)
-                    except Exception, err:
+                    except Exception as err:
                         err_msg = 'When validating output variable {}: {}'.format(self.label, err)
-                        raise RuntimeError(err_msg)
+                        raise err.__class__(err_msg)
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
@@ -661,6 +661,42 @@ class WriteNode(FlowNode):
                 except:
                     raise IOError('Failed to create directory for output file {!r}'.format(fname))
 
+            # Determine if autoparsing the filename needs to be done
+            if '{' in fname:
+                tdim = None
+                for dim in self._filedesc.dimensions:
+                    dobj = self._filedesc.dimensions[dim]
+                    if dobj.unlimited and dim[:4] == 'time':
+                        tdim = dim
+                if tdim is None:
+                    raise ValueError('Could not find unlimited time dimension in file {!r}'.format(fname))
+                tvar = None
+                for var in self._filedesc.variables:
+                    vobj = self._filedesc.variables[var]
+                    if vobj.dimensions.keys() == (tdim,):
+                        tvar = var
+                if tvar is None:
+                    raise ValueError('Could not find time variable in file {!r}'.format(fname))
+                tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
+                if len(tnodes) == 0:
+                    raise ValueError('Time variable input missing in file {!r}'.format(fname))
+                t1 = tnodes[0][0]
+                t2 = tnodes[0][-1]
+
+                while '{' in fname:
+                    beg = fname.find('{')
+                    end = fname.find('}', beg)
+                    if end == -1:
+                        raise ValueError('Filename {!r} has unbalanced special characters'.format(fname))
+                    prefix = fname[:beg]
+                    fmtstr1, fmtstr2 = fname[beg+1:end].split('-')
+                    suffix = fname[end+1:]
+
+                    datestr1 = num2date(t1, str(t1.units), t1.units.calendar).strftime(fmtstr1).replace(' ', '0')
+                    datestr2 = num2date(t2, str(t2.units), t2.units.calendar).strftime(fmtstr2).replace(' ', '0')
+                    
+                    fname = '{}{}-{}{}'.format(prefix, datestr1, datestr2, suffix)
+                
             # Try to open the output file for writing
             try:
                 self._file = Dataset(fname, 'w', format=self._filedesc.format)
