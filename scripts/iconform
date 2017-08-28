@@ -24,12 +24,11 @@ data_types = {'char': 'char', 'byte': 'byte', 'short': 'short', 'int': 'int',
               'float': 'float', 'real': 'real', 'double': 'double',
               'character':'char', 'integer':'int'}
 
-
 # The way the date should be formatted in the filenames
-date_strings = {'yr': '__YYYY-YYYY__', 'mon': '__YYYYMM-YYYYMM__', 'monClim': '__YYYYMM-YYYYMM-clim__', 
-                'day': '__YYYYMMDD-YYYYMMDD__', '6hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', 
-                '3hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__',
-                'subhr': '__YYYYMMDDHHMM-YYYYMMDDHHMM__', '1hrClimMon': '__YYYYMMDDHHMM-YYYYMMDDHHMM-clim__'}
+date_strings = {'yr': '{%Y-%Y}', 'mon': '{%Y%m-%Y%m}', 'monClim': '{%Y%m-%Y%m-clim}', 
+                'day': '{%Y%m%d-%Y%m%d}', '6hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', 
+                '3hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hr': '{%Y%m%d%H%M-%Y%m%d%H%M}',
+                'subhr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hrClimMon': '{%Y%m%d%H%M-%Y%m%d%H%M-clim}'}
 
 #===================================================================================================
 # parseArgs
@@ -84,11 +83,15 @@ def load(defs,key=None):
             line = line.split('#')[0].strip()
         # slit definition into the two parts
         split = line.split('=')
-        if (len(split) == 2):
+        #if (len(split) == 2):
+        if (len(split) >= 2):
             if key == 'ga' and split[1] == '':
                 def_dict[key][split[0].strip()] = "__FILL__"
             else:
-                def_dict[key][split[0].strip()] = split[1].strip()
+                if len(split) == 2:
+                   def_dict[key][split[0].strip()] = split[1].strip()
+                else:
+                   def_dict[key][split[0].strip()] = '='.join(split[1:]).strip()
         else:
             if len(line)>0 :
                 print 'Could not parse this line: ',line
@@ -149,12 +152,12 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 
     if "variant_label" in attr.keys():
         pre = attr["variant_label"].split('r')[1]
-        attr["realization_index"] = pre.split('i')[0]
+        attr["realization_index"] = int(pre.split('i')[0])
         pre = pre.split('i')[1]
-        attr["initialization_index"] = pre.split('p')[0]
+        attr["initialization_index"] = int(pre.split('p')[0])
         pre = pre.split('p')[1]
-        attr["physics_index"] = pre.split('f')[0]
-        pre = pre.split('f')[1]
+        attr["physics_index"] = int(pre.split('f')[0])
+        pre = int(pre.split('f')[1])
         attr["forcing_index"] = pre
 
     if "further_info_url" in attr.keys():
@@ -213,7 +216,6 @@ def defineVar(v, varName, attr, table_info, definition, experiment, out_dir):
     institution_id = attributes['institution_id']
     source_id = attributes['source_id']
     grid = attributes['grid_label']
-    version = "vXXXXXXXX"
     sub_experiment_id = attributes['sub_experiment_id']
 
     f_format = attributes["netcdf_type"]
@@ -245,9 +247,9 @@ def defineVar(v, varName, attr, table_info, definition, experiment, out_dir):
         dst = date_strings[v["frequency"]]
     else:
         dst = ''
-    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
+    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}_{16}.nc".format(
                out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
-               varName, grid, version,
+               varName, grid, 
                varName, mipTable, source_id, experiment, ripf, grid, dst))
 
     var = {}
@@ -260,7 +262,6 @@ def defineVar(v, varName, attr, table_info, definition, experiment, out_dir):
     var["file"]["attributes"]["variant_label"] = ripf
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
-    var["file"]["metavars"] = []
     if compression is not None:
         var["file"]["compression"] = compression
     if shuffle is not None:
