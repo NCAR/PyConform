@@ -418,7 +418,7 @@ class ParseXML(object):
                     if hasattr(c_var,'mipTable'):
                         var['mipTable']=c_var.mipTable
                         if c_var.mipTable in tables or '--ALL--' in tables: 
-
+                            var["_FillValue"] = "9.96921e+36"
                             if hasattr(c_var,'deflate'):
                                 var['deflate']= c_var.deflate
                             if hasattr(c_var,'deflate_level'):
@@ -499,19 +499,20 @@ class ParseXML(object):
                             if hasattr(s_var, 'spid'):
 	                        sp_var = dq.inx.uid[s_var.spid]
 	                        if hasattr(sp_var,'dimensions'):
-                                    if 'coordinates' in var.keys():
-                                        sp_var_d = sp_var.dimensions
-                                        if len(sp_var_d) > 1:
-                                            if sp_var_d[-1] == '|':
-                                                sp_var_d = sp_var_d[:-1]
-                                        var['coordinates'] = sp_var_d + '|' + var['coordinates']
-                                    else:
-                                        var['coordinates'] = sp_var.dimensions
-                                    dims = var['coordinates'].split('|')
-                                    for d in dims:
-                                        if d not in axes_list and d != '' and d != 'None':
-                                            if 'copy' not in var['id'] and '?' not in d:
-                                                axes_list.append(d)
+                                    if len(sp_var.dimensions) > 1:
+                                        if 'coordinates' in var.keys():
+                                            sp_var_d = sp_var.dimensions
+                                            if len(sp_var_d) > 1:
+                                                if sp_var_d[-1] == '|':
+                                                    sp_var_d = sp_var_d[:-1]
+                                            var['coordinates'] = sp_var_d + '|' + var['coordinates']
+                                        else:
+                                            var['coordinates'] = sp_var.dimensions
+                                        dims = var['coordinates'].split('|')
+                                        for d in dims:
+                                            if d not in axes_list and d != '' and d != 'None':
+                                                if 'copy' not in var['id'] and '?' not in d:
+                                                    axes_list.append(d)
                             if 'coordinates' in var.keys(): 
                                 if len(var['coordinates']) > 1:
                                     if var['coordinates'][-1] == '|':
@@ -526,7 +527,8 @@ class ParseXML(object):
                                     var['long_name']= v_var.sn
 	                        if hasattr(v_var,'units'):
                                     if v_var.units == "":
-                                        var['units']= '1'
+                                        var['units']= 'None'
+                                        print c_var.label, " does not have units" 
                                     else:
                                         var['units']= v_var.units
 
