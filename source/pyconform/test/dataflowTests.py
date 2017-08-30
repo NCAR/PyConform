@@ -214,7 +214,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['standard_name'] = 'transposed u1'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_max'] = 200.0
         vdicts['V4']['attributes'] = vattribs
         
         vdicts['V5'] = OrderedDict()
@@ -228,8 +228,8 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'mean of u1 along the lon dimension'
         vattribs['units'] = 'km'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = 5.0
+        vattribs['valid_max'] = 220.0
         vdicts['V5']['attributes'] = vattribs
 
         vdicts['V6'] = OrderedDict()
@@ -243,8 +243,8 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u2 at lowest x-level'
         vattribs['units'] = 'km'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = 0.01
+        vattribs['valid_max'] = 0.2
         vdicts['V6']['attributes'] = vattribs
 
         vdicts['V7'] = OrderedDict()
@@ -258,8 +258,8 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u2 in upward direction'
         vattribs['units'] = 'm'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = -200.0
+        vattribs['valid_max'] = 0.0
         vattribs['positive'] = 'up'
         vdicts['V7']['attributes'] = vattribs
 
@@ -274,8 +274,8 @@ class DataFlowTests(unittest.TestCase):
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u3 in upward direction'
         vattribs['units'] = 'kg'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = -200.0
+        vattribs['valid_max'] = -1.0
         vattribs['positive'] = 'up'
         vdicts['V8']['attributes'] = vattribs
         

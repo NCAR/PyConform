@@ -625,7 +625,9 @@ class WriteNode(FlowNode):
                                   'contained in the descibed file').format(filedesc.name, inp.label))
 
         # Construct the proper filename
-        self._label = self._autoparse_filename_(self.label)
+        fname = self._autoparse_filename_(self.label)
+        self._label = fname
+        self._filedesc._name = fname
         
         # Set the filehandle
         self._file = None
