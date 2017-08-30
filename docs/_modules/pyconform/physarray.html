@@ -216,6 +216,41 @@
 
 
 <span class="c1">#=======================================================================================================================</span>
+<span class="c1"># getdtype</span>
+<span class="c1">#=======================================================================================================================</span>
+<div class="viewcode-block" id="getdtype"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.getdtype">[docs]</a><span class="k">def</span> <span class="nf">getdtype</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the dtype associated with an object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">dtype</span></div>
+
+
+<span class="c1">#=======================================================================================================================</span>
+<span class="c1"># ischartype</span>
+<span class="c1">#=======================================================================================================================</span>
+<div class="viewcode-block" id="ischartype"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.ischartype">[docs]</a><span class="k">def</span> <span class="nf">ischartype</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return whether the object is a string/character type</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">getdtype</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">char</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;U&#39;</span><span class="p">)</span></div>
+
+
+<span class="c1">#=======================================================================================================================</span>
+<span class="c1"># getshape</span>
+<span class="c1">#=======================================================================================================================</span>
+<div class="viewcode-block" id="getshape"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.getshape">[docs]</a><span class="k">def</span> <span class="nf">getshape</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the shape associated with an object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">elif</span> <span class="n">ischartype</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">CharArray</span><span class="o">.</span><span class="n">_chararray_</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<span class="c1">#=======================================================================================================================</span>
 <span class="c1"># getname</span>
 <span class="c1">#=======================================================================================================================</span>
 <div class="viewcode-block" id="getname"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.getname">[docs]</a><span class="k">def</span> <span class="nf">getname</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
@@ -237,6 +272,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">units</span>
+    <span class="k">elif</span> <span class="n">ischartype</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;no unit&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Unit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
 
@@ -251,7 +288,7 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">dimensions</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">obj</span><span class="p">)))))</span></div>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">reversed</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">getshape</span><span class="p">(</span><span class="n">obj</span><span class="p">)))))</span></div>
 
 
 <span class="c1">#=======================================================================================================================</span>
@@ -278,12 +315,15 @@
 <span class="sd">    along the edges of a Data Flow graph.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">indata</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">indata</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="n">makwds</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">kwds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">}</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">indata</span><span class="p">,</span> <span class="o">**</span><span class="n">makwds</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">char</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;U&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">CharArray</span><span class="p">(</span><span class="n">indata</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">)</span>
         
         <span class="c1"># Add the mask if specified</span>
-        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">obj</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="k">if</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">]</span>
 
         <span class="c1"># Store a name associated with the object</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -295,7 +335,7 @@
         <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">obj</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">getunits</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">obj</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
 
         <span class="c1"># Store dimension names associated with each axis</span>
         <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -337,17 +377,17 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
 
     <span class="nd">@units</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Units of the data&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">Unit</span><span class="p">)</span> <span class="k">else</span> <span class="n">Unit</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_safe_convert_</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">units1</span><span class="p">,</span> <span class="n">units2</span><span class="p">):</span>
         <span class="c1"># Because netcdftime datetime conversion always returns an NDArray, even if the</span>
         <span class="c1"># original object is a subclass of NDArray, we have to wrap the convert function</span>
         <span class="c1"># to safely preserve the object type...  sigh.</span>
-        <span class="n">u1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units1</span><span class="p">)</span>
-        <span class="n">u2</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units2</span><span class="p">)</span>
+        <span class="n">u1</span> <span class="o">=</span> <span class="n">units1</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units1</span><span class="p">,</span> <span class="n">Unit</span><span class="p">)</span> <span class="k">else</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units1</span><span class="p">)</span>
+        <span class="n">u2</span> <span class="o">=</span> <span class="n">units2</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units2</span><span class="p">,</span> <span class="n">Unit</span><span class="p">)</span> <span class="k">else</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units2</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
             <span class="n">new_array</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">(</span><span class="n">units1</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">units2</span><span class="p">),</span> <span class="n">mask</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
             <span class="n">u1_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">u1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;|</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">u1</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span> <span class="k">if</span> <span class="n">u1</span><span class="o">.</span><span class="n">calendar</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -366,7 +406,7 @@
 <span class="sd">        Parameters:</span>
 <span class="sd">            units (Unit): The new units to which to convert the PhysArray</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">uunit</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">uunit</span> <span class="o">=</span> <span class="n">units</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">Unit</span><span class="p">)</span> <span class="k">else</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">==</span> <span class="n">uunit</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_convertible</span><span class="p">(</span><span class="n">uunit</span><span class="p">):</span>
@@ -377,15 +417,15 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Named dimensions of the data&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span>            
 
     <span class="nd">@dimensions</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Named dimensions of the data&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be a tuple&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be a tuple, not </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">dims</span><span class="p">)))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Dimensions must have same length as shape&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Dimensions </span><span class="si">{}</span><span class="s1"> must have same length as shape </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dims</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span>
     
 <div class="viewcode-block" id="PhysArray.transpose"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.PhysArray.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">):</span>
@@ -606,7 +646,7 @@
 
 <div class="viewcode-block" id="PhysArray.invert"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.PhysArray.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a new PhysArray with the value of the array inverted (1/value)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">invert</span><span class="p">(),</span>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">invert</span><span class="p">(),</span>
                          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;(1/</span><span class="si">{!s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">positive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -685,7 +725,167 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;(</span><span class="si">{!s}</span><span class="s1">**</span><span class="si">{!s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">**=</span> <span class="n">other</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">positive</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">data</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">positive</span>
-        <span class="k">return</span> <span class="bp">self</span></div>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="PhysArray.mean"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.PhysArray.mean">[docs]</a>    <span class="k">def</span> <span class="nf">mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;axis&#39;</span> <span class="ow">in</span> <span class="n">kwds</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be given as a list or tuple&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
+            <span class="n">meanval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">axis</span><span class="p">],)</span>
+            <span class="n">meanval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="n">meanval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axis</span><span class="p">:</span>
+                <span class="n">meanval</span> <span class="o">=</span> <span class="n">meanval</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Axis must be given as an integer, list or tuple&#39;</span><span class="p">)</span>
+        <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
+        <span class="n">dim_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">meanval</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mean(</span><span class="si">{}</span><span class="s1">, dims=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dim_str</span><span class="p">),</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dims</span><span class="p">,</span>
+                         <span class="n">positive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PhysArray.sum"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.PhysArray.sum">[docs]</a>    <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">kwds</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;axis&#39;</span> <span class="ow">in</span> <span class="n">kwds</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be given as a list or tuple&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">axis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
+            <span class="n">sumval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">axis</span><span class="p">],)</span>
+            <span class="n">sumval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="n">sumval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">MaskedArray</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">axis</span><span class="p">:</span>
+                <span class="n">sumval</span> <span class="o">=</span> <span class="n">sumval</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">a</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Axis must be given as an integer, list or tuple&#39;</span><span class="p">)</span>
+        <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
+        <span class="n">dim_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">sumval</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sum(</span><span class="si">{}</span><span class="s1">, dims=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dim_str</span><span class="p">),</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">new_dims</span><span class="p">,</span>
+                         <span class="n">positive</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">)</span></div></div>
+        
+
+<span class="c1">#=======================================================================================================================</span>
+<span class="c1"># CharArray</span>
+<span class="c1">#=======================================================================================================================</span>
+<div class="viewcode-block" id="CharArray"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.CharArray">[docs]</a><span class="k">class</span> <span class="nc">CharArray</span><span class="p">(</span><span class="n">PhysArray</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Special kind of PhysArray to deal with string arrays</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">indata</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">indata</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">strlen</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">((</span><span class="n">strlen</span><span class="p">,)</span> <span class="k">if</span> <span class="n">strlen</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">())</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">obj</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        
+        <span class="c1"># Store a name associated with the object</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">getname</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># Store units of the data</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;no unit&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Store dimension names associated with each axis</span>
+        <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">getdimensions</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
+
+        <span class="c1"># Set the positive direction for the data</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">positive</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_chararray_</span><span class="p">(</span><span class="n">indata</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">CharArray</span><span class="o">.</span><span class="n">_strarray_</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">strlen</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">((</span><span class="n">strlen</span><span class="p">,)</span> <span class="k">if</span> <span class="n">strlen</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">())</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_strarray_</span><span class="p">(</span><span class="n">indata</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">indata</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">prndat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s1">&#39;S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prndat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+        <span class="n">datstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">prndat</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">linesep</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">{!s}</span><span class="s1">(data=</span><span class="si">{!s}</span><span class="s1">, name=</span><span class="si">{!r}</span><span class="s1">, dimensions=&#39;</span>
+                <span class="s1">&#39;</span><span class="si">{!s}</span><span class="s1">)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">datstr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Units of the data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+        
+    <span class="nd">@units</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="n">new_units</span> <span class="o">=</span> <span class="n">units</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">Unit</span><span class="p">)</span> <span class="k">else</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">new_units</span><span class="o">.</span><span class="n">is_no_unit</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span><span class="s1">&#39;CharArrays cannot have units.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_units</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">positive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Positive direction (up or down) for the data&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span>
+
+    <span class="nd">@positive</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">positive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;CharArrays cannot be assigned a positive attribute&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_optinfo</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos</span>
+
+<div class="viewcode-block" id="CharArray.convert"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.CharArray.convert">[docs]</a>    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">new_self</span> <span class="o">=</span> <span class="n">PhysArray</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">UnitsError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span><span class="s1">&#39;CharArrays do not have units and cannot be converted to units </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_self</span></div>
+
+<div class="viewcode-block" id="CharArray.transpose"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.CharArray.transpose">[docs]</a>    <span class="k">def</span> <span class="nf">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">dims</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="ow">and</span> <span class="n">dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">DimensionsError</span><span class="p">(</span><span class="s1">&#39;The last dimension of a CharArray must always be the string length. &#39;</span>
+                                  <span class="s1">&#39;Cannot transpose.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CharArray.invert"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.CharArray.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;CharArrays cannot be inverted&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CharArray.stretch"><a class="viewcode-back" href="../../physarray.html#pyconform.physarray.CharArray.stretch">[docs]</a>    <span class="k">def</span> <span class="nf">stretch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newlen</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">newlen</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">pad</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">newlen</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],)),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
+            <span class="n">pad</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">pad</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">CharArray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="p">,</span> <span class="n">pad</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span></div></div>
 </pre></div>
 
            </div>

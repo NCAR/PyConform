@@ -184,6 +184,45 @@ its data the units associated with the data, the dimensions associated with each
 the data.</p>
 <p>Copyright 2017, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details</p>
+<dl class="class">
+<dt id="pyconform.physarray.CharArray">
+<em class="property">class </em><code class="descclassname">pyconform.physarray.</code><code class="descname">CharArray</code><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyconform.physarray.PhysArray" title="pyconform.physarray.PhysArray"><code class="xref py py-class docutils literal"><span class="pre">pyconform.physarray.PhysArray</span></code></a></p>
+<p>Special kind of PhysArray to deal with string arrays</p>
+<dl class="method">
+<dt id="pyconform.physarray.CharArray.convert">
+<code class="descname">convert</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.convert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyconform.physarray.CharArray.invert">
+<code class="descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.invert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.physarray.CharArray.positive">
+<code class="descname">positive</code><a class="headerlink" href="#pyconform.physarray.CharArray.positive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Positive direction (up or down) for the data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyconform.physarray.CharArray.stretch">
+<code class="descname">stretch</code><span class="sig-paren">(</span><em>newlen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.stretch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyconform.physarray.CharArray.transpose">
+<code class="descname">transpose</code><span class="sig-paren">(</span><em>*dims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.transpose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.physarray.CharArray.units">
+<code class="descname">units</code><a class="headerlink" href="#pyconform.physarray.CharArray.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>Units of the data</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="exception">
 <dt id="pyconform.physarray.DimensionsError">
 <em class="property">exception </em><code class="descclassname">pyconform.physarray.</code><code class="descname">DimensionsError</code><a class="reference internal" href="_modules/pyconform/physarray.html#DimensionsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.DimensionsError" title="Permalink to this definition">¶</a></dt>
@@ -238,6 +277,11 @@ along the edges of a Data Flow graph.</p>
 <dd><p>Return a new PhysArray with the value of the array inverted (1/value)</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyconform.physarray.PhysArray.mean">
+<code class="descname">mean</code><span class="sig-paren">(</span><em>dimensions=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.mean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="pyconform.physarray.PhysArray.name">
 <code class="descname">name</code><a class="headerlink" href="#pyconform.physarray.PhysArray.name" title="Permalink to this definition">¶</a></dt>
@@ -249,6 +293,11 @@ along the edges of a Data Flow graph.</p>
 <code class="descname">positive</code><a class="headerlink" href="#pyconform.physarray.PhysArray.positive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Positive direction (up or down) for the data</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="pyconform.physarray.PhysArray.sum">
+<code class="descname">sum</code><span class="sig-paren">(</span><em>dimensions=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.sum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="pyconform.physarray.PhysArray.transpose">
@@ -300,6 +349,12 @@ along the edges of a Data Flow graph.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyconform.physarray.getdtype">
+<code class="descclassname">pyconform.physarray.</code><code class="descname">getdtype</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the dtype associated with an object</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyconform.physarray.getmask">
 <code class="descclassname">pyconform.physarray.</code><code class="descname">getmask</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getmask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the mask associated with an object</p>
@@ -318,9 +373,21 @@ along the edges of a Data Flow graph.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pyconform.physarray.getshape">
+<code class="descclassname">pyconform.physarray.</code><code class="descname">getshape</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the shape associated with an object</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="pyconform.physarray.getunits">
 <code class="descclassname">pyconform.physarray.</code><code class="descname">getunits</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getunits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the Unit associated with the object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.physarray.ischartype">
+<code class="descclassname">pyconform.physarray.</code><code class="descname">ischartype</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#ischartype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.ischartype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return whether the object is a string/character type</p>
 </dd></dl>
 
 </div>

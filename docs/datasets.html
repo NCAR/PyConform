@@ -236,7 +236,7 @@ dimensions, and they must refer to the same data.</li>
 
 <dl class="class">
 <dt id="pyconform.datasets.DimensionDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">DimensionDesc</code><span class="sig-paren">(</span><em>name</em>, <em>size=None</em>, <em>unlimited=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#DimensionDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.DimensionDesc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">DimensionDesc</code><span class="sig-paren">(</span><em>name</em>, <em>size=None</em>, <em>unlimited=False</em>, <em>stringlen=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#DimensionDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.DimensionDesc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Descriptor for a dimension in a DatasetDesc</p>
 <p>Contains the name of the dimensions, its size, and whether the dimension is limited or
@@ -271,6 +271,12 @@ unlimited.</p>
 <dt id="pyconform.datasets.DimensionDesc.size">
 <code class="descname">size</code><a class="headerlink" href="#pyconform.datasets.DimensionDesc.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>Numeric size of the dimension (if set)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.datasets.DimensionDesc.stringlen">
+<code class="descname">stringlen</code><a class="headerlink" href="#pyconform.datasets.DimensionDesc.stringlen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Boolean indicating whether the dimension represents a string length or not</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -415,16 +421,11 @@ metadata variables and the variable containing the ‘file’ section.</dd>
 </ol>
 </dd>
 </dl>
-<dl class="attribute">
-<dt id="pyconform.datasets.OutputDatasetDesc.t">
-<code class="descname">t</code><em class="property"> = 'f8'</em><a class="headerlink" href="#pyconform.datasets.OutputDatasetDesc.t" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="pyconform.datasets.VariableDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">VariableDesc</code><span class="sig-paren">(</span><em>name</em>, <em>datatype='float32'</em>, <em>dimensions=()</em>, <em>definition=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">VariableDesc</code><span class="sig-paren">(</span><em>name</em>, <em>datatype='float'</em>, <em>dimensions=()</em>, <em>definition=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Descriptor for a variable in a dataset</p>
 <p>Contains the variable name, string datatype, dimensions tuple, attributes dictionary,
@@ -458,6 +459,12 @@ the data is contained in the variable declaration).</p>
 <dt id="pyconform.datasets.VariableDesc.dimensions">
 <code class="descname">dimensions</code><a class="headerlink" href="#pyconform.datasets.VariableDesc.dimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of dimension descriptors for dimensions on which the variable depends</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.datasets.VariableDesc.dtype">
+<code class="descname">dtype</code><a class="headerlink" href="#pyconform.datasets.VariableDesc.dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>NumPy dtype of the variable data</p>
 </dd></dl>
 
 <dl class="attribute">

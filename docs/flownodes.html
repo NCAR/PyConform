@@ -262,7 +262,7 @@ name does not change.</p>
 
 <dl class="class">
 <dt id="pyconform.flownodes.ValidateNode">
-<em class="property">class </em><code class="descclassname">pyconform.flownodes.</code><code class="descname">ValidateNode</code><span class="sig-paren">(</span><em>label</em>, <em>dnode</em>, <em>units=None</em>, <em>dimensions=None</em>, <em>dtype=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/flownodes.html#ValidateNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.flownodes.ValidateNode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyconform.flownodes.</code><code class="descname">ValidateNode</code><span class="sig-paren">(</span><em>label</em>, <em>dnode</em>, <em>dimensions=None</em>, <em>dtype=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/flownodes.html#ValidateNode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.flownodes.ValidateNode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyconform.flownodes.FlowNode" title="pyconform.flownodes.FlowNode"><code class="xref py py-class docutils literal"><span class="pre">pyconform.flownodes.FlowNode</span></code></a></p>
 <p>FlowNode class to validate input data from a neighboring FlowNode</p>
 <p>The ValidateNode takes additional attributes in its initializer that can effect the
@@ -346,6 +346,34 @@ dimension will be assumed to correspond to the slowest-varying index.)</li>
 </table>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.flownodes.iter_bfs">
+<code class="descclassname">pyconform.flownodes.</code><code class="descname">iter_bfs</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/flownodes.html#iter_bfs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.flownodes.iter_bfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate through graph of FlowNodes from a starting node using a Breadth-First Search</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<a class="reference internal" href="#pyconform.flownodes.FlowNode" title="pyconform.flownodes.FlowNode"><em>FlowNode</em></a>) – the starting node from where to begin iterating</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.flownodes.iter_dfs">
+<code class="descclassname">pyconform.flownodes.</code><code class="descname">iter_dfs</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/flownodes.html#iter_dfs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.flownodes.iter_dfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Iterate through graph of FlowNodes from a starting node using a Depth-First Search</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>node</strong> (<a class="reference internal" href="#pyconform.flownodes.FlowNode" title="pyconform.flownodes.FlowNode"><em>FlowNode</em></a>) – the starting node from where to begin iterating</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
