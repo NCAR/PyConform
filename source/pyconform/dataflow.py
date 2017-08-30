@@ -257,7 +257,8 @@ class DataFlow(object):
                      '{}'.format(fname, ', '.join(sorted(vmissing))), DefinitionWarning)
             else:
                 vnodes = tuple(valnodes[vname] for vname in fdesc.variables)
-                writenodes[fname] = WriteNode(fdesc, inputs=vnodes)
+                wnode = WriteNode(fdesc, inputs=vnodes)
+                writenodes[wnode.label] = wnode
         return writenodes
 
     def _compute_variable_sizes_(self, valnodes):

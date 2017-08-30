@@ -16,9 +16,9 @@ import unittest
 import numpy
 
 
-#===================================================================================================
+#=======================================================================================================================
 # DataFlowTests
-#===================================================================================================
+#=======================================================================================================================
 class DataFlowTests(unittest.TestCase):
     """
     Unit tests for the flownodes.FlowNode class
@@ -164,7 +164,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
         fdict = OrderedDict()
-        fdict['filename'] = 'var1.nc'
+        fdict['filename'] = 'var1_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V1'}
         fdict['metavars'] = ['L', 'C']
         vdicts['V1']['file'] = fdict
@@ -178,7 +178,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V2']['dimensions'] = ('t', 'y', 'x')
         vdicts['V2']['definition'] = 'u2 - u1'
         fdict = OrderedDict()
-        fdict['filename'] = 'var2.nc'
+        fdict['filename'] = 'var2_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V2'}
         fdict['metavars'] = ['L', 'B']
         vdicts['V2']['file'] = fdict
@@ -192,7 +192,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V3']['dimensions'] = ('x', 'y', 't')
         vdicts['V3']['definition'] = 'u2'
         fdict = OrderedDict()
-        fdict['filename'] = 'var3.nc'
+        fdict['filename'] = 'var3_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V3'}
         fdict['metavars'] = ['L']
         vdicts['V3']['file'] = fdict
@@ -206,7 +206,7 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V4']['dimensions'] = ('t', 'x', 'y')
         vdicts['V4']['definition'] = 'u1'
         fdict = OrderedDict()
-        fdict['filename'] = 'var4.nc'
+        fdict['filename'] = 'var4_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V4'}
         fdict['metavars'] = ['L']
         vdicts['V4']['file'] = fdict
@@ -214,7 +214,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['standard_name'] = 'transposed u1'
         vattribs['units'] = 'km'
         vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_max'] = 200.0
         vdicts['V4']['attributes'] = vattribs
         
         vdicts['V5'] = OrderedDict()
@@ -222,14 +222,14 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V5']['dimensions'] = ('t', 'y')
         vdicts['V5']['definition'] = 'mean(u1, "lon")'
         fdict = OrderedDict()
-        fdict['filename'] = 'var5.nc'
+        fdict['filename'] = 'var5_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V5'}
         vdicts['V5']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'mean of u1 along the lon dimension'
         vattribs['units'] = 'km'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = 5.0
+        vattribs['valid_max'] = 220.0
         vdicts['V5']['attributes'] = vattribs
 
         vdicts['V6'] = OrderedDict()
@@ -237,14 +237,14 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V6']['dimensions'] = ('t', 'y')
         vdicts['V6']['definition'] = 'u2[:,:,0]'
         fdict = OrderedDict()
-        fdict['filename'] = 'var6.nc'
+        fdict['filename'] = 'var6_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V6'}
         vdicts['V6']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u2 at lowest x-level'
         vattribs['units'] = 'km'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = 0.01
+        vattribs['valid_max'] = 0.2
         vdicts['V6']['attributes'] = vattribs
 
         vdicts['V7'] = OrderedDict()
@@ -252,14 +252,14 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V7']['dimensions'] = ('t', 'x', 'y')
         vdicts['V7']['definition'] = 'down(u2)'
         fdict = OrderedDict()
-        fdict['filename'] = 'var7.nc'
+        fdict['filename'] = 'var7_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V7'}
         vdicts['V7']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u2 in upward direction'
         vattribs['units'] = 'm'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = -200.0
+        vattribs['valid_max'] = 0.0
         vattribs['positive'] = 'up'
         vdicts['V7']['attributes'] = vattribs
 
@@ -268,14 +268,14 @@ class DataFlowTests(unittest.TestCase):
         vdicts['V8']['dimensions'] = ('t', 'x', 'y')
         vdicts['V8']['definition'] = 'u3'
         fdict = OrderedDict()
-        fdict['filename'] = 'var8.nc'
+        fdict['filename'] = 'var8_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V8'}
         vdicts['V8']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'u3 in upward direction'
         vattribs['units'] = 'kg'
-        vattribs['valid_min'] = 1.0
-        vattribs['valid_max'] = 20.0
+        vattribs['valid_min'] = -200.0
+        vattribs['valid_max'] = -1.0
         vattribs['positive'] = 'up'
         vdicts['V8']['attributes'] = vattribs
         
@@ -283,8 +283,8 @@ class DataFlowTests(unittest.TestCase):
 
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
 
-        self.outfiles = dict((vname, vdict['file']['filename']) for vname, vdict
-                             in vdicts.iteritems() if 'file' in vdict)
+        self.outfiles = dict((vname, vdict['file']['filename'].replace('{%Y%m%d-%Y%m%d}', '19790101-19790104'))
+                             for vname, vdict in vdicts.iteritems() if 'file' in vdict)
         self.cleanOutputFiles()
 
     def cleanInputFiles(self):

@@ -153,14 +153,15 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, indata, mask=None, name=None, units=None, dimensions=None, positive=''):
-        obj = numpy.ma.asarray(indata).view(cls)
+    def __new__(cls, indata, name=None, units=None, dimensions=None, positive='', **kwds):
+        makwds = {k:kwds[k] for k in ['dtype'] if k in kwds}
+        obj = numpy.ma.asarray(indata, **makwds).view(cls)
         if obj.dtype.char in ('S', 'U'):
             return CharArray(indata, name=name, dimensions=dimensions)
         
         # Add the mask if specified
-        if mask is not None:
-            obj.mask = mask
+        if 'mask' in kwds:
+            obj.mask = kwds['mask']
 
         # Store a name associated with the object
         if name is None:
@@ -465,7 +466,6 @@ class PhysArray(numpy.ma.MaskedArray):
         return other
 
     def __mul__(self, other):
-        print self.data, self.mask, self._optinfo
         result = PhysArray(self)
         other = result._mul_div_init_(other)
         return PhysArray(super(PhysArray, result).__mul__(other), name='({}*{})'.format(result.name, other.name),
@@ -565,34 +565,54 @@ class PhysArray(numpy.ma.MaskedArray):
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
 
-    def mean(self, dimensions=None):
+    def mean(self, dimensions=None, **kwds):
         if dimensions is None:
+            axis = kwds['axis'] if 'axis' in kwds else None
+        elif isinstance(dimensions, (list, tuple)):
+            axis = tuple(i for i in sorted(self.dimensions.index(d) for d in dimensions))
+        else:
+            raise TypeError('Dimensions must be given as a list or tuple')
+        if axis is None:
             dims = self.dimensions
             meanval = self.view(numpy.ma.MaskedArray).mean()
-        else:
-            dims = dimensions
+        elif isinstance(axis, int):
+            dims = (self.dimensions[axis],)
+            meanval = self.view(numpy.ma.MaskedArray).mean(axis=axis)
+        elif isinstance(axis, (list, tuple)):
+            dims = tuple(self.dimensions[i] for i in axis)
             meanval = self.view(numpy.ma.MaskedArray)
-            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
-            for axis in axes:
-                meanval = meanval.mean(axis=axis)
+            for a in axis:
+                meanval = meanval.mean(axis=a)
+        else:
+            raise TypeError('Axis must be given as an integer, list or tuple')
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
         return PhysArray(meanval, name='mean({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
                          positive=self.positive, units=self.units)
 
-    def sum(self, dimensions=None):
+    def sum(self, dimensions=None, **kwds):
         if dimensions is None:
-            dims = self.dimensions
-            meanval = self.view(numpy.ma.MaskedArray).mean()
+            axis = kwds['axis'] if 'axis' in kwds else None
+        elif isinstance(dimensions, (list, tuple)):
+            axis = tuple(i for i in sorted(self.dimensions.index(d) for d in dimensions))
         else:
-            dims = dimensions
-            meanval = self.view(numpy.ma.MaskedArray)
-            axes = tuple(i-n for n,i in enumerate(sorted(self.dimensions.index(d) for d in dims)))
-            for axis in axes:
-                meanval = meanval.mean(axis=axis)
+            raise TypeError('Dimensions must be given as a list or tuple')
+        if axis is None:
+            dims = self.dimensions
+            sumval = self.view(numpy.ma.MaskedArray).sum()
+        elif isinstance(axis, int):
+            dims = (self.dimensions[axis],)
+            sumval = self.view(numpy.ma.MaskedArray).sum(axis=axis)
+        elif isinstance(axis, (list, tuple)):
+            dims = tuple(self.dimensions[i] for i in axis)
+            sumval = self.view(numpy.ma.MaskedArray)
+            for a in axis:
+                sumval = sumval.mean(axis=a)
+        else:
+            raise TypeError('Axis must be given as an integer, list or tuple')
         new_dims = tuple(d for d in self.dimensions if d not in dims)
         dim_str = ','.join(str(d) for d in dims)
-        return PhysArray(meanval, name='sum({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+        return PhysArray(sumval, name='sum({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
                          positive=self.positive, units=self.units)
         
 

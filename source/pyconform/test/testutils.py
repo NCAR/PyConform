@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from re import sub
 from os import linesep
-from numpy import array_str, dtype
+from numpy import dtype
 from netCDF4 import Dataset
 
 #=======================================================================================================================
@@ -47,7 +47,7 @@ def print_ncfile(filename):
             vdat = vobj[:]
             if vobj.dtype == dtype('c'):
                 vdat = vdat.data.view('S{}'.format(vdat.shape[-1])).reshape(vdat.shape[:-1])
-            datastr = array_str(vdat, max_line_width=10000).replace('\n', '\n{}'.format(' ' * len(header)))
+            datastr = str(vdat).replace('\n', '\n{}'.format(' ' * len(header)))
             print '{}{}'.format(header, datastr)
             for vattr in vobj.ncattrs():
                 print '         {}: {}'.format(vattr, vobj.getncattr(vattr))
