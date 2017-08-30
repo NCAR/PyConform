@@ -11,10 +11,11 @@ LICENSE: See the LICENSE.rst file for details
 from os import linesep
 from os.path import exists
 from collections import OrderedDict
-from numpy import dtype, array
+from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
 from warnings import warn
+from pyconform.physarray import PhysArray
 
 
 #===================================================================================================
@@ -73,7 +74,7 @@ class DimensionDesc(object):
     unlimited.
     """
 
-    def __init__(self, name, size=None, unlimited=False):
+    def __init__(self, name, size=None, unlimited=False, stringlen=False):
         """
         Initializer
         
@@ -81,10 +82,12 @@ class DimensionDesc(object):
             name (str): Dimension name
             size (int): Dimension size
             unlimited (bool): Whether the dimension is unlimited or not
+            stringlen (bool): Whether the dimension represents a string length or not
         """
         self._name = name
         self._size = int(size) if size is not None else None
         self._unlimited = bool(unlimited)
+        self._stringlen = bool(stringlen)
 
     @property
     def name(self):
@@ -100,6 +103,11 @@ class DimensionDesc(object):
     def unlimited(self):
         """Boolean indicating whether the dimension is unlimited or not"""
         return self._unlimited
+
+    @property
+    def stringlen(self):
+        """Boolean indicating whether the dimension represents a string length or not"""
+        return self._stringlen
 
     def is_set(self):
         """
@@ -185,19 +193,34 @@ class VariableDesc(object):
     the data is contained in the variable declaration).
     """
 
-    def __init__(self, name, datatype='float32', dimensions=(), definition=None, attributes={}):
+    # Elemental NetCDF datatypes
+    _NTYPES_ = ('byte', 'ubyte', 'char', 'short', 'ushort', 'int', 'uint',
+                'int64', 'uint64', 'float', 'real', 'double')
+    _DTYPES_ = (dtype('b'), dtype('u1'), dtype('S1'), dtype('i2'), dtype('u2'), dtype('i4'), dtype('u4'),
+                dtype('i8'), dtype('u8'), dtype('f4'), dtype('f4'), dtype('f8'))
+
+    def __init__(self, name, datatype='float', dimensions=(), definition=None, attributes={}):
         """
         Initializer
 
         Parameters:
             name (str): Name of the variable
-            datatype (str): Numpy datatype of the variable data
+            datatype (str): NetCDF datatype or NumPy dtype of the variable data
             dimensions (tuple): Tuple of DimensionDesc objects for the variable
             definition: String or data definition of variable
             attributes (dict): Dictionary of variable attributes
         """
         self._name = name
-        self._datatype = str(dtype(datatype))
+        
+        if isinstance(datatype, basestring) and datatype in VariableDesc._NTYPES_:
+            self._ntype = datatype
+            self._dtype = VariableDesc._DTYPES_[VariableDesc._NTYPES_.index(datatype)]
+        elif isinstance(datatype, dtype) and datatype in VariableDesc._DTYPES_:
+            self._ntype = VariableDesc._NTYPES_[VariableDesc._DTYPES_.index(datatype)]
+            self._dtype = datatype
+        else:
+            raise TypeError('Invalid variable datatype {} for variable {}'.format(datatype, name))
+
         self.definition = definition
 
         if not _is_list_of_type_(dimensions, DimensionDesc):
@@ -220,8 +243,13 @@ class VariableDesc(object):
     @property
     def datatype(self):
         """String datatype of the variable"""
-        return self._datatype
-
+        return self._ntype
+    
+    @property
+    def dtype(self):
+        """NumPy dtype of the variable data"""
+        return self._dtype
+    
     @property
     def attributes(self):
         """Variable attributes dictionary"""
@@ -269,7 +297,7 @@ class VariableDesc(object):
 
     def units(self):
         """Retrieve the units attribute, if it exists, otherwise 1"""
-        return self.attributes.get('units', 1)
+        return self.attributes.get('units', 'no unit')
 
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
@@ -507,7 +535,7 @@ class DatasetDesc(object):
 
         for fname, fdesc in self._files.iteritems():
             for vdesc in fdesc.variables.itervalues():
-                vdesc.files[fname] = fdesc
+                vdesc.files[fname] = fdesc     
 
     @property
     def name(self):
@@ -567,23 +595,26 @@ class InputDatasetDesc(DatasetDesc):
                 for aname in ncfile.ncattrs():
                     fattrs[aname] = ncfile.getncattr(aname)
 
-                # Get the file dimensions
-                fdims = OrderedDict()
-                for dname, dobj in ncfile.dimensions.iteritems():
-                    fdims[dname] = DimensionDesc(dname, size=len(dobj), unlimited=dobj.isunlimited())
-
-                # Parse variables
+                # Parse variables and their dimensions
                 fvars = []
+                fdims = OrderedDict()
                 for vname, vobj in ncfile.variables.iteritems():
 
                     vattrs = OrderedDict()
                     for vattr in vobj.ncattrs():
                         vattrs[vattr] = vobj.getncattr(vattr)
 
+                    for dname in vobj.dimensions:
+                        if dname not in fdims:
+                            dobj = ncfile.dimensions[dname]
+                            size = len(dobj)
+                            unlimited = dobj.isunlimited()
+                            slen = True if dname == vobj.dimensions[-1] and vobj.dtype == dtype('S1') else False
+                            fdims[dname] = DimensionDesc(dname, size=size, unlimited=unlimited, stringlen=slen)
+
                     vdims = [fdims[dname] for dname in vobj.dimensions]
 
-                    fvars.append(VariableDesc(vname, datatype='{!s}'.format(vobj.dtype),
-                                              dimensions=vdims, attributes=vattrs))
+                    fvars.append(VariableDesc(vname, datatype=vobj.dtype, dimensions=vdims, attributes=vattrs))
 
                 files.append(FileDesc(fname, format=ffmt, attributes=fattrs, variables=fvars))
 
@@ -621,8 +652,8 @@ class OutputDatasetDesc(DatasetDesc):
             the names of other variables that should be added to the file, in addition to obvious
             metadata variables and the variable containing the 'file' section.
     """
-    _NC_TYPES_ = {3: [dtype(t) for t in ('c', 'i1', 'i2', 'i4', 'f4', 'f8')],
-                  4: [dtype(t) for t in ('c', 'i1', 'u1', 'i2', 'u2', 'i4', 'u4', 'i8', 'u8', 'f4', 'f8')]}
+    _NC_TYPES_ = {3: ['byte', 'char', 'short', 'int', 'float', 'double'],
+                  4: ['byte', 'char', 'short', 'ushort', 'int', 'uint', 'int64', 'uint64', 'float', 'real', 'double']}
     _NC_FORMATS_ = {'NETCDF4': 4, 'NETCDF4_CLASSIC': 3, 'NETCDF3_CLASSIC': 3,
                     'NETCDF3_64BIT_OFFSET': 3, 'NETCDF3_64BIT_DATA': 3, 'NETCDF3_64BIT': 3}
 
@@ -648,24 +679,22 @@ class OutputDatasetDesc(DatasetDesc):
                 vkwds['attributes'] = vdict['attributes']
 
             # Get the datatype of the variable, otherwise defaults to VariableDesc default
-            vkwds['datatype'] = 'float32'
+            vkwds['datatype'] = 'float'
             if 'datatype' in vdict:
                 vkwds['datatype'] = vdict['datatype']
 
-            # Get either the 'definition' or the 'data' of the variables
+            # Get either the 'definition' (string definition or data) of the variables
             def_wrn = ''
             if 'definition' in vdict:
                 vdef = vdict['definition']
                 if isinstance(vdef, basestring):
                     if len(vdef.strip()) > 0:
-                        vkwds['definition'] = vdef
                         vshape = None
                     else:
                         def_wrn = 'Empty definition for output variable {!r} in dataset {!r}.'.format(vname, name)
                 else:
-                    vdat = array(vdef, dtype=vkwds['datatype'])
-                    vshape = vdat.shape
-                    vkwds['definition'] = vdat
+                    vshape = PhysArray(vdef).shape
+                vkwds['definition'] = vdef
             else:
                 def_wrn = 'No definition given for output variable {!r} in dataset {!r}.'.format(vname, name)
             
@@ -675,11 +704,12 @@ class OutputDatasetDesc(DatasetDesc):
 
             # Get the dimensions of the variable (REQUIRED)
             if 'dimensions' in vdict:
+                vdims = vdict['dimensions']
+                sldim = vdims[-1] if vkwds['datatype'] == 'char' else None
                 if vshape is None:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d) for d in vdict['dimensions'])
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, stringlen=(sldim==d)) for d in vdims)
                 else:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d, s) for d, s in
-                                                zip(vdict['dimensions'], vshape))
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, size=s, stringlen=(sldim==d)) for d, s in zip(vdims, vshape))
             else:
                 err_msg = 'Dimensions are required for variable {!r} in dataset {!r}'.format(vname, name)
                 raise ValueError(err_msg)
@@ -722,6 +752,7 @@ class OutputDatasetDesc(DatasetDesc):
             else:
                 metavars.append(vname)
 
+        # Loop through all character type variables and get the 
         # Loop through all found files and create the file descriptors
         filedescs = []
         for fname, fdict in files.iteritems():
@@ -796,12 +827,12 @@ class OutputDatasetDesc(DatasetDesc):
         Check if a given type is valid for the given file format
         
         Parameters:
-            t (str, dtype): The string-type or dtype to check
+            t (str): The string-type to check
             f (str): The file format of the file in whi
         """
         if f in OutputDatasetDesc._NC_FORMATS_:
             NC_VER = OutputDatasetDesc._NC_FORMATS_[f]
         else:
             raise ValueError('Unrecognized NetCDF file format {!r}'.format(f))
-        if dtype(t) not in OutputDatasetDesc._NC_TYPES_[NC_VER]:
+        if t not in OutputDatasetDesc._NC_TYPES_[NC_VER]:
             raise ValueError('Data type {!r} unrecognized in NetCDF file format {!r}'.format(t, f))

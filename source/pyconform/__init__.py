@@ -4,7 +4,7 @@ PyConform
 A package for conforming a NetCDF dataset for publication
 
 :AUTHORS: Sheri Mickelson, Kevin Paul
-:Copyright 2017, University Corporation for Atmospheric Research
+:COPYRIGHT: 2017, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu) or

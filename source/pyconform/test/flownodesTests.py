@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
-from pyconform.physarray import PhysArray, DimensionsError
+from pyconform.physarray import PhysArray, DimensionsError, UnitsError
 from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
 from pyconform.functions import Function, find_operator
 from testutils import print_test_message, print_ncfile
@@ -132,7 +132,7 @@ class ReadNodeTests(unittest.TestCase):
                                        units='K', dimensions=self.dimensions, name='v')}
 
         dimdescs = {d:DimensionDesc(d, s) for d, s in self.shape.iteritems()}
-        vardescs = {vn:VariableDesc(vn, datatype=str(vd.dtype), attributes={'units': str(vd.units)},
+        vardescs = {vn:VariableDesc(vn, datatype=vd.dtype, attributes={'units': str(vd.units)},
                                     dimensions=[dimdescs[dd] for dd in vd.dimensions])
                     for vn, vd in self.vardata.iteritems()}
         self.filedesc = FileDesc(self.filename, variables=vardescs.values())
@@ -408,10 +408,10 @@ class ValidateNodeTests(unittest.TestCase):
 
     def test_units_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
-        indata = {'units': Unit('m')}
+        indata = {'units': 'm'}
         testname = ('OK: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = ValidateNode('validate(x)', N0, **indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -513,10 +513,10 @@ class ValidateNodeTests(unittest.TestCase):
 
     def test_units_convert(self):
         N0 = DataNode(PhysArray(numpy.arange(10.0), name='x', units='m', dimensions=('x',)))
-        indata = {'units': Unit('km')}
+        indata = {'units': 'km'}
         testname = ('CONVERT: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
-        N1 = ValidateNode('validate(x)', N0, **indata)
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = (Unit('m').convert(N0[:], Unit('km'))).astype(numpy.float64)
         expected.name = 'convert(x, from=m, to=km)'
@@ -537,8 +537,8 @@ class ValidateNodeTests(unittest.TestCase):
         expected = indata['dimensions']
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
-    def test_time_units_warn(self):
+
+    def test_time_units_convert(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
                                 dimensions=('x',)))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
@@ -546,25 +546,34 @@ class ValidateNodeTests(unittest.TestCase):
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
-        expected = N0[:]
+        expected = N0[:].convert(Unit('hours since 2000-01-01 00:00:00'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
-    def test_time_units_warn_calendar(self):
-        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
-                                dimensions=('x',)))
-        indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
+    def test_time_units_convert_nocal(self):
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', dimensions=('x',), 
+                                units=Unit('days since 2000-01-01 00:00:00', calendar='noleap')))
+        indata = {'units': 'hours since 2000-01-01 00:00:00'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
-        expected = N0[:]
+        expected = N0[:].convert(Unit('hours since 2000-01-01 00:00:00', calendar='noleap'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        
+    def test_time_units_error_calendar(self):
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
+        indata = {'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'}
+        testname = ('WARN: ValidateNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
+        print_test_message(testname, indata=indata, expected=UnitsError)
+        self.assertRaises(UnitsError, N1.__getitem__, slice(None))
 
     def test_dimensions_error(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -660,7 +669,7 @@ class WriteNodeTests(unittest.TestCase):
 
         dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues()
                     for n, s in zip(x.dimensions, x.shape)}
-        vardescs = {n:VariableDesc(n, datatype=str(self.data[n].dtype), attributes=self.atts[n],
+        vardescs = {n:VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
                                    dimensions=[dimdescs[d] for d in self.data[n].dimensions])
                     for n in self.data}
         self.vardescs = vardescs

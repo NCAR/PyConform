@@ -8,10 +8,11 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.indexing import index_str, join, align_index, index_tuple
-from pyconform.physarray import PhysArray
+from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
-from cf_units import Unit
+from cf_units import Unit, num2date
+from datetime import datetime
 from os.path import exists, dirname
 from os import makedirs
 from netCDF4 import Dataset
@@ -27,11 +28,59 @@ import numpy
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
+
 #===================================================================================================
 # UnitsWarning
 #===================================================================================================
 class UnitsWarning(Warning):
     """Warning for units errors"""
+
+
+#=======================================================================================================================
+# iter_dfs - Depth-First Search Iterator
+#=======================================================================================================================
+def iter_dfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Depth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop()
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
+
+#=======================================================================================================================
+# iter_bfs - Breadth-First Search Iterator
+#=======================================================================================================================
+def iter_bfs(node):
+    """
+    Iterate through graph of FlowNodes from a starting node using a Breadth-First Search
+    
+    Parameters:
+        node (FlowNode): the starting node from where to begin iterating
+    """
+    if not isinstance(node, FlowNode):
+        raise TypeError('Can only iterate over FlowNodes')
+    
+    visited = set()
+    tosearch = [node]
+    while tosearch:
+        nd = tosearch.pop(0)
+        visited.add(nd)
+        if isinstance(nd, FlowNode):
+            tosearch.extend(i for i in nd.inputs if i not in visited)
+        yield nd
+
 
 #===================================================================================================
 # FlowNode
@@ -143,8 +192,7 @@ class ReadNode(FlowNode):
         # Check that the variable exists in the file
         with Dataset(self._filepath, 'r') as ncfile:
             if variable.name not in ncfile.variables:
-                raise OSError('Variable {!r} not found in NetCDF file: '
-                              '{!r}'.format(variable.name, self._filepath))
+                raise OSError('Variable {!r} not found in NetCDF file: {!r}'.format(variable.name, self._filepath))
         self._variable = variable.name
 
         # Check if the index means "all"
@@ -212,7 +260,7 @@ class ReadNode(FlowNode):
             index12 = join(shape0, index1, index2)
 
             # Retrieve the data from file, unpacking if necessary
-            if 'scale_factor' in attrs or 'add_offset' in attrs:
+            if 'scale_factor' in attrs or 'add_offset' in attrs and not ncvar.scale:
                 scale_factor = attrs.get('scale_factor', 1)
                 add_offset = attrs.get('add_offset', 0)
                 data = scale_factor * ncvar[index12] + add_offset
@@ -385,14 +433,13 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, units=None, dimensions=None, dtype=None, attributes={}):
+    def __init__(self, label, dnode, dimensions=None, dtype=None, attributes={}):
         """
         Initializer
         
         Parameters:
             label: The label associated with this FlowNode
             dnode (FlowNode): FlowNode that provides input into this FlowNode
-            units (Unit): CF units to validate against
             dimensions (tuple): The output dimensions to validate against
             dtype (dtype): The NumPy dtype of the data to return
             attributes (dict): Attributes to associate with the new variable
@@ -414,11 +461,6 @@ class ValidateNode(FlowNode):
                 self._dimensions = tuple(dimensions)
             else:
                 raise TypeError('Dimensions must be a list or tuple')
-
-        # Check for units
-        if units is not None and not isinstance(units, Unit):
-            raise TypeError('Units must be a Unit object')
-        self._units = units
 
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
@@ -462,11 +504,20 @@ class ValidateNode(FlowNode):
                             '{!r}').format(indata.dtype, odtype, self.label)
 
         # Check that units match as expected
-        if self._units is not None and self._units != indata.units:
-            if index is None:
-                indata.units = self._units
-            else:
-                indata = indata.convert(self._units)
+        if 'units' in self.attributes:
+            if indata.units.is_time_reference():
+                if 'calendar' not in self.attributes:
+                    self.attributes['calendar'] = indata.units.calendar
+            ounits = Unit(self.attributes['units'], calendar=self.attributes.get('calendar', None))
+            if ounits != indata.units:
+                if index is None:
+                    indata.units = ounits
+                else:
+                    try:
+                        indata = indata.convert(ounits)
+                    except Exception as err:
+                        err_msg = 'When validating output variable {}: {}'.format(self.label, err)
+                        raise err.__class__(err_msg)
 
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
@@ -573,6 +624,11 @@ class WriteNode(FlowNode):
                 raise ValueError(('WriteNode {!r} takes input from variable {!r} that is not '
                                   'contained in the descibed file').format(filedesc.name, inp.label))
 
+        # Construct the proper filename
+        fname = self._autoparse_filename_(self.label)
+        self._label = fname
+        self._filedesc._name = fname
+        
         # Set the filehandle
         self._file = None
 
@@ -582,6 +638,51 @@ class WriteNode(FlowNode):
         # Initialize set of unwritten attributes
         self._unwritten_attributes = {'_FillValue', 'direction', 'history'}
     
+    def _autoparse_filename_(self, fname):
+        """
+        Determine if autoparsing the filename needs to be done
+        
+        Parameters:
+            fname (str): The original name of the file
+            
+        Returns:
+            str: The new name for the file
+        """
+        
+        if '{' in fname:
+            
+            possible_tvars = []
+            for var in self._filedesc.variables:
+                vobj = self._filedesc.variables[var]
+                if vobj.cfunits().is_time_reference() and len(vobj.dimensions) == 1:
+                    possible_tvars.append(var)
+            if len(possible_tvars) == 0:
+                raise ValueError('Could not find time variable in file {!r}'.format(fname))
+            tvar = 'time' if 'time' in possible_tvars else possible_tvars[0]
+
+            tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
+            if len(tnodes) == 0:
+                raise ValueError('Time variable input missing in file {!r}'.format(fname))
+            tnode = tnodes[0]
+            t1 = tnode[0:1]
+            t2 = tnode[-1:]
+
+            while '{' in fname:
+                beg = fname.find('{')
+                end = fname.find('}', beg)
+                if end == -1:
+                    raise ValueError('Filename {!r} has unbalanced special characters'.format(fname))
+                prefix = fname[:beg]
+                fmtstr1, fmtstr2 = fname[beg+1:end].split('-')
+                suffix = fname[end+1:]
+
+                datestr1 = num2date(t1.data[0], str(t1.units), t1.units.calendar).strftime(fmtstr1).replace(' ', '0')
+                datestr2 = num2date(t2.data[0], str(t2.units), t2.units.calendar).strftime(fmtstr2).replace(' ', '0')
+                
+                fname = '{}{}-{}{}'.format(prefix, datestr1, datestr2, suffix)
+            
+        return fname  
+              
     def enable_history(self):
         """
         Enable writing of the history attribute to the file
@@ -609,7 +710,7 @@ class WriteNode(FlowNode):
                     makedirs(fdir)
                 except:
                     raise IOError('Failed to create directory for output file {!r}'.format(fname))
-
+                
             # Try to open the output file for writing
             try:
                 self._file = Dataset(fname, 'w', format=self._filedesc.format)
@@ -617,6 +718,7 @@ class WriteNode(FlowNode):
                 raise IOError('Failed to open output file {!r}'.format(fname))
 
             # Write the global attributes
+            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             self._file.setncatts(self._filedesc.attributes)
 
             # Scan over variables for coordinates and dimension information
@@ -663,7 +765,7 @@ class WriteNode(FlowNode):
                 vdesc = self._filedesc.variables[vname]
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
-                vdtype = numpy.dtype(vdesc.datatype)
+                vdtype = vdesc.dtype
                 fillval = vattrs.get('_FillValue', None)
                 vdims = vdesc.dimensions.keys()
                 if deflate is None:
@@ -770,8 +872,13 @@ class WriteNode(FlowNode):
         # Create data structure to keep track of which variable chunks we have written
         vchunks = {vnode.label:set() for vnode in self.inputs}
         
-        # Compute the Global Dimension Sizes dictionary
-        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in self._filedesc.dimensions)
+        # Compute the Global Dimension Sizes dictionary from the input variable nodes
+        inputdims = []
+        for vnode in self.inputs:
+            for d in self._filedesc.variables[vnode.label].dimensions:
+                if d not in inputdims:
+                    inputdims.append(d)
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in inputdims)
         
         # Iterate over the global dimension space
         for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):
@@ -790,7 +897,10 @@ class WriteNode(FlowNode):
                 
                 # Write the data to the variable, if it hasn't already been written
                 if repr(wchunk) not in vchunks[vname]:
-                    ncvar[wchunk] = vnode[rchunk]
+                    vdata = vnode[rchunk]
+                    if isinstance(vdata, CharArray):
+                        vdata = vdata.stretch(ncvar.shape[-1])
+                    ncvar[wchunk] = vdata
                     vchunks[vname].add(repr(wchunk))
 
         # Close the file after completion

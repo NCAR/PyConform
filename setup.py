@@ -12,7 +12,7 @@ exec(open('source/pyconform/version.py').read())
 
 setup(name='PyConform',
       version=__version__,
-      description='Parallel Python NetCDF ',
+      description='Parallel Python NetCDF Dataset Standardization Tool',
       author='Kevin Paul',
       author_email='kpaul@ucar.edu',
       url='https://github.com/NCAR/PyConform',
@@ -21,6 +21,6 @@ setup(name='PyConform',
       packages=['pyconform'],
       package_dir={'pyconform': 'source/pyconform'},
       package_data={'pyconform': ['LICENSE.rst']},
-      scripts=['scripts/iconform', 'scripts/xconform'],
-      install_requires=['asaptools', 'netCDF4']
+      scripts=['scripts/iconform', 'scripts/xconform', 'scripts/vardeps'],
+      install_requires=['asaptools', 'netCDF4', 'pyparsing']
       )

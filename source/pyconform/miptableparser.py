@@ -391,7 +391,7 @@ class ParseXML(object):
                 table_info = {}
                 data = {}
 
-                table_info['experiment'] = exp
+                table_info['experiment'] = dq.inx.uid[e_id[0]].title
                 table_info['experiment_id'] = exp
                 table_info['data_specs_version'] = dreq.version
                 table_info['activity_id'] = activity_id
@@ -418,7 +418,7 @@ class ParseXML(object):
                     if hasattr(c_var,'mipTable'):
                         var['mipTable']=c_var.mipTable
                         if c_var.mipTable in tables or '--ALL--' in tables: 
-
+                            var["_FillValue"] = "9.96921e+36"
                             if hasattr(c_var,'deflate'):
                                 var['deflate']= c_var.deflate
                             if hasattr(c_var,'deflate_level'):
@@ -475,7 +475,7 @@ class ParseXML(object):
 	                        if hasattr(s_var,'cell_methods'):
                                     var['cell_methods']= s_var.cell_methods
                                 if hasattr(s_var,'coords'):
-                                    if len(s_var.coords)>0:
+                                    #if len(s_var.coords)>0:
                                         if isinstance(s_var.cids,list) :
                                             var['coordinate'] = dq.inx.uid[s_var.cids[0]].label
                                             c = dq.inx.uid[s_var.cids[0]]
@@ -489,7 +489,7 @@ class ParseXML(object):
                                     t = t_var.dimensions
                                     if t != '' and t != 'None':
                                         var['time'] = t
-                                        var['coordinates'] = t+'|'
+                                        var['coordinates'] = t
                                 if hasattr(t_var,'label'):
                                     var['time_label'] = t_var.label
                                 if hasattr(t_var,'title'):
@@ -499,15 +499,20 @@ class ParseXML(object):
                             if hasattr(s_var, 'spid'):
 	                        sp_var = dq.inx.uid[s_var.spid]
 	                        if hasattr(sp_var,'dimensions'):
-                                    if 'coordinates' in var.keys():
-                                        var['coordinates'] = var['coordinates']+sp_var.dimensions
-                                    else:
-                                        var['coordinates'] = sp_var.dimensions
-                                    dims = var['coordinates'].split('|')
-                                    for d in dims:
-                                        if d not in axes_list and d != '' and d != 'None':
-                                            if 'copy' not in var['id'] and '?' not in d:
-                                                axes_list.append(d)
+                                    if len(sp_var.dimensions) > 1:
+                                        if 'coordinates' in var.keys():
+                                            sp_var_d = sp_var.dimensions
+                                            if len(sp_var_d) > 1:
+                                                if sp_var_d[-1] == '|':
+                                                    sp_var_d = sp_var_d[:-1]
+                                            var['coordinates'] = sp_var_d + '|' + var['coordinates']
+                                        else:
+                                            var['coordinates'] = sp_var.dimensions
+                                        dims = var['coordinates'].split('|')
+                                        for d in dims:
+                                            if d not in axes_list and d != '' and d != 'None':
+                                                if 'copy' not in var['id'] and '?' not in d:
+                                                    axes_list.append(d)
                             if 'coordinates' in var.keys(): 
                                 if len(var['coordinates']) > 1:
                                     if var['coordinates'][-1] == '|':
@@ -522,7 +527,8 @@ class ParseXML(object):
                                     var['long_name']= v_var.sn
 	                        if hasattr(v_var,'units'):
                                     if v_var.units == "":
-                                        var['units']= '1'
+                                        var['units']= 'None'
+                                        print c_var.label, " does not have units" 
                                     else:
                                         var['units']= v_var.units
 
@@ -552,7 +558,10 @@ class ParseXML(object):
                             if isinstance(v.valid_min, (int, long, float, complex)):
                                 ax['valid_min'] = v.valid_min
                         if hasattr(v,'standardName'):
-                            ax['standard_name'] = v.standardName
+                            if isinstance(v.standardName, (str)):
+                                ax['standard_name'] = v.standardName
+                            else:
+                                ax['standard_name'] = a
                         if hasattr(v,'type'):
                             ax['type'] = v.type
                         if hasattr(v,'id'):
@@ -564,11 +573,12 @@ class ParseXML(object):
                         if hasattr(v,'title'):
                             ax['title'] = v.title
                         if hasattr(v,'bounds'):
-                            ax['bounds'] = v.bounds
+                            if 'yes' in v.bounds:
+                                ax['bounds'] = v.label+"_bnds"
                         if hasattr(v,'requested'):
                             ax['requested'] = v.requested
-                        if hasattr(v,'boundsValues'):
-                            ax['boundsValues'] = v.boundsValues
+                        #if hasattr(v,'boundsValues'):
+                        #    ax['boundsValues'] = v.boundsValues
                         if hasattr(v,'coords'):
                             ax['coords'] = v.coords
                         axes[a] = ax

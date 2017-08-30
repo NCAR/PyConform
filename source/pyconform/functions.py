@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
-from numpy import sqrt, mean, where
+from numpy.ma import sqrt, where
 from cf_units import Unit
 
 #=======================================================================================================================
@@ -281,7 +281,7 @@ class SquareRootFunction(Function):
         data_r = self.arguments[0]
         data = data_r if is_constant(data_r) else data_r[index]
         if isinstance(data, PhysArray):
-            return PhysArray(sqrt(data.data), units=self._units, name='sqrt({})'.format(data.name),
+            return PhysArray(sqrt(data), units=self._units, name='sqrt({})'.format(data.name),
                              dimensions=data.dimensions, positive=data.positive)
         else:
             return sqrt(data)
@@ -306,12 +306,7 @@ class MeanFunction(Function):
         data = self.arguments[0][index]
         dimensions = self.arguments[1:]
         indims = [d for d in dimensions if d in data.dimensions]
-        axes = tuple(data.dimensions.index(d) for d in indims)
-        new_dims = tuple(d for d in data.dimensions if d not in indims)
-        dim_str = ','.join(str(d) for d in indims)
-        return PhysArray(mean(data.data, axis=axes),
-                         units=data.units, dimensions=new_dims, positive=data.positive,
-                         name='mean({}, dims=[{}])'.format(data.name, dim_str))
+        return data.mean(dimensions=indims)
 
 
 #===================================================================================================
@@ -350,17 +345,52 @@ class PositiveDownFunction(Function):
 class ChangeUnitsFunction(Function):
     key = 'chunits'
 
-    def __init__(self, data, units=1):
-        super(ChangeUnitsFunction, self).__init__(data, units=units)
+    def __init__(self, data, units=None, refdate=None, calendar=None):
+        super(ChangeUnitsFunction, self).__init__(data, units=units, refdate=refdate, calendar=calendar)
     
+        dunits = Unit(1) if is_constant(data) else data[None].units
+        dcal = dunits.calendar
+        if dunits.is_time_reference():
+            dunit, dref = [s.strip() for s in dunits.origin.split('since')]
+        else:
+            dunit = dunits.origin
+            dref = None
+        
+        uobj = Unit(units) if is_constant(units) else units[None].units
+        ucal = uobj.calendar
+        if uobj.is_time_reference():
+            uunit, uref = [s.strip() for s in uobj.origin.split('since')]
+        else:
+            uunit = uobj.origin
+            uref = None
+        
+        unit = dunit if units is None else uunit
+        
+        if isinstance(refdate, basestring):
+            ref = refdate
+        elif refdate is None:
+            ref = dref if uref is None else uref
+        else:
+            raise ValueError('chunits: Reference date must be a string, if given')
+
+        if isinstance(calendar, basestring):
+            cal = calendar
+        elif calendar is None:
+            cal = dcal if ucal is None else ucal
+        else:
+            raise ValueError('chunits: Calendar must be a string, if given')
+        
+        if ref is None:
+            self._newunits = Unit(unit, calendar=cal)
+        else:
+            self._newunits = Unit('{} since {}'.format(unit, ref), calendar=cal)
+        
     def __getitem__(self, index):
         data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
-        units = self.keywords['units'] if is_constant(self.keywords['units']) else self.keywords['units'][index]
-        uobj = units.units if isinstance(units, PhysArray) else Unit(units)
-        cal_str = '' if uobj.calendar is None else '|{}'.format(uobj.calendar)
-        unit_str = '{}{}'.format(uobj, cal_str)
+        cal_str = '' if self._newunits.calendar is None else '|{}'.format(self._newunits.calendar)
+        unit_str = '{}{}'.format(self._newunits, cal_str)
         new_name = 'chunits({}, units={})'.format(data.name, unit_str)
-        return PhysArray(data, name=new_name, units=uobj)
+        return PhysArray(data, name=new_name, units=self._newunits)
 
 
 #===================================================================================================

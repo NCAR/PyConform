@@ -32,4 +32,8 @@ VERSION 0.2.1
  - Automatic interpretation of "direction" attribute in coordinate variables
  - Simplified PhysArray API
  - More powerful Dataset Descriptors
+
+VERSION 0.2.2
+-------------
+ - New user-defined function API
  

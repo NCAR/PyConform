@@ -84,6 +84,7 @@ def main(argv=None):
     # Read the definitions from the file
     vardefs = {}
     varfreqs = {}
+    varrealm = {}
     if args.deffile:
         with open(args.filename) as f:
             for line in f:
@@ -102,6 +103,8 @@ def main(argv=None):
                 vardefs[var] = stddict[var]['definition']
             if 'attributes' in stddict[var] and 'frequency' in stddict[var]['attributes']:
                 varfreqs[var] = stddict[var]['attributes']['frequency']
+            if 'attributes' in stddict[var] and 'realm' in stddict[var]['attributes']:
+                varrealm[var] = stddict[var]['attributes']['realm']
 
     # Determine list of output variables to search for
     if len(args.variables) == 0:
@@ -117,11 +120,11 @@ def main(argv=None):
             try:
                 vdeps = variable_search(parsing.parse_definition(vardefs[var]))
                 alldeps.update(vdeps)
-                fheader = ' [{}]'.format(varfreqs[var]) if var in varfreqs else ''
+                fheader = ' [{},{}]'.format(varfreqs[var], varrealm[var]) if var in varfreqs else ''
                 vheader = '   {}{}:'.format(var, fheader)
                 print_columnar(sorted(vdeps), header=vheader)
             except:
-                print '   {}: No dependencies.'
+                print '   {}: No dependencies.'.format(var)
         else:
             print '   {}: Not defined.'.format(var)
 

@@ -54,6 +54,41 @@ def getmask(obj):
 
 
 #=======================================================================================================================
+# getdtype
+#=======================================================================================================================
+def getdtype(obj):
+    """
+    Get the dtype associated with an object
+    """
+    return numpy.asarray(obj).dtype
+
+
+#=======================================================================================================================
+# ischartype
+#=======================================================================================================================
+def ischartype(obj):
+    """
+    Return whether the object is a string/character type
+    """
+    return getdtype(obj).char in ('S', 'U')
+
+
+#=======================================================================================================================
+# getshape
+#=======================================================================================================================
+def getshape(obj):
+    """
+    Get the shape associated with an object
+    """
+    if isinstance(obj, PhysArray):
+        return obj.shape
+    elif ischartype(obj):
+        return CharArray._chararray_(obj).shape
+    else:
+        return numpy.shape(obj)
+
+
+#=======================================================================================================================
 # getname
 #=======================================================================================================================
 def getname(obj):
@@ -75,6 +110,8 @@ def getunits(obj):
     """
     if isinstance(obj, PhysArray):
         return obj.units
+    elif ischartype(obj):
+        return Unit('no unit')
     else:
         return Unit(1)
 
@@ -89,7 +126,7 @@ def getdimensions(obj):
     if isinstance(obj, PhysArray):
         return obj.dimensions
     else:
-        return tuple(reversed(range(len(numpy.shape(obj)))))
+        return tuple(reversed(range(len(getshape(obj)))))
 
 
 #=======================================================================================================================
@@ -116,12 +153,15 @@ class PhysArray(numpy.ma.MaskedArray):
     along the edges of a Data Flow graph.
     """
 
-    def __new__(cls, indata, mask=None, name=None, units=None, dimensions=None, positive=''):
-        obj = numpy.ma.asarray(indata).view(cls)
+    def __new__(cls, indata, name=None, units=None, dimensions=None, positive='', **kwds):
+        makwds = {k:kwds[k] for k in ['dtype'] if k in kwds}
+        obj = numpy.ma.asarray(indata, **makwds).view(cls)
+        if obj.dtype.char in ('S', 'U'):
+            return CharArray(indata, name=name, dimensions=dimensions)
         
         # Add the mask if specified
-        if mask is not None:
-            obj.mask = mask
+        if 'mask' in kwds:
+            obj.mask = kwds['mask']
 
         # Store a name associated with the object
         if name is None:
@@ -133,7 +173,7 @@ class PhysArray(numpy.ma.MaskedArray):
         if units is None:
             obj.units = getunits(indata)
         else:
-            obj.units = Unit(units)
+            obj.units = units
 
         # Store dimension names associated with each axis
         if dimensions is None:
@@ -175,17 +215,17 @@ class PhysArray(numpy.ma.MaskedArray):
         return self._optinfo['units']
 
     @units.setter
-    def units(self, units):
+    def units(self, u):
         """Units of the data"""
-        self._optinfo['units'] = Unit(units)
+        self._optinfo['units'] = u if isinstance(u, Unit) else Unit(u)
     
     @staticmethod
     def _safe_convert_(obj, units1, units2):
         # Because netcdftime datetime conversion always returns an NDArray, even if the
         # original object is a subclass of NDArray, we have to wrap the convert function
         # to safely preserve the object type...  sigh.
-        u1 = Unit(units1)
-        u2 = Unit(units2)
+        u1 = units1 if isinstance(units1, Unit) else Unit(units1)
+        u2 = units2 if isinstance(units2, Unit) else Unit(units2)
         if isinstance(obj, PhysArray):
             new_array = numpy.ma.MaskedArray(units1.convert(obj.data, units2), mask=obj.mask, dtype=obj.dtype)
             u1_str = '{}'.format(u1) + ('|{}'.format(u1.calendar) if u1.calendar else '')
@@ -204,7 +244,7 @@ class PhysArray(numpy.ma.MaskedArray):
         Parameters:
             units (Unit): The new units to which to convert the PhysArray
         """
-        uunit = Unit(units)
+        uunit = units if isinstance(units, Unit) else Unit(units)
         if self.units == uunit:
             return self
         elif self.units.is_convertible(uunit):
@@ -215,15 +255,15 @@ class PhysArray(numpy.ma.MaskedArray):
     @property
     def dimensions(self):
         """Named dimensions of the data"""
-        return self._optinfo['dimensions']
+        return self._optinfo['dimensions']            
 
     @dimensions.setter
     def dimensions(self, dims):
         """Named dimensions of the data"""
         if not isinstance(dims, (list, tuple)):
-            raise TypeError('Dimensions must be a tuple')
+            raise TypeError('Dimensions must be a tuple, not {}'.format(type(dims)))
         if len(dims) != len(self.shape):
-            raise ValueError('Dimensions must have same length as shape')
+            raise ValueError('Dimensions {} must have same length as shape {}'.format(dims, self.shape))
         self._optinfo['dimensions'] = tuple(dims)
     
     def transpose(self, *dims):
@@ -444,7 +484,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def invert(self):
         """Return a new PhysArray with the value of the array inverted (1/value)"""
-        return PhysArray(1.0 / self.data, dimensions=self.dimensions, units=self.units.invert(),
+        return PhysArray(1.0 / self, dimensions=self.dimensions, units=self.units.invert(),
                          name='(1/{!s})'.format(self), positive=self.positive)
 
     def __div__(self, other):
@@ -524,3 +564,163 @@ class PhysArray(numpy.ma.MaskedArray):
         self.units **= other
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
+
+    def mean(self, dimensions=None, **kwds):
+        if dimensions is None:
+            axis = kwds['axis'] if 'axis' in kwds else None
+        elif isinstance(dimensions, (list, tuple)):
+            axis = tuple(i for i in sorted(self.dimensions.index(d) for d in dimensions))
+        else:
+            raise TypeError('Dimensions must be given as a list or tuple')
+        if axis is None:
+            dims = self.dimensions
+            meanval = self.view(numpy.ma.MaskedArray).mean()
+        elif isinstance(axis, int):
+            dims = (self.dimensions[axis],)
+            meanval = self.view(numpy.ma.MaskedArray).mean(axis=axis)
+        elif isinstance(axis, (list, tuple)):
+            dims = tuple(self.dimensions[i] for i in axis)
+            meanval = self.view(numpy.ma.MaskedArray)
+            for a in axis:
+                meanval = meanval.mean(axis=a)
+        else:
+            raise TypeError('Axis must be given as an integer, list or tuple')
+        new_dims = tuple(d for d in self.dimensions if d not in dims)
+        dim_str = ','.join(str(d) for d in dims)
+        return PhysArray(meanval, name='mean({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+                         positive=self.positive, units=self.units)
+
+    def sum(self, dimensions=None, **kwds):
+        if dimensions is None:
+            axis = kwds['axis'] if 'axis' in kwds else None
+        elif isinstance(dimensions, (list, tuple)):
+            axis = tuple(i for i in sorted(self.dimensions.index(d) for d in dimensions))
+        else:
+            raise TypeError('Dimensions must be given as a list or tuple')
+        if axis is None:
+            dims = self.dimensions
+            sumval = self.view(numpy.ma.MaskedArray).sum()
+        elif isinstance(axis, int):
+            dims = (self.dimensions[axis],)
+            sumval = self.view(numpy.ma.MaskedArray).sum(axis=axis)
+        elif isinstance(axis, (list, tuple)):
+            dims = tuple(self.dimensions[i] for i in axis)
+            sumval = self.view(numpy.ma.MaskedArray)
+            for a in axis:
+                sumval = sumval.mean(axis=a)
+        else:
+            raise TypeError('Axis must be given as an integer, list or tuple')
+        new_dims = tuple(d for d in self.dimensions if d not in dims)
+        dim_str = ','.join(str(d) for d in dims)
+        return PhysArray(sumval, name='sum({}, dims=[{}])'.format(self.name, dim_str), dimensions=new_dims,
+                         positive=self.positive, units=self.units)
+        
+
+#=======================================================================================================================
+# CharArray
+#=======================================================================================================================
+class CharArray(PhysArray):
+    """
+    Special kind of PhysArray to deal with string arrays
+    """
+
+    def __new__(cls, indata, name=None, dimensions=None):
+        obj = numpy.ma.asarray(indata, dtype='S')
+        if len(obj.shape) == 0:
+            obj = obj.reshape(1).view('S1')
+        else:
+            strlen = obj.dtype.itemsize
+            shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
+            obj = obj.view('S1').reshape(shape)
+        obj = numpy.ma.masked_where(obj == '', obj).view(cls)
+        obj.fill_value = ''
+        
+        # Store a name associated with the object
+        if name is None:
+            obj.name = getname(indata)
+        else:
+            obj.name = name
+
+        # Store units of the data
+        obj.units = Unit('no unit')
+
+        # Store dimension names associated with each axis
+        if dimensions is None:
+            obj.dimensions = getdimensions(indata)
+        else:
+            obj.dimensions = dimensions
+
+        # Set the positive direction for the data
+        obj.positive = None
+
+        return obj
+
+    @staticmethod
+    def _chararray_(indata):
+        obj = CharArray._strarray_(indata)
+        if len(obj.shape) == 0:
+            obj = obj.reshape(1).view('S1')
+        else:
+            strlen = obj.dtype.itemsize
+            shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
+            obj = obj.view('S1').reshape(shape)
+        return obj
+
+    @staticmethod
+    def _strarray_(indata):
+        return numpy.asarray(indata, dtype='S')
+    
+    def __repr__(self):
+        if self.shape[-1] > 0:
+            prndat = self.data.view('S{}'.format(self.shape[-1])).reshape(self.shape[:-1])
+        else:
+            prndat = self.data
+        datstr = str(prndat).replace(linesep, ' ')
+        return ('{!s}(data={!s}, name={!r}, dimensions='
+                '{!s})').format(self.__class__.__name__, datstr, self.name, self.dimensions)
+    @property
+    def units(self):
+        """Units of the data"""
+        return self._optinfo['units']
+        
+    @units.setter
+    def units(self, units):
+        new_units = units if isinstance(units, Unit) else Unit(units)
+        if not new_units.is_no_unit():
+            raise UnitsError('CharArrays cannot have units.')
+        self._optinfo['units'] = new_units
+
+    @property
+    def positive(self):
+        """Positive direction (up or down) for the data"""
+        return self._optinfo['positive']
+
+    @positive.setter
+    def positive(self, pos):
+        if pos is not None:
+            raise ValueError('CharArrays cannot be assigned a positive attribute')
+        self._optinfo['positive'] = pos
+
+    def convert(self, units):
+        try:
+            new_self = PhysArray.convert(self, units)
+        except UnitsError:
+            raise UnitsError('CharArrays do not have units and cannot be converted to units {}'.format(units))
+        return new_self
+
+    def transpose(self, *dims):
+        if set(dims) == set(self.dimensions) and dims[-1] != self.dimensions[-1]:
+            raise DimensionsError('The last dimension of a CharArray must always be the string length. '
+                                  'Cannot transpose.')
+        return PhysArray.transpose(self, *dims)
+
+    def invert(self):
+        raise NotImplementedError('CharArrays cannot be inverted')
+
+    def stretch(self, newlen):
+        if newlen > self.shape[-1]:
+            pad = numpy.zeros((self.shape[:-1] + (newlen-self.shape[-1],)), dtype='S')
+            pad = numpy.ma.masked_where(pad == '', pad)
+            return CharArray(numpy.ma.concatenate((self, pad), axis=-1), name=self.name, dimensions=self.dimensions)
+        else:
+            return self
