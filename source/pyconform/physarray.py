@@ -466,7 +466,6 @@ class PhysArray(numpy.ma.MaskedArray):
         return other
 
     def __mul__(self, other):
-        print self.data, self.mask, self._optinfo
         result = PhysArray(self)
         other = result._mul_div_init_(other)
         return PhysArray(super(PhysArray, result).__mul__(other), name='({}*{})'.format(result.name, other.name),

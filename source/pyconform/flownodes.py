@@ -624,6 +624,9 @@ class WriteNode(FlowNode):
                 raise ValueError(('WriteNode {!r} takes input from variable {!r} that is not '
                                   'contained in the descibed file').format(filedesc.name, inp.label))
 
+        # Construct the proper filename
+        self._label = self._autoparse_filename_(self.label)
+        
         # Set the filehandle
         self._file = None
 
@@ -633,6 +636,51 @@ class WriteNode(FlowNode):
         # Initialize set of unwritten attributes
         self._unwritten_attributes = {'_FillValue', 'direction', 'history'}
     
+    def _autoparse_filename_(self, fname):
+        """
+        Determine if autoparsing the filename needs to be done
+        
+        Parameters:
+            fname (str): The original name of the file
+            
+        Returns:
+            str: The new name for the file
+        """
+        
+        if '{' in fname:
+            
+            possible_tvars = []
+            for var in self._filedesc.variables:
+                vobj = self._filedesc.variables[var]
+                if vobj.cfunits().is_time_reference() and len(vobj.dimensions) == 1:
+                    possible_tvars.append(var)
+            if len(possible_tvars) == 0:
+                raise ValueError('Could not find time variable in file {!r}'.format(fname))
+            tvar = 'time' if 'time' in possible_tvars else possible_tvars[0]
+
+            tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
+            if len(tnodes) == 0:
+                raise ValueError('Time variable input missing in file {!r}'.format(fname))
+            tnode = tnodes[0]
+            t1 = tnode[0:1]
+            t2 = tnode[-1:]
+
+            while '{' in fname:
+                beg = fname.find('{')
+                end = fname.find('}', beg)
+                if end == -1:
+                    raise ValueError('Filename {!r} has unbalanced special characters'.format(fname))
+                prefix = fname[:beg]
+                fmtstr1, fmtstr2 = fname[beg+1:end].split('-')
+                suffix = fname[end+1:]
+
+                datestr1 = num2date(t1.data[0], str(t1.units), t1.units.calendar).strftime(fmtstr1).replace(' ', '0')
+                datestr2 = num2date(t2.data[0], str(t2.units), t2.units.calendar).strftime(fmtstr2).replace(' ', '0')
+                
+                fname = '{}{}-{}{}'.format(prefix, datestr1, datestr2, suffix)
+            
+        return fname  
+              
     def enable_history(self):
         """
         Enable writing of the history attribute to the file
@@ -660,42 +708,6 @@ class WriteNode(FlowNode):
                     makedirs(fdir)
                 except:
                     raise IOError('Failed to create directory for output file {!r}'.format(fname))
-
-            # Determine if autoparsing the filename needs to be done
-            if '{' in fname:
-                tdim = None
-                for dim in self._filedesc.dimensions:
-                    dobj = self._filedesc.dimensions[dim]
-                    if dobj.unlimited and dim[:4] == 'time':
-                        tdim = dim
-                if tdim is None:
-                    raise ValueError('Could not find unlimited time dimension in file {!r}'.format(fname))
-                tvar = None
-                for var in self._filedesc.variables:
-                    vobj = self._filedesc.variables[var]
-                    if vobj.dimensions.keys() == (tdim,):
-                        tvar = var
-                if tvar is None:
-                    raise ValueError('Could not find time variable in file {!r}'.format(fname))
-                tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
-                if len(tnodes) == 0:
-                    raise ValueError('Time variable input missing in file {!r}'.format(fname))
-                t1 = tnodes[0][0]
-                t2 = tnodes[0][-1]
-
-                while '{' in fname:
-                    beg = fname.find('{')
-                    end = fname.find('}', beg)
-                    if end == -1:
-                        raise ValueError('Filename {!r} has unbalanced special characters'.format(fname))
-                    prefix = fname[:beg]
-                    fmtstr1, fmtstr2 = fname[beg+1:end].split('-')
-                    suffix = fname[end+1:]
-
-                    datestr1 = num2date(t1, str(t1.units), t1.units.calendar).strftime(fmtstr1).replace(' ', '0')
-                    datestr2 = num2date(t2, str(t2.units), t2.units.calendar).strftime(fmtstr2).replace(' ', '0')
-                    
-                    fname = '{}{}-{}{}'.format(prefix, datestr1, datestr2, suffix)
                 
             # Try to open the output file for writing
             try:
