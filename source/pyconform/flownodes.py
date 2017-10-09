@@ -37,6 +37,13 @@ class UnitsWarning(Warning):
 
 
 #=======================================================================================================================
+# DateTimeAutoParseWarning
+#=======================================================================================================================
+class DateTimeAutoParseWarning(Warning):
+    """Warning for not being able to autoparse new filename based on date-time in the file"""
+
+
+#=======================================================================================================================
 # iter_dfs - Depth-First Search Iterator
 #=======================================================================================================================
 def iter_dfs(node):
@@ -657,12 +664,14 @@ class WriteNode(FlowNode):
                 if vobj.cfunits().is_time_reference() and len(vobj.dimensions) == 1:
                     possible_tvars.append(var)
             if len(possible_tvars) == 0:
-                raise ValueError('Could not find time variable in file {!r}'.format(fname))
+                msg = 'Could not identify a time variable to autoparse filename {!r}'.format(fname)
+                warn(msg, DateTimeAutoParseWarning)
+                return fname
+            
             tvar = 'time' if 'time' in possible_tvars else possible_tvars[0]
-
             tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
             if len(tnodes) == 0:
-                raise ValueError('Time variable input missing in file {!r}'.format(fname))
+                raise ValueError('Time variable input missing for file {!r}'.format(fname))
             tnode = tnodes[0]
             t1 = tnode[0:1]
             t2 = tnode[-1:]

@@ -648,30 +648,31 @@ class WriteNodeTests(unittest.TestCase):
     def setUp(self):
         NX = 15
         X0 = -5
-        xdata = PhysArray(numpy.arange(X0, X0+NX, dtype='f'),
-                          name='X', units='m', dimensions=('x',))
+        xdata = PhysArray(numpy.arange(X0, X0+NX, dtype='d'), name='X', units='m', dimensions=('x',))
         
         NY = 8
         Y0 = 0
-        ydata = PhysArray(numpy.arange(Y0, Y0+NY, dtype='f'),
-                          name='Y', units='m', dimensions=('y',))
+        ydata = PhysArray(numpy.arange(Y0, Y0+NY, dtype='d'), name='Y', units='m', dimensions=('y',))
         
-        vdata = PhysArray(numpy.arange(0, NX*NY, dtype='d').reshape(NX,NY),
-                          name='V', units='K', dimensions=('x', 'y'))
+        NT = 3
+        tunits = Unit('days since 2000-01-01', calendar='noleap')
+        tdata = PhysArray(numpy.arange(0, NT, dtype='d'), name='T', units=tunits, dimensions=('t',))
+        
+        vdata = PhysArray(numpy.arange(0, NX*NY*NT, dtype='f').reshape(NX,NY,NT), name='V', units='K',
+                          dimensions=('x', 'y', 't'))
 
-        self.data = {'X': xdata, 'Y': ydata, 'V': vdata}
-        self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X'},
+        self.data = {'X': xdata, 'Y': ydata, 'T': tdata, 'V': vdata}
+        self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X', 'units': str(xdata.units)},
                      'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2', 'axis': 'Y', 
-                           'direction': 'decreasing'},
-                     'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2'}}
-        self.nodes = {n:ValidateNode(n, DataNode(self.data[n]), attributes=self.atts[n])
-                      for n in self.data}
+                           'direction': 'decreasing', 'units': str(ydata.units)},
+                     'T': {'axis': 'T', 'ta1': 'time attribute', 'units': str(tdata.units),
+                           'calendar': tdata.units.calendar},
+                     'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2', 'units': str(vdata.units)}}
+        self.nodes = {n:ValidateNode(n, DataNode(self.data[n]), attributes=self.atts[n]) for n in self.data}
 
-        dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues()
-                    for n, s in zip(x.dimensions, x.shape)}
+        dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
         vardescs = {n:VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
-                                   dimensions=[dimdescs[d] for d in self.data[n].dimensions])
-                    for n in self.data}
+                                   dimensions=[dimdescs[d] for d in self.data[n].dimensions]) for n in self.data}
         self.vardescs = vardescs
 
     def tearDown(self):
@@ -772,6 +773,35 @@ class WriteNodeTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print_ncfile(filename)
 
+    def test_execute_simple_autoparse(self):
+        filename = 'v.{%Y%m%d-%Y%m%d}.nc'
+        testname = 'WriteNode({}).execute()'.format(filename)
+        filedesc = FileDesc(filename, variables=self.vardescs.values(), attributes={'ga': 'global attribute'})
+        N = WriteNode(filedesc, inputs=self.nodes.values())
+        N.enable_history()
+        N.execute()
+        newfname = 'v.20000101-20000103.nc'
+        actual = exists(newfname)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print_ncfile(newfname)
+
+    def test_execute_simple_autoparse_fail(self):
+        filename = 'v.{%Y%m%d-%Y%m%d}.nc'
+        testname = 'WriteNode({}).execute()'.format(filename)
+        vdescs = {n:self.vardescs[n] for n in self.vardescs if n != 'T'}
+        filedesc = FileDesc(filename, variables=vdescs.values(), attributes={'ga': 'global attribute'})
+        vnodes = {n:self.nodes[n] for n in self.nodes if n != 'T'}
+        N = WriteNode(filedesc, inputs=vnodes.values())
+        N.enable_history()
+        N.execute()
+        actual = exists(filename)
+        expected = True
+        print_test_message(testname, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        print_ncfile(filename)
+        
     def test_execute_simple_nc3(self):
         filename = 'v_x_y_simple_nc3.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
