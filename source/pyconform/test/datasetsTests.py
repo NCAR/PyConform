@@ -640,6 +640,7 @@ class DatasetDescTests(unittest.TestCase):
         vdicts['X']['dimensions'] = ('x',)
         vdicts['X']['definition'] = 'lon'
         vattribs = OrderedDict()
+        vattribs['axis'] = 'X'
         vattribs['standard_name'] = 'longitude'
         vattribs['units'] = 'degrees_east'
         vdicts['X']['attributes'] = vattribs
@@ -649,6 +650,7 @@ class DatasetDescTests(unittest.TestCase):
         vdicts['Y']['dimensions'] = ('y',)
         vdicts['Y']['definition'] = 'lat'
         vattribs = OrderedDict()
+        vattribs['axis'] = 'Y'
         vattribs['standard_name'] = 'latitude'
         vattribs['units'] = 'degrees_north'
         vdicts['Y']['attributes'] = vattribs
@@ -659,6 +661,7 @@ class DatasetDescTests(unittest.TestCase):
         vdicts['T']['definition'] = 'time'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time'
+        vattribs['axis'] = 'T'
         vattribs['units'] = 'days since 0001-01-01 00:00:00'
         vattribs['calendar'] = 'noleap'
         vdicts['T']['attributes'] = vattribs
