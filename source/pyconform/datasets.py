@@ -232,6 +232,7 @@ class VariableDesc(object):
         if not isinstance(attributes, dict):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
         self._attributes = attributes
+        self.cfunits()
 
         self._files = {}
 
