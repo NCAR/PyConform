@@ -510,7 +510,7 @@ class ValidateNode(FlowNode):
             raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
                             '{!r}').format(indata.dtype, odtype, self.label)
 
-        # Check that units match as expected
+        # Check that units match as expected, otherwise inherit or convert
         if 'units' in self.attributes:
             if indata.units.is_time_reference():
                 if 'calendar' not in self.attributes:
