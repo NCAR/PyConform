@@ -61,8 +61,57 @@ def _is_list_of_type_(obj, typ):
     if not isinstance(obj, (list, tuple)):
         return False
     return all([isinstance(o, typ) for o in obj])
+        
 
+#=======================================================================================================================
+# UnitDesc
+#=======================================================================================================================
+class UnitDesc(object):
+    """
+    Descriptor for a CF-convension unit
+    """
+    
+    def __init__(self, unit, calendar=None):
+        """
+        Initializer
+        
+        Parameters:
+            unit: A variable's units attribute
+            calendar: A variable's calendar attribute
+        """
+        lunit = [u.strip() for u in str(unit).split('since')]
+        self._unitstr = lunit[0]
+        if len(lunit) == 1:
+            self._dtstr = None
+        else:
+            self._dtstr = ' '.join(lunit[1].split())
+        self._calendar = calendar
 
+    @property
+    def unitstr(self):
+        return self._unitstr
+
+    @property
+    def refdatetimestr(self):
+        return self._dtstr
+    
+    @property
+    def calendar(self):
+        return self._calendar
+    
+    def units_attribute(self):
+        return self.unitstr + ('' if self.refdatetimestr is None else ' since {}'.format(self.refdatetimestr))
+    
+    def units_unknown(self):
+        return self.unitstr in ('', '?', 'unknown')
+
+    def refdatetime_unknown(self):
+        return self.refdatetimestr in ('', '?', 'unknown')
+            
+    def calendar_unknown(self):
+        return self.calendar in ('', '?', 'unknown')
+    
+        
 #===================================================================================================
 # DimensionDesc
 #===================================================================================================
@@ -303,6 +352,9 @@ class VariableDesc(object):
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
         return self.attributes.get('calendar', None)
+    
+    def unitdesc(self):
+        return UnitDesc(self.units, calendar=self.calendar())
 
     def cfunits(self):
         """Construct a cf_units.Unit object from the units/calendar attributes"""
