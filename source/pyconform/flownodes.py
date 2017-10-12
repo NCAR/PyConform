@@ -472,10 +472,16 @@ class ValidateNode(FlowNode):
         # Store the attributes given to the FlowNode
         self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
         
-        # Initialize the history attribute
+        # Initialize the history attribute, if necessary
         info = self[None]
         if 'history' not in self.attributes:
             self.attributes['history'] = info.name
+
+        # Else inherit the units and calendar of the input data stream, if necessary
+        if 'units' not in self.attributes:
+            self.attributes['units'] = info.units.origin
+            if info.units.calendar is not None:
+                self.attributes['calendar'] = info.units.calendar
 
     @property
     def attributes(self):
@@ -510,7 +516,7 @@ class ValidateNode(FlowNode):
             raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
                             '{!r}').format(indata.dtype, odtype, self.label)
 
-        # Check that units match as expected, otherwise inherit or convert
+        # Check that units match as expected, otherwise convert
         if 'units' in self.attributes:
             if indata.units.is_time_reference():
                 if 'calendar' not in self.attributes:
@@ -525,7 +531,7 @@ class ValidateNode(FlowNode):
                     except Exception as err:
                         err_msg = 'When validating output variable {}: {}'.format(self.label, err)
                         raise err.__class__(err_msg)
-
+        
         # Check that the dimensions match as expected
         if self.dimensions is not None and self.dimensions != indata.dimensions:
             indata = indata.transpose(self.dimensions)
