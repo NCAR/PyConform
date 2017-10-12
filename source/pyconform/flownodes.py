@@ -479,7 +479,9 @@ class ValidateNode(FlowNode):
 
         # Else inherit the units and calendar of the input data stream, if necessary
         if 'units' in self.attributes and Unit(self.attributes['units']).is_unknown():
+            info = dnode[None]
             self.attributes['units'] = info.units.name
+            print self.attributes
             if info.units.calendar is not None:
                 self.attributes['calendar'] = info.units.calendar
 

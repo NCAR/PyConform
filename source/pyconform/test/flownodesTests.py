@@ -527,6 +527,19 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
         self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
 
+    def test_units_inherit(self):
+        N0 = DataNode(PhysArray(numpy.arange(10.0), name='x', units='m', dimensions=('x',)))
+        indata = {'units': '?'}
+        testname = ('CONVERT: ValidateNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
+        actual = N1[:]
+        expected = N0[:]
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
     def test_dimensions_transpose(self):
         N0 = DataNode(PhysArray([[1.,2.],[3.,4.]], name='a', units='m', dimensions=('x', 'y')))
         indata = {'dimensions': ('y', 'x')}
@@ -539,14 +552,26 @@ class ValidateNodeTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_time_units_convert(self):
-        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00',
-                                dimensions=('x',)))
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
         indata = {'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'}
         testname = ('WARN: ValidateNode({}).__getitem__(:)'
                     '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
         N1 = ValidateNode('validate(x)', N0, attributes=indata)
         actual = N1[:]
         expected = N0[:].convert(Unit('hours since 2000-01-01 00:00:00'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
+        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+
+    def test_time_units_inherit(self):
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
+        indata = {'units': ''}
+        testname = ('WARN: ValidateNode({}).__getitem__(:)'
+                    '').format(', '.join('{!s}={!r}'.format(k, v) for k, v in indata.iteritems()))
+        N1 = ValidateNode('validate(x)', N0, attributes=indata)
+        actual = N1[:]
+        expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
         self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
