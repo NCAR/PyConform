@@ -668,8 +668,8 @@ class WriteNode(FlowNode):
             
             possible_tvars = []
             for var in self._filedesc.variables:
-                vobj = self._filedesc.variables[var]
-                if vobj.cfunits().is_time_reference() and len(vobj.dimensions) == 1:
+                vdesc = self._filedesc.variables[var]
+                if vdesc.cfunits().is_time_reference() and len(vdesc.dimensions) == 1:
                     possible_tvars.append(var)
             if len(possible_tvars) == 0:
                 msg = 'Could not identify a time variable to autoparse filename {!r}'.format(fname)
