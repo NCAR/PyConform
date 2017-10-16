@@ -10,6 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from os import linesep
 from os.path import exists
+from copy import deepcopy
 from collections import OrderedDict
 from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
@@ -63,55 +64,6 @@ def _is_list_of_type_(obj, typ):
     return all([isinstance(o, typ) for o in obj])
         
 
-#=======================================================================================================================
-# UnitDesc
-#=======================================================================================================================
-class UnitDesc(object):
-    """
-    Descriptor for a CF-convension unit
-    """
-    
-    def __init__(self, unit, calendar=None):
-        """
-        Initializer
-        
-        Parameters:
-            unit: A variable's units attribute
-            calendar: A variable's calendar attribute
-        """
-        lunit = [u.strip() for u in str(unit).split('since')]
-        self._unitstr = lunit[0]
-        if len(lunit) == 1:
-            self._dtstr = None
-        else:
-            self._dtstr = ' '.join(lunit[1].split())
-        self._calendar = calendar
-
-    @property
-    def unitstr(self):
-        return self._unitstr
-
-    @property
-    def refdatetimestr(self):
-        return self._dtstr
-    
-    @property
-    def calendar(self):
-        return self._calendar
-    
-    def units_attribute(self):
-        return self.unitstr + ('' if self.refdatetimestr is None else ' since {}'.format(self.refdatetimestr))
-    
-    def units_unknown(self):
-        return self.unitstr in ('', '?', 'unknown')
-
-    def refdatetime_unknown(self):
-        return self.refdatetimestr in ('', '?', 'unknown')
-            
-    def calendar_unknown(self):
-        return self.calendar in ('', '?', 'unknown')
-    
-        
 #===================================================================================================
 # DimensionDesc
 #===================================================================================================
@@ -134,8 +86,8 @@ class DimensionDesc(object):
             stringlen (bool): Whether the dimension represents a string length or not
         """
         self._name = name
-        self._size = int(size) if size is not None else None
-        self._unlimited = bool(unlimited)
+        self._size = None if size is None else int(size)
+        self._unlimited = None if unlimited is None else bool(unlimited)
         self._stringlen = bool(stringlen)
 
     @property
@@ -169,7 +121,7 @@ class DimensionDesc(object):
         Unset the dimension's size and unlimited status
         """
         self._size = None
-        self._unlimited = False
+        self._unlimited = None
 
     def set(self, dd):
         """
@@ -194,13 +146,16 @@ class DimensionDesc(object):
             return False
         if self.unlimited != other.unlimited:
             return False
+        if self.stringlen != other.stringlen:
+            return False
         return True
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __str__(self):
-        return '{!r} [{}{}]'.format(self.name, self.size, '+' if self.unlimited else '')
+        set_str = '{}{}'.format(self.size, '+' if self.unlimited else '') if self.is_set() else '?'
+        return '{!r} [{}]'.format(self.name, set_str)
 
     @staticmethod
     def unique(descs):
@@ -248,7 +203,7 @@ class VariableDesc(object):
     _DTYPES_ = (dtype('b'), dtype('u1'), dtype('S1'), dtype('i2'), dtype('u2'), dtype('i4'), dtype('u4'),
                 dtype('i8'), dtype('u8'), dtype('f4'), dtype('f4'), dtype('f8'))
 
-    def __init__(self, name, datatype='float', dimensions=(), definition=None, attributes={}):
+    def __init__(self, name, datatype=None, dimensions=None, definition=None, attributes={}):
         """
         Initializer
 
@@ -267,20 +222,23 @@ class VariableDesc(object):
         elif isinstance(datatype, dtype) and datatype in VariableDesc._DTYPES_:
             self._ntype = VariableDesc._NTYPES_[VariableDesc._DTYPES_.index(datatype)]
             self._dtype = datatype
+        elif datatype is None:
+            self._ntype = None
+            self._dtype = None
         else:
             raise TypeError('Invalid variable datatype {} for variable {}'.format(datatype, name))
 
         self.definition = definition
 
-        if not _is_list_of_type_(dimensions, DimensionDesc):
+        if dimensions is not None and not _is_list_of_type_(dimensions, DimensionDesc):
             err_msg = ('Dimensions for variable {!r} must be a list or tuple of type '
                        'DimensionDesc').format(name)
             raise TypeError(err_msg)
-        self._dimensions = DimensionDesc.unique(dimensions)
+        self._dimensions = None if dimensions is None else DimensionDesc.unique(dimensions)
 
         if not isinstance(attributes, dict):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
-        self._attributes = attributes
+        self._attributes = deepcopy(attributes)
 
         self._files = {}
 
@@ -345,19 +303,26 @@ class VariableDesc(object):
         return linesep.join(strvals)
 
     def units(self):
-        """Retrieve the units attribute, if it exists, otherwise 1"""
-        return self.attributes.get('units', 'no unit')
+        """Retrieve the units string otherwise None"""
+        ustr = str(self.attributes.get('units', '?')).split('since')[0].strip()
+        return None if ustr in ('', '?', 'unknown') else ustr
+    
+    def refdatetime(self):
+        """Retrieve the reference datetime string, otherwise None"""
+        lstr = str(self.attributes.get('units', '?')).split('since')
+        rstr = lstr[1].strip() if len(lstr) > 1 else ''
+        return None if rstr in ('', '?', 'unknown') else rstr
 
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
         return self.attributes.get('calendar', None)
     
-    def unitdesc(self):
-        return UnitDesc(self.units, calendar=self.calendar())
+    def units_attr(self):
+        return self.attributes.get('units', None)
 
     def cfunits(self):
         """Construct a cf_units.Unit object from the units/calendar attributes"""
-        return Unit(self.units(), calendar=self.calendar())
+        return Unit(self.units_attr(), calendar=self.calendar())
 
     @staticmethod
     def unique(descs):
@@ -432,7 +397,8 @@ class FileDesc(object):
 
         dimensions = []
         for vdesc in variables:
-            dimensions.extend(vdesc.dimensions.values())
+            if vdesc.dimensions is not None:
+                dimensions.extend(vdesc.dimensions.values()) 
         self._dimensions = DimensionDesc.unique(dimensions)
 
         for vdesc in variables:
@@ -447,7 +413,7 @@ class FileDesc(object):
             err_msg = ('Attributes in file {!r} cannot be of type {!r}, needs to be a '
                        'dict').format(name, type(attributes))
             raise TypeError(err_msg)
-        self._attributes = attributes
+        self._attributes = deepcopy(attributes)
 
     @property
     def name(self):
@@ -625,13 +591,13 @@ class InputDatasetDesc(DatasetDesc):
     parameter will contain the names of files from which the variable data can be read.  
     """
 
-    def __init__(self, name='input', filenames=[]):
+    def __init__(self, name='input', filenames=()):
         """
         Initializer
 
         Parameters:
             name (str): String name to optionally give to a dataset
-            filenames (list): List of filenames in the dataset
+            filenames (tuple): List of filenames in the dataset
         """
         files = []
 
