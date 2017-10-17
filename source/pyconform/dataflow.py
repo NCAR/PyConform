@@ -226,8 +226,7 @@ class DataFlow(object):
             vnode = datnodes[vname] if vname in datnodes else defnodes[vname]
 
             try:
-                validnode = ValidateNode(vname, vnode, dimensions=vdesc.dimensions.keys(),
-                                         attributes=vdesc.attributes, dtype=vdesc.dtype)
+                validnode = ValidateNode(vdesc, vnode)
             except Exception, err:
                 vdef = vdesc.definition
                 err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
