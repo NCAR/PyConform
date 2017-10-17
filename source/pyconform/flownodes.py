@@ -459,7 +459,7 @@ class ValidateNode(FlowNode):
         super(ValidateNode, self).__init__(vdesc.name, dnode)
         
         # Save the variable descriptor object
-        self._vdesc = deepcopy(vdesc)
+        self._vdesc = vdesc
         
         # Initialize the history attribute, if necessary
         info = dnode[None]
@@ -519,9 +519,6 @@ class ValidateNode(FlowNode):
 
         # Check that units match as expected, otherwise convert
         if 'units' in self.attributes:
-            if indata.units.is_time_reference():
-                if 'calendar' not in self.attributes:
-                    self.attributes['calendar'] = indata.units.calendar
             ounits = Unit(self.attributes['units'], calendar=self.attributes.get('calendar', None))
             if ounits != indata.units:
                 if index is None:
