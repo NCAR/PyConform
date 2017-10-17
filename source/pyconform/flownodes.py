@@ -15,7 +15,6 @@ from cf_units import Unit, num2date
 from datetime import datetime
 from os.path import exists, dirname
 from os import makedirs
-from copy import deepcopy
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
@@ -665,7 +664,13 @@ class WriteNode(FlowNode):
             possible_tvars = []
             for var in self._filedesc.variables:
                 vdesc = self._filedesc.variables[var]
-                if vdesc.cfunits().is_time_reference() and len(vdesc.dimensions) == 1:
+                if var in ('time', 'time1', 'time2', 'time3'):
+                    possible_tvars.append(var)
+                elif vdesc.cfunits().is_time_reference() and len(vdesc.dimensions) == 1:
+                    possible_tvars.append(var)
+                elif 'standard_name' in vdesc.attributes and vdesc.attributes['standard_name'] == 'time':
+                    possible_tvars.append(var)
+                elif 'axis' in vdesc.attributes and vdesc.attributes['axis'] == 'T':
                     possible_tvars.append(var)
             if len(possible_tvars) == 0:
                 msg = 'Could not identify a time variable to autoparse filename {!r}'.format(fname)
