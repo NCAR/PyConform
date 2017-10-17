@@ -451,7 +451,7 @@ class ValidateNode(FlowNode):
         """
         # Check Types
         if not isinstance(vdesc, VariableDesc):
-            raise TypeError('ValidateNode requires a VariableDesc object')
+            raise TypeError('ValidateNode requires a VariableDesc object as input')
         if not isinstance(dnode, FlowNode):
             raise TypeError('ValidateNode can only act on output from another FlowNode')
 
@@ -467,10 +467,22 @@ class ValidateNode(FlowNode):
             self.attributes['history'] = info.name
 
         # Else inherit the units and calendar of the input data stream, if necessary
-        if 'units' in self.attributes and Unit(self.attributes['units']).is_unknown():
-            self.attributes['units'] = info.units.name
-            if info.units.calendar is not None:
-                self.attributes['calendar'] = info.units.calendar
+        if 'units' in self.attributes:
+            if info.units.is_time_reference():
+                ustr, rstr = [c.strip() for c in str(info.units).split('since')]
+                if self._vdesc.units() is not None:
+                    ustr = self._vdesc.units()
+                if self._vdesc.refdatetime() is not None:
+                    rstr = self._vdesc.refdatetime()
+                self.attributes['units'] = '{} since {}'.format(ustr, rstr)
+                
+                # Calendars must match as convertion between different calendars will fail
+                if self._vdesc.calendar() is None and info.units.calendar is not None:
+                    self.attributes['calendar'] = info.units.calendar
+
+            else:
+                if self._vdesc.units() is None:
+                    self.attributes['units'] = str(info.units)
 
     @property
     def attributes(self):
