@@ -312,6 +312,12 @@ class VariableDesc(object):
             for fname in self.files:
                 strvals += ['      {}'.format(fname)]
         return linesep.join(strvals)
+    
+    def __repr__(self):
+        dtyp_str = '' if self.datatype is None else ', datatype={!r}'.format(self.datatype)
+        dimn_str = ', dimensions={!s}'.format(tuple(self.dimensions.keys()))
+        defn_str = '' if self.definition is None else ', definition={!r}'.format(self.definition)
+        return '{!s}(name={!r}{}{}{})'.format(self.__class__.__name__, self.name, dtyp_str, dimn_str, defn_str)
 
     def units(self):
         """Retrieve the units string otherwise None"""
