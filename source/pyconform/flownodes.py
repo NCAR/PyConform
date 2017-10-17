@@ -15,6 +15,7 @@ from cf_units import Unit, num2date
 from datetime import datetime
 from os.path import exists, dirname
 from os import makedirs
+from copy import deepcopy
 from netCDF4 import Dataset
 from collections import OrderedDict
 from warnings import warn
@@ -440,48 +441,34 @@ class ValidateNode(FlowNode):
     This is a "non-source"/"non-sink" FlowNode.
     """
 
-    def __init__(self, label, dnode, dimensions=None, dtype=None, attributes={}):
+    def __init__(self, vdesc, dnode):
         """
         Initializer
         
         Parameters:
-            label: The label associated with this FlowNode
+            vdesc (VariableDesc): A variable descriptor object for the output variable
             dnode (FlowNode): FlowNode that provides input into this FlowNode
-            dimensions (tuple): The output dimensions to validate against
-            dtype (dtype): The NumPy dtype of the data to return
-            attributes (dict): Attributes to associate with the new variable
         """
-        # Check FlowNode type
+        # Check Types
+        if not isinstance(vdesc, VariableDesc):
+            raise TypeError('ValidateNode requires a VariableDesc object')
         if not isinstance(dnode, FlowNode):
             raise TypeError('ValidateNode can only act on output from another FlowNode')
 
         # Call base class initializer
-        super(ValidateNode, self).__init__(label, dnode)
-
-        # Save the data type
-        self._dtype = dtype
-
-        # Check for dimensions
-        self._dimensions = None
-        if dimensions is not None:
-            if isinstance(dimensions, (list, tuple)):
-                self._dimensions = tuple(dimensions)
-            else:
-                raise TypeError('Dimensions must be a list or tuple')
-
-        # Store the attributes given to the FlowNode
-        self._attributes = OrderedDict((k, v) for k, v in attributes.iteritems())
+        super(ValidateNode, self).__init__(vdesc.name, dnode)
+        
+        # Save the variable descriptor object
+        self._vdesc = deepcopy(vdesc)
         
         # Initialize the history attribute, if necessary
-        info = self[None]
+        info = dnode[None]
         if 'history' not in self.attributes:
             self.attributes['history'] = info.name
 
         # Else inherit the units and calendar of the input data stream, if necessary
         if 'units' in self.attributes and Unit(self.attributes['units']).is_unknown():
-            info = dnode[None]
             self.attributes['units'] = info.units.name
-            print self.attributes
             if info.units.calendar is not None:
                 self.attributes['calendar'] = info.units.calendar
 
@@ -490,14 +477,14 @@ class ValidateNode(FlowNode):
         """
         Attributes dictionary of the variable returned by the ValidateNode
         """
-        return self._attributes
+        return self._vdesc.attributes
 
     @property
     def dimensions(self):
         """
         Dimensions tuple of the variable returned by the ValidateNode
         """
-        return self._dimensions
+        return tuple(self._vdesc.dimensions.keys())
 
     def __getitem__(self, index):
         """
@@ -508,10 +495,10 @@ class ValidateNode(FlowNode):
         indata = self.inputs[0][index]
 
         # Check datatype, and cast as necessary
-        if self._dtype is None:
+        if self._vdesc.dtype is None:
             odtype = indata.dtype
         else:
-            odtype = self._dtype
+            odtype = self._vdesc.dtype
         if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
             indata = indata.astype(odtype)
         else:
@@ -535,7 +522,7 @@ class ValidateNode(FlowNode):
                         raise err.__class__(err_msg)
         
         # Check that the dimensions match as expected
-        if self.dimensions is not None and self.dimensions != indata.dimensions:
+        if self.dimensions != indata.dimensions:
             indata = indata.transpose(self.dimensions)
         
         # Check the positive attribute, if specified
