@@ -235,7 +235,7 @@ class VariableDescTests(unittest.TestCase):
     def test_datatype_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.datatype
-        expected = 'float'
+        expected = None
         print_test_message('VariableDesc.datatype == float', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Default VariableDesc.datatype is not float')
 

@@ -87,7 +87,7 @@ class DimensionDesc(object):
         """
         self._name = name
         self._size = None if size is None else int(size)
-        self._unlimited = None if unlimited is None else bool(unlimited)
+        self._unlimited = bool(unlimited)
         self._stringlen = bool(stringlen)
 
     @property
@@ -121,7 +121,7 @@ class DimensionDesc(object):
         Unset the dimension's size and unlimited status
         """
         self._size = None
-        self._unlimited = None
+        self._unlimited = False
 
     def set(self, dd):
         """
@@ -136,6 +136,7 @@ class DimensionDesc(object):
             raise TypeError(err_msg)
         self._size = dd.size
         self._unlimited = dd.unlimited
+        self._stringlen = dd.stringlen
 
     def __eq__(self, other):
         if not isinstance(other, DimensionDesc):
@@ -203,7 +204,7 @@ class VariableDesc(object):
     _DTYPES_ = (dtype('b'), dtype('u1'), dtype('S1'), dtype('i2'), dtype('u2'), dtype('i4'), dtype('u4'),
                 dtype('i8'), dtype('u8'), dtype('f4'), dtype('f4'), dtype('f8'))
 
-    def __init__(self, name, datatype=None, dimensions=None, definition=None, attributes={}):
+    def __init__(self, name, datatype=None, dimensions=(), definition=None, attributes={}):
         """
         Initializer
 
@@ -216,30 +217,35 @@ class VariableDesc(object):
         """
         self._name = name
         
-        if isinstance(datatype, basestring) and datatype in VariableDesc._NTYPES_:
+        # Datatype is inheritable, in which case the datatype is set to None
+        if datatype is None:
+            self._ntype = None
+            self._dtype = None
+        elif isinstance(datatype, basestring) and datatype in VariableDesc._NTYPES_:
             self._ntype = datatype
             self._dtype = VariableDesc._DTYPES_[VariableDesc._NTYPES_.index(datatype)]
         elif isinstance(datatype, dtype) and datatype in VariableDesc._DTYPES_:
             self._ntype = VariableDesc._NTYPES_[VariableDesc._DTYPES_.index(datatype)]
             self._dtype = datatype
-        elif datatype is None:
-            self._ntype = None
-            self._dtype = None
         else:
             raise TypeError('Invalid variable datatype {} for variable {}'.format(datatype, name))
 
-        self.definition = definition
-
-        if dimensions is not None and not _is_list_of_type_(dimensions, DimensionDesc):
+        # Dimensions are required for all variables
+        if not _is_list_of_type_(dimensions, DimensionDesc):
             err_msg = ('Dimensions for variable {!r} must be a list or tuple of type '
                        'DimensionDesc').format(name)
             raise TypeError(err_msg)
-        self._dimensions = None if dimensions is None else DimensionDesc.unique(dimensions)
+        self._dimensions = DimensionDesc.unique(dimensions)
 
+        # Definition is required for output variables, but None for input variables
+        self._definition = definition
+
+        # Attributes are modifiable after the variable descriptor is constructed 
         if not isinstance(attributes, dict):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
         self._attributes = deepcopy(attributes)
 
+        # Initially, no files are associated with the variables, but it is modifiable after construction
         self._files = {}
 
     @property
@@ -256,6 +262,10 @@ class VariableDesc(object):
     def dtype(self):
         """NumPy dtype of the variable data"""
         return self._dtype
+    
+    @property
+    def definition(self):
+        return self._definition
     
     @property
     def attributes(self):
@@ -288,7 +298,8 @@ class VariableDesc(object):
 
     def __str__(self):
         strvals = ['Variable: {!r}'.format(self.name)]
-        strvals += ['   datatype: {!r}'.format(self.datatype)]
+        if self.datatype is not None:
+            strvals += ['   datatype: {!r}'.format(self.datatype)]
         strvals += ['   dimensions: {!s}'.format(self.dimensions.keys())]
         if self.definition is not None:
             strvals += ['   definition: {!r}'.format(self.definition)]
@@ -397,8 +408,7 @@ class FileDesc(object):
 
         dimensions = []
         for vdesc in variables:
-            if vdesc.dimensions is not None:
-                dimensions.extend(vdesc.dimensions.values()) 
+            dimensions.extend(vdesc.dimensions.values()) 
         self._dimensions = DimensionDesc.unique(dimensions)
 
         for vdesc in variables:
