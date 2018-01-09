@@ -21,6 +21,17 @@ class NamedObjectTests(unittest.TestCase):
     def test_name(self):
         self.assertEqual(self.no.name, 'name')
 
+    def test_default_namespace_is_none(self):
+        self.assertEqual(self.no.namespace, None)
+
+    def test_namespace(self):
+        no = NamedObject('name', namespace='a')
+        self.assertEqual(no.namespace, 'a')
+
+    def test_objects_with_same_key_are_same(self):
+        no = NamedObject('name')
+        self.assertIs(self.no, no)
+
 
 if __name__ == '__main__':
     unittest.main()
