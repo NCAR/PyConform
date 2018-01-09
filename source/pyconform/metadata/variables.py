@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from cf_units import Unit
-from numpy import ndarray
+from numpy import ndarray, dtype
 from namedobjects import NamedObject
 
 
@@ -19,15 +19,29 @@ class Variable(NamedObject):
                       'short', 'ushort',
                       'int', 'uint',
                       'int64', 'uint64',
-                      'float', 'real', 'double')
+                      'float', 'double', 'real')
 
-    def __init__(self, name, definition=None, datatype=None):
+    _NUMPY_DTYPES_ = (dtype('b'), dtype('u1'), dtype('S1'),
+                      dtype('i2'), dtype('u2'),
+                      dtype('i4'), dtype('u4'),
+                      dtype('i8'), dtype('u8'),
+                      dtype('f4'), dtype('f8'), dtype('f4'))
+
+    @classmethod
+    def datatype_from_dtype(cls, dt):
+        if not isinstance(dt, dtype) or dt not in Variable._NUMPY_DTYPES_:
+            raise TypeError('Unrecognized variable dtype {}'.format(dt))
+        idt = Variable._NUMPY_DTYPES_.index(dt)
+        return Variable._NETCDF_TYPES_[idt]
+
+    def __init__(self, name, definition=None, datatype=None, dimensions=None):
         super(Variable, self).__init__(name)
-        self.__definition = self.__validate_definition_type(definition)
+        self.__definition = self.__validate_definition(definition)
         self.__datatype = self.__validate_datatype(datatype)
+        self.__dimensions = self.__validate_dimensions(dimensions)
         self.__attributes = {}
 
-    def __validate_definition_type(self, definition):
+    def __validate_definition(self, definition):
         if definition is None:
             return None
         if not isinstance(definition, (basestring, ndarray)):
@@ -43,6 +57,14 @@ class Variable(NamedObject):
             raise ValueError(msg.format(self.name, datatype))
         return datatype
 
+    def __validate_dimensions(self, dimensions):
+        if dimensions is None:
+            return None
+        if not isinstance(dimensions, (list, tuple)):
+            msg = 'Variable {} must have a list or tuple of dimensions'
+            raise TypeError(msg.format(self.name))
+        return dimensions
+
     @property
     def definition(self):
         return self.__definition
@@ -50,6 +72,10 @@ class Variable(NamedObject):
     @property
     def datatype(self):
         return self.__datatype
+
+    @property
+    def dimensions(self):
+        return self.__dimensions
 
     @property
     def attributes(self):

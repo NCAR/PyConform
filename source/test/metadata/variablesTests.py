@@ -56,6 +56,23 @@ class VariableTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             Variable('v', datatype='integer')
 
+    def test_datatype_from_dtype(self):
+        for ncdt, npdt in zip(Variable._NETCDF_TYPES_[:-1], Variable._NUMPY_DTYPES_[:-1]):
+            self.assertEqual(ncdt, Variable.datatype_from_dtype(npdt))
+        npdt = Variable._NUMPY_DTYPES_[-1]
+        self.assertEqual('float', Variable.datatype_from_dtype(npdt))
+
+    def test_default_dimensions_is_none(self):
+        self.assertEqual(self.v.dimensions, None)
+
+    def test_setting_dimensions_in_constructor(self):
+        v = Variable('v', dimensions=('x', 'y'))
+        self.assertEqual(v.dimensions, ('x', 'y'))
+
+    def test_setting_dimensions_to_invalid_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            Variable('v', dimensions='x y z')
+
     def test_default_attributes_is_empty_dict(self):
         self.assertEqual(self.v.attributes, {})
 
