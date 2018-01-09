@@ -18,9 +18,6 @@ class DimensionTests(unittest.TestCase):
     def test_create(self):
         self.assertIsInstance(self.d, Dimension)
 
-    def test_name(self):
-        self.assertEqual(self.d.name, 'x')
-
     def test_default_size_is_none(self):
         self.assertEqual(self.d.size, None)
 

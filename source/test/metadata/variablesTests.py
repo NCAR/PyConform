@@ -19,9 +19,6 @@ class VariableTests(unittest.TestCase):
     def test_create(self):
         self.assertIsInstance(self.v, Variable)
 
-    def test_name(self):
-        self.assertEqual(self.v.name, 'v')
-
     def test_default_definition_is_none(self):
         self.assertEqual(self.v.definition, None)
 

@@ -18,9 +18,6 @@ class FileTests(unittest.TestCase):
     def test_create(self):
         self.assertIsInstance(self.f, File)
 
-    def test_name(self):
-        self.assertEqual(self.f.name, 'test.nc')
-
     def test_default_attributes_is_none(self):
         self.assertEqual(self.f.attributes, {})
 
