@@ -6,3 +6,4 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from dimensions import Dimension
+from variables import Variable
