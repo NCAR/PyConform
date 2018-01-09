@@ -7,14 +7,16 @@ LICENSE: See the LICENSE.rst file for details
 
 from cf_units import Unit
 
+from namedobjects import NamedObject
 
-class Variable(object):
+
+class Variable(NamedObject):
     """
     Metadata describing a NetCDF variable
     """
 
     def __init__(self, name):
-        self.name = name
+        super(Variable, self).__init__(name)
         self.definition = None
         self.datatype = None
         self.attributes = {}
