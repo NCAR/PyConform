@@ -1,5 +1,5 @@
 """
-Unit Tests for Dimension Objects
+Unit Tests for Dimension Metadata Objects
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
