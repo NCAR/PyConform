@@ -10,7 +10,7 @@ import unittest
 from cf_units import Unit
 from numpy import array
 from numpy.testing import assert_array_equal
-from pyconform.metadata import Variable
+from pyconform.metadata import Variable, Dimension
 
 
 class VariableTests(unittest.TestCase):
@@ -66,8 +66,9 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(self.v.dimensions, None)
 
     def test_setting_dimensions_in_constructor(self):
-        v = Variable('v', dimensions=('x', 'y'))
-        self.assertEqual(v.dimensions, ('x', 'y'))
+        dims = (Dimension('x'), Dimension('y'))
+        v = Variable('v', dimensions=dims)
+        self.assertEqual(v.dimensions, dims)
 
     def test_setting_dimensions_to_invalid_raises_type_error(self):
         with self.assertRaises(TypeError):
