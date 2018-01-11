@@ -61,7 +61,8 @@ class Variable(NamedObject):
     def __validate_dimensions(self, dimensions):
         if dimensions is None:
             return None
-        if not isinstance(dimensions, (list, tuple)) or not all(isinstance(d, Dimension) for d in dimensions):
+        if (not isinstance(dimensions, (list, tuple)) or
+                not all(isinstance(d, Dimension) for d in dimensions)):
             msg = 'Variable {} must have a list or tuple of dimensions'
             raise TypeError(msg.format(self.name))
         return dimensions
