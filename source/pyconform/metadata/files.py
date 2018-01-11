@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from collections import OrderedDict
 from namedobjects import NamedObject
-from variables import Variable
+from . import Variable
 
 
 class File(NamedObject):

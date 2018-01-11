@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from cf_units import Unit
 from numpy import ndarray, dtype
 from namedobjects import NamedObject
-from dimensions import Dimension
+from . import Dimension
 
 
 class Variable(NamedObject):
