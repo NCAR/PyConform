@@ -18,9 +18,9 @@ class Dataset(object):
         self.__dimensions = OrderedDict()
         self.__variables = OrderedDict()
         self.__files = OrderedDict()
-        self.__validate_files(files)
+        self.__add_files(files)
 
-    def __validate_files(self, files):
+    def __add_files(self, files):
         if not isinstance(files, (tuple, list)) or not all(isinstance(f, File) for f in files):
             raise TypeError('Dataset files must be a tuple/list of Files')
         for f in files:
