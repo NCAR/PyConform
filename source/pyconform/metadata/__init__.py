@@ -9,3 +9,4 @@ from dimensions import Dimension
 from variables import Variable
 from files import File
 from datasets import Dataset
+from inputdatasets import InputDataset
