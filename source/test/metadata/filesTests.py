@@ -79,6 +79,14 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             File('test.nc', variables=(v1, v2))
 
+    def test_variable_dimensions_with_same_name_raises_value_error(self):
+        x1 = Dimension('x')
+        x2 = Dimension('x')
+        v = Variable('v', dimensions=(x1,))
+        u = Variable('u', dimensions=(x2,))
+        with self.assertRaises(ValueError):
+            File('test.nc', variables=(v, u))
+
 
 if __name__ == '__main__':
     unittest.main()
