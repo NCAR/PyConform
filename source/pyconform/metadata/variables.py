@@ -8,7 +8,6 @@ LICENSE: See the LICENSE.rst file for details
 from cf_units import Unit
 from numpy import ndarray, dtype
 from namedobjects import NamedObject
-from . import Dimension
 
 
 class Variable(NamedObject):
@@ -61,11 +60,20 @@ class Variable(NamedObject):
     def __validate_dimensions(self, dimensions):
         if dimensions is None:
             return None
-        if (not isinstance(dimensions, (list, tuple)) or
-                not all(isinstance(d, Dimension) for d in dimensions)):
-            msg = 'Variable {} must have a list or tuple of dimensions'
+        if not isinstance(dimensions, (list, tuple)):
+            msg = 'Variable {} must have a list or tuple of dimension names'
             raise TypeError(msg.format(self.name))
         return dimensions
+
+    @classmethod
+    def from_netcdf4(cls, ncvar):
+        print ncvar.dtype
+        dt = cls.datatype_from_dtype(ncvar.dtype)
+        print dt
+        v = Variable(ncvar.name, datatype=dt, dimensions=ncvar.dimensions)
+        for k in ncvar.ncattrs():
+            v.attributes[k] = ncvar.getncattr(k)
+        return v
 
     @property
     def definition(self):
@@ -74,6 +82,11 @@ class Variable(NamedObject):
     @property
     def datatype(self):
         return self.__datatype
+
+    @property
+    def dtype(self):
+        idt = Variable._NETCDF_TYPES_.index(self.__datatype)
+        return Variable._NUMPY_DTYPES_[idt]
 
     @property
     def dimensions(self):
@@ -100,3 +113,7 @@ class Variable(NamedObject):
 
     def cfunits(self):
         return Unit(self.attributes.get('units'), calendar=self.calendar)
+
+    @property
+    def positive(self):
+        return self.attributes.get('positive', None)

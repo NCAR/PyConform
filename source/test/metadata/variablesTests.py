@@ -6,11 +6,32 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
+import numpy
 
 from cf_units import Unit
-from numpy import array
-from numpy.testing import assert_array_equal
+from collections import OrderedDict
 from pyconform.metadata import Variable, Dimension
+
+
+class MockNetCDF4Variable(object):
+
+    def __init__(self, name, datatype, dims):
+        self.name = name
+        self.dtype = numpy.dtype(datatype)
+        self.dimensions = tuple(dims)
+        self._attributes = OrderedDict()
+
+    def ncattrs(self):
+        return tuple(self._attributes)
+
+    def setncattr(self, name, value):
+        self._attributes[name] = value
+
+    def getncattr(self, name):
+        return self._attributes[name]
+
+    def setncatts(self, attdict):
+        return self._attributes.update(attdict)
 
 
 class VariableTests(unittest.TestCase):
@@ -33,9 +54,9 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(v.definition, 'f(x)')
 
     def test_setting_definition_to_array_in_constructor(self):
-        defn = array([1, 2, 3], dtype='f')
+        defn = numpy.array([1, 2, 3], dtype='f')
         v = Variable('v', definition=defn)
-        assert_array_equal(v.definition, defn)
+        numpy.testing.assert_array_equal(v.definition, defn)
 
     def test_setting_definition_to_invalid_type_raises_type_error(self):
         with self.assertRaises(TypeError):
@@ -121,6 +142,20 @@ class VariableTests(unittest.TestCase):
     def test_km_cfunits(self):
         self.v.attributes['units'] = 'km'
         self.assertEqual(self.v.cfunits(), Unit('km'))
+
+    def test_default_positive_is_none(self):
+        self.assertIsNone(self.v.positive)
+
+    def test_positive_set_in_attributes(self):
+        self.v.attributes['positive'] = 'up'
+        self.assertEqual(self.v.positive, 'up')
+
+    def test_from_netcdf4(self):
+        ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))
+        v = Variable.from_netcdf4(ncvar)
+        self.assertEqual(v.name, 'v')
+        self.assertEqual(v.dtype, numpy.dtype('f'))
+        self.assertEqual(v.dimensions, ('x', 'y'))
 
 
 if __name__ == '__main__':
