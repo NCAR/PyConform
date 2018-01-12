@@ -10,6 +10,20 @@ import unittest
 from pyconform.metadata import Dimension
 
 
+class MockNetCDF4Dimension(object):
+
+    def __init__(self, name, size, isunlimited=False):
+        self.name = name
+        self.size = size
+        self._isunlimited = isunlimited
+
+    def __len__(self):
+        return self.size
+
+    def isunlimited(self):
+        return self._isunlimited
+
+
 class DimensionTests(unittest.TestCase):
 
     def setUp(self):
@@ -51,6 +65,13 @@ class DimensionTests(unittest.TestCase):
     def test_set_is_unlimited_to_non_bool_raises_type_error(self):
         with self.assertRaises(TypeError):
             Dimension('x', is_unlimited='false')
+
+    def test_from_netcdf4(self):
+        ncdim = MockNetCDF4Dimension('x', 4, isunlimited=True)
+        dim = Dimension.from_netcdf4(ncdim)
+        self.assertEqual(dim.name, 'x')
+        self.assertEqual(dim.size, 4)
+        self.assertTrue(dim.is_unlimited)
 
 
 if __name__ == '__main__':

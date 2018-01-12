@@ -45,3 +45,7 @@ class Dimension(NamedObject):
     @property
     def is_unlimited(self):
         return self.__is_unlimited
+
+    @classmethod
+    def from_netcdf4(cls, ncdim):
+        return cls(ncdim.name, size=len(ncdim), is_unlimited=ncdim.isunlimited())
