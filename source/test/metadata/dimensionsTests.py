@@ -81,6 +81,7 @@ class DimensionTests(unittest.TestCase):
     def test_not_equal(self):
         d1 = Dimension('x', size=5, is_unlimited=True)
         d2 = Dimension('x', size=2, is_unlimited=True)
+        self.assertIsNot(d1, d2)
         self.assertNotEqual(d1, d2)
 
 
