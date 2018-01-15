@@ -14,17 +14,21 @@ class Dataset(object):
     Metadata describing an entire NetCDF dataset
     """
 
-    def __init__(self, files=()):
+    def __init__(self):
         self.__dimensions = OrderedDict()
         self.__variables = OrderedDict()
         self.__files = OrderedDict()
-        self.__add_files(files)
 
-    def __add_files(self, files):
-        if not isinstance(files, (tuple, list)) or not all(isinstance(f, File) for f in files):
-            raise TypeError('Dataset files must be a tuple/list of Files')
-        for f in files:
-            self.__add_file(f)
+    def add(self, obj):
+        if isinstance(obj, Dimension):
+            self.__add_dimension(obj)
+        elif isinstance(obj, Variable):
+            self.__add_variable(obj)
+        elif isinstance(obj, File):
+            self.__add_file(obj)
+        else:
+            msg = 'Cannot add object of type {} to Dataset'
+            raise TypeError(msg.format(type(obj)))
 
     def __add_file(self, f):
         if f.name in self.__files and f is not self.__files[f.name]:
@@ -52,15 +56,15 @@ class Dataset(object):
 
     @property
     def dimensions(self):
-        return self.__dimensions.values()
+        return tuple(self.__dimensions)
 
     @property
     def variables(self):
-        return self.__variables.values()
+        return tuple(self.__variables)
 
     @property
     def files(self):
-        return self.__files.values()
+        return tuple(self.__files)
 
     def __contains__(self, obj):
         if isinstance(obj, Variable):
