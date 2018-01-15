@@ -49,3 +49,16 @@ class Dimension(NamedObject):
     @classmethod
     def from_netcdf4(cls, ncdim):
         return cls(ncdim.name, size=len(ncdim), is_unlimited=ncdim.isunlimited())
+
+    def __eq__(self, other):
+        if not isinstance(other, Dimension):
+            return False
+        elif self.size != other.size:
+            return False
+        elif self.is_unlimited != other.is_unlimited:
+            return False
+        else:
+            return True
+
+    def __ne__(self, other):
+        return not (self == other)

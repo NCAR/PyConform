@@ -73,6 +73,16 @@ class DimensionTests(unittest.TestCase):
         self.assertEqual(dim.size, 4)
         self.assertTrue(dim.is_unlimited)
 
+    def test_equal(self):
+        d1 = Dimension('x', size=5, is_unlimited=True)
+        d2 = Dimension('x', size=5, is_unlimited=True)
+        self.assertEqual(d1, d2)
+
+    def test_not_equal(self):
+        d1 = Dimension('x', size=5, is_unlimited=True)
+        d2 = Dimension('x', size=2, is_unlimited=True)
+        self.assertNotEqual(d1, d2)
+
 
 if __name__ == '__main__':
     unittest.main()
