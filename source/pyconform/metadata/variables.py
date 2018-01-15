@@ -117,3 +117,23 @@ class Variable(NamedObject):
     @property
     def positive(self):
         return self.attributes.get('positive', None)
+
+    def __eq__(self, other):
+        if not isinstance(other, Variable):
+            return False
+        elif self.definition != other.definition:
+            return False
+        elif self.datatype != other.datatype:
+            return False
+        elif self.dimensions != other.dimensions:
+            return False
+        elif self.units != other.units:
+            return False
+        elif self.refdatetime != other.refdatetime:
+            return False
+        elif self.calendar != other.calendar:
+            return False
+        elif self.positive != other.positive:
+            return False
+        else:
+            return True

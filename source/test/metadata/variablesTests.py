@@ -157,6 +157,12 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(v.dtype, numpy.dtype('f'))
         self.assertEqual(v.dimensions, ('x', 'y'))
 
+    def test_equal(self):
+        v1 = Variable('v', datatype='float', dimensions=('x', 'y'))
+        v2 = Variable('v', datatype='float', dimensions=('x', 'y'))
+        self.assertIsNot(v1, v2)
+        self.assertEqual(v1, v2)
+
 
 if __name__ == '__main__':
     unittest.main()
