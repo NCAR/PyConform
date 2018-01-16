@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata import Dimension, Dataset
+from pyconform.metadata import Dimension
 
 
 class MockNetCDF4Dimension(object):
@@ -27,8 +27,7 @@ class MockNetCDF4Dimension(object):
 class DimensionTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
-        self.d = Dimension('x', dataset=self.ds)
+        self.d = Dimension('x')
 
     def test_create(self):
         self.assertIsInstance(self.d, Dimension)
@@ -41,16 +40,16 @@ class DimensionTests(unittest.TestCase):
             self.d.size = 5
 
     def test_set_size_to_int_in_constructor(self):
-        d = Dimension('x', size=4, dataset=self.ds)
+        d = Dimension('x', size=4)
         self.assertEqual(d.size, 4)
 
     def test_set_size_to_non_int_raises_type_error(self):
         with self.assertRaises(TypeError):
-            Dimension('x', size='4', dataset=self.ds)
+            Dimension('x', size='4')
 
     def test_set_size_to_non_positive_raises_value_error(self):
         with self.assertRaises(ValueError):
-            Dimension('x', size=-2, dataset=self.ds)
+            Dimension('x', size=-2)
 
     def test_default_is_unlimited_is_false(self):
         self.assertEqual(self.d.is_unlimited, False)
@@ -60,28 +59,28 @@ class DimensionTests(unittest.TestCase):
             self.d.is_unlimited = True
 
     def test_set_is_unlimited_to_bool_in_constructor(self):
-        d = Dimension('x', is_unlimited=True, dataset=self.ds)
+        d = Dimension('x', is_unlimited=True)
         self.assertEqual(d.is_unlimited, True)
 
     def test_set_is_unlimited_to_non_bool_raises_type_error(self):
         with self.assertRaises(TypeError):
-            Dimension('x', is_unlimited='false', dataset=self.ds)
+            Dimension('x', is_unlimited='false')
 
     def test_from_netcdf4(self):
         ncdim = MockNetCDF4Dimension('x', 4, isunlimited=True)
-        dim = Dimension.from_netcdf4(ncdim, dataset=self.ds)
+        dim = Dimension.from_netcdf4(ncdim)
         self.assertEqual(dim.name, 'x')
         self.assertEqual(dim.size, 4)
         self.assertTrue(dim.is_unlimited)
 
     def test_equal(self):
-        d1 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
-        d2 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
+        d1 = Dimension('x', size=5, is_unlimited=True)
+        d2 = Dimension('x', size=5, is_unlimited=True)
         self.assertEqual(d1, d2)
 
     def test_not_equal(self):
-        d1 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
-        d2 = Dimension('x', size=2, is_unlimited=True, dataset=self.ds)
+        d1 = Dimension('x', size=5, is_unlimited=True)
+        d2 = Dimension('x', size=2, is_unlimited=True)
         self.assertIsNot(d1, d2)
         self.assertNotEqual(d1, d2)
 
