@@ -67,6 +67,11 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ds.add(v2)
 
+    def test_add_variable_without_dimensions_raises_key_error(self):
+        v = Variable('v', dimensions=('x',))
+        with self.assertRaises(KeyError):
+            self.ds.add(v)
+
     def test_add_file(self):
         f = File('test.nc')
         self.ds.add(f)
@@ -78,6 +83,30 @@ class DatasetTests(unittest.TestCase):
         self.ds.add(f1)
         with self.assertRaises(ValueError):
             self.ds.add(f2)
+
+    def test_add_file_without_variables_raises_key_error(self):
+        f = File('test.nc', variables=('v',))
+        with self.assertRaises(KeyError):
+            self.ds.add(f)
+
+    def test_new_dimension(self):
+        d = self.ds.new_dimension('x', size=5)
+        self.assertIn(d, self.ds)
+        self.assertEqual(d.size, 5)
+
+    def test_new_variable(self):
+        v = self.ds.new_variable('v', datatype='int64')
+        self.assertIn(v, self.ds)
+        self.assertEqual(v.datatype, 'int64')
+
+    def test_new_variable_without_dimensions_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.new_variable('v', dimensions=('x',))
+
+    def test_new_file(self):
+        f = self.ds.new_file('test.nc', format='NETCDF4')
+        self.assertIn(f, self.ds)
+        self.assertEqual(f.format, 'NETCDF4')
 
 
 if __name__ == '__main__':
