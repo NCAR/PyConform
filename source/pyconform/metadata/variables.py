@@ -144,3 +144,6 @@ class Variable(NamedObject):
             return False
         else:
             return True
+
+    def __ne__(self, other):
+        return not (self == other)
