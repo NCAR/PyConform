@@ -13,14 +13,10 @@ class MemberObject(NamedObject):
     A member of a Dataset
     """
 
-    def __init__(self, name, **kwds):
+    def __init__(self, name):
         super(MemberObject, self).__init__(name)
-        if 'dataset' not in kwds:
-            clsname = self.__class__.__name__
-            msg = '{} {!r} needs a dataset for construction'
-            raise AttributeError(msg.format(clsname, self.name))
-        self.__dataset = kwds['dataset']
+        self._dataset = None
 
     @property
     def dataset(self):
-        return self.__dataset
+        return self._dataset
