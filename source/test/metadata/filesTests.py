@@ -7,12 +7,13 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata import File, Variable, Dimension
+from pyconform.metadata import File, Variable, Dimension, Dataset
 
 
 class FileTests(unittest.TestCase):
 
     def setUp(self):
+        self.ds = Dataset()
         self.f = File('test.nc')
 
     def test_create(self):
@@ -40,52 +41,31 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             File('test.nc', deflate='3')
 
-    def test_default_dimensions_is_empty_list(self):
-        self.assertEqual(self.f.dimensions, [])
+    def test_default_dimensions_is_empty_tuple(self):
+        self.assertEqual(self.f.dimensions, ())
 
     def test_setting_dimensions_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.f.dimensions = 4
 
-    def test_default_variables_is_empty_list(self):
-        self.assertEqual(self.f.variables, [])
+    def test_setting_dimensions_in_constructor(self):
+        f = File('test.nc', dimensions=('x', 'y'))
+        self.assertItemsEqual(f.dimensions, ('x', 'y'))
+
+    def test_default_variables_is_empty_tuple(self):
+        self.assertEqual(self.f.variables, ())
 
     def test_setting_variables_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.f.variables = 4
 
     def test_setting_variables_in_constructor(self):
-        v = Variable('v')
-        u = Variable('u')
-        f = File('test.nc', variables=(u, v))
-        self.assertItemsEqual(f.variables, [u, v])
+        f = File('test.nc', variables=('u', 'v'))
+        self.assertItemsEqual(f.variables, ('u', 'v'))
 
     def test_setting_variables_with_wrong_type_raises_type_error(self):
         with self.assertRaises(TypeError):
-            File('test.nc', variables=('u', 'v'))
-
-    def test_setting_variables_with_dimensions_adds_dimensions_to_file(self):
-        x = Dimension('x')
-        y = Dimension('y')
-        v = Variable('v', dimensions=(x, y))
-        u = Variable('u', dimensions=(y, x))
-        f = File('test.nc', variables=(u, v))
-        self.assertItemsEqual(f.variables, [u, v])
-        self.assertItemsEqual(f.dimensions, [x, y])
-
-    def test_different_variables_with_same_name_raises_value_error(self):
-        v1 = Variable('v')
-        v2 = Variable('v')
-        with self.assertRaises(ValueError):
-            File('test.nc', variables=(v1, v2))
-
-    def test_variable_dimensions_with_same_name_raises_value_error(self):
-        x1 = Dimension('x')
-        x2 = Dimension('x')
-        v = Variable('v', dimensions=(x1,))
-        u = Variable('u', dimensions=(x2,))
-        with self.assertRaises(ValueError):
-            File('test.nc', variables=(v, u))
+            File('test.nc', variables=(1, 2))
 
 
 if __name__ == '__main__':

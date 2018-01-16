@@ -10,7 +10,7 @@ import numpy
 
 from cf_units import Unit
 from collections import OrderedDict
-from pyconform.metadata import Variable, Dimension, Dataset
+from pyconform.metadata import Variable
 
 
 class MockNetCDF4Variable(object):
@@ -78,7 +78,7 @@ class VariableTests(unittest.TestCase):
             Variable('v', datatype='integer')
 
     def test_datatype_from_dtype(self):
-        for ncdt, npdt in zip(Variable._NETCDF_TYPES_[:-1], Variable._NUMPY_DTYPES_[:-1]):
+        for ncdt, npdt in zip(Variable._NETCDF4_TYPES_[:-1], Variable._NUMPY_DTYPES_[:-1]):
             self.assertEqual(ncdt, Variable.datatype_from_dtype(npdt))
         npdt = Variable._NUMPY_DTYPES_[-1]
         self.assertEqual('float', Variable.datatype_from_dtype(npdt))
@@ -162,6 +162,12 @@ class VariableTests(unittest.TestCase):
         v2 = Variable('v', datatype='float', dimensions=('x', 'y'))
         self.assertIsNot(v1, v2)
         self.assertEqual(v1, v2)
+
+    def test_is_netcdf3_type(self):
+        v = Variable('v', datatype='float')
+        self.assertTrue(v.is_netcdf3_type())
+        v = Variable('v', datatype='int64')
+        self.assertFalse(v.is_netcdf3_type())
 
 
 if __name__ == '__main__':

@@ -15,11 +15,14 @@ class Variable(NamedObject):
     Metadata describing a NetCDF variable
     """
 
-    _NETCDF_TYPES_ = ('byte', 'ubyte', 'char',
-                      'short', 'ushort',
-                      'int', 'uint',
-                      'int64', 'uint64',
-                      'float', 'double', 'real')
+    _NETCDF3_TYPES_ = ('byte', 'char', 'short', 'int',
+                       'float', 'double')
+
+    _NETCDF4_TYPES_ = ('byte', 'ubyte', 'char',
+                       'short', 'ushort',
+                       'int', 'uint',
+                       'int64', 'uint64',
+                       'float', 'double', 'real')
 
     _NUMPY_DTYPES_ = (dtype('b'), dtype('u1'), dtype('S1'),
                       dtype('i2'), dtype('u2'),
@@ -32,7 +35,7 @@ class Variable(NamedObject):
         if not isinstance(dt, dtype) or dt not in Variable._NUMPY_DTYPES_:
             raise TypeError('Unrecognized variable dtype {!r}'.format(dt))
         idt = Variable._NUMPY_DTYPES_.index(dt)
-        return Variable._NETCDF_TYPES_[idt]
+        return Variable._NETCDF4_TYPES_[idt]
 
     def __init__(self, name, definition=None, datatype=None, dimensions=None):
         super(Variable, self).__init__(name)
@@ -52,7 +55,7 @@ class Variable(NamedObject):
     def __validate_datatype(self, datatype):
         if datatype is None:
             return None
-        if datatype not in Variable._NETCDF_TYPES_:
+        if datatype not in Variable._NETCDF4_TYPES_:
             msg = 'Variable {!r} has invalid datatype {!r}'
             raise ValueError(msg.format(self.name, datatype))
         return datatype
@@ -86,8 +89,11 @@ class Variable(NamedObject):
 
     @property
     def dtype(self):
-        idt = Variable._NETCDF_TYPES_.index(self.__datatype)
+        idt = Variable._NETCDF4_TYPES_.index(self.__datatype)
         return Variable._NUMPY_DTYPES_[idt]
+
+    def is_netcdf3_type(self):
+        return self.datatype in Variable._NETCDF3_TYPES_
 
     @property
     def dimensions(self):
