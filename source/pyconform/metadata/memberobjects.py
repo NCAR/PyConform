@@ -13,9 +13,9 @@ class MemberObject(NamedObject):
     A member of a Dataset
     """
 
-    def __init__(self, name):
+    def __init__(self, name, **kwds):
         super(MemberObject, self).__init__(name)
-        self._dataset = None
+        self._dataset = kwds.get('dataset', None)
 
     @property
     def dataset(self):

@@ -17,8 +17,7 @@ class Tests(unittest.TestCase):
         self.assertIsInstance(m, MemberObject)
 
     def test_dataset_property(self):
-        m = MemberObject('x')
-        m._dataset = 3
+        m = MemberObject('x', dataset=3)
         self.assertEqual(m.dataset, 3)
 
 
