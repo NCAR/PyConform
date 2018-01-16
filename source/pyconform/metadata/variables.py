@@ -71,12 +71,10 @@ class Variable(NamedObject):
 
     @classmethod
     def from_netcdf4(cls, ncvar):
-        print ncvar.dtype
         dt = cls.datatype_from_dtype(ncvar.dtype)
-        print dt
         v = Variable(ncvar.name, datatype=dt, dimensions=ncvar.dimensions)
-        for k in ncvar.ncattrs():
-            v.attributes[k] = ncvar.getncattr(k)
+        ncatts = {a: ncvar.getncattr(a) for a in ncvar.ncattrs()}
+        v.attributes.update(ncatts)
         return v
 
     @property
