@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 import netCDF4 as nc
 
 from datasets import Dataset
+from . import Dimension, Variable, File
 
 
 class InputDataset(Dataset):
@@ -16,6 +17,33 @@ class InputDataset(Dataset):
     """
 
     def __init__(self, *filenames):
-        for filename in filenames:
-            ncf = nc.Dataset(filename)
-            ncf.close()
+        super(InputDataset, self).__init__()
+        for filename in set(filenames):
+            self.__add_netcdf_file(filename)
+
+    def __add_netcdf_file(self, filename):
+        ncf = nc.Dataset(filename)
+        for name in ncf.dimensions:
+            self.__add_netcdf_dimension(ncf.dimensions[name])
+        for name in ncf.variables:
+            self.__add_netcdf_variable(ncf.variables[name])
+        f = File(filename, dimensions=tuple(ncf.dimensions),
+                 variables=tuple(ncf.variables))
+        self.add(f)
+        ncf.close()
+
+    def __add_netcdf_dimension(self, ncd):
+        d = Dimension.from_netcdf4(ncd)
+        if d.name not in self.dimensions:
+            self.add(d)
+        elif self.get_dimension(d.name) != d:
+            msg = 'Dimension {!r} is different across files'
+            raise ValueError(msg.format(d.name))
+
+    def __add_netcdf_variable(self, ncv):
+        v = Variable.from_netcdf4(ncv)
+        if v.name not in self.variables:
+            self.add(v)
+        elif self.get_variable(v.name) != v:
+            msg = 'Variable {!r} is different across files'
+            raise ValueError(msg.format(v.name))
