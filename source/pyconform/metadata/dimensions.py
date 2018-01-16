@@ -5,16 +5,16 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from namedobjects import NamedObject
+from memberobjects import MemberObject
 
 
-class Dimension(NamedObject):
+class Dimension(MemberObject):
     """
     Metadata describing a NetCDF dimension
     """
 
-    def __init__(self, name, size=None, is_unlimited=False):
-        super(Dimension, self).__init__(name)
+    def __init__(self, name, size=None, is_unlimited=False, **kwds):
+        super(Dimension, self).__init__(name, **kwds)
         self.__size = self.__validate_size_type(size)
         self.__is_unlimited = self.__validate_is_unlimited_type(is_unlimited)
 
@@ -47,8 +47,8 @@ class Dimension(NamedObject):
         return self.__is_unlimited
 
     @classmethod
-    def from_netcdf4(cls, ncdim):
-        return cls(ncdim.name, size=len(ncdim), is_unlimited=ncdim.isunlimited())
+    def from_netcdf4(cls, ncdim, **kwds):
+        return cls(ncdim.name, size=len(ncdim), is_unlimited=ncdim.isunlimited(), **kwds)
 
     def __eq__(self, other):
         if not isinstance(other, Dimension):
