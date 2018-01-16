@@ -15,26 +15,34 @@ class Dimension(MemberObject):
 
     def __init__(self, name, size=None, is_unlimited=False, **kwds):
         super(Dimension, self).__init__(name, **kwds)
+        self.__check_for_name_collision_in_dataset()
         self.__size = self.__validate_size_type(size)
         self.__is_unlimited = self.__validate_is_unlimited_type(is_unlimited)
+
+    def __check_for_name_collision_in_dataset(self):
+        if self.dataset is None:
+            return
+        if self.name in self.dataset.dimensions:
+            msg = 'Dimension {!r} already found in dataset'
+            raise KeyError(msg.format(self.name))
 
     def __validate_size_type(self, size):
         if size is None:
             return None
         if not isinstance(size, int):
-            msg = 'Dimension {} must have integer size'
+            msg = 'Dimension {!r} must have integer size'
             raise TypeError(msg.format(self.name))
         return self.__validate_size_value(size)
 
     def __validate_size_value(self, size):
         if size < 1:
-            msg = 'Dimension {} must have positive size'
+            msg = 'Dimension {!r} must have positive size'
             raise ValueError(msg.format(self.name))
         return size
 
     def __validate_is_unlimited_type(self, is_unlimited):
         if not isinstance(is_unlimited, bool):
-            msg = 'Dimension {} must have bool is_unlimited'
+            msg = 'Dimension {!r} must have bool is_unlimited'
             raise TypeError(msg.format(self.name))
         return is_unlimited
 
