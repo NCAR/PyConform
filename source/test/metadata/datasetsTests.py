@@ -108,6 +108,37 @@ class DatasetTests(unittest.TestCase):
         self.assertIn(f, self.ds)
         self.assertEqual(f.format, 'NETCDF4')
 
+    def test_get_dimension(self):
+        self.ds.new_dimension('x', size=6)
+        x = self.ds.get_dimension('x')
+        self.assertIn(x, self.ds)
+        self.assertEqual(x.name, 'x')
+        self.assertEqual(x.size, 6)
+
+    def test_get_dimension_not_found_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.get_dimension('x')
+
+    def test_get_variable(self):
+        self.ds.new_variable('v')
+        v = self.ds.get_variable('v')
+        self.assertIn(v, self.ds)
+        self.assertEqual(v.name, 'v')
+
+    def test_get_variable_not_found_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.get_variable('v')
+
+    def test_get_file(self):
+        self.ds.new_file('test.nc')
+        f = self.ds.get_file('test.nc')
+        self.assertIn(f, self.ds)
+        self.assertEqual(f.name, 'test.nc')
+
+    def test_get_file_not_found_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.get_file('test.nc')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -19,6 +19,16 @@ class Dataset(object):
         self.__variables = OrderedDict()
         self.__files = OrderedDict()
 
+    def __contains__(self, obj):
+        if isinstance(obj, Variable):
+            return obj.name in self.__variables and obj is self.__variables[obj.name]
+        elif isinstance(obj, Dimension):
+            return obj.name in self.__dimensions and obj is self.__dimensions[obj.name]
+        elif isinstance(obj, File):
+            return obj.name in self.__files and obj is self.__files[obj.name]
+        else:
+            return False
+
     def add(self, obj):
         if isinstance(obj, Dimension):
             self.__add_dimension(obj)
@@ -93,12 +103,20 @@ class Dataset(object):
     def files(self):
         return tuple(self.__files)
 
-    def __contains__(self, obj):
-        if isinstance(obj, Variable):
-            return obj.name in self.__variables and obj is self.__variables[obj.name]
-        elif isinstance(obj, Dimension):
-            return obj.name in self.__dimensions and obj is self.__dimensions[obj.name]
-        elif isinstance(obj, File):
-            return obj.name in self.__files and obj is self.__files[obj.name]
-        else:
-            return False
+    def get_dimension(self, name):
+        if name not in self.__dimensions:
+            msg = 'Dimension {!r} not found in dataset'
+            raise KeyError(msg.format(name))
+        return self.__dimensions[name]
+
+    def get_variable(self, name):
+        if name not in self.__variables:
+            msg = 'Variable {!r} not found in dataset'
+            raise KeyError(msg.format(name))
+        return self.__variables[name]
+
+    def get_file(self, name):
+        if name not in self.__files:
+            msg = 'File {!r} not found in dataset'
+            raise KeyError(msg.format(name))
+        return self.__files[name]
