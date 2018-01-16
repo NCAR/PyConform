@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata import Dimension, Dataset
+from pyconform.metadata import Dimension
 
 
 class MockNetCDF4Dimension(object):
