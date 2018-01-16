@@ -48,6 +48,7 @@ class DatasetTests(unittest.TestCase):
         d = Dimension('x')
         self.ds.add(d)
         self.assertIn(d, self.ds)
+        self.assertEqual(self.ds.dimensions, ('x',))
 
     def test_add_different_dimensions_with_same_name_raises_value_error(self):
         d1 = Dimension('x')
@@ -60,6 +61,7 @@ class DatasetTests(unittest.TestCase):
         v = Variable('v')
         self.ds.add(v)
         self.assertIn(v, self.ds)
+        self.assertEqual(self.ds.variables, ('v',))
 
     def test_add_different_variables_with_same_name_raises_value_error(self):
         v1 = Variable('v')
@@ -77,6 +79,7 @@ class DatasetTests(unittest.TestCase):
         f = File('test.nc')
         self.ds.add(f)
         self.assertIn(f, self.ds)
+        self.assertEqual(self.ds.files, ('test.nc',))
 
     def test_add_different_files_with_same_name_raises_value_error(self):
         f1 = File('test.nc')
