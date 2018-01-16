@@ -1,5 +1,5 @@
 """
-Unit Tests
+Unit Tests for InputDatasets
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -13,7 +13,7 @@ from os import remove
 from pyconform.metadata import InputDataset
 
 
-class Tests(unittest.TestCase):
+class InputDatasetTests(unittest.TestCase):
 
     def setUp(self):
         ncf = nc.Dataset('test1.nc', 'w')
