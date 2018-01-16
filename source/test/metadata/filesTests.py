@@ -41,7 +41,7 @@ class FileTests(unittest.TestCase):
             File('test.nc', deflate='3')
 
     def test_default_dimensions_is_empty_tuple(self):
-        self.assertEqual(self.f.dimensions, ())
+        self.assertEqual(self.f.dimensions, frozenset())
 
     def test_setting_dimensions_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
@@ -52,7 +52,7 @@ class FileTests(unittest.TestCase):
         self.assertItemsEqual(f.dimensions, ('x', 'y'))
 
     def test_default_variables_is_empty_tuple(self):
-        self.assertEqual(self.f.variables, ())
+        self.assertEqual(self.f.variables, frozenset())
 
     def test_setting_variables_raises_attribute_error(self):
         with self.assertRaises(AttributeError):

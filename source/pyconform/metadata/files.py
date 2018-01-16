@@ -44,14 +44,14 @@ class File(NamedObject):
                 all(isinstance(v, basestring) for v in variables)):
             msg = 'File {!r} can only accept a list/tuple of variable names'
             raise TypeError(msg.format(self.name))
-        return tuple(variables)
+        return frozenset(variables)
 
     def __validate_dimensions(self, dimensions):
         if not (isinstance(dimensions, (list, tuple)) and
                 all(isinstance(v, basestring) for v in dimensions)):
             msg = 'File {!r} can only accept a list/tuple of dimension names'
             raise TypeError(msg.format(self.name))
-        return tuple(dimensions)
+        return frozenset(dimensions)
 
     @property
     def attributes(self):
