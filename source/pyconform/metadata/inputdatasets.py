@@ -29,6 +29,8 @@ class InputDataset(Dataset):
             self.__add_netcdf_variable(ncf.variables[name])
         f = File(filename, dimensions=tuple(ncf.dimensions),
                  variables=tuple(ncf.variables))
+        ncfatts = {a: ncf.getncattr(a) for a in ncf.ncattrs()}
+        f.attributes.update(ncfatts)
         self.add(f)
         ncf.close()
 
