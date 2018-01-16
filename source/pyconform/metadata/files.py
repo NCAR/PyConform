@@ -18,11 +18,12 @@ class File(NamedObject):
 
     _NETCDF4_FORMATS_ = {'NETCDF4'}
 
-    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=1, variables=(), dimensions=()):  # @ReservedAssignment
+    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=1, shuffle='off', variables=(), dimensions=()):  # @ReservedAssignment
         super(File, self).__init__(name)
         self.__attributes = {}
         self.__format = self.__validate_format(format)
         self.__deflate = self.__validate_deflate(deflate)
+        self.__shuffle = self.__validate_shuffle(shuffle)
         self.__variables = self.__validate_variables(variables)
         self.__dimensions = self.__validate_dimensions(dimensions)
         self.path = None
@@ -38,6 +39,12 @@ class File(NamedObject):
             msg = 'File {!r} deflate level must be an integer'
             raise TypeError(msg.format(self.name))
         return deflate
+
+    def __validate_shuffle(self, shuffle):
+        if not (isinstance(shuffle, basestring) and shuffle in ('on', 'off')):
+            msg = 'File {!r} shuffle must be "on" or "off"'
+            raise TypeError(msg.format(self.name))
+        return shuffle
 
     def __validate_variables(self, variables):
         if not (isinstance(variables, (list, tuple)) and
@@ -70,6 +77,10 @@ class File(NamedObject):
     @property
     def deflate(self):
         return self.__deflate
+
+    @property
+    def shuffle(self):
+        return self.__shuffle
 
     @property
     def dimensions(self):

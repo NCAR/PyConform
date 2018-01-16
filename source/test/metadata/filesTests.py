@@ -40,6 +40,21 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             File('test.nc', deflate='3')
 
+    def test_default_shuffle_is_off(self):
+        self.assertEqual(self.f.shuffle, 'off')
+
+    def test_setting_shuffle_raises_attribute_error(self):
+        with self.assertRaises(AttributeError):
+            self.f.shuffle = 'on'
+
+    def test_setting_shuffle_in_constructor(self):
+        f = File('test.nc', shuffle='on')
+        self.assertEqual(f.shuffle, 'on')
+
+    def test_setting_shuffle_to_invalid_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            File('test.nc', shuffle=True)
+
     def test_default_dimensions_is_empty_tuple(self):
         self.assertEqual(self.f.dimensions, frozenset())
 
