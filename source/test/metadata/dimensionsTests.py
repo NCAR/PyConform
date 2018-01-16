@@ -84,12 +84,6 @@ class DimensionTests(unittest.TestCase):
         self.assertIsNot(d1, d2)
         self.assertNotEqual(d1, d2)
 
-    def test_create_same_names_in_same_dataset_raises_key_error(self):
-        ds = Dataset()
-        ds.add(Dimension('x', dataset=ds))
-        with self.assertRaises(KeyError):
-            Dimension('x', dataset=ds)
-
 
 if __name__ == '__main__':
     unittest.main()

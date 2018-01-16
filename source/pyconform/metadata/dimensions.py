@@ -5,26 +5,18 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from memberobjects import MemberObject
+from namedobjects import NamedObject
 
 
-class Dimension(MemberObject):
+class Dimension(NamedObject):
     """
     Metadata describing a NetCDF dimension
     """
 
     def __init__(self, name, size=None, is_unlimited=False, **kwds):
         super(Dimension, self).__init__(name, **kwds)
-        self.__check_for_name_collision_in_dataset()
         self.__size = self.__validate_size_type(size)
         self.__is_unlimited = self.__validate_is_unlimited_type(is_unlimited)
-
-    def __check_for_name_collision_in_dataset(self):
-        if self.dataset is None:
-            return
-        if self.name in self.dataset.dimensions:
-            msg = 'Dimension {!r} already found in dataset'
-            raise KeyError(msg.format(self.name))
 
     def __validate_size_type(self, size):
         if size is None:

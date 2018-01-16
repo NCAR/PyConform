@@ -30,7 +30,7 @@ class Variable(NamedObject):
     @classmethod
     def datatype_from_dtype(cls, dt):
         if not isinstance(dt, dtype) or dt not in Variable._NUMPY_DTYPES_:
-            raise TypeError('Unrecognized variable dtype {}'.format(dt))
+            raise TypeError('Unrecognized variable dtype {!r}'.format(dt))
         idt = Variable._NUMPY_DTYPES_.index(dt)
         return Variable._NETCDF_TYPES_[idt]
 
@@ -45,7 +45,7 @@ class Variable(NamedObject):
         if definition is None:
             return None
         if not isinstance(definition, (basestring, ndarray)):
-            msg = 'Variable {} must have a string or array definition'
+            msg = 'Variable {!r} must have a string or array definition'
             raise TypeError(msg.format(self.name))
         return definition
 
@@ -53,15 +53,16 @@ class Variable(NamedObject):
         if datatype is None:
             return None
         if datatype not in Variable._NETCDF_TYPES_:
-            msg = 'Variable {} has invalid datatype {!r}'
+            msg = 'Variable {!r} has invalid datatype {!r}'
             raise ValueError(msg.format(self.name, datatype))
         return datatype
 
     def __validate_dimensions(self, dimensions):
         if dimensions is None:
             return None
-        if not isinstance(dimensions, (list, tuple)):
-            msg = 'Variable {} must have a list or tuple of dimension names'
+        if not (isinstance(dimensions, (list, tuple)) and
+                all(isinstance(d, basestring) for d in dimensions)):
+            msg = 'Variable {!r} must have a list or tuple of dimension names'
             raise TypeError(msg.format(self.name))
         return dimensions
 

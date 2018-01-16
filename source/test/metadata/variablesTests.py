@@ -10,7 +10,7 @@ import numpy
 
 from cf_units import Unit
 from collections import OrderedDict
-from pyconform.metadata import Variable, Dimension
+from pyconform.metadata import Variable, Dimension, Dataset
 
 
 class MockNetCDF4Variable(object):
@@ -87,7 +87,7 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(self.v.dimensions, None)
 
     def test_setting_dimensions_in_constructor(self):
-        dims = (Dimension('x'), Dimension('y'))
+        dims = ('x', 'y')
         v = Variable('v', dimensions=dims)
         self.assertEqual(v.dimensions, dims)
 
