@@ -31,13 +31,13 @@ class InputDataset(Dataset):
                  variables=tuple(ncf.variables))
         ncfatts = {a: ncf.getncattr(a) for a in ncf.ncattrs()}
         f.attributes.update(ncfatts)
-        self.add(f)
+        self._add_file(f)
         ncf.close()
 
     def __add_netcdf_dimension(self, ncd):
         d = Dimension.from_netcdf4(ncd)
         if d.name not in self.dimensions:
-            self.add(d)
+            self._add_dimension(d)
         elif self.get_dimension(d.name) != d:
             msg = 'Dimension {!r} is different across files'
             raise ValueError(msg.format(d.name))
@@ -45,7 +45,7 @@ class InputDataset(Dataset):
     def __add_netcdf_variable(self, ncv):
         v = Variable.from_netcdf4(ncv)
         if v.name not in self.variables:
-            self.add(v)
+            self._add_variable(v)
         elif self.get_variable(v.name) != v:
             msg = 'Variable {!r} is different across files'
             raise ValueError(msg.format(v.name))
