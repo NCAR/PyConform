@@ -26,10 +26,6 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.ds.dimensions = 3
 
-    def test_add_wrong_type_raises_type_error(self):
-        with self.assertRaises(TypeError):
-            self.ds.add('x')
-
     def test_default_variables_is_empty_tuple(self):
         self.assertEqual(self.ds.variables, ())
 
@@ -44,81 +40,78 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.ds.files = 3
 
-    def test_add_dimension(self):
-        d = Dimension('x')
-        self.ds.add(d)
+    def test_new_dimension(self):
+        d = self.ds.new_dimension('x')
         self.assertIn(d, self.ds)
         self.assertEqual(self.ds.dimensions, ('x',))
 
-    def test_add_different_dimensions_with_same_name_raises_value_error(self):
-        d1 = Dimension('x')
-        d2 = Dimension('x')
-        self.ds.add(d1)
+    def test_two_new_dimensions_with_same_name_raises_value_error(self):
+        self.ds.new_dimension('x')
         with self.assertRaises(ValueError):
-            self.ds.add(d2)
+            self.ds.new_dimension('x')
 
-    def test_add_variable(self):
-        v = Variable('v')
-        self.ds.add(v)
+    def test_new_dimension_sets_dimenion_dataset(self):
+        d = self.ds.new_dimension('x')
+        self.assertIs(d.dataset, self.ds)
+
+    def test_new_variable(self):
+        v = self.ds.new_variable('v')
         self.assertIn(v, self.ds)
         self.assertEqual(self.ds.variables, ('v',))
 
-    def test_add_different_variables_with_same_name_raises_value_error(self):
-        v1 = Variable('v')
-        v2 = Variable('v')
-        self.ds.add(v1)
+    def test_two_new_variables_with_same_name_raises_value_error(self):
+        self.ds.new_variable('v')
         with self.assertRaises(ValueError):
-            self.ds.add(v2)
+            self.ds.new_variable('v')
 
-    def test_add_variable_without_dimensions_raises_key_error(self):
-        v = Variable('v', dimensions=('x',))
+    def test_new_variable_sets_variable_dataset(self):
+        v = self.ds.new_dimension('v')
+        self.assertIs(v.dataset, self.ds)
+
+    def test_new_variable_without_dimensions_raises_key_error(self):
         with self.assertRaises(KeyError):
-            self.ds.add(v)
+            self.ds.new_variable('v', dimensions=('x',))
 
-    def test_add_file(self):
-        f = File('test.nc')
-        self.ds.add(f)
+    def test_new_file(self):
+        f = self.ds.new_file('test.nc')
         self.assertIn(f, self.ds)
         self.assertEqual(self.ds.files, ('test.nc',))
 
-    def test_add_different_files_with_same_name_raises_value_error(self):
-        f1 = File('test.nc')
-        f2 = File('test.nc')
-        self.ds.add(f1)
+    def test_two_new_files_with_same_name_raises_value_error(self):
+        self.ds.new_file('test.nc')
         with self.assertRaises(ValueError):
-            self.ds.add(f2)
+            self.ds.new_file('test.nc')
 
-    def test_add_file_without_variables_raises_key_error(self):
-        f = File('test.nc', variables=('v',))
+    def test_new_file_without_variables_raises_key_error(self):
         with self.assertRaises(KeyError):
-            self.ds.add(f)
+            self.ds.new_file('test.nc', variables=('v',))
+
+    def test_new_file_sets_file_dataset(self):
+        f = self.ds.new_file('test.nc')
+        self.assertIs(f.dataset, self.ds)
 
     def test_get_dimension(self):
-        self.ds.add(Dimension('x', size=6))
-        x = self.ds.get_dimension('x')
-        self.assertIn(x, self.ds)
-        self.assertEqual(x.name, 'x')
-        self.assertEqual(x.size, 6)
+        x1 = self.ds.new_dimension('x', size=6)
+        x2 = self.ds.get_dimension('x')
+        self.assertIs(x1, x2)
 
     def test_get_dimension_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.get_dimension('x')
 
     def test_get_variable(self):
-        self.ds.add(Variable('v'))
-        v = self.ds.get_variable('v')
-        self.assertIn(v, self.ds)
-        self.assertEqual(v.name, 'v')
+        v1 = self.ds.new_variable('v')
+        v2 = self.ds.get_variable('v')
+        self.assertIs(v1, v2)
 
     def test_get_variable_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.get_variable('v')
 
     def test_get_file(self):
-        self.ds.add(File('test.nc'))
-        f = self.ds.get_file('test.nc')
-        self.assertIn(f, self.ds)
-        self.assertEqual(f.name, 'test.nc')
+        f1 = self.ds.new_file('test.nc')
+        f2 = self.ds.get_file('test.nc')
+        self.assertIs(f1, f2)
 
     def test_get_file_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
