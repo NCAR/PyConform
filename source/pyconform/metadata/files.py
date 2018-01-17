@@ -5,10 +5,10 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from namedobjects import NamedObject
+from memberobjects import MemberObject
 
 
-class File(NamedObject):
+class File(MemberObject):
     """
     Metadata describing a NetCDF file
     """

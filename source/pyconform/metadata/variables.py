@@ -7,10 +7,10 @@ LICENSE: See the LICENSE.rst file for details
 
 from cf_units import Unit
 from numpy import ndarray, dtype
-from namedobjects import NamedObject
+from memberobjects import MemberObject
 
 
-class Variable(NamedObject):
+class Variable(MemberObject):
     """
     Metadata describing a NetCDF variable
     """
