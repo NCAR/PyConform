@@ -35,7 +35,7 @@ class Dataset(object):
             raise ValueError(msg.format(name))
         d = Dimension(name, **kwds)
         d.dataset = self
-        self.__add_dimension(d)
+        self._add_dimension(d)
         return d
 
     def new_variable(self, name, **kwds):
@@ -44,7 +44,7 @@ class Dataset(object):
             raise ValueError(msg.format(name))
         v = Variable(name, **kwds)
         v.dataset = self
-        self.__add_variable(v)
+        self._add_variable(v)
         return v
 
     def new_file(self, name, **kwds):
@@ -53,10 +53,10 @@ class Dataset(object):
             raise ValueError(msg.format(name))
         f = File(name, **kwds)
         f.dataset = self
-        self.__add_file(f)
+        self._add_file(f)
         return f
 
-    def __add_file(self, f):
+    def _add_file(self, f):
         self.__check_dimension_references(f.dimensions)
         self.__check_variable_references(f.variables)
         self.__files[f.name] = f
@@ -79,11 +79,11 @@ class Dataset(object):
             msg = 'Variables {} not found in dataset'
             raise KeyError(msg.format(dstr))
 
-    def __add_variable(self, v):
+    def _add_variable(self, v):
         self.__check_dimension_references(v.dimensions)
         self.__variables[v.name] = v
 
-    def __add_dimension(self, d):
+    def _add_dimension(self, d):
         self.__dimensions[d.name] = d
 
     @property
