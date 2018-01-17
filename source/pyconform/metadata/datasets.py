@@ -79,18 +79,6 @@ class Dataset(object):
             raise ValueError(msg.format(d.name))
         self.__dimensions[d.name] = d
 
-    def new_dimension(self, name, **kwds):
-        self.__add_dimension(Dimension(name, **kwds))
-        return self.__dimensions[name]
-
-    def new_variable(self, name, **kwds):
-        self.__add_variable(Variable(name, **kwds))
-        return self.__variables[name]
-
-    def new_file(self, name, **kwds):
-        self.__add_file(File(name, **kwds))
-        return self.__files[name]
-
     @property
     def dimensions(self):
         return tuple(self.__dimensions)

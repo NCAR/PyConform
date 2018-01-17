@@ -93,27 +93,8 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.ds.add(f)
 
-    def test_new_dimension(self):
-        d = self.ds.new_dimension('x', size=5)
-        self.assertIn(d, self.ds)
-        self.assertEqual(d.size, 5)
-
-    def test_new_variable(self):
-        v = self.ds.new_variable('v', datatype='int64')
-        self.assertIn(v, self.ds)
-        self.assertEqual(v.datatype, 'int64')
-
-    def test_new_variable_without_dimensions_raises_key_error(self):
-        with self.assertRaises(KeyError):
-            self.ds.new_variable('v', dimensions=('x',))
-
-    def test_new_file(self):
-        f = self.ds.new_file('test.nc', format='NETCDF4')
-        self.assertIn(f, self.ds)
-        self.assertEqual(f.format, 'NETCDF4')
-
     def test_get_dimension(self):
-        self.ds.new_dimension('x', size=6)
+        self.ds.add(Dimension('x', size=6))
         x = self.ds.get_dimension('x')
         self.assertIn(x, self.ds)
         self.assertEqual(x.name, 'x')
@@ -124,7 +105,7 @@ class DatasetTests(unittest.TestCase):
             self.ds.get_dimension('x')
 
     def test_get_variable(self):
-        self.ds.new_variable('v')
+        self.ds.add(Variable('v'))
         v = self.ds.get_variable('v')
         self.assertIn(v, self.ds)
         self.assertEqual(v.name, 'v')
@@ -134,7 +115,7 @@ class DatasetTests(unittest.TestCase):
             self.ds.get_variable('v')
 
     def test_get_file(self):
-        self.ds.new_file('test.nc')
+        self.ds.add(File('test.nc'))
         f = self.ds.get_file('test.nc')
         self.assertIn(f, self.ds)
         self.assertEqual(f.name, 'test.nc')

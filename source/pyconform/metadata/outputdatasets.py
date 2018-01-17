@@ -47,7 +47,10 @@ class OutputDataset(Dataset):
         for vname in vsers:
             fdict = vfiles[vname]
             fname = fdict.pop('filename', '{}.nc'.format(vname))
+            fatts = fdict.pop('attributes', {})
             fdict['deflate'] = int(fdict.pop('compression', '1'))
             fvars = vmeta + [vname]
-            fdims = sum(vdicts[v].get('dimensions', []) for v in fvars)
-            self.add(File(fname, dimensions=fdims, variables=fvars, **fdict))
+            fdims = sum((vdicts[v].get('dimensions', []) for v in fvars), [])
+            f = File(fname, dimensions=fdims, variables=fvars, **fdict)
+            f.attributes.update(fatts)
+            self.add(f)
