@@ -4,7 +4,7 @@ Parsing Module
 This module defines the necessary elements to parse a string variable definition
 into the recognized elements that are used to construct an Operation Graph.
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
