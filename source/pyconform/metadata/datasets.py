@@ -34,7 +34,7 @@ class Dataset(object):
             msg = 'A Dimension with name {!r} is already contained in Dataset'
             raise ValueError(msg.format(name))
         d = Dimension(name, **kwds)
-        d.dataset = self
+        d._dataset = self
         self._add_dimension(d)
         return d
 
@@ -43,7 +43,7 @@ class Dataset(object):
             msg = 'A Variable with name {!r} is already contained in Dataset'
             raise ValueError(msg.format(name))
         v = Variable(name, **kwds)
-        v.dataset = self
+        v._dataset = self
         self._add_variable(v)
         return v
 
@@ -52,7 +52,7 @@ class Dataset(object):
             msg = 'A File with name {!r} is already contained in Dataset'
             raise ValueError(msg.format(name))
         f = File(name, **kwds)
-        f.dataset = self
+        f._dataset = self
         self._add_file(f)
         return f
 

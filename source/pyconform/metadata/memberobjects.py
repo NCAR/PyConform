@@ -18,11 +18,11 @@ class MemberObject(NamedObject):
         self.__dataset = None
 
     @property
-    def dataset(self):
+    def _dataset(self):
         return self.__dataset
 
-    @dataset.setter
-    def dataset(self, ds):
+    @_dataset.setter
+    def _dataset(self, ds):
         from datasets import Dataset
         if not isinstance(ds, Dataset):
             msg = 'dataset property must be a Dataset object'

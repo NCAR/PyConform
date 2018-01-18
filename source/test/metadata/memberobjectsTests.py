@@ -19,18 +19,18 @@ class MemberObjectTests(unittest.TestCase):
 
     def test_default_dataset_is_none(self):
         m = MemberObject('name')
-        self.assertIsNone(m.dataset)
+        self.assertIsNone(m._dataset)
 
     def test_setting_dataset_to_non_dataset_raises_type_error(self):
         m = MemberObject('name')
         with self.assertRaises(TypeError):
-            m.dataset = 4
+            m._dataset = 4
 
     def test_setting_dataset_to_dataset_stores_dataset(self):
         m = MemberObject('name')
         from pyconform.metadata.datasets import Dataset
-        m.dataset = Dataset()
-        self.assertIsInstance(m.dataset, Dataset)
+        m._dataset = Dataset()
+        self.assertIsInstance(m._dataset, Dataset)
 
 
 if __name__ == '__main__':
