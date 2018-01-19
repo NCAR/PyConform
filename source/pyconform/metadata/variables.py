@@ -125,7 +125,7 @@ class Variable(MemberObject):
 
     @property
     def coordinates(self):
-        return tuple(self.attributes.get('coordinates', '').split())
+        return set(self.attributes.get('coordinates', '').split())
 
     def __eq__(self, other):
         if not isinstance(other, Variable):

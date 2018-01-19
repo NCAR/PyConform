@@ -151,11 +151,11 @@ class VariableTests(unittest.TestCase):
         self.assertEqual(self.v.positive, 'up')
 
     def test_default_coordinates_is_empty_tuple(self):
-        self.assertEqual(self.v.coordinates, ())
+        self.assertEqual(self.v.coordinates, set())
 
     def test_coordinates_set_in_attributes(self):
         self.v.attributes['coordinates'] = 'x y'
-        self.assertEqual(self.v.coordinates, ('x', 'y'))
+        self.assertEqual(self.v.coordinates, {'x', 'y'})
 
     def test_from_netcdf4(self):
         ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))
