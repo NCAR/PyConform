@@ -123,6 +123,10 @@ class Variable(MemberObject):
     def positive(self):
         return self.attributes.get('positive', None)
 
+    @property
+    def coordinates(self):
+        return tuple(self.attributes.get('coordinates', '').split())
+
     def __eq__(self, other):
         if not isinstance(other, Variable):
             return False
@@ -139,6 +143,8 @@ class Variable(MemberObject):
         elif self.calendar != other.calendar:
             return False
         elif self.positive != other.positive:
+            return False
+        elif self.coordinates != other.coordinates:
             return False
         else:
             return True
