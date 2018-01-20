@@ -124,8 +124,8 @@ class Variable(MemberObject):
         return self.attributes.get('positive', None)
 
     @property
-    def coordinates(self):
-        return set(self.attributes.get('coordinates', '').split())
+    def auxcoords(self):
+        return set(self.attributes.get('auxcoords', '').split())
 
     def __eq__(self, other):
         if not isinstance(other, Variable):
@@ -144,7 +144,7 @@ class Variable(MemberObject):
             return False
         elif self.positive != other.positive:
             return False
-        elif self.coordinates != other.coordinates:
+        elif self.auxcoords != other.auxcoords:
             return False
         else:
             return True
