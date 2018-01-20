@@ -157,6 +157,18 @@ class VariableTests(unittest.TestCase):
         self.v.attributes['auxcoords'] = 'x y'
         self.assertEqual(self.v.auxcoords, {'x', 'y'})
 
+    def test_is_coordinate_is_true(self):
+        v = Variable('x', dimensions=('x',))
+        self.assertTrue(v.is_coordinate())
+
+    def test_is_coordinate_is_false_when_2D(self):
+        v = Variable('x', dimensions=('x', 'y'))
+        self.assertFalse(v.is_coordinate())
+
+    def test_is_coordinate_is_false_when_names_do_not_match(self):
+        v = Variable('x', dimensions=('y',))
+        self.assertFalse(v.is_coordinate())
+
     def test_from_netcdf4(self):
         ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))
         v = Variable.from_netcdf4(ncvar)
