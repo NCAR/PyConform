@@ -102,6 +102,10 @@ class Variable(MemberObject):
         return self.__attributes
 
     @property
+    def standard_name(self):
+        return self.attributes.get('standard_name', None)
+
+    @property
     def units(self):
         ustr = str(self.attributes.get('units', '?')).split('since')[0].strip()
         return None if ustr in ('', '?', 'unknown') else ustr

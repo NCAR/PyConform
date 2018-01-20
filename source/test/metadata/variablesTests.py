@@ -102,6 +102,13 @@ class VariableTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.v.attributes = 4
 
+    def test_default_standard_name_is_none(self):
+        self.assertEqual(self.v.standard_name, None)
+
+    def test_setting_standard_name_in_attributes(self):
+        self.v.attributes['standard_name'] = 'name'
+        self.assertEqual(self.v.standard_name, 'name')
+
     def test_default_units_is_none(self):
         self.assertEqual(self.v.units, None)
 
