@@ -6,8 +6,6 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
-import cPickle as pickle
-import numpy as np
 
 from pyconform.metadata.datasets import Dataset
 
