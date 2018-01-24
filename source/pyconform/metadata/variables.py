@@ -131,13 +131,6 @@ class Variable(MemberObject):
     def auxcoords(self):
         return set(self.attributes.get('auxcoords', '').split())
 
-    def is_coordinate(self):
-        if len(self.dimensions) != 1:
-            return False
-        if self.name != self.dimensions[0]:
-            return False
-        return True
-
     def __eq__(self, other):
         if not isinstance(other, Variable):
             return False
