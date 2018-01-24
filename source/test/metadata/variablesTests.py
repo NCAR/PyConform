@@ -10,7 +10,7 @@ import numpy
 
 from cf_units import Unit
 from collections import OrderedDict
-from pyconform.metadata import Variable, Dimension
+from pyconform.metadata import Variable
 
 
 class MockNetCDF4Variable(object):
@@ -96,73 +96,81 @@ class VariableTests(unittest.TestCase):
             Variable('v', dimensions='x y z')
 
     def test_default_attributes_is_empty_dict(self):
-        self.assertEqual(self.v.attributes, {})
+        self.assertEqual(self.v.attributes, frozenset())
 
     def test_setting_attributes_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.v.attributes = 4
 
+    def test_setting_attributes_in_constructor(self):
+        v = Variable('v', attributes={'a': 'b'})
+        self.assertEqual(v.attributes, {'a'})
+
+    def test_get_attribute(self):
+        v = Variable('v', attributes={'x': 'y'})
+        self.assertEqual(v.get_attribute('x'), 'y')
+
     def test_default_standard_name_is_none(self):
         self.assertEqual(self.v.standard_name, None)
 
     def test_setting_standard_name_in_attributes(self):
-        self.v.attributes['standard_name'] = 'name'
-        self.assertEqual(self.v.standard_name, 'name')
+        v = Variable('v', attributes={'standard_name': 'name'})
+        self.assertEqual(v.standard_name, 'name')
 
     def test_default_units_is_none(self):
         self.assertEqual(self.v.units, None)
 
     def test_km_units(self):
-        self.v.attributes['units'] = 'km'
-        self.assertEqual(self.v.units, 'km')
+        v = Variable('v', attributes={'units': 'km'})
+        self.assertEqual(v.units, 'km')
 
     def test_known_datetime_units(self):
-        self.v.attributes['units'] = 'days since 1974-01-01'
-        self.assertEqual(self.v.units, 'days')
+        v = Variable('v', attributes={'units': 'days since 1974-01-01'})
+        self.assertEqual(v.units, 'days')
 
     def test_unknown_datetime_units(self):
-        self.v.attributes['units'] = '? since 1974-01-01'
-        self.assertEqual(self.v.units, None)
+        v = Variable('v', attributes={'units': '? since 1974-01-01'})
+        self.assertEqual(v.units, None)
 
     def test_default_refdatetime_is_none(self):
         self.assertEqual(self.v.refdatetime, None)
 
     def test_km_units_has_refdatetime_equal_to_none(self):
-        self.v.attributes['units'] = 'km'
-        self.assertEqual(self.v.refdatetime, None)
+        v = Variable('v', attributes={'units': 'km'})
+        self.assertEqual(v.refdatetime, None)
 
     def test_known_datetime_units_has_refdatetime(self):
-        self.v.attributes['units'] = 'days since 1974-01-01'
-        self.assertEqual(self.v.refdatetime, '1974-01-01')
+        v = Variable('v', attributes={'units': 'days since 1974-01-01'})
+        self.assertEqual(v.refdatetime, '1974-01-01')
 
     def test_unknown_datetime_units_has_refdatetime_equal_to_none(self):
-        self.v.attributes['units'] = 'days since ?'
-        self.assertEqual(self.v.refdatetime, None)
+        v = Variable('v', attributes={'units': 'days since ?'})
+        self.assertEqual(v.refdatetime, None)
 
     def test_default_calendar_is_none(self):
         self.assertEqual(self.v.calendar, None)
 
     def test_known_calendar(self):
-        self.v.attributes['calendar'] = 'gregorian'
-        self.assertEqual(self.v.calendar, 'gregorian')
+        v = Variable('v', attributes={'calendar': 'gregorian'})
+        self.assertEqual(v.calendar, 'gregorian')
 
     def test_km_cfunits(self):
-        self.v.attributes['units'] = 'km'
-        self.assertEqual(self.v.cfunits(), Unit('km'))
+        v = Variable('v', attributes={'units': 'km'})
+        self.assertEqual(v.cfunits(), Unit('km'))
 
     def test_default_positive_is_none(self):
         self.assertIsNone(self.v.positive)
 
     def test_positive_set_in_attributes(self):
-        self.v.attributes['positive'] = 'up'
-        self.assertEqual(self.v.positive, 'up')
+        v = Variable('v', attributes={'positive': 'up'})
+        self.assertEqual(v.positive, 'up')
 
     def test_default_auxcoords_is_empty_tuple(self):
         self.assertEqual(self.v.auxcoords, set())
 
     def test_auxcoords_set_in_attributes(self):
-        self.v.attributes['auxcoords'] = 'x y'
-        self.assertEqual(self.v.auxcoords, {'x', 'y'})
+        v = Variable('v', attributes={'coordinates': 'x y'})
+        self.assertEqual(v.auxcoords, {'x', 'y'})
 
     def test_from_netcdf4(self):
         ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))

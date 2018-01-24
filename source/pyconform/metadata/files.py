@@ -6,6 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from memberobjects import MemberObject
+from pandocfilters import attributes
 
 
 class File(MemberObject):
@@ -19,15 +20,21 @@ class File(MemberObject):
     _NETCDF4_FORMATS_ = {'NETCDF4'}
 
     def __init__(self, name, format='NETCDF4_CLASSIC', deflate=1,   # @ReservedAssignment
-                 shuffle='off', variables=(), dimensions=()):
+                 shuffle='off', variables=(), dimensions=(), attributes={}):
         super(File, self).__init__(name)
-        self.__attributes = {}
+        self.__attributes = self.__validate_attributes(attributes)
         self.__format = self.__validate_format(format)
         self.__deflate = self.__validate_deflate(deflate)
         self.__shuffle = self.__validate_shuffle(shuffle)
         self.__variables = self.__validate_variables(variables)
         self.__dimensions = self.__validate_dimensions(dimensions)
         self.path = None
+
+    def __validate_attributes(self, attributes):
+        if not isinstance(attributes, dict):
+            msg = 'File {!r} attributes should be a dictionary'
+            raise TypeError(msg.format(self.name))
+        return attributes
 
     def __validate_format(self, format):  # @ReservedAssignment
         if not (format in File._NETCDF3_FORMATS_ or format in File._NETCDF4_FORMATS_):
@@ -96,3 +103,7 @@ class File(MemberObject):
 
     def get_variables(self):
         return {n: self._dataset.get_variable(n) for n in self.variables}
+
+    @property
+    def coordinates(self):
+        return frozenset()

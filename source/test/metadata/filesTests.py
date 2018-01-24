@@ -25,6 +25,10 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             self.f.attributes = 4
 
+    def test_setting_attributes_in_constructor(self):
+        f = File('test.nc', attributes={'a': 'b'})
+        self.assertEqual(f.attributes, {'a': 'b'})
+
     def test_default_deflate_is_1(self):
         self.assertEqual(self.f.deflate, 1)
 
@@ -55,7 +59,7 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             File('test.nc', shuffle=True)
 
-    def test_default_dimensions_is_empty_tuple(self):
+    def test_default_dimensions_is_empty_set(self):
         self.assertEqual(self.f.dimensions, frozenset())
 
     def test_setting_dimensions_raises_attribute_error(self):
@@ -66,7 +70,7 @@ class FileTests(unittest.TestCase):
         f = File('test.nc', dimensions=('x', 'y'))
         self.assertItemsEqual(f.dimensions, ('x', 'y'))
 
-    def test_default_variables_is_empty_tuple(self):
+    def test_default_variables_is_empty_set(self):
         self.assertEqual(self.f.variables, frozenset())
 
     def test_setting_variables_raises_attribute_error(self):
@@ -80,6 +84,9 @@ class FileTests(unittest.TestCase):
     def test_setting_variables_with_wrong_type_raises_type_error(self):
         with self.assertRaises(TypeError):
             File('test.nc', variables=(1, 2))
+
+    def test_default_coordinates_is_empty_set(self):
+        self.assertEqual(self.f.coordinates, frozenset())
 
 
 if __name__ == '__main__':

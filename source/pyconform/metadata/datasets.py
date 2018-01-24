@@ -17,6 +17,7 @@ class Dataset(object):
     def __init__(self):
         self.__dimensions = OrderedDict()
         self.__variables = OrderedDict()
+        self.__coordinates = OrderedDict()
         self.__files = OrderedDict()
 
     def __contains__(self, obj):
@@ -81,22 +82,38 @@ class Dataset(object):
 
     def _add_variable(self, v):
         self.__check_dimension_references(v.dimensions)
+        self.__check_variable_references(v.auxcoords)
         self.__variables[v.name] = v
+        self.__add_new_coordinates(v)
+
+    def __add_new_coordinates(self, v):
+        print '111111 --> {}: {}'.format(v.name, v.auxcoords)
+        if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
+            self.__coordinates[v.name] = v
+        elif len(v.auxcoords) > 0:
+            print '22222'
+            for n in v.auxcoords:
+                print '33333 ==> {}'.format(n)
+                self.__coordinates[n] = self.get_variable(n)
 
     def _add_dimension(self, d):
         self.__dimensions[d.name] = d
 
     @property
     def dimensions(self):
-        return tuple(self.__dimensions)
+        return frozenset(self.__dimensions)
 
     @property
     def variables(self):
-        return tuple(self.__variables)
+        return frozenset(self.__variables)
+
+    @property
+    def coordinates(self):
+        return frozenset(self.__coordinates)
 
     @property
     def files(self):
-        return tuple(self.__files)
+        return frozenset(self.__files)
 
     def get_dimension(self, name):
         if name not in self.__dimensions:

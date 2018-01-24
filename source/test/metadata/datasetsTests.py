@@ -18,22 +18,22 @@ class DatasetTests(unittest.TestCase):
     def test_create(self):
         self.assertIsInstance(self.ds, Dataset)
 
-    def test_default_dimensions_is_empty_tuple(self):
-        self.assertEqual(self.ds.dimensions, ())
+    def test_default_dimensions_is_empty_set(self):
+        self.assertEqual(self.ds.dimensions, frozenset())
 
     def test_setting_dimensions_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.ds.dimensions = 3
 
-    def test_default_variables_is_empty_tuple(self):
-        self.assertEqual(self.ds.variables, ())
+    def test_default_variables_is_empty_set(self):
+        self.assertEqual(self.ds.variables, frozenset())
 
     def test_setting_variables_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.ds.variables = 3
 
-    def test_default_files_is_empty_tuple(self):
-        self.assertEqual(self.ds.files, ())
+    def test_default_files_is_empty_set(self):
+        self.assertEqual(self.ds.files, frozenset())
 
     def test_setting_files_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
@@ -42,7 +42,7 @@ class DatasetTests(unittest.TestCase):
     def test_new_dimension(self):
         d = self.ds.new_dimension('x')
         self.assertIn(d, self.ds)
-        self.assertEqual(self.ds.dimensions, ('x',))
+        self.assertEqual(self.ds.dimensions, {'x'})
 
     def test_two_new_dimensions_with_same_name_raises_value_error(self):
         self.ds.new_dimension('x')
@@ -56,7 +56,7 @@ class DatasetTests(unittest.TestCase):
     def test_new_variable(self):
         v = self.ds.new_variable('v')
         self.assertIn(v, self.ds)
-        self.assertEqual(self.ds.variables, ('v',))
+        self.assertEqual(self.ds.variables, {'v'})
 
     def test_two_new_variables_with_same_name_raises_value_error(self):
         self.ds.new_variable('v')
@@ -74,7 +74,7 @@ class DatasetTests(unittest.TestCase):
     def test_new_file(self):
         f = self.ds.new_file('test.nc')
         self.assertIn(f, self.ds)
-        self.assertEqual(self.ds.files, ('test.nc',))
+        self.assertEqual(self.ds.files, {'test.nc'})
 
     def test_two_new_files_with_same_name_raises_value_error(self):
         self.ds.new_file('test.nc')
@@ -127,6 +127,23 @@ class DatasetTests(unittest.TestCase):
         f = self.ds.new_file('test.nc', dimensions=('x',), variables=('v',))
         self.assertEquals(f.get_dimensions()['x'], x)
         self.assertEquals(f.get_variables()['v'], v)
+
+    def test_default_coordinates_is_empty_set(self):
+        self.assertEqual(self.ds.coordinates, frozenset())
+
+    def test_coordinates_set_by_matching_names(self):
+        self.ds.new_dimension('x', size=5)
+        self.ds.new_variable('x', dimensions=('x',))
+        self.assertEqual(self.ds.coordinates, {'x'})
+
+    def test_coordinates_set_by_coordinates_attribute(self):
+        self.ds.new_dimension('i', size=5)
+        self.ds.new_dimension('j', size=5)
+        self.ds.new_variable('x', dimensions=('i', 'j'))
+        self.ds.new_variable('y', dimensions=('i', 'j'))
+        self.ds.new_variable('v', dimensions=('i', 'j'),
+                             attributes={'coordinates': 'x y'})
+        self.assertEqual(self.ds.coordinates, {'x', 'y'})
 
 
 if __name__ == '__main__':
