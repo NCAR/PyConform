@@ -87,6 +87,12 @@ class File(MemberObject):
     def dimensions(self):
         return self.__dimensions
 
+    def get_dimensions(self):
+        return {n: self._dataset.get_dimension(n) for n in self.dimensions}
+
     @property
     def variables(self):
         return self.__variables
+
+    def get_variables(self):
+        return {n: self._dataset.get_variable(n) for n in self.variables}

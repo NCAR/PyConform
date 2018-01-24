@@ -98,7 +98,7 @@ class Variable(MemberObject):
         return self.__dimensions
 
     def get_dimensions(self):
-        return tuple(self._dataset.get_dimension(n) for n in self.dimensions)
+        return {n: self._dataset.get_dimension(n) for n in self.dimensions}
 
     @property
     def attributes(self):

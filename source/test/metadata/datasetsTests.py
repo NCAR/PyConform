@@ -71,11 +71,6 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.ds.new_variable('v', dimensions=('x',))
 
-    def test_variable_get_dimensions(self):
-        x = self.ds.new_dimension('x', size=5)
-        v = self.ds.new_variable('v', dimensions=('x',))
-        self.assertIs(v.get_dimensions()[0], x)
-
     def test_new_file(self):
         f = self.ds.new_file('test.nc')
         self.assertIn(f, self.ds)
@@ -103,6 +98,11 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.ds.get_dimension('x')
 
+    def test_variable_get_dimensions(self):
+        x = self.ds.new_dimension('x', size=5)
+        v = self.ds.new_variable('v', dimensions=('x',))
+        self.assertIs(v.get_dimensions()['x'], x)
+
     def test_get_variable(self):
         v1 = self.ds.new_variable('v')
         v2 = self.ds.get_variable('v')
@@ -120,6 +120,13 @@ class DatasetTests(unittest.TestCase):
     def test_get_file_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.get_file('test.nc')
+
+    def test_file_get_dimensions_variables(self):
+        x = self.ds.new_dimension('x', size=5)
+        v = self.ds.new_variable('v', dimensions=('x',))
+        f = self.ds.new_file('test.nc', dimensions=('x',), variables=('v',))
+        self.assertEquals(f.get_dimensions()['x'], x)
+        self.assertEquals(f.get_variables()['v'], v)
 
 
 if __name__ == '__main__':
