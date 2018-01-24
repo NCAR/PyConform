@@ -6,7 +6,6 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from memberobjects import MemberObject
-from pandocfilters import attributes
 
 
 class File(MemberObject):
