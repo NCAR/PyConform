@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 import cPickle as pickle
+import numpy as np
 
 from pyconform.metadata.datasets import Dataset
 
@@ -152,20 +153,6 @@ class DatasetTests(unittest.TestCase):
         vatts = {'coordinates': 'x y'}
         with self.assertRaises(KeyError):
             self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
-
-    def test_pickle_dataset(self):
-        self.ds.new_dimension('i', size=5)
-        self.ds.new_dimension('j', size=5)
-        self.ds.new_variable('x', dimensions=('i', 'j'))
-        self.ds.new_variable('y', dimensions=('i', 'j'))
-        vatts = {'coordinates': 'x y'}
-        self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
-        self.ds.new_variable('u', dimensions=('i', 'j'), attributes=vatts)
-        self.ds.new_file('test1.nc', dimensions=('i', 'j'),
-                         variables=('x', 'y', 'v'), attributes={'name': 'test1'})
-        self.ds.new_file('test2.nc', dimensions=('i', 'j'),
-                         variables=('x', 'y', 'u'), attributes={'name': 'test2'})
-        pickle.dumps(self.ds)
 
 
 if __name__ == '__main__':
