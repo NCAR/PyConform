@@ -141,9 +141,16 @@ class DatasetTests(unittest.TestCase):
         self.ds.new_dimension('j', size=5)
         self.ds.new_variable('x', dimensions=('i', 'j'))
         self.ds.new_variable('y', dimensions=('i', 'j'))
-        self.ds.new_variable('v', dimensions=('i', 'j'),
-                             attributes={'coordinates': 'x y'})
+        vatts = {'coordinates': 'x y'}
+        self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
         self.assertEqual(self.ds.coordinates, {'x', 'y'})
+
+    def test_coordinates_set_without_coordinate_variables_raises_key_error(self):
+        self.ds.new_dimension('i', size=5)
+        self.ds.new_dimension('j', size=5)
+        vatts = {'coordinates': 'x y'}
+        with self.assertRaises(KeyError):
+            self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
 
 
 if __name__ == '__main__':
