@@ -131,12 +131,12 @@ class DatasetTests(unittest.TestCase):
     def test_default_coordinates_is_empty_set(self):
         self.assertEqual(self.ds.coordinates, frozenset())
 
-    def test_coordinates_set_by_matching_names(self):
+    def test_setting_coordinates_by_matching_dimensions_and_variable_names(self):
         self.ds.new_dimension('x', size=5)
         self.ds.new_variable('x', dimensions=('x',))
         self.assertEqual(self.ds.coordinates, {'x'})
 
-    def test_coordinates_set_by_coordinates_attribute(self):
+    def test_setting_coordinates_with_coordinates_attribute(self):
         self.ds.new_dimension('i', size=5)
         self.ds.new_dimension('j', size=5)
         self.ds.new_variable('x', dimensions=('i', 'j'))
@@ -145,7 +145,7 @@ class DatasetTests(unittest.TestCase):
         self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
         self.assertEqual(self.ds.coordinates, {'x', 'y'})
 
-    def test_coordinates_set_without_coordinate_variables_raises_key_error(self):
+    def test_setting_coordinates_without_coordinate_variables_raises_key_error(self):
         self.ds.new_dimension('i', size=5)
         self.ds.new_dimension('j', size=5)
         vatts = {'coordinates': 'x y'}
