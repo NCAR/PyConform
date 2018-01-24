@@ -87,13 +87,10 @@ class Dataset(object):
         self.__add_new_coordinates(v)
 
     def __add_new_coordinates(self, v):
-        print '111111 --> {}: {}'.format(v.name, v.auxcoords)
         if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
             self.__coordinates[v.name] = v
         elif len(v.auxcoords) > 0:
-            print '22222'
             for n in v.auxcoords:
-                print '33333 ==> {}'.format(n)
                 self.__coordinates[n] = self.get_variable(n)
 
     def _add_dimension(self, d):
