@@ -10,7 +10,7 @@ import numpy
 
 from cf_units import Unit
 from collections import OrderedDict
-from pyconform.metadata import Variable
+from pyconform.metadata import Variable, Dimension
 
 
 class MockNetCDF4Variable(object):

@@ -49,7 +49,7 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ds.new_dimension('x')
 
-    def test_new_dimension_sets_dimenion_dataset(self):
+    def test_new_dimension_sets_dimension_dataset(self):
         d = self.ds.new_dimension('x')
         self.assertIs(d._dataset, self.ds)
 
@@ -64,12 +64,17 @@ class DatasetTests(unittest.TestCase):
             self.ds.new_variable('v')
 
     def test_new_variable_sets_variable_dataset(self):
-        v = self.ds.new_dimension('v')
+        v = self.ds.new_variable('v')
         self.assertIs(v._dataset, self.ds)
 
     def test_new_variable_without_dimensions_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.new_variable('v', dimensions=('x',))
+
+    def test_variable_get_dimensions(self):
+        x = self.ds.new_dimension('x', size=5)
+        v = self.ds.new_variable('v', dimensions=('x',))
+        self.assertIs(v.get_dimensions()[0], x)
 
     def test_new_file(self):
         f = self.ds.new_file('test.nc')
