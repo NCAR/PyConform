@@ -37,8 +37,8 @@ class Variable(MemberObject):
         idt = Variable._NUMPY_DTYPES_.index(dt)
         return Variable._NETCDF4_TYPES_[idt]
 
-    def __init__(self, name, definition=None, datatype=None, dimensions=None, attributes={}):
-        super(Variable, self).__init__(name)
+    def __init__(self, name, definition=None, datatype=None, dimensions=None, attributes={}, **kwds):
+        super(Variable, self).__init__(name, **kwds)
         self.__definition = self.__validate_definition(definition)
         self.__datatype = self.__validate_datatype(datatype)
         self.__dimensions = self.__validate_dimensions(dimensions)
@@ -76,11 +76,11 @@ class Variable(MemberObject):
         return attributes
 
     @classmethod
-    def from_netcdf4(cls, ncvar):
+    def from_netcdf4(cls, ncvar, **kwds):
         dt = cls.datatype_from_dtype(ncvar.dtype)
         ncatts = {a: ncvar.getncattr(a) for a in ncvar.ncattrs()}
         return Variable(ncvar.name, datatype=dt, dimensions=ncvar.dimensions,
-                        attributes=ncatts)
+                        attributes=ncatts, **kwds)
 
     @property
     def definition(self):
