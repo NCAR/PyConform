@@ -20,7 +20,7 @@ class MemberObject(NamedObject):
     def __validate_dataset(self, dataset):
         from datasets import Dataset
         if not isinstance(dataset, Dataset):
-            msg = 'Objects needs a dataset for construction'
+            msg = 'Object needs a dataset for construction'
             raise TypeError(msg)
         return dataset
 
