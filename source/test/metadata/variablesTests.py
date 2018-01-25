@@ -202,6 +202,10 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v', attributes={'coordinates': 'x y'})
         self.assertEqual(v.auxcoords, {'x', 'y'})
 
+    def test_default_axis_is_none(self):
+        v = self.ds.new_variable('v')
+        self.assertIsNone(v.axis)
+
     def test_from_netcdf4(self):
         ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))
         self.ds.new_dimension('x')

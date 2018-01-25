@@ -86,6 +86,8 @@ class Dataset(object):
     def __add_new_coordinates(self, v):
         if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
             self.__coordinates[v.name] = v
+        elif v.axis is not None:
+            self.__coordinates[v.name] = v
         elif len(v.auxcoords) > 0:
             for n in v.auxcoords:
                 self.__coordinates[n] = self.get_variable(n)

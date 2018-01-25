@@ -145,6 +145,10 @@ class Variable(MemberObject):
     def auxcoords(self):
         return frozenset(self.__attributes.get('coordinates', '').split())
 
+    @property
+    def axis(self):
+        return self.__attributes.get('axis', None)
+
     def __eq__(self, other):
         if not isinstance(other, Variable):
             return False
