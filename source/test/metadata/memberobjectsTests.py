@@ -8,29 +8,23 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from pyconform.metadata.memberobjects import MemberObject
+from pyconform.metadata.datasets import Dataset
 
 
 class MemberObjectTests(unittest.TestCase):
 
+    def setUp(self):
+        self.ds = Dataset()
+        self.m = MemberObject('name', self.ds)
+
     def test_create(self):
-        m = MemberObject('name')
-        self.assertIsInstance(m, MemberObject)
-        self.assertEqual(m.name, 'name')
+        self.assertIsInstance(self.m, MemberObject)
 
-    def test_default_dataset_is_none(self):
-        m = MemberObject('name')
-        self.assertIsNone(m._dataset)
-
-    def test_setting_dataset_to_non_dataset_raises_type_error(self):
-        m = MemberObject('name')
-        with self.assertRaises(TypeError):
-            m._dataset = 4
+    def test_name_is_stored(self):
+        self.assertEqual(self.m.name, 'name')
 
     def test_setting_dataset_to_dataset_stores_dataset(self):
-        m = MemberObject('name')
-        from pyconform.metadata.datasets import Dataset
-        m._dataset = Dataset()
-        self.assertIsInstance(m._dataset, Dataset)
+        self.assertIs(self.m._dataset, self.ds)
 
 
 if __name__ == '__main__':
