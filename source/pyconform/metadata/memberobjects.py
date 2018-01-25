@@ -13,7 +13,7 @@ class MemberObject(NamedObject):
     A member of a dataset
     """
 
-    def __init__(self, name, dataset):
+    def __init__(self, name, dataset=None):
         super(MemberObject, self).__init__(name)
         self.__dataset = self.__validate_dataset(dataset)
 

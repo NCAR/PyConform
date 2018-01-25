@@ -15,7 +15,7 @@ class MemberObjectTests(unittest.TestCase):
 
     def setUp(self):
         self.ds = Dataset()
-        self.m = MemberObject('name', self.ds)
+        self.m = MemberObject('name', dataset=self.ds)
 
     def test_create(self):
         self.assertIsInstance(self.m, MemberObject)
