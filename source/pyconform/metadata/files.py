@@ -58,14 +58,10 @@ class File(MemberObject):
                 all(isinstance(v, basestring) for v in variables)):
             msg = 'File {!r} can only accept a list/tuple of variable names'
             raise TypeError(msg.format(self.name))
-        all_variables = set(variables)
         for vname in variables:
             v = self.dataset.get_variable(vname)
-            if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == vname:
-                all_variables.add(vname)
-            elif v.auxcoords:
-                all_variables.update(v.auxcoords)
-        return frozenset(all_variables)
+            v._add_to_file(self.name)
+        return frozenset(variables)
 
     def __validate_dimensions(self, dimensions):
         if not (isinstance(dimensions, (list, tuple)) and
@@ -76,7 +72,10 @@ class File(MemberObject):
 
     @property
     def attributes(self):
-        return self.__attributes
+        return frozenset(self.__attributes)
+
+    def get_attribute(self, name):
+        return self.__attributes[name]
 
     @property
     def format(self):

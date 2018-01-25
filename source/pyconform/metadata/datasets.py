@@ -17,7 +17,7 @@ class Dataset(object):
     def __init__(self):
         self.__dimensions = OrderedDict()
         self.__variables = OrderedDict()
-        self.__coordinates = OrderedDict()
+        self.__coordinates = set()
         self.__files = OrderedDict()
 
     def __contains__(self, obj):
@@ -31,28 +31,25 @@ class Dataset(object):
             return False
 
     def new_dimension(self, name, **kwds):
-        if name in self.__dimensions:
-            msg = 'A Dimension with name {!r} is already contained in Dataset'
-            raise ValueError(msg.format(name))
-        d = Dimension(name, dataset=self, **kwds)
+        d = self.__new_object(Dimension, self.__dimensions, name, **kwds)
         self._add_dimension(d)
         return d
 
     def new_variable(self, name, **kwds):
-        if name in self.__variables:
-            msg = 'A Variable with name {!r} is already contained in Dataset'
-            raise ValueError(msg.format(name))
-        v = Variable(name, dataset=self, **kwds)
+        v = self.__new_object(Variable, self.__variables, name, **kwds)
         self._add_variable(v)
         return v
 
     def new_file(self, name, **kwds):
-        if name in self.__files:
-            msg = 'A File with name {!r} is already contained in Dataset'
-            raise ValueError(msg.format(name))
-        f = File(name, dataset=self, **kwds)
+        f = self.__new_object(File, self.__files, name, **kwds)
         self._add_file(f)
         return f
+
+    def __new_object(self, cls, obj_dict, name, **kwds):
+        if name in obj_dict:
+            msg = 'A {} with name {!r} is already contained in Dataset'
+            raise ValueError(msg.format(cls.__name__, name))
+        return cls(name, dataset=self, **kwds)
 
     def _add_file(self, f):
         self.__check_dimension_references(f.dimensions)
@@ -80,17 +77,19 @@ class Dataset(object):
     def _add_variable(self, v):
         self.__check_dimension_references(v.dimensions)
         self.__check_variable_references(v.auxcoords)
+        if v.bounds is not None:
+            self.__check_variable_references([v.bounds])
         self.__variables[v.name] = v
         self.__add_new_coordinates(v)
 
     def __add_new_coordinates(self, v):
         if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
-            self.__coordinates[v.name] = v
+            self.__coordinates.add(v.name)
         elif v.axis is not None:
-            self.__coordinates[v.name] = v
+            self.__coordinates.add(v.name)
         elif len(v.auxcoords) > 0:
             for n in v.auxcoords:
-                self.__coordinates[n] = self.get_variable(n)
+                self.__coordinates.add(n)
 
     def _add_dimension(self, d):
         self.__dimensions[d.name] = d
@@ -104,12 +103,12 @@ class Dataset(object):
         return frozenset(self.__variables)
 
     @property
-    def coordinates(self):
-        return frozenset(self.__coordinates)
-
-    @property
     def files(self):
         return frozenset(self.__files)
+
+    @property
+    def coordinates(self):
+        return frozenset(self.__coordinates)
 
     def get_dimension(self, name):
         if name not in self.__dimensions:

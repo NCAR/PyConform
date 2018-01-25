@@ -150,6 +150,10 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
 
+    def test_setting_bounds_without_bounds_variable_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.new_variable('v', attributes={'bounds': 'v_bnds'})
+
 
 if __name__ == '__main__':
     unittest.main()

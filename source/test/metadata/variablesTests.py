@@ -109,6 +109,20 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v', dimensions=('x',))
         self.assertIs(v.get_dimensions()['x'], x)
 
+    def test_default_files_is_none(self):
+        v = self.ds.new_variable('v')
+        self.assertIsNone(v.files)
+
+    def test_files_added_with_file_construction(self):
+        v = self.ds.new_variable('v')
+        self.ds.new_file('test.nc', variables=('v',))
+        self.assertIn('test.nc', v.files)
+
+    def test_get_files(self):
+        v = self.ds.new_variable('v')
+        f = self.ds.new_file('test.nc', variables=('v',))
+        self.assertEqual(v.get_files(), {'test.nc': f})
+
     def test_default_attributes_is_empty_dict(self):
         v = self.ds.new_variable('v')
         self.assertEqual(v.attributes, frozenset())
@@ -192,6 +206,10 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v', attributes={'positive': 'up'})
         self.assertEqual(v.positive, 'up')
 
+    def test_default_axis_is_none(self):
+        v = self.ds.new_variable('v')
+        self.assertIsNone(v.axis)
+
     def test_default_auxcoords_is_empty_tuple(self):
         v = self.ds.new_variable('v')
         self.assertEqual(v.auxcoords, set())
@@ -202,9 +220,36 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v', attributes={'coordinates': 'x y'})
         self.assertEqual(v.auxcoords, {'x', 'y'})
 
-    def test_default_axis_is_none(self):
+    def test_default_bounds_is_none(self):
         v = self.ds.new_variable('v')
-        self.assertIsNone(v.axis)
+        self.assertIsNone(v.bounds)
+
+    def test_bounds_set_in_attributes(self):
+        self.ds.new_variable('v_bnds')
+        v = self.ds.new_variable('v', attributes={'bounds': 'v_bnds'})
+        self.assertEqual(v.bounds, 'v_bnds')
+
+    def test_coordinates(self):
+        self.ds.new_dimension('i')
+        self.ds.new_dimension('j')
+        self.ds.new_variable('i', dimensions=('i',))
+        self.ds.new_variable('j', dimensions=('j',))
+        self.ds.new_variable('x', dimensions=('i', 'j'))
+        self.ds.new_variable('y', dimensions=('i', 'j'))
+        vatts = {'coordinates': 'x y'}
+        v = self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
+        self.assertItemsEqual(v.coordinates, {'i', 'j', 'x', 'y'})
+
+    def test_get_coordinates(self):
+        self.ds.new_dimension('i')
+        self.ds.new_dimension('j')
+        i = self.ds.new_variable('i', dimensions=('i',))
+        j = self.ds.new_variable('j', dimensions=('j',))
+        x = self.ds.new_variable('x', dimensions=('i', 'j'))
+        y = self.ds.new_variable('y', dimensions=('i', 'j'))
+        vatts = {'coordinates': 'x y'}
+        v = self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
+        self.assertEqual(v.get_coordinates(), {'i': i, 'j': j, 'x': x, 'y': y})
 
     def test_from_netcdf4(self):
         ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))

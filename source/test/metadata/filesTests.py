@@ -20,9 +20,9 @@ class FileTests(unittest.TestCase):
         f = self.ds.new_file('test.nc')
         self.assertIsInstance(f, File)
 
-    def test_default_attributes_is_empty_dict(self):
+    def test_default_attributes_is_empty_set(self):
         f = self.ds.new_file('test.nc')
-        self.assertEqual(f.attributes, {})
+        self.assertEqual(f.attributes, frozenset())
 
     def test_setting_attributes_raises_attribute_error(self):
         f = self.ds.new_file('test.nc')
@@ -31,7 +31,11 @@ class FileTests(unittest.TestCase):
 
     def test_setting_attributes_in_constructor(self):
         f = self.ds.new_file('test.nc', attributes={'a': 'b'})
-        self.assertEqual(f.attributes, {'a': 'b'})
+        self.assertEqual(f.attributes, {'a'})
+
+    def test_get_attribute(self):
+        f = self.ds.new_file('test.nc', attributes={'a': 'b'})
+        self.assertEqual(f.get_attribute('a'), 'b')
 
     def test_default_deflate_is_1(self):
         f = self.ds.new_file('test.nc')

@@ -43,6 +43,7 @@ class Variable(MemberObject):
         self.__datatype = self.__validate_datatype(datatype)
         self.__dimensions = self.__validate_dimensions(dimensions)
         self.__attributes = self.__validate_attributes(attributes)
+        self.__files = None
 
     def __validate_definition(self, definition):
         if definition is None:
@@ -108,6 +109,20 @@ class Variable(MemberObject):
         return {n: self.dataset.get_dimension(n) for n in self.dimensions}
 
     @property
+    def files(self):
+        if self.__files is None:
+            return None
+        return frozenset(self.__files)
+
+    def _add_to_file(self, fname):
+        if self.__files is None:
+            self.__files = set()
+        self.__files.add(fname)
+
+    def get_files(self):
+        return {n: self.dataset.get_file(n) for n in self.files}
+
+    @property
     def attributes(self):
         return frozenset(self.__attributes)
 
@@ -142,12 +157,27 @@ class Variable(MemberObject):
         return self.__attributes.get('positive', None)
 
     @property
+    def axis(self):
+        return self.__attributes.get('axis', None)
+
+    @property
+    def bounds(self):
+        return self.__attributes.get('bounds', None)
+
+    @property
     def auxcoords(self):
         return frozenset(self.__attributes.get('coordinates', '').split())
 
     @property
-    def axis(self):
-        return self.__attributes.get('axis', None)
+    def coordinates(self):
+        if self.dimensions is None:
+            return self.auxcoords
+        else:
+            coords = {n for n in self.dimensions if n in self.dataset.variables}
+            return frozenset(coords.union(self.auxcoords))
+
+    def get_coordinates(self):
+        return {n: self.dataset.get_variable(n) for n in self.coordinates}
 
     def __eq__(self, other):
         if not isinstance(other, Variable):
@@ -167,6 +197,8 @@ class Variable(MemberObject):
         elif self.positive != other.positive:
             return False
         elif self.auxcoords != other.auxcoords:
+            return False
+        elif self.axis != other.axis:
             return False
         else:
             return True
