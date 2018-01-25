@@ -116,13 +116,6 @@ class FileTests(unittest.TestCase):
         f = self.ds.new_file('test.nc')
         self.assertEqual(f.coordinates, frozenset())
 
-    def test_new_file_adds_coordinates_if_not_named(self):
-        self.ds.new_dimension('x')
-        self.ds.new_variable('x', dimensions=('x',))
-        self.ds.new_variable('v', dimensions=('x',))
-        f = self.ds.new_file('test.nc', variables=('v',))
-        self.assertIn('x', f.variables)
-
 
 if __name__ == '__main__':
     unittest.main()
