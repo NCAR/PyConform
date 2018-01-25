@@ -19,8 +19,8 @@ class File(MemberObject):
     _NETCDF4_FORMATS_ = {'NETCDF4'}
 
     def __init__(self, name, format='NETCDF4_CLASSIC', deflate=1,   # @ReservedAssignment
-                 shuffle='off', variables=(), dimensions=(), attributes={}):
-        super(File, self).__init__(name)
+                 shuffle='off', variables=(), dimensions=(), attributes={}, **kwds):
+        super(File, self).__init__(name, **kwds)
         self.__attributes = self.__validate_attributes(attributes)
         self.__format = self.__validate_format(format)
         self.__deflate = self.__validate_deflate(deflate)

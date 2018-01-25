@@ -8,12 +8,14 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from pyconform.metadata import File
+from pyconform.metadata.datasets import Dataset
 
 
 class FileTests(unittest.TestCase):
 
     def setUp(self):
-        self.f = File('test.nc')
+        self.ds = Dataset()
+        self.f = File('test.nc', dataset=self.ds)
 
     def test_create(self):
         self.assertIsInstance(self.f, File)
@@ -26,7 +28,7 @@ class FileTests(unittest.TestCase):
             self.f.attributes = 4
 
     def test_setting_attributes_in_constructor(self):
-        f = File('test.nc', attributes={'a': 'b'})
+        f = File('test.nc', attributes={'a': 'b'}, dataset=self.ds)
         self.assertEqual(f.attributes, {'a': 'b'})
 
     def test_default_deflate_is_1(self):
@@ -37,7 +39,7 @@ class FileTests(unittest.TestCase):
             self.f.deflate = 4
 
     def test_setting_deflate_in_constructor(self):
-        f = File('test.nc', deflate=3)
+        f = File('test.nc', deflate=3, dataset=self.ds)
         self.assertEqual(f.deflate, 3)
 
     def test_setting_deflate_to_invalid_raises_type_error(self):
@@ -52,7 +54,7 @@ class FileTests(unittest.TestCase):
             self.f.shuffle = 'on'
 
     def test_setting_shuffle_in_constructor(self):
-        f = File('test.nc', shuffle='on')
+        f = File('test.nc', shuffle='on', dataset=self.ds)
         self.assertEqual(f.shuffle, 'on')
 
     def test_setting_shuffle_to_invalid_raises_type_error(self):
@@ -67,7 +69,7 @@ class FileTests(unittest.TestCase):
             self.f.dimensions = 4
 
     def test_setting_dimensions_in_constructor(self):
-        f = File('test.nc', dimensions=('x', 'y'))
+        f = File('test.nc', dimensions=('x', 'y'), dataset=self.ds)
         self.assertItemsEqual(f.dimensions, ('x', 'y'))
 
     def test_default_variables_is_empty_set(self):
@@ -78,12 +80,12 @@ class FileTests(unittest.TestCase):
             self.f.variables = 4
 
     def test_setting_variables_in_constructor(self):
-        f = File('test.nc', variables=('u', 'v'))
+        f = File('test.nc', variables=('u', 'v'), dataset=self.ds)
         self.assertItemsEqual(f.variables, ('u', 'v'))
 
     def test_setting_variables_with_wrong_type_raises_type_error(self):
         with self.assertRaises(TypeError):
-            File('test.nc', variables=(1, 2))
+            File('test.nc', variables=(1, 2), dataset=self.ds)
 
     def test_default_coordinates_is_empty_set(self):
         self.assertEqual(self.f.coordinates, frozenset())
