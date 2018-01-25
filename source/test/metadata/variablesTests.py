@@ -104,6 +104,11 @@ class VariableTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.ds.new_variable('v', dimensions='x y z')
 
+    def test_get_dimensions(self):
+        x = self.ds.new_dimension('x', size=5)
+        v = self.ds.new_variable('v', dimensions=('x',))
+        self.assertIs(v.get_dimensions()['x'], x)
+
     def test_default_attributes_is_empty_dict(self):
         v = self.ds.new_variable('v')
         self.assertEqual(v.attributes, frozenset())

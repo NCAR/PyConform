@@ -82,6 +82,13 @@ class FileTests(unittest.TestCase):
         f = self.ds.new_file('test.nc', dimensions=('x', 'y'))
         self.assertItemsEqual(f.dimensions, ('x', 'y'))
 
+    def test_file_get_dimensions_variables(self):
+        x = self.ds.new_dimension('x', size=5)
+        v = self.ds.new_variable('v', dimensions=('x',))
+        f = self.ds.new_file('test.nc', dimensions=('x',), variables=('v',))
+        self.assertEquals(f.get_dimensions()['x'], x)
+        self.assertEquals(f.get_variables()['v'], v)
+
     def test_default_variables_is_empty_set(self):
         f = self.ds.new_file('test.nc')
         self.assertEqual(f.variables, frozenset())
@@ -108,6 +115,13 @@ class FileTests(unittest.TestCase):
     def test_default_coordinates_is_empty_set(self):
         f = self.ds.new_file('test.nc')
         self.assertEqual(f.coordinates, frozenset())
+
+    def test_new_file_adds_coordinates_if_not_named(self):
+        self.ds.new_dimension('x')
+        self.ds.new_variable('x', dimensions=('x',))
+        self.ds.new_variable('v', dimensions=('x',))
+        f = self.ds.new_file('test.nc', variables=('v',))
+        self.assertIn('x', f.variables)
 
 
 if __name__ == '__main__':

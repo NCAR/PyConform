@@ -44,28 +44,28 @@ class DatasetTests(unittest.TestCase):
         self.assertIn(d, self.ds)
         self.assertEqual(self.ds.dimensions, {'x'})
 
+    def test_new_dimension_sets_dimension_dataset(self):
+        d = self.ds.new_dimension('x')
+        self.assertIs(d.dataset, self.ds)
+
     def test_two_new_dimensions_with_same_name_raises_value_error(self):
         self.ds.new_dimension('x')
         with self.assertRaises(ValueError):
             self.ds.new_dimension('x')
-
-    def test_new_dimension_sets_dimension_dataset(self):
-        d = self.ds.new_dimension('x')
-        self.assertIs(d._dataset, self.ds)
 
     def test_new_variable(self):
         v = self.ds.new_variable('v')
         self.assertIn(v, self.ds)
         self.assertEqual(self.ds.variables, {'v'})
 
+    def test_new_variable_sets_variable_dataset(self):
+        v = self.ds.new_variable('v')
+        self.assertIs(v.dataset, self.ds)
+
     def test_two_new_variables_with_same_name_raises_value_error(self):
         self.ds.new_variable('v')
         with self.assertRaises(ValueError):
             self.ds.new_variable('v')
-
-    def test_new_variable_sets_variable_dataset(self):
-        v = self.ds.new_variable('v')
-        self.assertIs(v._dataset, self.ds)
 
     def test_new_variable_without_dimensions_raises_key_error(self):
         with self.assertRaises(KeyError):
@@ -76,6 +76,10 @@ class DatasetTests(unittest.TestCase):
         self.assertIn(f, self.ds)
         self.assertEqual(self.ds.files, {'test.nc'})
 
+    def test_new_file_sets_file_dataset(self):
+        f = self.ds.new_file('test.nc')
+        self.assertIs(f.dataset, self.ds)
+
     def test_two_new_files_with_same_name_raises_value_error(self):
         self.ds.new_file('test.nc')
         with self.assertRaises(ValueError):
@@ -85,9 +89,9 @@ class DatasetTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.ds.new_file('test.nc', variables=('v',))
 
-    def test_new_file_sets_file_dataset(self):
-        f = self.ds.new_file('test.nc')
-        self.assertIs(f._dataset, self.ds)
+    def test_new_file_without_dimensions_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.new_file('test.nc', dimensions=('x',))
 
     def test_get_dimension(self):
         x1 = self.ds.new_dimension('x', size=6)
@@ -97,11 +101,6 @@ class DatasetTests(unittest.TestCase):
     def test_get_dimension_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.get_dimension('x')
-
-    def test_variable_get_dimensions(self):
-        x = self.ds.new_dimension('x', size=5)
-        v = self.ds.new_variable('v', dimensions=('x',))
-        self.assertIs(v.get_dimensions()['x'], x)
 
     def test_get_variable(self):
         v1 = self.ds.new_variable('v')
@@ -120,13 +119,6 @@ class DatasetTests(unittest.TestCase):
     def test_get_file_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
             self.ds.get_file('test.nc')
-
-    def test_file_get_dimensions_variables(self):
-        x = self.ds.new_dimension('x', size=5)
-        v = self.ds.new_variable('v', dimensions=('x',))
-        f = self.ds.new_file('test.nc', dimensions=('x',), variables=('v',))
-        self.assertEquals(f.get_dimensions()['x'], x)
-        self.assertEquals(f.get_variables()['v'], v)
 
     def test_default_coordinates_is_empty_set(self):
         self.assertEqual(self.ds.coordinates, frozenset())
