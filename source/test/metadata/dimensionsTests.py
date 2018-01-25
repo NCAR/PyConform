@@ -29,44 +29,47 @@ class DimensionTests(unittest.TestCase):
 
     def setUp(self):
         self.ds = Dataset()
-        self.d = Dimension('x', dataset=self.ds)
 
     def test_create(self):
-        self.assertIsInstance(self.d, Dimension)
+        d = self.ds.new_dimension('x')
+        self.assertIsInstance(d, Dimension)
 
     def test_default_size_is_none(self):
-        self.assertEqual(self.d.size, None)
+        d = self.ds.new_dimension('x')
+        self.assertEqual(d.size, None)
 
     def test_setting_size_property_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
             self.d.size = 5
 
     def test_set_size_to_int_in_constructor(self):
-        d = Dimension('x', size=4, dataset=self.ds)
+        d = self.ds.new_dimension('x', size=4)
         self.assertEqual(d.size, 4)
 
     def test_set_size_to_non_int_raises_type_error(self):
         with self.assertRaises(TypeError):
-            Dimension('x', size='4', dataset=self.ds)
+            self.ds.new_dimension('x', size='4')
 
     def test_set_size_to_non_positive_raises_value_error(self):
         with self.assertRaises(ValueError):
-            Dimension('x', size=-2, dataset=self.ds)
+            self.ds.new_dimension('x', size=-2)
 
     def test_default_is_unlimited_is_false(self):
-        self.assertEqual(self.d.is_unlimited, False)
+        d = self.ds.new_dimension('x')
+        self.assertEqual(d.is_unlimited, False)
 
     def test_setting_is_unlimited_property_raises_attribute_error(self):
+        d = self.ds.new_dimension('x')
         with self.assertRaises(AttributeError):
-            self.d.is_unlimited = True
+            d.is_unlimited = True
 
     def test_set_is_unlimited_to_bool_in_constructor(self):
-        d = Dimension('x', is_unlimited=True, dataset=self.ds)
+        d = self.ds.new_dimension('x', is_unlimited=True)
         self.assertEqual(d.is_unlimited, True)
 
     def test_set_is_unlimited_to_non_bool_raises_type_error(self):
         with self.assertRaises(TypeError):
-            Dimension('x', is_unlimited='false')
+            self.ds.new_dimension('x', is_unlimited='false')
 
     def test_from_netcdf4(self):
         ncdim = MockNetCDF4Dimension('x', 4, isunlimited=True)
@@ -76,13 +79,13 @@ class DimensionTests(unittest.TestCase):
         self.assertTrue(dim.is_unlimited)
 
     def test_equal(self):
-        d1 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
-        d2 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
+        d1 = self.ds.new_dimension('x', size=5, is_unlimited=True)
+        d2 = self.ds.new_dimension('y', size=5, is_unlimited=True)
         self.assertEqual(d1, d2)
 
     def test_not_equal(self):
-        d1 = Dimension('x', size=5, is_unlimited=True, dataset=self.ds)
-        d2 = Dimension('x', size=2, is_unlimited=True, dataset=self.ds)
+        d1 = self.ds.new_dimension('x', size=5, is_unlimited=True)
+        d2 = self.ds.new_dimension('y', size=2, is_unlimited=True)
         self.assertIsNot(d1, d2)
         self.assertNotEqual(d1, d2)
 

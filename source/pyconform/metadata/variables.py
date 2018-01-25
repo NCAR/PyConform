@@ -67,6 +67,8 @@ class Variable(MemberObject):
                 all(isinstance(d, basestring) for d in dimensions)):
             msg = 'Variable {!r} must have a list or tuple of dimension names'
             raise TypeError(msg.format(self.name))
+        for dname in dimensions:
+            self.dataset.get_dimension(dname)
         return dimensions
 
     def __validate_attributes(self, attributes):
@@ -103,7 +105,7 @@ class Variable(MemberObject):
         return self.__dimensions
 
     def get_dimensions(self):
-        return {n: self._dataset.get_dimension(n) for n in self.dimensions}
+        return {n: self.dataset.get_dimension(n) for n in self.dimensions}
 
     @property
     def attributes(self):

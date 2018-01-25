@@ -25,5 +25,5 @@ class MemberObject(NamedObject):
         return dataset
 
     @property
-    def _dataset(self):
+    def dataset(self):
         return self.__dataset

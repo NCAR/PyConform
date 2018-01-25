@@ -15,80 +15,99 @@ class FileTests(unittest.TestCase):
 
     def setUp(self):
         self.ds = Dataset()
-        self.f = File('test.nc', dataset=self.ds)
 
     def test_create(self):
-        self.assertIsInstance(self.f, File)
+        f = self.ds.new_file('test.nc')
+        self.assertIsInstance(f, File)
 
     def test_default_attributes_is_empty_dict(self):
-        self.assertEqual(self.f.attributes, {})
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.attributes, {})
 
     def test_setting_attributes_raises_attribute_error(self):
+        f = self.ds.new_file('test.nc')
         with self.assertRaises(AttributeError):
-            self.f.attributes = 4
+            f.attributes = 4
 
     def test_setting_attributes_in_constructor(self):
-        f = File('test.nc', attributes={'a': 'b'}, dataset=self.ds)
+        f = self.ds.new_file('test.nc', attributes={'a': 'b'})
         self.assertEqual(f.attributes, {'a': 'b'})
 
     def test_default_deflate_is_1(self):
-        self.assertEqual(self.f.deflate, 1)
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.deflate, 1)
 
     def test_setting_deflate_raises_attribute_error(self):
+        f = self.ds.new_file('test.nc')
         with self.assertRaises(AttributeError):
-            self.f.deflate = 4
+            f.deflate = 4
 
     def test_setting_deflate_in_constructor(self):
-        f = File('test.nc', deflate=3, dataset=self.ds)
+        f = self.ds.new_file('test.nc', deflate=3)
         self.assertEqual(f.deflate, 3)
 
     def test_setting_deflate_to_invalid_raises_type_error(self):
         with self.assertRaises(TypeError):
-            File('test.nc', deflate='3')
+            self.ds.new_file('test.nc', deflate='3')
 
     def test_default_shuffle_is_off(self):
-        self.assertEqual(self.f.shuffle, 'off')
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.shuffle, 'off')
 
     def test_setting_shuffle_raises_attribute_error(self):
+        f = self.ds.new_file('test.nc')
         with self.assertRaises(AttributeError):
-            self.f.shuffle = 'on'
+            f.shuffle = 'on'
 
     def test_setting_shuffle_in_constructor(self):
-        f = File('test.nc', shuffle='on', dataset=self.ds)
+        f = self.ds.new_file('test.nc', shuffle='on')
         self.assertEqual(f.shuffle, 'on')
 
     def test_setting_shuffle_to_invalid_raises_type_error(self):
         with self.assertRaises(TypeError):
-            File('test.nc', shuffle=True)
+            self.ds.new_file('test.nc', shuffle=True)
 
     def test_default_dimensions_is_empty_set(self):
-        self.assertEqual(self.f.dimensions, frozenset())
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.dimensions, frozenset())
 
     def test_setting_dimensions_raises_attribute_error(self):
+        f = self.ds.new_file('test.nc')
         with self.assertRaises(AttributeError):
-            self.f.dimensions = 4
+            f.dimensions = 4
 
     def test_setting_dimensions_in_constructor(self):
-        f = File('test.nc', dimensions=('x', 'y'), dataset=self.ds)
+        self.ds.new_dimension('x')
+        self.ds.new_dimension('y')
+        f = self.ds.new_file('test.nc', dimensions=('x', 'y'))
         self.assertItemsEqual(f.dimensions, ('x', 'y'))
 
     def test_default_variables_is_empty_set(self):
-        self.assertEqual(self.f.variables, frozenset())
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.variables, frozenset())
 
     def test_setting_variables_raises_attribute_error(self):
+        f = self.ds.new_file('test.nc')
         with self.assertRaises(AttributeError):
-            self.f.variables = 4
+            f.variables = 4
 
     def test_setting_variables_in_constructor(self):
-        f = File('test.nc', variables=('u', 'v'), dataset=self.ds)
+        self.ds.new_variable('u')
+        self.ds.new_variable('v')
+        f = self.ds.new_file('test.nc', variables=('u', 'v'))
         self.assertItemsEqual(f.variables, ('u', 'v'))
+
+    def test_setting_variables_not_found_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.ds.new_file('test.nc', variables=('u', 'v'))
 
     def test_setting_variables_with_wrong_type_raises_type_error(self):
         with self.assertRaises(TypeError):
-            File('test.nc', variables=(1, 2), dataset=self.ds)
+            self.ds.new_file('test.nc', variables=(1, 2))
 
     def test_default_coordinates_is_empty_set(self):
-        self.assertEqual(self.f.coordinates, frozenset())
+        f = self.ds.new_file('test.nc')
+        self.assertEqual(f.coordinates, frozenset())
 
 
 if __name__ == '__main__':

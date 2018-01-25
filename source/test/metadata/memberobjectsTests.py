@@ -24,7 +24,7 @@ class MemberObjectTests(unittest.TestCase):
         self.assertEqual(self.m.name, 'name')
 
     def test_setting_dataset_to_dataset_stores_dataset(self):
-        self.assertIs(self.m._dataset, self.ds)
+        self.assertIs(self.m.dataset, self.ds)
 
 
 if __name__ == '__main__':
