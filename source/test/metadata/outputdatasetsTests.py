@@ -47,7 +47,7 @@ class OutputDatasetTests(unittest.TestCase):
         self.assertEqual(v.units, 'kg')
         u = ods.get_variable('u')
         self.assertEqual(u.definition, 'U')
-        self.assertEqual(u.attributes, {})
+        self.assertEqual(u.attributes, set())
         f = ods.get_file('u_1.nc')
         self.assertItemsEqual(f.dimensions, ('x', 'y', 't'))
         self.assertItemsEqual(f.variables, ('u', 'v'))

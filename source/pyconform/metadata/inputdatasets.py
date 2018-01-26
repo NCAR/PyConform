@@ -27,15 +27,14 @@ class InputDataset(Dataset):
             self.__add_netcdf_dimension(ncf.dimensions[name])
         for name in ncf.variables:
             self.__add_netcdf_variable(ncf.variables[name])
-        f = File(filename, dimensions=tuple(ncf.dimensions),
-                 variables=tuple(ncf.variables))
         ncfatts = {a: ncf.getncattr(a) for a in ncf.ncattrs()}
-        f.attributes.update(ncfatts)
+        f = File(filename, dataset=self, dimensions=tuple(ncf.dimensions),
+                 variables=tuple(ncf.variables), attributes=ncfatts)
         self._add_file(f)
         ncf.close()
 
     def __add_netcdf_dimension(self, ncd):
-        d = Dimension.from_netcdf4(ncd)
+        d = Dimension.from_netcdf4(ncd, dataset=self)
         if d.name not in self.dimensions:
             self._add_dimension(d)
         elif self.get_dimension(d.name) != d:
@@ -43,7 +42,7 @@ class InputDataset(Dataset):
             raise ValueError(msg.format(d.name))
 
     def __add_netcdf_variable(self, ncv):
-        v = Variable.from_netcdf4(ncv)
+        v = Variable.from_netcdf4(ncv, dataset=self)
         if v.name not in self.variables:
             self._add_variable(v)
         elif self.get_variable(v.name) != v:
