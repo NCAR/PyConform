@@ -94,7 +94,7 @@ class DatasetTests(unittest.TestCase):
             self.ds.new_file('test.nc', dimensions=('x',))
 
     def test_get_dimension(self):
-        x1 = self.ds.new_dimension('x', size=6)
+        x1 = self.ds.new_dimension('x')
         x2 = self.ds.get_dimension('x')
         self.assertIs(x1, x2)
 
@@ -124,13 +124,13 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(self.ds.coordinates, frozenset())
 
     def test_setting_coordinates_by_matching_dimensions_and_variable_names(self):
-        self.ds.new_dimension('x', size=5)
+        self.ds.new_dimension('x')
         self.ds.new_variable('x', dimensions=('x',))
         self.assertEqual(self.ds.coordinates, {'x'})
 
     def test_setting_coordinates_with_coordinates_attribute(self):
-        self.ds.new_dimension('i', size=5)
-        self.ds.new_dimension('j', size=5)
+        self.ds.new_dimension('i')
+        self.ds.new_dimension('j')
         self.ds.new_variable('x', dimensions=('i', 'j'))
         self.ds.new_variable('y', dimensions=('i', 'j'))
         vatts = {'coordinates': 'x y'}
@@ -138,14 +138,14 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(self.ds.coordinates, {'x', 'y'})
 
     def test_setting_coordinates_with_axis_attribute(self):
-        self.ds.new_dimension('i', size=5)
+        self.ds.new_dimension('i')
         vatts = {'axis': 'X'}
         self.ds.new_variable('x', dimensions=('i',), attributes=vatts)
         self.assertEqual(self.ds.coordinates, {'x'})
 
     def test_setting_coordinates_without_coordinate_variables_raises_key_error(self):
-        self.ds.new_dimension('i', size=5)
-        self.ds.new_dimension('j', size=5)
+        self.ds.new_dimension('i')
+        self.ds.new_dimension('j')
         vatts = {'coordinates': 'x y'}
         with self.assertRaises(KeyError):
             self.ds.new_variable('v', dimensions=('i', 'j'), attributes=vatts)
