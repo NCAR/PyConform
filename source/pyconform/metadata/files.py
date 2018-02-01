@@ -5,6 +5,8 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from collections import OrderedDict
+from xarray.core.utils import Frozen
 from memberobjects import MemberObject
 
 
@@ -18,68 +20,31 @@ class File(MemberObject):
 
     _NETCDF4_FORMATS_ = {'NETCDF4'}
 
-    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=1,   # @ReservedAssignment
-                 shuffle='off', variables=(), dimensions=(), attributes={}, **kwds):
+    def __init__(self, name, **kwds):
         super(File, self).__init__(name, **kwds)
-        self.__attributes = self.__validate_attributes(attributes)
-        self.__format = self.__validate_format(format)
-        self.__deflate = self.__validate_deflate(deflate)
-        self.__shuffle = self.__validate_shuffle(shuffle)
-        self.__variables = self.__validate_variables(variables)
-        self.__dimensions = self.__validate_dimensions(dimensions)
-        self.path = None
-
-    def __validate_attributes(self, attributes):
-        if not isinstance(attributes, dict):
-            msg = 'File {!r} attributes should be a dictionary'
-            raise TypeError(msg.format(self.name))
-        return attributes
-
-    def __validate_format(self, format):  # @ReservedAssignment
-        if not (format in File._NETCDF3_FORMATS_ or format in File._NETCDF4_FORMATS_):
-            msg = 'File {!r} format {!r} is not recognized'
-            raise TypeError(msg.format(self.name, format))
-        return format
-
-    def __validate_deflate(self, deflate):
-        if not isinstance(deflate, int):
-            msg = 'File {!r} deflate level must be an integer'
-            raise TypeError(msg.format(self.name))
-        return deflate
-
-    def __validate_shuffle(self, shuffle):
-        if not (isinstance(shuffle, basestring) and shuffle in ('on', 'off')):
-            msg = 'File {!r} shuffle must be "on" or "off"'
-            raise TypeError(msg.format(self.name))
-        return shuffle
-
-    def __validate_variables(self, variables):
-        if not (isinstance(variables, (list, tuple)) and
-                all(isinstance(v, basestring) for v in variables)):
-            msg = 'File {!r} can only accept a list/tuple of variable names'
-            raise TypeError(msg.format(self.name))
-        for vname in variables:
-            v = self.dataset.get_variable(vname)
-            v._add_to_file(self.name)
-        return frozenset(variables)
-
-    def __validate_dimensions(self, dimensions):
-        if not (isinstance(dimensions, (list, tuple)) and
-                all(isinstance(v, basestring) for v in dimensions)):
-            msg = 'File {!r} can only accept a list/tuple of dimension names'
-            raise TypeError(msg.format(self.name))
-        return frozenset(dimensions)
+        self.__attributes = OrderedDict()
+        self.__format = 'NETCDF4_CLASSIC'
+        self.__deflate = 1
+        self.__shuffle = 'off'
+        self.__variables = OrderedDict()
+        self.__dimensions = OrderedDict()
+        self.path = name
 
     @property
     def attributes(self):
-        return frozenset(self.__attributes)
-
-    def get_attribute(self, name):
-        return self.__attributes[name]
+        return self.__attributes
 
     @property
     def format(self):
         return self.__format
+
+    @format.setter
+    def format(self, fmt):
+        if fmt in File._NETCDF3_FORMATS_ or fmt in File._NETCDF4_FORMATS_:
+            self.__format = fmt
+        else:
+            msg = 'File {!r} format {!r} is not recognized'
+            raise TypeError(msg.format(self.name, format))
 
     def is_netcdf3(self):
         if self.format in File._NETCDF3_FORMATS_:
@@ -91,24 +56,48 @@ class File(MemberObject):
     def deflate(self):
         return self.__deflate
 
+    @deflate.setter
+    def deflate(self, deflate):
+        if deflate in range(10):
+            self.__deflate = deflate
+        else:
+            msg = 'File {!r} deflate level must be an integer from 0 to 9'
+            raise TypeError(msg.format(self.name))
+
     @property
     def shuffle(self):
         return self.__shuffle
 
+    @shuffle.setter
+    def shuffle(self, shfl):
+        if shfl in ('on', 'off'):
+            self.__shuffle = shfl
+        else:
+            msg = 'File {!r} shuffle must be "on" or "off"'
+            raise TypeError(msg.format(self.name))
+
     @property
     def dimensions(self):
-        return self.__dimensions
-
-    def get_dimensions(self):
-        return {n: self.dataset.get_dimension(n) for n in self.dimensions}
+        return Frozen(self.__dimensions)
 
     @property
     def variables(self):
-        return self.__variables
+        return Frozen(self.__variables)
 
-    def get_variables(self):
-        return {n: self.dataset.get_variable(n) for n in self.variables}
+    def add_dimension(self, dname):
+        if dname not in self.dataset.dimensions:
+            msg = 'Unknown dimension {!r} cannot be added to file {!r}'
+            raise KeyError(msg.format(dname, self.name))
+        self.__dimensions[dname] = self.dataset.dimensions[dname]
+
+    def add_variable(self, vname):
+        if vname not in self.dataset.variables:
+            msg = 'Unknown variable {!r} cannot be added to file {!r}'
+            raise KeyError(msg.format(vname, self.name))
+        self.__variables[vname] = self.dataset.variables[vname]
+        self.__variables[vname]._add_to_file(self.name)
 
     @property
     def coordinates(self):
-        return frozenset()
+        return Frozen(OrderedDict((c, self.variables[c]) for c in self.variables
+                                  if c in self.dataset.coordinates))

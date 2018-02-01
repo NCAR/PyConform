@@ -6,6 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from collections import OrderedDict
+from xarray.core.utils import Frozen
 from . import Dimension, Variable, File
 
 
@@ -17,7 +18,6 @@ class Dataset(object):
     def __init__(self):
         self.__dimensions = OrderedDict()
         self.__variables = OrderedDict()
-        self.__coordinates = set()
         self.__files = OrderedDict()
 
     def __contains__(self, obj):
@@ -62,7 +62,7 @@ class Dataset(object):
         not_found = [d for d in dimensions if d not in self.__dimensions]
         if not_found:
             dstr = ', '.join('{!r}'.format(d) for d in not_found)
-            msg = 'Dimensions {} not found in dataset'
+            msg = 'Dimension(s) {} not found in dataset'
             raise KeyError(msg.format(dstr))
 
     def __check_variable_references(self, variables):
@@ -71,7 +71,7 @@ class Dataset(object):
         not_found = [v for v in variables if v not in self.__variables]
         if not_found:
             dstr = ', '.join('{!r}'.format(v) for v in not_found)
-            msg = 'Variables {} not found in dataset'
+            msg = 'Variable(s) {} not found in dataset'
             raise KeyError(msg.format(dstr))
 
     def _add_variable(self, v):
@@ -84,46 +84,42 @@ class Dataset(object):
 
     def __add_new_coordinates(self, v):
         if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
-            self.__coordinates.add(v.name)
+            self.__coordinates[v.name] = v
         elif v.axis is not None:
-            self.__coordinates.add(v.name)
+            self.__coordinates[v.name] = v
         elif len(v.auxcoords) > 0:
-            for n in v.auxcoords:
-                self.__coordinates.add(n)
+            self.__coordinates.update(v.auxcoords)
 
     def _add_dimension(self, d):
         self.__dimensions[d.name] = d
 
     @property
     def dimensions(self):
-        return frozenset(self.__dimensions)
+        return Frozen(self.__dimensions)
 
     @property
     def variables(self):
-        return frozenset(self.__variables)
+        return Frozen(self.__variables)
 
     @property
     def files(self):
-        return frozenset(self.__files)
+        return Frozen(self.__files)
 
     @property
     def coordinates(self):
-        return frozenset(self.__coordinates)
+        coordinates = OrderedDict((vname, self.__variables[vname])
+                                  for vname in self.__variables
+                                  if self.__is_coordinate_variable(vname))
+        for vname in self.__variables:
+            v = self.__variables[vname]
+            coordinates.update(v.auxcoords)
+        return Frozen(coordinates)
 
-    def get_dimension(self, name):
-        if name not in self.__dimensions:
-            msg = 'Dimension {!r} not found in dataset'
-            raise KeyError(msg.format(name))
-        return self.__dimensions[name]
-
-    def get_variable(self, name):
-        if name not in self.__variables:
-            msg = 'Variable {!r} not found in dataset'
-            raise KeyError(msg.format(name))
-        return self.__variables[name]
-
-    def get_file(self, name):
-        if name not in self.__files:
-            msg = 'File {!r} not found in dataset'
-            raise KeyError(msg.format(name))
-        return self.__files[name]
+    def __is_coordinate_variable(self, vname):
+        v = self.__variables[vname]
+        if v.dimensions and len(v.dimensions) == 1 and v.name in v.dimensions:
+            return True
+        elif v.axis is not None:
+            return True
+        else:
+            return False
