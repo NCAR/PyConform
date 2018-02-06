@@ -8,7 +8,6 @@ LICENSE: See the LICENSE.rst file for details
 import functions as fn
 import xarray as xr
 import operator as op
-import cf_units as cu
 
 __OP_SYMBOLS__ = {'__add__': '+', '__radd__': '+', '__iadd__': '+',
                   '__sub__': '-', '__rsub__': '-', '__isub__': '-',
