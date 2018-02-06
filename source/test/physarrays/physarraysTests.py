@@ -5,10 +5,11 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarrays import PhysArray, convert
+from pyconform.physarrays import PhysArray, UnitsError
 
 import xarray as xr
 import numpy as np
+import operator as ops
 import unittest
 
 
@@ -19,91 +20,131 @@ class PhysArrayTests(unittest.TestCase):
         self.assertIsInstance(x, PhysArray)
         self.assertIsInstance(x, xr.DataArray)
 
-    def test_convert(self):
-        v = PhysArray([[1, 2], [3, 4]], name='v', dims=['x', 'y'],
-                      coords=[[0, 1], [1, 2]], attrs={'units': 'g'})
-        v_kg = convert(v, 'kg')
-        self.assertIsInstance(v_kg, PhysArray)
+    def assertBinaryOperator(self, op, x, y, z):
+        z_ = op(x, y)
+        np.testing.assert_array_equal(z_, z)
+        self.assertEqual(z_.name, z.name)
+        self.assertEqual(z_.cfunits, z.cfunits)
 
-    def test_add_x_y(self):
-        xs = [PhysArray(3.0, name='x', attrs={'units': 'km'}),
-              PhysArray([3.0, 4.0, 5.0], dims=['i'], coords=[
-                        [0, 1, 2]], name='x', attrs={'units': 'km'}),
-              PhysArray(3.0, name='x'), 1.0]
-        ys = [PhysArray(2.0, name='y', attrs={'units': 'm'}),
-              PhysArray([9.0, 7.0, 5.0], dims=['i'], coords=[
-                        [0, 1, 2]], name='y', attrs={'units': 'm'}),
-              1.0, PhysArray(3.0, name='y')]
-        zs = [PhysArray(3.002, name="(x+convert(y, to='km'))", attrs={'units': 'km'}),
-              PhysArray([3.009, 4.007, 5.005], name="(x+convert(y, to='km'))",
-                        dims=['i'], coords=[[0, 1, 2]], attrs={'units': 'km'}),
-              PhysArray(4.0, name='(x+1.0)'),
-              PhysArray(4.0, name='(1.0+y)')]
-        for x, y, z_expected in zip(xs, ys, zs):
-            z_actual = x + y
-            np.testing.assert_array_equal(z_actual, z_expected)
-            self.assertEqual(z_actual.name, z_expected.name)
-            self.assertEqual(z_actual.units, z_expected.units)
+    def test_add_float_to_scalar(self):
+        x = 3.5
+        y = PhysArray(2.0, name='y')
+        z = PhysArray(5.5, name="(3.5+y)")
+        self.assertBinaryOperator(ops.add, x, y, z)
 
-    def test_sub_x_y(self):
-        xs = [PhysArray(3.0, name='x', attrs={'units': 'km'}),
-              PhysArray([3.0, 4.0, 5.0], dims=['i'], coords=[
-                        [0, 1, 2]], name='x', attrs={'units': 'km'}),
-              PhysArray(3.0, name='x'), 1.0]
-        ys = [PhysArray(2.0, name='y', attrs={'units': 'm'}),
-              PhysArray([9.0, 7.0, 5.0], dims=['i'], coords=[
-                        [0, 1, 2]], name='y', attrs={'units': 'm'}),
-              1.0, PhysArray(3.0, name='y')]
-        zs = [PhysArray(2.998, name="(x-convert(y, to='km'))", attrs={'units': 'km'}),
-              PhysArray([2.991, 3.993, 4.995], name="(x-convert(y, to='km'))",
-                        dims=['i'], coords=[[0, 1, 2]], attrs={'units': 'km'}),
-              PhysArray(2.0, name='(x-1.0)'),
-              PhysArray(-2.0, name='(1.0-y)')]
-        for x, y, z_expected in zip(xs, ys, zs):
-            z_actual = x - y
-            np.testing.assert_array_equal(z_actual, z_expected)
-            self.assertEqual(z_actual.name, z_expected.name)
-            self.assertEqual(z_actual.units, z_expected.units)
+    def test_add_float_to_scalar_with_unconvertable_units_raises_units_error(self):
+        x = 3.5
+        y = PhysArray(2.0, name='y', units='m')
+        with self.assertRaises(UnitsError):
+            x + y
 
-    def test_mul_x_y(self):
-        xs = [PhysArray(3.0, name='x', attrs={'units': 'm'}),
-              PhysArray([3.0, 4.0, 5.0], dims=['i'], coords=[[0, 1, 2]],
-                        name='x', attrs={'units': 'm'}),
-              PhysArray(3.0, name='x'), 2.0]
-        ys = [PhysArray(2.0, name='y', attrs={'units': 'km'}),
-              PhysArray([9.0, 7.0, 5.0], dims=['i'], coords=[[0, 1, 2]],
-                        name='y', attrs={'units': 'km'}),
-              2.0, PhysArray(3.0, name='y')]
-        zs = [PhysArray(6.0, name="(x*y)", attrs={'units': '1000 m^2'}),
-              PhysArray([27., 28., 25.], name="(x*y)",
-                        dims=['i'], coords=[[0, 1, 2]], attrs={'units': '1000 m^2'}),
-              PhysArray(6.0, name='(x*2.0)'),
-              PhysArray(6.0, name='(2.0*y)')]
-        for x, y, z_expected in zip(xs, ys, zs):
-            z_actual = x * y
-            np.testing.assert_array_equal(z_actual, z_expected)
-            self.assertEqual(z_actual.name, z_expected.name)
-            self.assertEqual(z_actual.units, z_expected.units)
+    def test_add_scalar_to_float(self):
+        x = PhysArray(2.0, name='x')
+        y = 3.5
+        z = PhysArray(5.5, name="(x+3.5)")
+        self.assertBinaryOperator(ops.add, x, y, z)
 
-    def test_div_x_y(self):
-        xs = [PhysArray(3.0, name='x', attrs={'units': 'm'}),
-              PhysArray([3.0, 4.0, 5.0], dims=['i'], coords=[[0, 1, 2]],
-                        name='x', attrs={'units': 'm'}),
-              PhysArray(3.0, name='x'), 2.0]
-        ys = [PhysArray(2.0, name='y', attrs={'units': 'cm'}),
-              PhysArray([9.0, 7.0, 5.0], dims=['i'], coords=[[0, 1, 2]],
-                        name='y', attrs={'units': 'cm'}),
-              2.0, PhysArray(3.0, name='y')]
-        zs = [PhysArray(1.5, name="(x/y)", attrs={'units': '100'}),
-              PhysArray([1. / 3, 4. / 7, 1.], name="(x/y)",
-                        dims=['i'], coords=[[0, 1, 2]], attrs={'units': '100'}),
-              PhysArray(1.5, name='(x/2.0)'),
-              PhysArray(2. / 3, name='(2.0/y)')]
-        for x, y, z_expected in zip(xs, ys, zs):
-            z_actual = x / y
-            np.testing.assert_array_equal(z_actual, z_expected)
-            self.assertEqual(z_actual.name, z_expected.name)
-            self.assertEqual(z_actual.units, z_expected.units)
+    def test_add_scalar_to_scalar_without_units(self):
+        x = PhysArray(3.0, name='x')
+        y = PhysArray(2.0, name='y')
+        z = PhysArray(5.0, name="(x+y)")
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_scalar_to_array_without_units(self):
+        x = PhysArray(3.0, name='x')
+        y = PhysArray([2., 3., 4.], name='y',
+                      dims=['i'], coords=[[0, 1, 2]])
+        z = PhysArray([5., 6., 7.], name="(x+y)",
+                      dims=['i'], coords=[[0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_array_to_scalar_without_units(self):
+        x = PhysArray([2., 3., 4.], name='x',
+                      dims=['i'], coords=[[0, 1, 2]])
+        y = PhysArray(3.0, name='y')
+        z = PhysArray([5., 6., 7.], name="(x+y)",
+                      dims=['i'], coords=[[0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_array_to_array_without_units(self):
+        x = PhysArray([2., 3., 4.], name='x',
+                      dims=['i'], coords=[[0, 1, 2]])
+        y = PhysArray([2., 3., 4.], name='y',
+                      dims=['j'], coords=[[0, 1, 2]])
+        z = PhysArray([[4., 5., 6.],
+                       [5., 6., 7.],
+                       [6., 7., 8.]],
+                      name="(x+y)", dims=['i', 'j'], coords=[[0, 1, 2], [0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_scalar_to_scalar_with_units(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='km')
+        z = PhysArray(2003.0, name="(x+convert(y, to='m'))", units='m')
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_scalar_to_scalar_with_time_referenced_units(self):
+        x = PhysArray(3.0, name='x', units='days since 1999-01-01',
+                      calendar='noleap')
+        y = PhysArray(2.0, name='y', units='days since 2000-01-01',
+                      calendar='noleap')
+        z = PhysArray(370.0, name="(x+convert(y, to='days since 1999-01-01'))",
+                      units='days since 1999-01-01', calendar='noleap')
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_scalar_to_scalar_with_time_referenced_units_and_different_calendar_raises_units_error(self):
+        x = PhysArray(3.0, name='x', units='days since 1999-01-01',
+                      calendar='noleap')
+        y = PhysArray(2.0, name='y', units='hours since 2000-01-01',
+                      calendar='gregorian')
+        with self.assertRaises(UnitsError):
+            x + y
+
+    def test_add_scalar_to_array_with_units(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray([2., 3., 4.], name='y', units='km',
+                      dims=['i'], coords=[[0, 1, 2]])
+        z = PhysArray([2003., 3003., 4003.], name="(x+convert(y, to='m'))",
+                      units='m', dims=['i'], coords=[[0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_array_to_scalar_with_units(self):
+        x = PhysArray([2., 3., 4.], name='x', units='m',
+                      dims=['i'], coords=[[0, 1, 2]])
+        y = PhysArray(3.0, name='y', units='km')
+        z = PhysArray([3002., 3003., 3004.], name="(x+convert(y, to='m'))",
+                      units='m', dims=['i'], coords=[[0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_add_array_to_array_with_units(self):
+        x = PhysArray([2., 3., 4.], name='x', units='m',
+                      dims=['i'], coords=[[0, 1, 2]])
+        y = PhysArray([2., 3., 4.], name='y', units='km',
+                      dims=['j'], coords=[[0, 1, 2]])
+        z = PhysArray([[2002., 3002., 4002.],
+                       [2003., 3003., 4003.],
+                       [2004., 3004., 4004.]],
+                      name="(x+convert(y, to='m'))", units='m',
+                      dims=['i', 'j'], coords=[[0, 1, 2], [0, 1, 2]])
+        self.assertBinaryOperator(ops.add, x, y, z)
+
+    def test_sub_scalar_to_scalar_with_units(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='km')
+        z = PhysArray(-1997.0, name="(x-convert(y, to='m'))", units='m')
+        self.assertBinaryOperator(ops.sub, x, y, z)
+
+    def test_mul_scalar_to_scalar_with_units(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='km')
+        z = PhysArray(6.0, name="(x*y)", units='1000 m^2')
+        self.assertBinaryOperator(ops.mul, x, y, z)
+
+    def test_div_scalar_to_scalar_with_units(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='km')
+        z = PhysArray(1.5, name="(x/y)", units='0.001')
+        self.assertBinaryOperator(ops.div, x, y, z)
 
 
 if __name__ == "__main__":

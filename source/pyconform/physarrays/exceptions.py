@@ -1,10 +1,12 @@
 """
-PhysArray Classes and Functions
+Exception Classes
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from physarrays import PhysArray
-from functions import *
-from exceptions import *
+
+class UnitsError(ValueError):
+    """
+    Error in units conversion
+    """

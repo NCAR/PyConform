@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 import functions as fn
 import xarray as xr
 import operator as op
-from pyconform.physarrays.functions import get_units
+import cf_units as cu
 
 __OP_SYMBOLS__ = {'__add__': '+', '__radd__': '+', '__iadd__': '+',
                   '__sub__': '-', '__rsub__': '-', '__isub__': '-',
@@ -22,16 +22,6 @@ __ROP_NAMES__ = {'__radd__', '__rsub__',
                  '__rmul__', '__rdiv__', '__rtruediv__'}
 
 
-def convert(obj, to_units):
-    u1 = fn.get_units(obj)
-    if u1 != to_units:
-        new_obj = xr.apply_ufunc(u1.convert, obj, to_units)
-        new_obj.name = "convert({}, to='{!s}')".format(obj.name, to_units)
-        return type(obj)(new_obj)
-    else:
-        return obj
-
-
 def _bin_op_name(func, self, other):
     nself = fn.get_name(self)
     nother = fn.get_name(other)
@@ -43,25 +33,25 @@ def _bin_op_name(func, self, other):
 
 def _bin_op_match_units_decorator(func):
     def wrapper(self, other):
-        new_other = convert(other, fn.get_units(self))
-        newarr = func(self, new_other)
-        if 'units' in self.attrs:
-            newarr.attrs['units'] = self.attrs['units']
-        newarr.name = _bin_op_name(func, self, new_other)
-        return newarr
+        self_units = fn.get_cfunits(self)
+        new_other = fn.convert(other, self_units)
+        new_array = func(self, new_other)
+        fn.set_cfunits(new_array, self_units)
+        new_array.name = _bin_op_name(func, self, new_other)
+        return new_array
     return wrapper
 
 
 def _bin_op_compute_units_decorator(func):
     def wrapper(self, other):
-        uself = fn.get_units(self)
-        uother = fn.get_units(other)
+        self_units = fn.get_cfunits(self)
+        other_units = fn.get_cfunits(other)
         op = __SYMBOL_OPS__[__OP_SYMBOLS__[func.__name__]]
-        newunits = op(uself, uother)
-        newarr = func(self, other)
-        newarr.attrs['units'] = str(newunits)
-        newarr.name = _bin_op_name(func, self, other)
-        return newarr
+        new_units = op(self_units, other_units)
+        new_array = func(self, other)
+        fn.set_cfunits(new_array, new_units)
+        new_array.name = _bin_op_name(func, self, other)
+        return new_array
     return wrapper
 
 
@@ -71,11 +61,35 @@ class PhysArray(xr.DataArray):
     """
 
     def __init__(self, *args, **kwds):
+        units = kwds.pop('units', None)
+        calendar = kwds.pop('calendar', None)
+        positive = kwds.pop('positive', None)
         super(PhysArray, self).__init__(*args, **kwds)
+        if units:
+            self.attrs['units'] = units
+        if calendar:
+            self.attrs['calendar'] = calendar
+        if positive:
+            self.attrs['positive'] = positive
 
     @property
-    def units(self):
-        return get_units(self)
+    def cfunits(self):
+        return fn.get_cfunits(self)
+
+    @cfunits.setter
+    def cfunits(self, to_units):
+        fn.set_cfunits(self, to_units)
+
+    @property
+    def positive(self):
+        return self.attrs.get('positive', None)
+
+    @positive.setter
+    def positive(self, p):
+        pstr = str(p).lower()
+        if pstr not in ('up', 'down'):
+            raise ValueError('Positive attribute must be up or down')
+        self.attrs['positive'] = pstr
 
     @_bin_op_match_units_decorator
     def __add__(self, other):
