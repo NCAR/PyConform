@@ -151,14 +151,19 @@ class PhysArrayTests(unittest.TestCase):
     def test_mul_scalar_to_scalar_with_time_referenced_units(self):
         x = PhysArray(1.0, name='x', units='days since 2000-01-01')
         y = PhysArray(1.0, name='y', units='hours since 1999-01-01')
-        z = PhysArray(1.0, name="(x*y)",
-                      units='days since 2000-01-01')
+        z = PhysArray(1.0, name="(x*y)", units='24 hours^2')
         self.assertBinaryOperator(ops.mul, x, y, z)
 
     def test_div_scalar_to_scalar_with_units(self):
         x = PhysArray(3.0, name='x', units='m')
         y = PhysArray(2.0, name='y', units='km')
         z = PhysArray(1.5, name="(x/y)", units='0.001')
+        self.assertBinaryOperator(ops.div, x, y, z)
+
+    def test_div_scalar_to_scalar_with_time_referenced_units(self):
+        x = PhysArray(1.0, name='x', units='days since 2000-01-01')
+        y = PhysArray(1.0, name='y', units='hours since 1999-01-01')
+        z = PhysArray(1.0, name="(x/y)", units='24')
         self.assertBinaryOperator(ops.div, x, y, z)
 
 
