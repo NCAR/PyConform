@@ -1,5 +1,5 @@
 """
-Functions and decorators for handling units
+Generic functions for special DataArray attribute handling
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -11,6 +11,17 @@ import cf_units as cu
 import xarray as xr
 import numpy as np
 import os
+
+
+def is_scalar(obj):
+    if hasattr(obj, 'ndim') and obj.ndim == 0:
+        return True
+    else:
+        return np.isscalar(obj)
+
+
+def is_char_type(obj):
+    return get_dtype(obj).char in ('S', 'U')
 
 
 def convert(obj, to_units):
@@ -31,10 +42,6 @@ def get_dtype(obj):
     return np.asarray(obj).dtype
 
 
-def is_char_type(obj):
-    return get_dtype(obj).char in ('S', 'U')
-
-
 def get_name(obj):
     if isinstance(obj, xr.DataArray):
         return obj.name
@@ -46,11 +53,11 @@ def get_cfunits(obj):
     if is_char_type(obj):
         return cu.Unit('no unit')
     elif isinstance(obj, xr.DataArray):
-        ustr = obj.attrs.get('units', 'no unit')
+        ustr = obj.attrs.get('units', 1)
         cstr = obj.attrs.get('calendar', None)
         return cu.Unit(ustr, calendar=cstr)
     else:
-        return cu.Unit('no unit')
+        return cu.Unit(1)
 
 
 def set_cfunits(obj, to_units):
@@ -86,25 +93,3 @@ def set_positive(obj, to_value):
     elif to_value is not None:
         msg = "Cannot set positive for object of type '{!s}'"
         raise ValueError(msg.format(type(obj)))
-
-
-def change_positive(obj, to_value):
-    old_pos = get_positive(obj)
-    new_pos = None if to_value is None else str(to_value).lower()
-    if old_pos == new_pos:
-        return
-    elif old_pos is None or new_pos is None:
-        set_positive(obj, to_value)
-    else:
-        flip_positive(obj)
-
-
-def flip_positive(obj):
-    pos = get_positive(obj)
-    if pos is None:
-        return
-    elif pos == 'up':
-        set_positive(obj, 'down')
-    else:
-        set_positive(obj, 'up')
-    obj *= -1

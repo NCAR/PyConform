@@ -74,8 +74,12 @@ class FunctionsTests(unittest.TestCase):
     def test_float_is_not_char_type(self):
         self.assertFalse(fn.is_char_type(1.0))
 
-    def test_get_cfunits_of_float_returns_no_unit(self):
-        self.assertEqual(fn.get_cfunits(2.0), cu.Unit('no unit'))
+    def test_get_cfunits_of_float_returns_unit_one(self):
+        self.assertEqual(fn.get_cfunits(2.0), cu.Unit(1))
+
+    def test_get_cfunits_of_float_ndarray_returns_unit_one(self):
+        obj = np.array([1.4])
+        self.assertEqual(fn.get_cfunits(obj), cu.Unit(1))
 
     def test_get_cfunits_of_str_returns_no_unit(self):
         self.assertEqual(fn.get_cfunits('a'), cu.Unit('no unit'))
@@ -155,77 +159,27 @@ class FunctionsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             fn.set_positive(obj, 'x')
 
-    def test_change_positive_of_dataarray_from_up_to_down_negates(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'up'})
-        fn.change_positive(obj, 'down')
-        np.testing.assert_array_equal(obj, -np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'down')
+    def test_is_scalar_of_float_returns_true(self):
+        self.assertTrue(fn.is_scalar(1.3))
 
-    def test_change_positive_of_dataarray_from_down_to_up_negates(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'down'})
-        fn.change_positive(obj, 'up')
-        np.testing.assert_array_equal(obj, -np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'up')
+    def test_is_scalar_of_int_returns_true(self):
+        self.assertTrue(fn.is_scalar(1))
 
-    def test_change_positive_of_dataarray_from_none_to_up_stores_positive(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g'})
-        fn.change_positive(obj, 'up')
-        np.testing.assert_array_equal(obj, np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'up')
+    def test_is_scalar_of_zero_dim_dataarray_is_true(self):
+        obj = xr.DataArray(1.3, name='obj')
+        self.assertTrue(fn.is_scalar(obj))
 
-    def test_change_positive_of_dataarray_from_none_to_down_stores_positive(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g'})
-        fn.change_positive(obj, 'down')
-        np.testing.assert_array_equal(obj, np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'down')
+    def test_is_scalar_of_one_dim_dataarray_is_false(self):
+        obj = xr.DataArray([1.3], name='obj')
+        self.assertFalse(fn.is_scalar(obj))
 
-    def test_change_positive_of_dataarray_from_up_to_none_removes_positive(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'up'})
-        fn.change_positive(obj, None)
-        np.testing.assert_array_equal(obj, np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), None)
+    def test_is_scalar_of_one_dim_ndarray_is_false(self):
+        obj = np.array([1.3])
+        self.assertFalse(fn.is_scalar(obj))
 
-    def test_change_positive_of_dataarray_from_down_to_none_removes_positive(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'down'})
-        fn.change_positive(obj, None)
-        np.testing.assert_array_equal(obj, np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), None)
-
-    def test_flip_positive_of_dataarray_from_up_to_down_negates(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'up'})
-        fn.flip_positive(obj)
-        np.testing.assert_array_equal(obj, -np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'down')
-
-    def test_flip_positive_of_dataarray_from_down_to_up_negates(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g', 'positive': 'down'})
-        fn.flip_positive(obj)
-        np.testing.assert_array_equal(obj, -np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), 'up')
-
-    def test_flip_positive_of_dataarray_from_none_does_nothing(self):
-        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
-                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
-                           attrs={'units': 'g'})
-        fn.flip_positive(obj)
-        np.testing.assert_array_equal(obj, np.array([5, 8, 7], dtype='f'))
-        self.assertEqual(fn.get_positive(obj), None)
+    def test_is_scalar_of_zero_dim_ndarray_is_true(self):
+        obj = np.array(1.3)
+        self.assertTrue(fn.is_scalar(obj))
 
 
 if __name__ == "__main__":
