@@ -8,5 +8,5 @@ LICENSE: See the LICENSE.rst file for details
 from dimensions import Dimension
 from variables import Variable
 from files import File
-from inputdatasets import InputDataset
+from datasets import Dataset
 from outputdatasets import OutputDataset
