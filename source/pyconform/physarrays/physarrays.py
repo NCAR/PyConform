@@ -64,11 +64,10 @@ def _bin_op_match_positive_decorator(func):
             msg = 'No rule for changing positive from {!r} to {!r}'
             raise ValueError(msg.format(other_pos, self_pos))
         else:
-            fn.set_positive(other, self_pos)
-            other_name = fn.get_name(other)
-            other *= -1
-            other.name = '{}({})'.format(self_pos, other_name)
-        return func(self, other)
+            new_other = fn.flip(other)
+        new_array = func(self, new_other)
+        fn.set_positive(new_array, self_pos)
+        return new_array
     return wrapper
 
 
@@ -88,22 +87,6 @@ class PhysArray(xr.DataArray):
             self.attrs['calendar'] = calendar
         if positive:
             self.attrs['positive'] = positive
-
-    @property
-    def cfunits(self):
-        return fn.get_cfunits(self)
-
-    @cfunits.setter
-    def cfunits(self, to_units):
-        fn.set_cfunits(self, to_units)
-
-    @property
-    def positive(self):
-        return self.attrs.get('positive', None)
-
-    @positive.setter
-    def positive(self, p):
-        fn.set_positive(self, p)
 
     @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
@@ -135,38 +118,47 @@ class PhysArray(xr.DataArray):
     def __isub__(self, other):
         return super(PhysArray, self).__isub__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __mul__(self, other):
         return super(PhysArray, self).__mul__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __rmul__(self, other):
         return super(PhysArray, self).__rmul__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __imul__(self, other):
         return super(PhysArray, self).__imul__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __div__(self, other):
         return super(PhysArray, self).__div__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __rdiv__(self, other):
         return super(PhysArray, self).__rdiv__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __idiv__(self, other):
         return super(PhysArray, self).__idiv__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __truediv__(self, other):
         return super(PhysArray, self).__truediv__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __rtruediv__(self, other):
         return super(PhysArray, self).__rtruediv__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_compute_units_decorator
     def __itruediv__(self, other):
         return super(PhysArray, self).__itruediv__(other)
