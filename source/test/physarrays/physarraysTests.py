@@ -86,7 +86,7 @@ class PhysArrayTests(unittest.TestCase):
     def test_add_scalar_to_scalar_with_positive(self):
         x = PhysArray(3.0, name='x', positive='up')
         y = PhysArray(2.0, name='y', positive='down')
-        z = PhysArray(1.0, name="(x+flip(y))", positive='up')
+        z = PhysArray(1.0, name="(x+up(y))", positive='up')
         self.assertBinaryOperator(ops.add, x, y, z)
 
     def test_add_scalar_to_scalar_with_time_referenced_units(self):

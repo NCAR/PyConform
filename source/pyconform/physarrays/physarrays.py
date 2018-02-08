@@ -57,11 +57,18 @@ def _bin_op_compute_units_decorator(func):
 def _bin_op_match_positive_decorator(func):
     def wrapper(self, other):
         self_pos = fn.get_positive(self)
-        fn.change_positive(other, self_pos)
-        other.name = other.name
-        new_array = func(self, other)
-        new_array.name = _bin_op_name(func, self, other)
-        return new_array
+        other_pos = fn.get_positive(other)
+        if self_pos == other_pos:
+            return func(self, other)
+        elif self_pos is None or other_pos is None:
+            msg = 'No rule for changing positive from {!r} to {!r}'
+            raise ValueError(msg.format(other_pos, self_pos))
+        else:
+            fn.set_positive(other, self_pos)
+            other_name = fn.get_name(other)
+            other *= -1
+            other.name = '{}({})'.format(self_pos, other_name)
+        return func(self, other)
     return wrapper
 
 
@@ -98,14 +105,17 @@ class PhysArray(xr.DataArray):
     def positive(self, p):
         fn.set_positive(self, p)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __add__(self, other):
         return super(PhysArray, self).__add__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __radd__(self, other):
         return super(PhysArray, self).__radd__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __iadd__(self, other):
         return super(PhysArray, self).__iadd__(other)
