@@ -13,25 +13,6 @@ import numpy as np
 import os
 
 
-def is_char_type(obj):
-    return get_dtype(obj).char in ('S', 'U')
-
-
-def is_equal(obj1, obj2):
-    if not type(obj1) == type(obj2):
-        return False
-    elif not xr.DataArray.equals(obj1, obj2):
-        return False
-    elif not get_name(obj1) == get_name(obj2):
-        return False
-    elif not get_cfunits(obj1) == get_cfunits(obj2):
-        return False
-    elif not get_positive(obj1) == get_positive(obj2):
-        return False
-    else:
-        return True
-
-
 def convert(obj, to_units):
     from_units = get_cfunits(obj)
     if from_units == to_units:
@@ -58,6 +39,25 @@ def flip(obj, to_pos):
         new_obj.name = '{!s}({})'.format(to_pos, obj.name)
         set_positive(new_obj, to_pos)
         return type(obj)(new_obj)
+
+
+def is_char_type(obj):
+    return get_dtype(obj).char in ('S', 'U')
+
+
+def is_equal(obj1, obj2):
+    if not type(obj1) == type(obj2):
+        return False
+    elif not xr.DataArray.equals(obj1, obj2):
+        return False
+    elif not get_name(obj1) == get_name(obj2):
+        return False
+    elif not get_cfunits(obj1) == get_cfunits(obj2):
+        return False
+    elif not get_positive(obj1) == get_positive(obj2):
+        return False
+    else:
+        return True
 
 
 def get_dtype(obj):
