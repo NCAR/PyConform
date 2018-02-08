@@ -54,6 +54,17 @@ def _bin_op_compute_units_decorator(func):
     return wrapper
 
 
+def _bin_op_match_positive_decorator(func):
+    def wrapper(self, other):
+        self_pos = fn.get_positive(self)
+        fn.change_positive(other, self_pos)
+        other.name = other.name
+        new_array = func(self, other)
+        new_array.name = _bin_op_name(func, self, other)
+        return new_array
+    return wrapper
+
+
 class PhysArray(xr.DataArray):
     """
     Physical Array subclass of xarray.DataArray
@@ -85,10 +96,7 @@ class PhysArray(xr.DataArray):
 
     @positive.setter
     def positive(self, p):
-        pstr = str(p).lower()
-        if pstr not in ('up', 'down'):
-            raise ValueError('Positive attribute must be up or down')
-        self.attrs['positive'] = pstr
+        fn.set_positive(self, p)
 
     @_bin_op_match_units_decorator
     def __add__(self, other):

@@ -65,6 +65,46 @@ def set_cfunits(obj, to_units):
 
 def get_positive(obj):
     if isinstance(obj, xr.DataArray):
-        return obj.attrs.get('positive', None)
+        p = obj.attrs.get('positive', None)
+        if p is None:
+            return p
+        else:
+            return str(p).lower()
     else:
         return None
+
+
+def set_positive(obj, to_value):
+    if isinstance(obj, xr.DataArray):
+        if to_value is None:
+            obj.attrs.pop('positive', None)
+        else:
+            pstr = str(to_value).lower()
+            if pstr not in ('up', 'down'):
+                raise ValueError('Positive attribute must be up or down')
+            obj.attrs['positive'] = pstr
+    elif to_value is not None:
+        msg = "Cannot set positive for object of type '{!s}'"
+        raise ValueError(msg.format(type(obj)))
+
+
+def change_positive(obj, to_value):
+    old_pos = get_positive(obj)
+    new_pos = None if to_value is None else str(to_value).lower()
+    if old_pos == new_pos:
+        return
+    elif old_pos is None or new_pos is None:
+        set_positive(obj, to_value)
+    else:
+        flip_positive(obj)
+
+
+def flip_positive(obj):
+    pos = get_positive(obj)
+    if pos is None:
+        return
+    elif pos == 'up':
+        set_positive(obj, 'down')
+    else:
+        set_positive(obj, 'up')
+    obj *= -1

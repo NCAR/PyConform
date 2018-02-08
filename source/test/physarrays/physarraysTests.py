@@ -83,6 +83,12 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(2003.0, name="(x+convert(y, to='m'))", units='m')
         self.assertBinaryOperator(ops.add, x, y, z)
 
+    def test_add_scalar_to_scalar_with_positive(self):
+        x = PhysArray(3.0, name='x', positive='up')
+        y = PhysArray(2.0, name='y', positive='down')
+        z = PhysArray(1.0, name="(x+flip(y))", positive='up')
+        self.assertBinaryOperator(ops.add, x, y, z)
+
     def test_add_scalar_to_scalar_with_time_referenced_units(self):
         x = PhysArray(3.0, name='x', units='days since 1999-01-01',
                       calendar='noleap')
