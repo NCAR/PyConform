@@ -57,14 +57,7 @@ def _bin_op_compute_units_decorator(func):
 def _bin_op_match_positive_decorator(func):
     def wrapper(self, other):
         self_pos = fn.get_positive(self)
-        other_pos = fn.get_positive(other)
-        if self_pos == other_pos:
-            return func(self, other)
-        elif self_pos is None or other_pos is None:
-            msg = 'No rule for changing positive from {!r} to {!r}'
-            raise ValueError(msg.format(other_pos, self_pos))
-        else:
-            new_other = fn.flip(other)
+        new_other = fn.flip(other, self_pos)
         new_array = func(self, new_other)
         fn.set_positive(new_array, self_pos)
         return new_array

@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from exceptions import UnitsError
+from exceptions import UnitsError, PositiveError
 
 import cf_units as cu
 import xarray as xr
@@ -46,18 +46,18 @@ def convert(obj, to_units):
         raise UnitsError(msg.format(from_units, to_units))
 
 
-def flip(obj):
-    pos = get_positive(obj)
-    if pos is None:
+def flip(obj, to_pos):
+    from_pos = get_positive(obj)
+    if from_pos == to_pos:
         return obj
+    elif from_pos is None or to_pos is None:
+        msg = 'No rule for changing positive direction from {!r} to {!r}'
+        raise PositiveError(msg.format(to_pos, from_pos))
     else:
-        new_pos = ['up', 'down']
-        new_pos.remove(pos)
-        new_pos = new_pos[0]
-    new_obj = -obj
-    new_obj.name = '{}({})'.format(new_pos, obj.name)
-    set_positive(new_obj, new_pos)
-    return type(obj)(new_obj)
+        new_obj = -obj
+        new_obj.name = '{!s}({})'.format(to_pos, obj.name)
+        set_positive(new_obj, to_pos)
+        return type(obj)(new_obj)
 
 
 def get_dtype(obj):
@@ -110,8 +110,8 @@ def set_positive(obj, to_value):
         else:
             pstr = str(to_value).lower()
             if pstr not in ('up', 'down'):
-                raise ValueError('Positive attribute must be up or down')
+                raise PositiveError('Positive attribute must be up or down')
             obj.attrs['positive'] = pstr
     elif to_value is not None:
         msg = "Cannot set positive for object of type '{!s}'"
-        raise ValueError(msg.format(type(obj)))
+        raise PositiveError(msg.format(type(obj)))

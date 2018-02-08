@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarrays import PhysArray, UnitsError
+from pyconform.physarrays import PhysArray, UnitsError, PositiveError
 
 import pyconform.physarrays.functions as fn
 import cf_units as cu
@@ -193,7 +193,7 @@ class FunctionsTests(unittest.TestCase):
         obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
                            dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
                            attrs={'positive': 'up'})
-        actual = fn.flip(obj)
+        actual = fn.flip(obj, 'down')
         expctd = xr.DataArray(np.array([-5, -8, -7], dtype='f'), name='down(x)',
                               dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
                               attrs={'positive': 'down'})
@@ -203,11 +203,30 @@ class FunctionsTests(unittest.TestCase):
         obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
                            dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
                            attrs={'positive': 'down'})
-        actual = fn.flip(obj)
+        actual = fn.flip(obj, 'up')
         expctd = xr.DataArray(np.array([-5, -8, -7], dtype='f'), name='up(x)',
                               dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
                               attrs={'positive': 'up'})
         self.assertTrue(fn.is_equal(actual, expctd))
+
+    def test_flip_of_dataarray_from_down_to_none_raises_positive_error(self):
+        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
+                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
+                           attrs={'positive': 'down'})
+        with self.assertRaises(PositiveError):
+            fn.flip(obj, None)
+
+    def test_flip_of_dataarray_from_none_to_up_raises_positive_error(self):
+        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
+                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')])
+        with self.assertRaises(PositiveError):
+            fn.flip(obj, 'up')
+
+    def test_flip_of_dataarray_from_up_to_invalid_raises_positive_error(self):
+        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
+                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')])
+        with self.assertRaises(PositiveError):
+            fn.flip(obj, 'x')
 
 
 if __name__ == "__main__":
