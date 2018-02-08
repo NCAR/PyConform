@@ -13,15 +13,23 @@ import numpy as np
 import os
 
 
-def is_scalar(obj):
-    if hasattr(obj, 'ndim') and obj.ndim == 0:
-        return True
-    else:
-        return np.isscalar(obj)
-
-
 def is_char_type(obj):
     return get_dtype(obj).char in ('S', 'U')
+
+
+def is_equal(obj1, obj2):
+    if not type(obj1) == type(obj2):
+        return False
+    elif not xr.DataArray.equals(obj1, obj2):
+        return False
+    elif not get_name(obj1) == get_name(obj2):
+        return False
+    elif not get_cfunits(obj1) == get_cfunits(obj2):
+        return False
+    elif not get_positive(obj1) == get_positive(obj2):
+        return False
+    else:
+        return True
 
 
 def convert(obj, to_units):
@@ -36,6 +44,20 @@ def convert(obj, to_units):
     else:
         msg = "Cannot convert units '{!s}' to '{!s}'"
         raise UnitsError(msg.format(from_units, to_units))
+
+
+def flip(obj):
+    pos = get_positive(obj)
+    if pos is None:
+        return obj
+    else:
+        new_pos = ['up', 'down']
+        new_pos.remove(pos)
+        new_pos = new_pos[0]
+    new_obj = -obj
+    new_obj.name = '{}({})'.format(new_pos, obj.name)
+    set_positive(new_obj, new_pos)
+    return type(obj)(new_obj)
 
 
 def get_dtype(obj):

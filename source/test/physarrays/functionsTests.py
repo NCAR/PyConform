@@ -16,6 +16,38 @@ import unittest
 
 class FunctionsTests(unittest.TestCase):
 
+    def test_is_equal_dataarray_with_matching_units_and_positive_is_true(self):
+        v1 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'g', 'positive': 'up'})
+        v2 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'g', 'positive': 'up'})
+        self.assertTrue(fn.is_equal(v1, v2))
+
+    def test_is_equal_dataarray_with_mismatched_units_is_false(self):
+        v1 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'kg', 'positive': 'up'})
+        v2 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'g', 'positive': 'up'})
+        self.assertFalse(fn.is_equal(v1, v2))
+
+    def test_is_equal_dataarray_with_mismatched_name_is_false(self):
+        v1 = xr.DataArray(1.4, name='u',
+                          attrs={'units': 'g', 'positive': 'up'})
+        v2 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'g', 'positive': 'up'})
+        self.assertFalse(fn.is_equal(v1, v2))
+
+    def test_is_equal_dataarray_with_mismatched_positive_is_false(self):
+        v1 = xr.DataArray(1.4, name='v', attrs={'units': 'g'})
+        v2 = xr.DataArray(1.4, name='v',
+                          attrs={'units': 'g', 'positive': 'up'})
+        self.assertFalse(fn.is_equal(v1, v2))
+
+    def test_is_equal_dataarray_with_mismatched_values_is_false(self):
+        v1 = xr.DataArray(1.4, name='v', attrs={'units': 'g'})
+        v2 = xr.DataArray(1.5, name='v', attrs={'units': 'g'})
+        self.assertFalse(fn.is_equal(v1, v2))
+
     def test_convert(self):
         v = PhysArray([[1, 2], [3, 4]], name='v', dims=['x', 'y'],
                       coords=[[0, 1], [1, 2]], units='g')
@@ -43,9 +75,7 @@ class FunctionsTests(unittest.TestCase):
         actual = fn.convert(v, to_units)
         expctd = PhysArray(-8760.0, name="convert(v, to='hours since 2000-01-01')",
                            units='hours since 2000-01-01', calendar='noleap')
-        np.testing.assert_array_equal(actual, expctd)
-        self.assertEqual(actual.name, expctd.name)
-        self.assertEqual(actual.cfunits, expctd.cfunits)
+        self.assertTrue(fn.is_equal(actual, expctd))
 
     def test_get_dtype_of_float_returns_float64(self):
         self.assertEqual(fn.get_dtype(2.0), np.dtype('float64'))
@@ -159,27 +189,25 @@ class FunctionsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             fn.set_positive(obj, 'x')
 
-    def test_is_scalar_of_float_returns_true(self):
-        self.assertTrue(fn.is_scalar(1.3))
+    def test_flip_of_dataarray_from_up_to_down(self):
+        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
+                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
+                           attrs={'positive': 'up'})
+        actual = fn.flip(obj)
+        expctd = xr.DataArray(np.array([-5, -8, -7], dtype='f'), name='down(x)',
+                              dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
+                              attrs={'positive': 'down'})
+        self.assertTrue(fn.is_equal(actual, expctd))
 
-    def test_is_scalar_of_int_returns_true(self):
-        self.assertTrue(fn.is_scalar(1))
-
-    def test_is_scalar_of_zero_dim_dataarray_is_true(self):
-        obj = xr.DataArray(1.3, name='obj')
-        self.assertTrue(fn.is_scalar(obj))
-
-    def test_is_scalar_of_one_dim_dataarray_is_false(self):
-        obj = xr.DataArray([1.3], name='obj')
-        self.assertFalse(fn.is_scalar(obj))
-
-    def test_is_scalar_of_one_dim_ndarray_is_false(self):
-        obj = np.array([1.3])
-        self.assertFalse(fn.is_scalar(obj))
-
-    def test_is_scalar_of_zero_dim_ndarray_is_true(self):
-        obj = np.array(1.3)
-        self.assertTrue(fn.is_scalar(obj))
+    def test_flip_of_dataarray_from_down_to_up(self):
+        obj = xr.DataArray(np.array([5, 8, 7], dtype='f'), name='x',
+                           dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
+                           attrs={'positive': 'down'})
+        actual = fn.flip(obj)
+        expctd = xr.DataArray(np.array([-5, -8, -7], dtype='f'), name='up(x)',
+                              dims=['x'], coords=[np.array([0, 1, 2], dtype='d')],
+                              attrs={'positive': 'up'})
+        self.assertTrue(fn.is_equal(actual, expctd))
 
 
 if __name__ == "__main__":
