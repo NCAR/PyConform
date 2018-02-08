@@ -120,14 +120,17 @@ class PhysArray(xr.DataArray):
     def __iadd__(self, other):
         return super(PhysArray, self).__iadd__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __sub__(self, other):
         return super(PhysArray, self).__sub__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __rsub__(self, other):
         return super(PhysArray, self).__rsub__(other)
 
+    @_bin_op_match_positive_decorator
     @_bin_op_match_units_decorator
     def __isub__(self, other):
         return super(PhysArray, self).__isub__(other)
