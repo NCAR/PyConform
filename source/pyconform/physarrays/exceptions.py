@@ -10,3 +10,9 @@ class UnitsError(ValueError):
     """
     Error in units conversion
     """
+
+
+class PositiveError(ValueError):
+    """
+    Error in positive attribute conversion
+    """
