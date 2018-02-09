@@ -6,33 +6,10 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
-import numpy
 
 from cf_units import Unit
-from collections import OrderedDict
 from pyconform.metadata import Variable
 from pyconform.metadata.datasets import Dataset
-
-
-class MockNetCDF4Variable(object):
-
-    def __init__(self, name, datatype, dims):
-        self.name = name
-        self.dtype = numpy.dtype(datatype)
-        self.dimensions = tuple(dims)
-        self._attributes = OrderedDict()
-
-    def ncattrs(self):
-        return tuple(self._attributes)
-
-    def setncattr(self, name, value):
-        self._attributes[name] = value
-
-    def getncattr(self, name):
-        return self._attributes[name]
-
-    def setncatts(self, attdict):
-        return self._attributes.update(attdict)
 
 
 class VariableTests(unittest.TestCase):
@@ -53,15 +30,18 @@ class VariableTests(unittest.TestCase):
         v.definition = None
         self.assertIsNone(v.definition)
 
-    def test_setting_definition_to_expression_saves_expression(self):
+    def test_setting_definition_property_to_expression_saves_expression(self):
         v = self.ds.new_variable('v')
         v.definition = 'f(x)'
         self.assertEqual(v.definition, 'f(x)')
 
+    def test_setting_definition_in_constructor_to_expression_saves_expression(self):
+        v = self.ds.new_variable('v', definition='f(x)')
+        self.assertEqual(v.definition, 'f(x)')
+
     def test_setting_definition_to_array_like_saves_array_like(self):
-        v = self.ds.new_variable('v')
         vdef = [[1, 2], [3, 4], [5, 6]]
-        v.definition = vdef
+        v = self.ds.new_variable('v', definition=vdef)
         self.assertEqual(v.definition, vdef)
 
     def test_setting_definition_to_invalid_type_raises_type_error(self):
@@ -73,9 +53,13 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v')
         self.assertIsNone(v.datatype)
 
-    def test_setting_datatype_to_valid_value_saves_value(self):
+    def test_setting_datatype_property_to_valid_value_saves_value(self):
         v = self.ds.new_variable('v')
         v.datatype = 'int'
+        self.assertEqual(v.datatype, 'int')
+
+    def test_setting_datatype_in_constructor_to_valid_value_saves_value(self):
+        v = self.ds.new_variable('v', datatype='int')
         self.assertEqual(v.datatype, 'int')
 
     def test_setting_datatype_to_invalid_value_raises_type_error(self):
@@ -93,11 +77,17 @@ class VariableTests(unittest.TestCase):
         v = self.ds.new_variable('v')
         self.assertIsNone(v.dimensions)
 
-    def test_setting_dimensions_to_tuple_saves_tuple(self):
+    def test_setting_dimensions_property_to_tuple_saves_tuple(self):
         x = self.ds.new_dimension('x')
         y = self.ds.new_dimension('y')
         v = self.ds.new_variable('v')
         v.dimensions = ('x', 'y')
+        self.assertEqual(v.dimensions, {'x': x, 'y': y})
+
+    def test_setting_dimensions_in_constructor_to_tuple_saves_tuple(self):
+        x = self.ds.new_dimension('x')
+        y = self.ds.new_dimension('y')
+        v = self.ds.new_variable('v', dimensions=('x', 'y'))
         self.assertEqual(v.dimensions, {'x': x, 'y': y})
 
     def test_setting_dimensions_to_invalid_raises_type_error(self):
@@ -118,7 +108,7 @@ class VariableTests(unittest.TestCase):
     def test_files_added_by_adding_to_file(self):
         f = self.ds.new_file('test.nc')
         v = self.ds.new_variable('v')
-        f.add_variable('v')
+        f.add_variables('v')
         self.assertEqual(v.files, {'test.nc': f})
 
     def test_default_attributes_is_empty_dict(self):
@@ -133,6 +123,10 @@ class VariableTests(unittest.TestCase):
     def test_setting_attributes_by_key_value(self):
         v = self.ds.new_variable('v')
         v.attributes['a'] = 'b'
+        self.assertEqual(v.attributes, {'a': 'b'})
+
+    def test_setting_attributes_in_constructor_with_dict(self):
+        v = self.ds.new_variable('v', attributes={'a': 'b'})
         self.assertEqual(v.attributes, {'a': 'b'})
 
     def test_default_standard_name_is_none(self):
@@ -252,15 +246,6 @@ class VariableTests(unittest.TestCase):
         v.dimensions = ('i', 'j')
         v.auxcoords = ('x', 'y')
         self.assertItemsEqual(v.coordinates, {'i': i, 'j': j, 'x': x, 'y': y})
-
-    def test_from_netcdf4(self):
-        ncvar = MockNetCDF4Variable('v', 'f', ('x', 'y'))
-        x = self.ds.new_dimension('x')
-        y = self.ds.new_dimension('y')
-        v = Variable.from_netcdf4(ncvar, dataset=self.ds)
-        self.assertEqual(v.name, 'v')
-        self.assertEqual(v.dtype, numpy.dtype('f'))
-        self.assertEqual(v.dimensions, {'x': x, 'y': y})
 
     def test_equal(self):
         ds1 = Dataset()

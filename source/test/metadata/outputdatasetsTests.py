@@ -24,6 +24,7 @@ class OutputDatasetTests(unittest.TestCase):
         std['u']['definition'] = 'U'
         std['u']['file'] = OrderedDict()
         std['u']['file']['filename'] = 'u_1.nc'
+        std['u']['file']['deflate'] = 5
         std['u']['file']['attributes'] = {'var': 'u'}
         self.standardization = std
 
@@ -49,6 +50,7 @@ class OutputDatasetTests(unittest.TestCase):
         self.assertEqual(u.definition, 'U')
         self.assertEqual(u.attributes, OrderedDict())
         f = ods.files['u_1.nc']
+        self.assertEqual(f.deflate, 5)
         self.assertItemsEqual(f.dimensions, ('x', 'y', 't'))
         self.assertItemsEqual(f.variables, ('u', 'v'))
 

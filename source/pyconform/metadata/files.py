@@ -21,13 +21,14 @@ class File(MemberObject):
     _NETCDF4_FORMATS_ = {'NETCDF4'}
 
     def __init__(self, name, **kwds):
-        super(File, self).__init__(name, **kwds)
+        super(File, self).__init__(name, dataset=kwds.pop('dataset', None))
         self.__attributes = OrderedDict()
-        self.__format = 'NETCDF4_CLASSIC'
-        self.__deflate = 1
-        self.__shuffle = 'off'
-        self.__variables = OrderedDict()
         self.__dimensions = OrderedDict()
+        self.__variables = OrderedDict()
+        self.format = kwds.pop('format', 'NETCDF4_CLASSIC')
+        self.deflate = kwds.pop('deflate', 1)
+        self.shuffle = kwds.pop('shuffle', 'off')
+        self.attributes.update(kwds.pop('attributes', {}))
         self.path = name
 
     @property
@@ -84,18 +85,24 @@ class File(MemberObject):
     def variables(self):
         return Frozen(self.__variables)
 
-    def add_dimension(self, dname):
-        if dname not in self.dataset.dimensions:
-            msg = 'Unknown dimension {!r} cannot be added to file {!r}'
-            raise KeyError(msg.format(dname, self.name))
-        self.__dimensions[dname] = self.dataset.dimensions[dname]
+    def add_dimensions(self, *dnames):
+        not_found = [d for d in dnames if d not in self.dataset.dimensions]
+        if not_found:
+            dstr = ', '.join(repr(d) for d in not_found)
+            msg = 'Unknown dimensions {} cannot be added to file {!r}'
+            raise KeyError(msg.format(dstr, self.name))
+        for d in dnames:
+            self.__dimensions[d] = self.dataset.dimensions[d]
 
-    def add_variable(self, vname):
-        if vname not in self.dataset.variables:
+    def add_variables(self, *vnames):
+        not_found = [v for v in vnames if v not in self.dataset.variables]
+        if not_found:
+            vstr = ', '.join(repr(d) for d in not_found)
             msg = 'Unknown variable {!r} cannot be added to file {!r}'
-            raise KeyError(msg.format(vname, self.name))
-        self.__variables[vname] = self.dataset.variables[vname]
-        self.__variables[vname]._add_to_file(self.name)
+            raise KeyError(msg.format(vstr, self.name))
+        for v in vnames:
+            self.__variables[v] = self.dataset.variables[v]
+            self.__variables[v]._add_to_file(self.name)
 
     @property
     def coordinates(self):

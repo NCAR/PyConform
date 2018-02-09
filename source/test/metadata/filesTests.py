@@ -34,6 +34,10 @@ class FileTests(unittest.TestCase):
         f.attributes['a'] = 'b'
         self.assertEqual(f.attributes, {'a': 'b'})
 
+    def test_setting_attributes_in_constructor_with_dict(self):
+        f = self.ds.new_file('test.nc', attributes={'a': 'b'})
+        self.assertEqual(f.attributes, {'a': 'b'})
+
     def test_default_deflate_is_1(self):
         f = self.ds.new_file('test.nc')
         self.assertEqual(f.deflate, 1)
@@ -43,7 +47,12 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             f.deflate = 20
 
-    def test_setting_deflate_to_valid_saves_value(self):
+    def test_setting_deflate_property_to_valid_saves_value(self):
+        f = self.ds.new_file('test.nc')
+        f.deflate = 3
+        self.assertEqual(f.deflate, 3)
+
+    def test_setting_deflate_in_constructor_to_valid_saves_value(self):
         f = self.ds.new_file('test.nc')
         f.deflate = 3
         self.assertEqual(f.deflate, 3)
@@ -57,9 +66,13 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(TypeError):
             f.shuffle = True
 
-    def test_setting_shuffle_to_on_saves_value(self):
+    def test_setting_shuffle_property_to_on_saves_value(self):
         f = self.ds.new_file('test.nc')
         f.shuffle = 'on'
+        self.assertEqual(f.shuffle, 'on')
+
+    def test_setting_shuffle_in_constructor_to_on_saves_value(self):
+        f = self.ds.new_file('test.nc', shuffle='on')
         self.assertEqual(f.shuffle, 'on')
 
     def test_default_dimensions_is_empty_dict(self):
@@ -71,12 +84,11 @@ class FileTests(unittest.TestCase):
         with self.assertRaises(AttributeError):
             f.dimensions = 4
 
-    def test_adding_dimension_by_name(self):
+    def test_adding_dimensions_by_name(self):
         x = self.ds.new_dimension('x')
         y = self.ds.new_dimension('y')
         f = self.ds.new_file('test.nc')
-        f.add_dimension('x')
-        f.add_dimension('y')
+        f.add_dimensions('x', 'y')
         self.assertItemsEqual(f.dimensions, {'x': x, 'y': y})
 
     def test_file_get_dimensions_variables(self):
@@ -84,8 +96,8 @@ class FileTests(unittest.TestCase):
         v = self.ds.new_variable('v')
         v.dimensions = ('x',)
         f = self.ds.new_file('test.nc')
-        f.add_dimension('x')
-        f.add_variable('v')
+        f.add_dimensions('x')
+        f.add_variables('v')
         self.assertEquals(f.dimensions, {'x': x})
         self.assertEquals(f.variables, {'v': v})
 
@@ -102,14 +114,13 @@ class FileTests(unittest.TestCase):
         u = self.ds.new_variable('u')
         v = self.ds.new_variable('v')
         f = self.ds.new_file('test.nc')
-        f.add_variable('u')
-        f.add_variable('v')
+        f.add_variables('u', 'v')
         self.assertItemsEqual(f.variables, {'u': u, 'v': v})
 
     def test_setting_variables_not_found_raises_key_error(self):
         f = self.ds.new_file('test.nc')
         with self.assertRaises(KeyError):
-            f.add_variable('u')
+            f.add_variables('u')
 
     def test_default_coordinates_is_empty_set(self):
         f = self.ds.new_file('test.nc')
@@ -117,15 +128,14 @@ class FileTests(unittest.TestCase):
 
     def test_coordinates(self):
         self.ds.new_dimension('x')
+        self.ds.new_dimension('y')
         x = self.ds.new_variable('x')
         x.dimensions = ('x',)
-        self.ds.new_dimension('y')
         y = self.ds.new_variable('y')
         y.dimensions = ('y',)
-        f = self.ds.new_file('test.nc')
-        f.add_variable('y')
         self.ds.new_variable('v')
-        f.add_variable('v')
+        f = self.ds.new_file('test.nc')
+        f.add_variables('y', 'v')
         self.assertEqual(f.coordinates, {'y': y})
 
 

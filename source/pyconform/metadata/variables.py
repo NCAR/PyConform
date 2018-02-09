@@ -51,22 +51,13 @@ class Variable(MemberObject):
         return Variable._NETCDF4_TYPES_[idt]
 
     def __init__(self, name, **kwds):
-        super(Variable, self).__init__(name, **kwds)
-        self.__definition = None
-        self.__datatype = None
-        self.__dimensions = None
+        super(Variable, self).__init__(name, dataset=kwds.pop('dataset', None))
         self.__attributes = OrderedDict()
         self.__files = OrderedDict()
-
-    @classmethod
-    def from_netcdf4(cls, ncvar, **kwds):
-        dt = cls.datatype_from_dtype(ncvar.dtype)
-        ncatts = {a: ncvar.getncattr(a) for a in ncvar.ncattrs()}
-        var = Variable(ncvar.name, **kwds)
-        var.datatype = dt
-        var.dimensions = ncvar.dimensions
-        var.attributes.update(ncatts)
-        return var
+        self.definition = kwds.pop('definition', None)
+        self.datatype = kwds.pop('datatype', None)
+        self.dimensions = kwds.pop('dimensions', None)
+        self.attributes.update(kwds.pop('attributes', {}))
 
     @property
     def definition(self):

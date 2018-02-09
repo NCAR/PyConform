@@ -43,11 +43,11 @@ class OutputDataset(Dataset):
 
     def __create_variables(self, vdicts):
         for vname in vdicts:
-            v = self.new_variable(vname)
-            v.definition = vdicts[vname]['definition']
-            v.datatype = vdicts[vname].get('datatype', None)
-            v.dimensions = vdicts[vname].get('dimensions', None)
-            v.attributes.update(vdicts[vname].get('attributes', {}))
+            self.new_variable(vname, **vdicts[vname])
+#             v.definition = vdicts[vname]['definition']
+#             v.datatype = vdicts[vname].get('datatype', None)
+#             v.dimensions = vdicts[vname].get('dimensions', None)
+#             v.attributes.update(vdicts[vname].get('attributes', {}))
 
     def __create_files(self, vdicts):
         vfiles = self.__extract_file_dicts(vdicts)
@@ -56,9 +56,9 @@ class OutputDataset(Dataset):
         for vname in vsers:
             fdict = vfiles[vname]
             fname = fdict.pop('filename', '{}.nc'.format(vname))
-            fdict['deflate'] = int(fdict.pop('compression', '1'))
             fvars = vmeta + [vname]
-            fdims = sum((vdicts[v].get('dimensions', []) for v in fvars), [])
+            dlist = sum((vdicts[v].get('dimensions', []) for v in fvars), [])
+            fdims = list(set(dlist))
             self.__create_file(fname, fdims, fvars, fdict)
 
     def __extract_file_dicts(self, vdicts):
@@ -68,15 +68,6 @@ class OutputDataset(Dataset):
         return vfiles
 
     def __create_file(self, fname, fdims, fvars, fdict):
-        f = self.new_file(fname)
-        for d in fdims:
-            f.add_dimension(d)
-        for v in fvars:
-            f.add_variable(v)
-        if 'format' in fdict:
-            f.format = fdict['format']
-        if 'deflate' in fdict:
-            f.deflate = fdict['deflate']
-        if 'shuffle' in fdict:
-            f.shuffle = fdict['shuffle']
-        f.attributes.update(fdict.get('attributes', {}))
+        f = self.new_file(fname, **fdict)
+        f.add_dimensions(*fdims)
+        f.add_variables(*fvars)
