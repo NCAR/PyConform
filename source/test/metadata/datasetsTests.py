@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from pyconform.metadata.datasets import Dataset
+from collections import OrderedDict
 
 
 class DatasetTests(unittest.TestCase):
@@ -134,6 +135,44 @@ class DatasetTests(unittest.TestCase):
         x = self.ds.new_variable('x')
         x.axis = 'X'
         self.assertEqual(self.ds.coordinates, {'x': x})
+
+    def test_from_standardization_with_non_dict_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            Dataset.from_standardization('x')
+
+    def create_standardization(self):
+        std = OrderedDict()
+        std['v'] = OrderedDict()
+        std['v']['definition'] = 'f(V)'
+        std['v']['datatype'] = 'float'
+        std['v']['dimensions'] = ['x', 'y', 't']
+        std['v']['attributes'] = {'units': 'kg'}
+        std['u'] = OrderedDict()
+        std['u']['definition'] = 'U'
+        std['u']['file'] = OrderedDict()
+        std['u']['file']['filename'] = 'u_1.nc'
+        std['u']['file']['deflate'] = 5
+        std['u']['file']['attributes'] = {'var': 'u'}
+        return std
+
+    def test_from_standardization(self):
+        std = self.create_standardization()
+        ods = Dataset.from_standardization(std)
+        self.assertIsInstance(ods, Dataset)
+        self.assertItemsEqual(ods.dimensions, ('x', 'y', 't'))
+        self.assertItemsEqual(ods.variables, ('v', 'u'))
+        self.assertItemsEqual(ods.files, ('u_1.nc',))
+        v = ods.variables['v']
+        self.assertEqual(v.definition, 'f(V)')
+        self.assertEqual(v.datatype, 'float')
+        self.assertEqual(v.units, 'kg')
+        u = ods.variables['u']
+        self.assertEqual(u.definition, 'U')
+        self.assertEqual(u.attributes, OrderedDict())
+        f = ods.files['u_1.nc']
+        self.assertEqual(f.deflate, 5)
+        self.assertItemsEqual(f.dimensions, ('x', 'y', 't'))
+        self.assertItemsEqual(f.variables, ('u', 'v'))
 
 
 if __name__ == '__main__':
