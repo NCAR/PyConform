@@ -142,6 +142,19 @@ class DatasetTests(unittest.TestCase):
 
     def create_standardization(self):
         std = OrderedDict()
+        std['x'] = OrderedDict()
+        std['x']['definition'] = 'X'
+        std['x']['dimensions'] = ['x']
+        std['x']['attributes'] = {'units': 'm'}
+        std['y'] = OrderedDict()
+        std['y']['definition'] = 'Y'
+        std['y']['dimensions'] = ['y']
+        std['y']['attributes'] = {'units': 'm'}
+        std['t'] = OrderedDict()
+        std['t']['definition'] = 'T'
+        std['t']['datatype'] = 'double'
+        std['t']['dimensions'] = ['t']
+        std['t']['attributes'] = {'units': 'days since 1974-02-06'}
         std['v'] = OrderedDict()
         std['v']['definition'] = 'f(V)'
         std['v']['datatype'] = 'float'
@@ -152,6 +165,7 @@ class DatasetTests(unittest.TestCase):
         std['u']['file'] = OrderedDict()
         std['u']['file']['filename'] = 'u_1.nc'
         std['u']['file']['deflate'] = 5
+        std['u']['file']['shuffle'] = 'on'
         std['u']['file']['attributes'] = {'var': 'u'}
         return std
 
@@ -160,7 +174,7 @@ class DatasetTests(unittest.TestCase):
         ods = Dataset.from_standardization(std)
         self.assertIsInstance(ods, Dataset)
         self.assertItemsEqual(ods.dimensions, ('x', 'y', 't'))
-        self.assertItemsEqual(ods.variables, ('v', 'u'))
+        self.assertItemsEqual(ods.variables, ('x', 'y', 't', 'v', 'u'))
         self.assertItemsEqual(ods.files, ('u_1.nc',))
         v = ods.variables['v']
         self.assertEqual(v.definition, 'f(V)')
@@ -171,8 +185,11 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(u.attributes, OrderedDict())
         f = ods.files['u_1.nc']
         self.assertEqual(f.deflate, 5)
+        self.assertEqual(f.shuffle, 'on')
+        self.assertEqual(f.attributes, {'var': 'u'})
         self.assertItemsEqual(f.dimensions, ('x', 'y', 't'))
-        self.assertItemsEqual(f.variables, ('u', 'v'))
+        self.assertItemsEqual(f.variables, ('x', 'y', 't', 'u', 'v'))
+        self.assertItemsEqual(f.coordinates, ('x', 'y', 't'))
 
 
 if __name__ == '__main__':

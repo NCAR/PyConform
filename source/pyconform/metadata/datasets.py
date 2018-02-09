@@ -80,15 +80,6 @@ class Dataset(object):
         if v.bounds is not None:
             self.__check_variable_references([v.bounds])
         self.__variables[v.name] = v
-        self.__add_new_coordinates(v)
-
-    def __add_new_coordinates(self, v):
-        if v.dimensions and len(v.dimensions) == 1 and v.dimensions[0] == v.name:
-            self.__coordinates[v.name] = v
-        elif v.axis is not None:
-            self.__coordinates[v.name] = v
-        elif len(v.auxcoords) > 0:
-            self.__coordinates.update(v.auxcoords)
 
     def _add_dimension(self, d):
         self.__dimensions[d.name] = d
