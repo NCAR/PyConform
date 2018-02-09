@@ -44,10 +44,6 @@ class OutputDataset(Dataset):
     def __create_variables(self, vdicts):
         for vname in vdicts:
             self.new_variable(vname, **vdicts[vname])
-#             v.definition = vdicts[vname]['definition']
-#             v.datatype = vdicts[vname].get('datatype', None)
-#             v.dimensions = vdicts[vname].get('dimensions', None)
-#             v.attributes.update(vdicts[vname].get('attributes', {}))
 
     def __create_files(self, vdicts):
         vfiles = self.__extract_file_dicts(vdicts)
