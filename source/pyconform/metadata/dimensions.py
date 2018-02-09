@@ -15,9 +15,9 @@ class Dimension(MemberObject):
     """
 
     def __init__(self, name, **kwds):
+        self.size = kwds.pop('size', None)
+        self.is_unlimited = kwds.pop('is_unlimited', False)
         super(Dimension, self).__init__(name, **kwds)
-        self.__size = None
-        self.__is_unlimited = False
 
     @property
     def size(self):
@@ -40,13 +40,6 @@ class Dimension(MemberObject):
     @is_unlimited.setter
     def is_unlimited(self, unlimited):
         self.__is_unlimited = bool(unlimited)
-
-    @classmethod
-    def from_netcdf4(cls, ncdim, **kwds):
-        obj = cls(ncdim.name, **kwds)
-        obj.size = len(ncdim)
-        obj.is_unlimited = ncdim.isunlimited()
-        return obj
 
     def __eq__(self, other):
         if not isinstance(other, Dimension):
