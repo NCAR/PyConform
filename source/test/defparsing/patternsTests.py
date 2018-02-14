@@ -6,67 +6,73 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.defparsing import patterns as p
+from pyconform.defparsing import actions as a
 
 import unittest
 
 
 class PatternTests(unittest.TestCase):
 
-    def test_integers(self):
-        token = p.integers.parseString('142')[0]
+    def test_uint(self):
+        token = p.uint.parseString('142')[0]
+        print token
         self.assertEqual(token, 142)
 
-    def test_floats_with_decimal(self):
-        token = p.floats.parseString('1.2')[0]
+    def test_ufloat_with_decimal(self):
+        token = p.ufloat.parseString('1.2')[0]
         self.assertEqual(token, 1.2)
 
-    def test_floats_with_decimal_without_trailing_zero(self):
-        token = p.floats.parseString('1.')[0]
+    def test_ufloat_with_decimal_without_trailing_zero(self):
+        token = p.ufloat.parseString('1.')[0]
         self.assertEqual(token, 1.0)
 
-    def test_floats_without_decimal_and_positive_exponent(self):
-        token = p.floats.parseString('1e+4')[0]
+    def test_ufloat_without_decimal_and_positive_exponent(self):
+        token = p.ufloat.parseString('1e+4')[0]
         self.assertEqual(token, 10000.)
 
-    def test_floats_without_decimal_and_negative_exponent(self):
-        token = p.floats.parseString('1e-4')[0]
+    def test_ufloat_without_decimal_and_negative_exponent(self):
+        token = p.ufloat.parseString('1e-4')[0]
         self.assertEqual(token, 1e-4)
 
-    def test_floats_with_decimal_and_positive_exponent(self):
-        token = p.floats.parseString('1.234e+4')[0]
+    def test_ufloat_with_decimal_and_positive_exponent(self):
+        token = p.ufloat.parseString('1.234e+4')[0]
         self.assertEqual(token, 12340.)
 
-    def test_floats_with_decimal_without_trailing_zero_and_negative_exponent(self):
-        token = p.floats.parseString('1.e-4')[0]
+    def test_ufloat_with_decimal_without_trailing_zero_and_negative_exponent(self):
+        token = p.ufloat.parseString('1.e-4')[0]
         self.assertEqual(token, 1e-4)
 
     def test_strings_with_single_quotes(self):
-        token = p.strings.parseString("'a b c'")[0]
+        token = p.string.parseString("'a b c'")[0]
         self.assertEqual(token, 'a b c')
 
     def test_strings_with_double_quotes(self):
-        token = p.strings.parseString('"a b c"')[0]
+        token = p.string.parseString('"a b c"')[0]
         self.assertEqual(token, 'a b c')
 
-    def test_name_with_single_character(self):
-        token = p.names.parseString('a')[0]
-        self.assertEqual(token, 'a')
-
-    def test_name_with_single_underscore(self):
-        token = p.names.parseString('_')[0]
+    def test_name_as_solo_underscore(self):
+        token = p.name.parseString('_')[0]
         self.assertEqual(token, '_')
 
-    def test_name_with_leading_underscore(self):
-        token = p.names.parseString('_abc')[0]
-        self.assertEqual(token, '_abc')
+    def test_name_with_underscore_separation(self):
+        token = p.name.parseString('_a_b_c_')[0]
+        self.assertEqual(token, '_a_b_c_')
 
-    def test_name_with_trailing_underscore(self):
-        token = p.names.parseString('aBc_')[0]
-        self.assertEqual(token, 'aBc_')
+    def test_variables_without_indices(self):
+        token = p.variable.parseString('x')[0]
+        self.assertEqual(token, a.VariableType('x'))
 
-    def test_name_with_multiple_underscores(self):
-        token = p.names.parseString('a_B_c')[0]
-        self.assertEqual(token, 'a_B_c')
+    def test_variables_with_1D_integer_index(self):
+        token = p.variable.parseString('x[0]')[0]
+        self.assertEqual(token, a.VariableType('x', [0]))
+
+    def test_variables_with_1D_slice_index(self):
+        token = p.variable.parseString('x[1:4]')[0]
+        self.assertEqual(token, a.VariableType('x', [slice(1, 4)]))
+
+    def test_variables_with_2D_slice_index(self):
+        token = p.variable.parseString('x[1:4,6]')[0]
+        self.assertEqual(token, a.VariableType('x', [slice(1, 4), 6]))
 
 
 if __name__ == '__main__':

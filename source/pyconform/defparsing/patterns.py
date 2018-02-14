@@ -5,29 +5,43 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyparsing import Word, Combine, oneOf, Optional, CaselessLiteral, QuotedString
-from pyparsing import nums, alphas, alphanums
+from pyparsing import Word, Combine, Optional, CaselessLiteral, QuotedString, Suppress, Group
+from pyparsing import nums, alphas, alphanums, oneOf, delimitedList
+
+from actions import integer_action, float_action, variable_action
 
 # Unsigned Integers - convert to int
-__numbers = Word(nums)
-integers = __numbers
-integers.setParseAction(lambda t: int(t[0]))
+_nums_ = Word(nums)
+uint = _nums_
+uint.setParseAction(integer_action)
 
 # Unsigned Floats - convert to float
-__decimal_1 = Combine(__numbers + '.' + __numbers)
-__decimal_2 = Combine(__numbers + '.')
-__decimal_3 = Combine('.' + __numbers)
-__decimal = Combine(__decimal_1 | __decimal_2 | __decimal_3)
-__exponent = Combine(CaselessLiteral('e') + Optional(oneOf('+ -')) + __numbers)
-__float_1 = Combine(__numbers + __exponent)
-__float_2 = Combine(__decimal + Optional(__exponent))
-floats = Combine(__float_1 | __float_2)
-floats.setParseAction(lambda t: float(t[0]))
+_decimal1_ = Combine(_nums_ + '.' + _nums_)
+_decimal2_ = Combine(_nums_ + '.')
+_decimal3_ = Combine('.' + _nums_)
+_decimal_ = Combine(_decimal1_ | _decimal2_ | _decimal3_)
+_exponent_ = Combine(CaselessLiteral('e') + Optional(oneOf('+ -')) + _nums_)
+_float1_ = Combine(_nums_ + _exponent_)
+_float2_ = Combine(_decimal_ + Optional(_exponent_))
+ufloat = Combine(_float1_ | _float2_)
+ufloat.setParseAction(float_action)
 
 # Quoted Strings with single or double quotes
-__string_1 = QuotedString("'", escChar='\\')
-__string_2 = QuotedString('"', escChar='\\')
-strings = Combine(__string_1 | __string_2)
+_string1_ = QuotedString("'", escChar='\\')
+_string2_ = QuotedString('"', escChar='\\')
+string = Combine(_string1_ | _string2_)
 
 # Variable or Function Names
-names = Word(alphas + '_', alphanums + '_')
+name = Word(alphas + '_', alphanums + '_')
+
+# Variable Slice Indices
+_index_ = Combine(Optional('-') + _nums_)
+_index_.setParseAction(lambda t: int(t[0]))
+_index_or_none_ = Optional(_index_)
+_index_or_none_.setParseAction(lambda t: t[0] if len(t) > 0 else [None])
+_slice_ = delimitedList(_index_or_none_, delim=':')
+_slice_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
+_indices_ = Group(Suppress('[') + delimitedList(_slice_) + Suppress(']'))
+_indices_.setParseAction(lambda t: t.asList())
+variable = Group(name + Optional(_indices_))
+variable.setParseAction(variable_action)

@@ -10,7 +10,7 @@ from pyconform.defparsing import actions
 import unittest
 
 
-class Tests(unittest.TestCase):
+class ActionTests(unittest.TestCase):
 
     def test_integer_action(self):
         result = actions.integer_action(['1'])
@@ -30,14 +30,15 @@ class Tests(unittest.TestCase):
         self.assertEqual(result.indices, None)
 
     def test_variable_action_with_1D_slice(self):
-        result = actions.variable_action(['x', slice(1, 5)])
+        result = actions.variable_action([['x', [slice(1, 5)]]])
         self.assertEqual(result.name, 'x')
         self.assertEqual(result.indices, [slice(1, 5)])
 
     def test_variable_action_with_2D_slice(self):
-        result = actions.variable_action(['x', slice(1, 5), slice(None, 3)])
+        data = [['x', [slice(1, 5), 4]]]
+        result = actions.variable_action(data)
         self.assertEqual(result.name, 'x')
-        self.assertEqual(result.indices, [slice(1, 5), slice(None, 3)])
+        self.assertEqual(result.indices, [slice(1, 5), 4])
 
 
 if __name__ == "__main__":

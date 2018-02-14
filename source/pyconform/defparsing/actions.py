@@ -23,6 +23,7 @@ def float_action(tokens):
 
 
 def variable_action(tokens):
-    name = tokens[0]
-    indices = None if len(tokens) == 1 else tokens[1:]
+    token = tokens[0]
+    name = token[0]
+    indices = None if len(token) == 1 else token[1]
     return VariableType(name, indices)
