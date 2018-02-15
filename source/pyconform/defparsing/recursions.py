@@ -14,8 +14,8 @@ from actions import list_action, keyword_action, function_action
 expression = Forward()
 
 # List Expressions
-__items = delimitedList(expression)
-lists = Group(Suppress('[') + Optional(__items) + Suppress(']'))
+_items_ = delimitedList(expression)
+lists = Group(Suppress('[') + Optional(_items_) + Suppress(']'))
 lists.setParseAction(list_action)
 
 # Keyword Arguments
