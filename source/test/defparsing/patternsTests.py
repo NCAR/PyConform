@@ -13,9 +13,13 @@ import unittest
 
 class PatternTests(unittest.TestCase):
 
-    def test_uint(self):
-        token = p.uint.parseString('142')[0]
+    def test_uinteger(self):
+        token = p.uinteger.parseString('142')[0]
         self.assertEqual(token, 142)
+
+    def test_integer(self):
+        token = p.integer.parseString('-142')[0]
+        self.assertEqual(token, -142)
 
     def test_ufloat_with_decimal(self):
         token = p.ufloat.parseString('1.2')[0]
