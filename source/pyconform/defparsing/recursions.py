@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyparsing import Forward, Group, Suppress, Optional, delimitedList
 
-from patterns import uint, ufloat, string, variable, name
+from patterns import uinteger, ufloat, string, variable, name
 from actions import list_action, function_action
 
 # Starting point for all expressions
@@ -28,4 +28,4 @@ function = Group(name + (Suppress('(') + _arguments_ + Suppress(')')))
 function.setParseAction(function_action)
 
 # Combine to allow nested parsing
-expression << (string | ufloat | uint | function | variable | lists)
+expression << (string | ufloat | uinteger | function | variable | lists)

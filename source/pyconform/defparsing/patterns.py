@@ -11,21 +11,21 @@ from pyparsing import nums, alphas, alphanums, oneOf, delimitedList
 from actions import integer_action, float_action, variable_action
 
 # Unsigned Integers - convert to int
-numw = Word(nums)
-uint = numw
-uint.setParseAction(integer_action)
+number = Word(nums)
+uinteger = number
+uinteger.setParseAction(integer_action)
 
 # Signed Integers
-integer = Combine(Optional('-') + numw)
+integer = Combine(Optional('-') + number)
 integer.setParseAction(integer_action)
 
 # Unsigned Floats - convert to float
-_decimal1_ = Combine(numw + '.' + numw)
-_decimal2_ = Combine(numw + '.')
-_decimal3_ = Combine('.' + numw)
+_decimal1_ = Combine(number + '.' + number)
+_decimal2_ = Combine(number + '.')
+_decimal3_ = Combine('.' + number)
 _decimal_ = Combine(_decimal1_ | _decimal2_ | _decimal3_)
-_exponent_ = Combine(CaselessLiteral('e') + Optional(oneOf('+ -')) + numw)
-_float1_ = Combine(numw + _exponent_)
+_exponent_ = Combine(CaselessLiteral('e') + Optional(oneOf('+ -')) + number)
+_float1_ = Combine(number + _exponent_)
 _float2_ = Combine(_decimal_ + Optional(_exponent_))
 ufloat = Combine(_float1_ | _float2_)
 ufloat.setParseAction(float_action)
