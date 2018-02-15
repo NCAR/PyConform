@@ -5,7 +5,6 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyparsing import ParseException
 from pyconform.defparsing import recursions as rcr
 from pyconform.defparsing import actions as act
 
@@ -25,22 +24,6 @@ class Tests(unittest.TestCase):
     def test_lists_of_lists(self):
         token = rcr.expression.parseString('[1, 2.3, ["c", x2]]')[0]
         self.assertEqual(token, [1, 2.3, ['c', act.VariableType('x2')]])
-
-    def test_lists_of_tuples(self):
-        token = rcr.expression.parseString('[1, 2.3, ("c", x2), 4]')[0]
-        self.assertEqual(token, [1, 2.3, ('c', act.VariableType('x2')), 4])
-
-    def test_tuples_empty(self):
-        with self.assertRaises(ParseException):
-            rcr.expression.parseString('()')[0]
-
-    def test_tuples_of_patterns(self):
-        token = rcr.expression.parseString('(1, 2.3, "c", x2)')[0]
-        self.assertEqual(token, (1, 2.3, 'c', act.VariableType('x2')))
-
-    def test_tuples_of_lists(self):
-        token = rcr.expression.parseString('(1, 2.3, ["c", x2])')[0]
-        self.assertEqual(token, (1, 2.3, ['c', act.VariableType('x2')]))
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from pyparsing import ParseResults
 from pyconform.defparsing import actions
 
 import unittest
@@ -39,6 +40,16 @@ class ActionTests(unittest.TestCase):
         result = actions.variable_action(data)
         self.assertEqual(result.name, 'x')
         self.assertEqual(result.indices, [slice(1, 5), 4])
+
+    def test_list_action(self):
+        data = ParseResults([1, 2, 3, 4])
+        result = actions.list_action(data)
+        self.assertEqual(result, [1, 2, 3, 4])
+
+    def test_list_action_with_nesting(self):
+        data = ParseResults([1, ParseResults([2, 3]), 4])
+        result = actions.list_action(data)
+        self.assertEqual(result, [1, [2, 3], 4])
 
 
 if __name__ == "__main__":

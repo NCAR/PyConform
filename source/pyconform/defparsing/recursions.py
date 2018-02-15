@@ -5,8 +5,10 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from patterns import uint, ufloat, string, variable
 from pyparsing import Forward, Group, Suppress, Optional, delimitedList
+
+from patterns import uint, ufloat, string, variable
+from actions import list_action
 
 # Starting point for all expressions
 expression = Forward()
@@ -14,11 +16,7 @@ expression = Forward()
 # List Expressions
 __items = delimitedList(expression)
 lists = Group(Suppress('[') + Optional(__items) + Suppress(']'))
-lists.setParseAction(lambda t: t.asList())
-
-# Tuple Expressions
-tuples = Group(Suppress('(') + __items + Suppress(')'))
-tuples.setParseAction(lambda t: tuple(*t.asList()))
+lists.setParseAction(list_action)
 
 # Combine to allow nested parsing
-expression << (string | variable | ufloat | uint | lists | tuples)
+expression << (string | ufloat | uint | variable | lists)

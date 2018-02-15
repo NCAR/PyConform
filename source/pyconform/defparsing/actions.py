@@ -27,3 +27,7 @@ def variable_action(tokens):
     name = token[0]
     indices = None if len(token) == 1 else token[1]
     return VariableType(name, indices)
+
+
+def list_action(tokens):
+    return tokens.asList()

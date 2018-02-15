@@ -15,7 +15,6 @@ class PatternTests(unittest.TestCase):
 
     def test_uint(self):
         token = p.uint.parseString('142')[0]
-        print token
         self.assertEqual(token, 142)
 
     def test_ufloat_with_decimal(self):
@@ -73,6 +72,14 @@ class PatternTests(unittest.TestCase):
     def test_variables_with_2D_slice_index(self):
         token = p.variable.parseString('x[1:4,6]')[0]
         self.assertEqual(token, a.VariableType('x', [slice(1, 4), 6]))
+
+    def test_variables_with_2D_slice_index_missing_stop_value(self):
+        token = p.variable.parseString('x[1:,6]')[0]
+        self.assertEqual(token, a.VariableType('x', [slice(1, None), 6]))
+
+    def test_variables_with_2D_slice_index_missing_start_value(self):
+        token = p.variable.parseString('x[:3,6]')[0]
+        self.assertEqual(token, a.VariableType('x', [slice(3), 6]))
 
 
 if __name__ == '__main__':
