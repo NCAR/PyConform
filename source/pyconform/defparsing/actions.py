@@ -7,9 +7,9 @@ LICENSE: See the LICENSE.rst file for details
 
 from collections import namedtuple, OrderedDict
 
-VariableType = namedtuple('variable', ['name', 'indices'])
-KeywordType = namedtuple('keyword', ['key', 'value'])
-FunctionType = namedtuple('function', ['name', 'arguments', 'keywords'])
+VariableType = namedtuple('VariableType', ['name', 'indices'])
+KeywordType = namedtuple('KeywordType', ['key', 'value'])
+FunctionType = namedtuple('FunctionType', ['name', 'arguments', 'keywords'])
 
 
 def integer_action(tokens):

@@ -38,6 +38,11 @@ class Tests(unittest.TestCase):
         self.assertEqual(token, act.FunctionType(
             'f', tuple(), {'a': 3, 'b': 4}))
 
+    def test_function_pos_and_kwd_arguments(self):
+        token = rcr.expression.parseString('f(1,2,a=3,b=4)')[0]
+        self.assertEqual(token, act.FunctionType(
+            'f', (1, 2), {'a': 3, 'b': 4}))
+
 
 if __name__ == "__main__":
     unittest.main()
