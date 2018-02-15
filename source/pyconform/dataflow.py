@@ -30,16 +30,16 @@ from warnings import warn
 import numpy
 
 
-#=======================================================================================================================
+#=========================================================================
 # VariableNotFoundError
-#=======================================================================================================================
+#=========================================================================
 class VariableNotFoundError(ValueError):
     """Indicate if an input variable could not be found during construction"""
 
 
-#===================================================================================================
+#=========================================================================
 # DataFlow
-#===================================================================================================
+#=========================================================================
 class DataFlow(object):
     """
     An object describing the flow of data from input to output
@@ -48,7 +48,7 @@ class DataFlow(object):
     def __init__(self, inpds, outds):
         """
         Initializer
-        
+
         Parameters:
             inpds (InputDatasetDesc): The input dataset to use as reference when
                 parsing variable definitions
@@ -65,25 +65,28 @@ class DataFlow(object):
             raise TypeError('Output dataset must be of OutputDatasetDesc type')
         self._ods = outds
 
-        # Create a dictionary of DataNodes from variables with non-string definitions
+        # Create a dictionary of DataNodes from variables with non-string
+        # definitions
         datnodes = self._create_data_nodes_()
 
-        # Create a dictionary to store FlowNodes for variables with string definitions
+        # Create a dictionary to store FlowNodes for variables with string
+        # definitions
         defnodes = self._create_definition_nodes_(datnodes)
 
         # Compute the definition node info objects (zero-sized physarrays)
         definfos = self._compute_node_infos_(defnodes)
-        
+
         # Construct the dimension map
         self._i2omap, self._o2imap = self._compute_dimension_maps_(definfos)
-        
+
         # Create the map nodes
         defnodes = self._create_map_nodes_(defnodes, definfos)
 
         # Create the validate nodes for each valid output variable
         self._valnodes = self._create_validate_nodes_(datnodes, defnodes)
-        
-        # Get the set of all sum-like dimensions (dimensions that cannot be broken into chunks)
+
+        # Get the set of all sum-like dimensions (dimensions that cannot be
+        # broken into chunks)
         self._sumlike_dimensions = self._find_sumlike_dimensions_()
 
         # Create the WriteNodes for each time-series output file
@@ -106,22 +109,25 @@ class DataFlow(object):
                     vdata = numpy.asarray(vdesc.definition, dtype=vdesc.dtype)
                 vunits = vdesc.cfunits()
                 vdims = vdesc.dimensions.keys()
-                varray = PhysArray(vdata, name=vname, units=vunits, dimensions=vdims)
+                varray = PhysArray(vdata, name=vname,
+                                   units=vunits, dimensions=vdims)
                 datnodes[vname] = DataNode(varray)
         return datnodes
 
-    def _create_definition_nodes_(self, datnodes):        
+    def _create_definition_nodes_(self, datnodes):
         defnodes = {}
         for vname in self._ods.variables:
             vdesc = self._ods.variables[vname]
             if isinstance(vdesc.definition, basestring):
                 try:
-                    vnode = self._construct_flow_(parse_definition(vdesc.definition), datnodes=datnodes)
+                    vnode = self._construct_flow_(parse_definition(
+                        vdesc.definition), datnodes=datnodes)
                 except VariableNotFoundError, err:
-                    warn('{}. Skipping output variable {}.'.format(str(err), vname), DefinitionWarning)
+                    warn('{}. Skipping output variable {}.'.format(
+                        str(err), vname), DefinitionWarning)
                 else:
                     defnodes[vname] = vnode
-        return defnodes      
+        return defnodes
 
     def _construct_flow_(self, obj, datnodes={}):
         if isinstance(obj, ParsedVariable):
@@ -133,44 +139,51 @@ class DataFlow(object):
                 return datnodes[vname]
 
             else:
-                raise VariableNotFoundError('Input variable {!r} not found or cannot be used as input'.format(vname))
+                raise VariableNotFoundError(
+                    'Input variable {!r} not found or cannot be used as input'.format(vname))
 
         elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
             name = obj.key
             nargs = len(obj.args)
             op = find_operator(name, numargs=nargs)
-            args = [self._construct_flow_(arg, datnodes=datnodes) for arg in obj.args]
+            args = [self._construct_flow_(arg, datnodes=datnodes)
+                    for arg in obj.args]
             return EvalNode(name, op, *args)
 
         elif isinstance(obj, ParsedFunction):
             name = obj.key
             func = find_function(name)
-            args = [self._construct_flow_(arg, datnodes=datnodes) for arg in obj.args]
-            kwds = {k:self._construct_flow_(obj.kwds[k], datnodes=datnodes) for k in obj.kwds}
+            args = [self._construct_flow_(arg, datnodes=datnodes)
+                    for arg in obj.args]
+            kwds = {k: self._construct_flow_(
+                obj.kwds[k], datnodes=datnodes) for k in obj.kwds}
             return EvalNode(name, func, *args, **kwds)
 
         else:
             return obj
 
     def _compute_node_infos_(self, nodes):
-        # Gather information about each FlowNode's metadata (via empty PhysArrays)
+        # Gather information about each FlowNode's metadata (via empty
+        # PhysArrays)
         infos = {}
         for name in nodes:
-            node = nodes[name] 
+            node = nodes[name]
             try:
                 info = node[None]
             except Exception, err:
                 ndef = self._ods.variables[name].definition
-                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(name, ndef, str(err))
+                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(
+                    name, ndef, str(err))
                 raise RuntimeError(err_msg)
             else:
                 infos[name] = info
         return infos
-        
+
     def _compute_dimension_maps_(self, definfos):
         # Each output variable FlowNode must be mapped to its output dimensions.
         # To aid with this, we sort by number of dimensions:
-        nodeorder = zip(*sorted((len(self._ods.variables[vname].dimensions), vname) for vname in definfos))[1]
+        nodeorder = zip(
+            *sorted((len(self._ods.variables[vname].dimensions), vname) for vname in definfos))[1]
 
         # Now, we construct the dimension maps
         i2omap = {}
@@ -184,7 +197,8 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                map_str = ', '.join('{}-->{}'.format(k, i2omap[k]) for k in i2omap)
+                map_str = ', '.join(
+                    '{}-->{}'.format(k, i2omap[k]) for k in i2omap)
                 err_msg = ('Cannot map dimensions {} to dimensions {} in output variable {} '
                            '(MAP: {})').format(inp_dims, out_dims, vname, map_str)
                 raise ValueError(err_msg)
@@ -194,13 +208,15 @@ class DataFlow(object):
                 o2imap[out_dim] = inp_dim
                 i2omap[inp_dim] = out_dim
 
-        # Now that we know how dimensions are mapped, compute the output dimension sizes
+        # Now that we know how dimensions are mapped, compute the output
+        # dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
-            if dname in o2imap:
+            idname = o2imap.get(dname, None)
+            if idname and idname in self._ids.dimensions:
                 idd = self._ids.dimensions[o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
                     ddesc.set(idd)
-        
+
         return i2omap, o2imap
 
     @property
@@ -219,7 +235,7 @@ class DataFlow(object):
         return mapnodes
 
     def _create_validate_nodes_(self, datnodes, defnodes):
-        valid_vars = datnodes.keys() + defnodes.keys()          
+        valid_vars = datnodes.keys() + defnodes.keys()
         valnodes = {}
         for vname in valid_vars:
             vdesc = self._ods.variables[vname]
@@ -229,12 +245,13 @@ class DataFlow(object):
                 validnode = ValidateNode(vdesc, vnode)
             except Exception, err:
                 vdef = vdesc.definition
-                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(vname, vdef, str(err))
+                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(
+                    vname, vdef, str(err))
                 raise RuntimeError(err_msg)
 
             valnodes[vname] = validnode
         return valnodes
-    
+
     def _find_sumlike_dimensions_(self):
         unmapped_sumlike_dimensions = set()
         for vname in self._valnodes:
@@ -242,7 +259,7 @@ class DataFlow(object):
             for nd in iter_dfs(vnode):
                 if isinstance(nd, EvalNode):
                     unmapped_sumlike_dimensions.update(nd.sumlike_dimensions)
-        
+
         # Map the sum-like dimensions to output dimensions
         return set(self._i2omap[d] for d in unmapped_sumlike_dimensions if d in self._i2omap)
 
@@ -250,12 +267,14 @@ class DataFlow(object):
         writenodes = {}
         for fname in self._ods.files:
             fdesc = self._ods.files[fname]
-            vmissing = tuple(vname for vname in fdesc.variables if vname not in self._valnodes)
+            vmissing = tuple(
+                vname for vname in fdesc.variables if vname not in self._valnodes)
             if vmissing:
                 warn('Skipping output file {} due to missing required variables: '
                      '{}'.format(fname, ', '.join(sorted(vmissing))), DefinitionWarning)
             else:
-                vnodes = tuple(self._valnodes[vname] for vname in fdesc.variables)
+                vnodes = tuple(self._valnodes[vname]
+                               for vname in fdesc.variables)
                 wnode = WriteNode(fdesc, inputs=vnodes)
                 writenodes[wnode.label] = wnode
         return writenodes
@@ -268,17 +287,18 @@ class DataFlow(object):
             vsize = 1 if vsize == 0 else vsize
             bytesizes[vname] = vsize * vdesc.dtype.itemsize
         return bytesizes
-    
+
     def _compute_file_sizes(self, varsizes):
         filesizes = {}
         for fname, wnode in self._writenodes.iteritems():
-            filesizes[fname] = sum(varsizes[vnode.label] for vnode in wnode.inputs)
+            filesizes[fname] = sum(varsizes[vnode.label]
+                                   for vnode in wnode.inputs)
         return filesizes
 
     def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None):
         """
         Execute the Data Flow
-        
+
         Parameters:
             chunks (dict): A dictionary of output dimension names and chunk sizes for each
                 dimension given.  Output dimensions not included in the dictionary will not be
@@ -299,13 +319,15 @@ class DataFlow(object):
         # Make sure that the specified chunking dimensions are valid
         for odname, odsize in chunks.iteritems():
             if odname not in self._o2imap:
-                raise ValueError('Cannot chunk over unknown output dimension {!r}'.format(odname))
+                raise ValueError(
+                    'Cannot chunk over unknown output dimension {!r}'.format(odname))
             if not isinstance(odsize, int):
                 raise TypeError(('Chunk size invalid for output dimension {!r}: '
                                  '{}').format(odname, odsize))
-        
+
         # Check that we are not chunking over any "sum-like" dimensions
-        sumlike_chunk_dims = sorted(d for d in chunks if d in self._sumlike_dimensions)
+        sumlike_chunk_dims = sorted(
+            d for d in chunks if d in self._sumlike_dimensions)
         if len(sumlike_chunk_dims) > 0:
             raise ValueError(('Cannot chunk over dimensions that are summed over (or "sum-like")'
                               ': {}'.format(', '.join(sumlike_chunk_dims))))
@@ -318,7 +340,7 @@ class DataFlow(object):
                 print 'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)'
         else:
             raise TypeError('Communication object is not a SimpleComm!')
-        
+
         # Start general output
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
@@ -333,8 +355,10 @@ class DataFlow(object):
             else:
                 print 'Not chunking output.'
 
-        # Partition the output files/variables over available parallel (MPI) ranks
-        fnames = scomm.partition(self._filesizes.items(), func=WeightBalanced(), involved=True)
+        # Partition the output files/variables over available parallel (MPI)
+        # ranks
+        fnames = scomm.partition(
+            self._filesizes.items(), func=WeightBalanced(), involved=True)
         if scomm.is_manager():
             print 'Writing {} files across {} MPI processes.'.format(len(self._filesizes), scomm.get_size())
         scomm.sync()
@@ -342,7 +366,7 @@ class DataFlow(object):
         # Standard output
         print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
         scomm.sync()
-        
+
         # Loop over output files and write using given chunking
         for fname in fnames:
             print '{}: Writing file: {}'.format(prefix, fname)
