@@ -7,8 +7,8 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyparsing import Forward, Group, Suppress, Optional, delimitedList
 
-from patterns import uint, ufloat, string, variable
-from actions import list_action
+from patterns import uint, ufloat, string, variable, name
+from actions import list_action, function_action
 
 # Starting point for all expressions
 expression = Forward()
@@ -18,5 +18,14 @@ __items = delimitedList(expression)
 lists = Group(Suppress('[') + Optional(__items) + Suppress(']'))
 lists.setParseAction(list_action)
 
+# Keyword Arguments
+_keyword_ = Group(name + Suppress('=') + (string | expression))
+_keyword_.setParseAction(lambda t: tuple(*t))
+
+# Function Expressions
+_arguments_ = Optional(delimitedList(string | _keyword_ | expression))
+function = Group(name + (Suppress('(') + _arguments_ + Suppress(')')))
+function.setParseAction(function_action)
+
 # Combine to allow nested parsing
-expression << (string | ufloat | uint | variable | lists)
+expression << (string | ufloat | uint | function | variable | lists)

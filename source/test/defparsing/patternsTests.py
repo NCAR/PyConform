@@ -59,7 +59,7 @@ class PatternTests(unittest.TestCase):
 
     def test_variables_without_indices(self):
         token = p.variable.parseString('x')[0]
-        self.assertEqual(token, a.VariableType('x'))
+        self.assertEqual(token, a.VariableType('x', None))
 
     def test_variables_with_1D_integer_index(self):
         token = p.variable.parseString('x[0]')[0]

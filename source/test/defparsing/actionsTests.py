@@ -26,17 +26,19 @@ class ActionTests(unittest.TestCase):
         self.assertEqual(result, 1e5)
 
     def test_variable_action_on_solo_symbol(self):
-        result = actions.variable_action(['x'])
+        data = ParseResults([['x']])
+        result = actions.variable_action(data)
         self.assertEqual(result.name, 'x')
         self.assertEqual(result.indices, None)
 
     def test_variable_action_with_1D_slice(self):
-        result = actions.variable_action([['x', [slice(1, 5)]]])
+        data = ParseResults([['x', slice(1, 5)]])
+        result = actions.variable_action(data)
         self.assertEqual(result.name, 'x')
         self.assertEqual(result.indices, [slice(1, 5)])
 
     def test_variable_action_with_2D_slice(self):
-        data = [['x', [slice(1, 5), 4]]]
+        data = ParseResults([['x', slice(1, 5), 4]])
         result = actions.variable_action(data)
         self.assertEqual(result.name, 'x')
         self.assertEqual(result.indices, [slice(1, 5), 4])
@@ -50,6 +52,26 @@ class ActionTests(unittest.TestCase):
         data = ParseResults([1, ParseResults([2, 3]), 4])
         result = actions.list_action(data)
         self.assertEqual(result, [1, [2, 3], 4])
+
+    def test_keyword_action(self):
+        data = ParseResults([['a', 4.5]])
+        result = actions.keyword_action(data)
+        self.assertEqual(result.key, 'a')
+        self.assertEqual(result.value, 4.5)
+
+    def test_function_action(self):
+        data = ParseResults([['f']])
+        result = actions.function_action(data)
+        self.assertEqual(result.name, 'f')
+        self.assertEqual(result.arguments, tuple())
+        self.assertEqual(result.keywords, {})
+
+    def test_function_action_with_arguments(self):
+        data = ParseResults([['f', 2.3, 4]])
+        result = actions.function_action(data)
+        self.assertEqual(result.name, 'f')
+        self.assertEqual(result.arguments, (2.3, 4))
+        self.assertEqual(result.keywords, {})
 
 
 if __name__ == "__main__":

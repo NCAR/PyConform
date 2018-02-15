@@ -19,11 +19,24 @@ class Tests(unittest.TestCase):
 
     def test_lists_of_patterns(self):
         token = rcr.expression.parseString('[1, 2.3, "c", x2]')[0]
-        self.assertEqual(token, [1, 2.3, 'c', act.VariableType('x2')])
+        self.assertEqual(token, [1, 2.3, 'c', act.VariableType('x2', None)])
 
     def test_lists_of_lists(self):
         token = rcr.expression.parseString('[1, 2.3, ["c", x2]]')[0]
-        self.assertEqual(token, [1, 2.3, ['c', act.VariableType('x2')]])
+        self.assertEqual(token, [1, 2.3, ['c', act.VariableType('x2', None)]])
+
+    def test_function_no_arguments(self):
+        token = rcr.expression.parseString('f()')[0]
+        self.assertEqual(token, act.FunctionType('f', tuple(), {}))
+
+    def test_function_pos_arguments(self):
+        token = rcr.expression.parseString('f(3,4)')[0]
+        self.assertEqual(token, act.FunctionType('f', (3, 4), {}))
+
+    def test_function_kwd_arguments(self):
+        token = rcr.expression.parseString('f(a=3,b=4)')[0]
+        self.assertEqual(token, act.FunctionType(
+            'f', tuple(), {'a': 3, 'b': 4}))
 
 
 if __name__ == "__main__":
