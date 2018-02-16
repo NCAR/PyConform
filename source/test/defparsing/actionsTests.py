@@ -73,6 +73,23 @@ class ActionTests(unittest.TestCase):
         self.assertEqual(result.arguments, (2.3, 4))
         self.assertEqual(result.keywords, {})
 
+    def test_unary_op_action_with_plus_sign(self):
+        data = ParseResults([['+', 5]])
+        result = actions.unary_op_action(data)
+        self.assertEqual(result, 5)
+
+    def test_unary_op_action_with_minus_sign(self):
+        data = ParseResults([['-', 5]])
+        result = actions.unary_op_action(data)
+        exp = actions.UnaryOpType('-', 5)
+        self.assertEqual(result, exp)
+
+    def test_binary_op_action(self):
+        data = ParseResults([[3, '+', 5]])
+        result = actions.binary_op_action(data)
+        exp = actions.BinaryOpType('+', 3, 5)
+        self.assertEqual(result, exp)
+
 
 if __name__ == "__main__":
     unittest.main()

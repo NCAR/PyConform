@@ -10,6 +10,8 @@ from collections import namedtuple, OrderedDict
 VariableType = namedtuple('VariableType', ['name', 'indices'])
 KeywordType = namedtuple('KeywordType', ['key', 'value'])
 FunctionType = namedtuple('FunctionType', ['name', 'arguments', 'keywords'])
+UnaryOpType = namedtuple('UnaryOpType', ['operator', 'operand'])
+BinaryOpType = namedtuple('BinaryOpType', ['operator', 'left', 'right'])
 
 
 def integer_action(tokens):
@@ -48,3 +50,16 @@ def function_action(tokens):
             arguments.append(t)
     arguments = tuple(arguments)
     return FunctionType(name, arguments, keywords)
+
+
+def unary_op_action(tokens):
+    op, val = tokens[0]
+    if op == '+':
+        return val
+    else:
+        return UnaryOpType(operator=op, operand=val)
+
+
+def binary_op_action(tokens):
+    left, op, right = tokens[0]
+    return BinaryOpType(operator=op, left=left, right=right)
