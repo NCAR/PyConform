@@ -6,9 +6,11 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyparsing import Word, Combine, Optional, CaselessLiteral, QuotedString, Group, Suppress
-from pyparsing import nums, alphas, alphanums, oneOf, delimitedList
+from pyparsing import ParseExpression, nums, alphas, alphanums, oneOf, delimitedList
 
 from actions import integer_action, float_action, variable_action
+
+ParseExpression.enablePackrat()
 
 # Unsigned Integers - convert to int
 number = Word(nums)
