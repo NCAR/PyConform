@@ -30,6 +30,10 @@ _float2_ = Combine(_decimal_ + Optional(_exponent_))
 ufloat = Combine(_float1_ | _float2_)
 ufloat.setParseAction(float_action)
 
+# Signed Floats
+floats = Combine(Optional('-') + (_float1_ | _float2_))
+floats.setParseAction(float_action)
+
 # Quoted Strings with single or double quotes
 _string1_ = QuotedString("'", escChar='\\')
 _string2_ = QuotedString('"', escChar='\\')

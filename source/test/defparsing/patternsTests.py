@@ -45,6 +45,10 @@ class PatternTests(unittest.TestCase):
         token = p.ufloat.parseString('1.e-4')[0]
         self.assertEqual(token, 1e-4)
 
+    def test_floats_with_decimal_and_positive_exponent(self):
+        token = p.floats.parseString('-1.234e+4')[0]
+        self.assertEqual(token, -12340.)
+
     def test_strings_with_single_quotes(self):
         token = p.string.parseString("'a b c'")[0]
         self.assertEqual(token, 'a b c')
