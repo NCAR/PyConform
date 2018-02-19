@@ -14,6 +14,11 @@ from pyparsing import Literal as Lit
 from pyparsing import ParseExpression
 ParseExpression.enablePackrat()
 
+KwdType = namedtuple('KwdType', ['name', 'value'])
+VarType = namedtuple('VarType', ['name', 'indices'])
+FuncType = namedtuple('FuncType', ['name', 'arguments'])
+OpType = namedtuple('OpType', ['symbol', 'arguments'])
+
 # Integers - convert to int
 uint_expr = Word(nums)
 uint_expr.setParseAction(lambda t: int(t[0]))
@@ -50,38 +55,6 @@ str_expr = Comb(_str1_ | _str2_)
 # Variable or Function Names
 name_expr = Word(alphas + '_', alphanums + '_')
 
-
-KwdType = namedtuple('KwdType', ['name', 'value'])
-VarType = namedtuple('VarType', ['name', 'indices'])
-FuncType = namedtuple('FuncType', ['name', 'arguments'])
-OpType = namedtuple('OpType', ['symbol', 'arguments'])
-
-
-def var_action(tokens):
-    token = tokens[0]
-    return VarType(token[0], token[1:])
-
-
-def kwd_action(tokens):
-    token = tokens[0]
-    return KwdType(token[0], token[1])
-
-
-def func_action(tokens):
-    token = tokens[0]
-    return FuncType(token[0], token[1:])
-
-
-def neg_op_action(tokens):
-    op, val = tokens[0]
-    return val if op == '+' else OpType(op, [val])
-
-
-def bin_op_action(tokens):
-    left, op, right = tokens[0]
-    return OpType(op, [left, right])
-
-
 # Starting point for all recursive expressions
 expr = Fwd()
 
@@ -97,15 +70,26 @@ list_expr.setParseAction(lambda t: t.asList())
 tupl_expr = Grp(Sup('(') + delimitedList(expr) + Sup(')'))
 tupl_expr.setParseAction(lambda t: tuple(*t))
 
-var_expr = Grp(name_expr +
-               Opt(Sup('[') + delimitedList(slice_expr | int_expr | expr) + Sup(']')))
-var_expr.setParseAction(var_action)
+_indices_ = delimitedList(slice_expr | int_expr | expr)
+var_expr = Grp(name_expr + Opt(Sup('[') + _indices_ + Sup(']')))
+var_expr.setParseAction(lambda t: VarType(t[0][0], t[0][1:]))
 
 _kwd_arg_ = Grp(name_expr + Sup('=') + expr)
-_kwd_arg_.setParseAction(kwd_action)
-func_expr = Grp(name_expr +
-                Sup('(') + Opt(delimitedList(_kwd_arg_ | expr)) + Sup(')'))
-func_expr.setParseAction(func_action)
+_kwd_arg_.setParseAction(lambda t: KwdType(t[0][0], t[0][1]))
+_args_ = delimitedList(_kwd_arg_ | expr)
+func_expr = Grp(name_expr + Sup('(') + Opt(_args_) + Sup(')'))
+func_expr.setParseAction(lambda t: FuncType(t[0][0], t[0][1:]))
+
+
+def neg_op_action(tokens):
+    op, val = tokens[0]
+    return val if op == '+' else OpType(op, [val])
+
+
+def bin_op_action(tokens):
+    left, op, right = tokens[0]
+    return OpType(op, [left, right])
+
 
 math_expr = infixNotation(func_expr | var_expr | ufloat_expr | uint_expr,
                           [(Lit('**'), 2, opAssoc.RIGHT, bin_op_action),
