@@ -1,55 +1,64 @@
 """
-Simple Parser Patterns
+Simple Parser Patterns/Expressions
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyparsing import Word, Combine, Optional, CaselessLiteral, QuotedString, Group, Suppress
-from pyparsing import ParseExpression, nums, alphas, alphanums, oneOf, delimitedList
-
-from actions import integer_action, float_action, variable_action
+from pyparsing import ParseExpression, Word, nums, alphas, alphanums, oneOf
+from pyparsing import Combine as Comb, Optional as Opt, CaselessLiteral as Caseless
+from pyparsing import QuotedString as QStr
 
 ParseExpression.enablePackrat()
 
-# Unsigned Integers - convert to int
-number = Word(nums)
-uinteger = number
-uinteger.setParseAction(integer_action)
 
-# Signed Integers
-integer = Combine(Optional('-') + number)
-integer.setParseAction(integer_action)
+# Integers - convert to int
+def _int_action_(t):
+    return int(t[0])
 
-# Unsigned Floats - convert to float
-_decimal1_ = Combine(number + '.' + number)
-_decimal2_ = Combine(number + '.')
-_decimal3_ = Combine('.' + number)
-_decimal_ = Combine(_decimal1_ | _decimal2_ | _decimal3_)
-_exponent_ = Combine(CaselessLiteral('e') + Optional(oneOf('+ -')) + number)
-_float1_ = Combine(number + _exponent_)
-_float2_ = Combine(_decimal_ + Optional(_exponent_))
-ufloat = Combine(_float1_ | _float2_)
-ufloat.setParseAction(float_action)
+
+uint_expr = Word(nums)
+uint_expr.setParseAction(_int_action_)
+
+int_expr = Comb(Opt('-') + Word(nums))
+int_expr.setParseAction(_int_action_)
+
+
+# Floats - convert to float
+def _float_action_(t):
+    return float(t[0])
+
+
+_dec1_ = Comb(Word(nums) + '.' + Word(nums))
+_dec2_ = Comb(Word(nums) + '.')
+_dec3_ = Comb('.' + Word(nums))
+_dec_ = Comb(_dec1_ | _dec2_ | _dec3_)
+_exp_ = Comb(Caseless('e') + Opt(oneOf('+ -')) + Word(nums))
+_flt1_ = Comb(Word(nums) + _exp_)
+_flt2_ = Comb(_dec_ + Opt(_exp_))
+ufloat_expr = Comb(_flt1_ | _flt2_)
+ufloat_expr.setParseAction(_float_action_)
 
 # Signed Floats
-floats = Combine(Optional('-') + (_float1_ | _float2_))
-floats.setParseAction(float_action)
+float_expr = Comb(Opt('-') + (_flt1_ | _flt2_))
+float_expr.setParseAction(_float_action_)
+
+
+# Variable Slices
+def _slice_action_(t):
+    return slice(*[int(i) if i else None for i in t[0].split(':')])
+
+
+_s_ = Word(': ')
+slice_expr = Comb(Opt(int_expr) + _s_ + Opt(int_expr) + Opt(_s_ + int_expr))
+slice_expr.setParseAction(_slice_action_)
+
 
 # Quoted Strings with single or double quotes
-_string1_ = QuotedString("'", escChar='\\')
-_string2_ = QuotedString('"', escChar='\\')
-string = Combine(_string1_ | _string2_)
+_str1_ = QStr("'", escChar='\\')
+_str2_ = QStr('"', escChar='\\')
+str_expr = Comb(_str1_ | _str2_)
+
 
 # Variable or Function Names
-name = Word(alphas + '_', alphanums + '_')
-
-# Variables with slice Indices
-_index_or_none_ = Optional(integer)
-_index_or_none_.setParseAction(lambda t: t[0] if len(t) > 0 else [None])
-_slice_ = delimitedList(_index_or_none_, delim=':')
-_slice_.setParseAction(lambda t: slice(*t) if len(t) > 1 else t[0])
-_indices_ = (Suppress('[') + delimitedList(_slice_) + Suppress(']'))
-_indices_.setParseAction(lambda t: t.asList())
-variable = Group(name + Optional(_indices_))
-variable.setParseAction(variable_action)
+name_expr = Word(alphas + '_', alphanums + '_')
