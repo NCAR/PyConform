@@ -8,13 +8,13 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from cf_units import Unit
-from pyconform.specification import Variable, Dataset
+from pyconform.specification import Variable, Specification
 
 
 class VariableTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
+        self.ds = Specification()
 
     def test_create(self):
         v = self.ds.new_variable('v')
@@ -247,8 +247,8 @@ class VariableTests(unittest.TestCase):
         self.assertItemsEqual(v.coordinates, {'i': i, 'j': j, 'x': x, 'y': y})
 
     def test_equal(self):
-        ds1 = Dataset()
-        ds2 = Dataset()
+        ds1 = Specification()
+        ds2 = Specification()
         ds1.new_dimension('x')
         ds2.new_dimension('x')
         v1 = ds1.new_variable('v')

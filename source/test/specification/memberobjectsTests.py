@@ -8,13 +8,13 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from pyconform.specification.memberobjects import MemberObject
-from pyconform.specification import Dataset
+from pyconform.specification import Specification
 
 
 class MemberObjectTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
+        self.ds = Specification()
         self.m = MemberObject('name', dataset=self.ds)
 
     def test_create(self):

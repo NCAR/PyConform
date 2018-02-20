@@ -18,8 +18,8 @@ class MemberObject(NamedObject):
         self.__dataset = self.__validate_dataset(dataset)
 
     def __validate_dataset(self, dataset):
-        from datasets import Dataset
-        if not isinstance(dataset, Dataset):
+        from pyconform.specification.specifications import Specification
+        if not isinstance(dataset, Specification):
             msg = 'Object needs a dataset for construction'
             raise TypeError(msg)
         return dataset

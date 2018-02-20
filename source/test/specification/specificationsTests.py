@@ -1,5 +1,5 @@
 """
-Unit Tests for Dataset Metadata Objects
+Unit Tests for Specification Metadata Objects
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -7,17 +7,17 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.specification import Dataset
+from pyconform.specification import Specification
 from collections import OrderedDict
 
 
 class DatasetTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
+        self.ds = Specification()
 
     def test_create(self):
-        self.assertIsInstance(self.ds, Dataset)
+        self.assertIsInstance(self.ds, Specification)
 
     def test_default_dimensions_is_empty_set(self):
         self.assertEqual(self.ds.dimensions, {})
@@ -138,7 +138,7 @@ class DatasetTests(unittest.TestCase):
 
     def test_from_standardization_with_non_dict_raises_type_error(self):
         with self.assertRaises(TypeError):
-            Dataset.from_standardization('x')
+            Specification.from_standardization('x')
 
     def create_standardization(self):
         std = OrderedDict()
@@ -171,8 +171,8 @@ class DatasetTests(unittest.TestCase):
 
     def test_from_standardization(self):
         std = self.create_standardization()
-        ods = Dataset.from_standardization(std)
-        self.assertIsInstance(ods, Dataset)
+        ods = Specification.from_standardization(std)
+        self.assertIsInstance(ods, Specification)
         self.assertItemsEqual(ods.dimensions, ('x', 'y', 't'))
         self.assertItemsEqual(ods.variables, ('x', 'y', 't', 'v', 'u'))
         self.assertItemsEqual(ods.files, ('u_1.nc',))

@@ -1,5 +1,5 @@
 """
-Dataset Metadata Class
+Specification Metadata Class
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -10,7 +10,7 @@ from xarray.core.utils import Frozen
 from . import Dimension, Variable, File
 
 
-class Dataset(object):
+class Specification(object):
     """
     Metadata describing an entire NetCDF dataset
     """
@@ -47,7 +47,7 @@ class Dataset(object):
 
     def __new_object(self, cls, obj_dict, name, **kwds):
         if name in obj_dict:
-            msg = 'A {} with name {!r} is already contained in Dataset'
+            msg = 'A {} with name {!r} is already contained in Specification'
             raise ValueError(msg.format(cls.__name__, name))
         return cls(name, dataset=self, **kwds)
 

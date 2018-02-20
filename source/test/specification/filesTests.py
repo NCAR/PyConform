@@ -7,13 +7,13 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.specification import File, Dataset
+from pyconform.specification import File, Specification
 
 
 class FileTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
+        self.ds = Specification()
 
     def test_create(self):
         f = self.ds.new_file('test.nc')

@@ -7,13 +7,13 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.specification import Dimension, Dataset
+from pyconform.specification import Dimension, Specification
 
 
 class DimensionTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Dataset()
+        self.ds = Specification()
 
     def test_create(self):
         d = self.ds.new_dimension('x')
@@ -60,15 +60,15 @@ class DimensionTests(unittest.TestCase):
         self.assertTrue(d.is_unlimited)
 
     def test_equal(self):
-        ds1 = Dataset()
-        ds2 = Dataset()
+        ds1 = Specification()
+        ds2 = Specification()
         d1 = ds1.new_dimension('x', size=4)
         d2 = ds2.new_dimension('x', size=4)
         self.assertEqual(d1, d2)
 
     def test_not_equal(self):
-        ds1 = Dataset()
-        ds2 = Dataset()
+        ds1 = Specification()
+        ds2 = Specification()
         d1 = ds1.new_dimension('x', size=3)
         d2 = ds2.new_dimension('y', size=4)
         self.assertIsNot(d1, d2)
