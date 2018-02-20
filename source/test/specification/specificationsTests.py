@@ -14,127 +14,127 @@ from collections import OrderedDict
 class DatasetTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Specification()
+        self.spec = Specification()
 
     def test_create(self):
-        self.assertIsInstance(self.ds, Specification)
+        self.assertIsInstance(self.spec, Specification)
 
     def test_default_dimensions_is_empty_set(self):
-        self.assertEqual(self.ds.dimensions, {})
+        self.assertEqual(self.spec.dimensions, {})
 
     def test_setting_dimensions_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
-            self.ds.dimensions = 3
+            self.spec.dimensions = 3
 
     def test_default_variables_is_empty_set(self):
-        self.assertEqual(self.ds.variables, {})
+        self.assertEqual(self.spec.variables, {})
 
     def test_setting_variables_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
-            self.ds.variables = 3
+            self.spec.variables = 3
 
     def test_default_files_is_empty_set(self):
-        self.assertEqual(self.ds.files, {})
+        self.assertEqual(self.spec.files, {})
 
     def test_setting_files_raises_attribute_error(self):
         with self.assertRaises(AttributeError):
-            self.ds.files = 3
+            self.spec.files = 3
 
     def test_new_dimension(self):
-        d = self.ds.new_dimension('x')
-        self.assertIn(d, self.ds)
-        self.assertEqual(self.ds.dimensions, {'x': d})
+        d = self.spec.new_dimension('x')
+        self.assertIn(d, self.spec)
+        self.assertEqual(self.spec.dimensions, {'x': d})
 
     def test_new_dimension_sets_dimension_dataset(self):
-        d = self.ds.new_dimension('x')
-        self.assertIs(d.dataset, self.ds)
+        d = self.spec.new_dimension('x')
+        self.assertIs(d.specification, self.spec)
 
     def test_two_new_dimensions_with_same_name_raises_value_error(self):
-        self.ds.new_dimension('x')
+        self.spec.new_dimension('x')
         with self.assertRaises(ValueError):
-            self.ds.new_dimension('x')
+            self.spec.new_dimension('x')
 
     def test_new_variable(self):
-        v = self.ds.new_variable('v')
-        self.assertIn(v, self.ds)
-        self.assertEqual(self.ds.variables, {'v': v})
+        v = self.spec.new_variable('v')
+        self.assertIn(v, self.spec)
+        self.assertEqual(self.spec.variables, {'v': v})
 
     def test_new_variable_sets_variable_dataset(self):
-        v = self.ds.new_variable('v')
-        self.assertIs(v.dataset, self.ds)
+        v = self.spec.new_variable('v')
+        self.assertIs(v.specification, self.spec)
 
     def test_two_new_variables_with_same_name_raises_value_error(self):
-        self.ds.new_variable('v')
+        self.spec.new_variable('v')
         with self.assertRaises(ValueError):
-            self.ds.new_variable('v')
+            self.spec.new_variable('v')
 
     def test_new_file(self):
-        f = self.ds.new_file('test.nc')
-        self.assertIn(f, self.ds)
-        self.assertEqual(self.ds.files, {'test.nc': f})
+        f = self.spec.new_file('test.nc')
+        self.assertIn(f, self.spec)
+        self.assertEqual(self.spec.files, {'test.nc': f})
 
     def test_new_file_sets_file_dataset(self):
-        f = self.ds.new_file('test.nc')
-        self.assertIs(f.dataset, self.ds)
+        f = self.spec.new_file('test.nc')
+        self.assertIs(f.specification, self.spec)
 
     def test_two_new_files_with_same_name_raises_value_error(self):
-        self.ds.new_file('test.nc')
+        self.spec.new_file('test.nc')
         with self.assertRaises(ValueError):
-            self.ds.new_file('test.nc')
+            self.spec.new_file('test.nc')
 
     def test_get_dimension(self):
-        x1 = self.ds.new_dimension('x')
-        x2 = self.ds.dimensions['x']
+        x1 = self.spec.new_dimension('x')
+        x2 = self.spec.dimensions['x']
         self.assertIs(x1, x2)
 
     def test_get_dimension_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
-            self.ds.dimensions['x']
+            self.spec.dimensions['x']
 
     def test_get_variable(self):
-        v1 = self.ds.new_variable('v')
-        v2 = self.ds.variables['v']
+        v1 = self.spec.new_variable('v')
+        v2 = self.spec.variables['v']
         self.assertIs(v1, v2)
 
     def test_get_variable_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
-            self.ds.variables['v']
+            self.spec.variables['v']
 
     def test_get_file(self):
-        f1 = self.ds.new_file('test.nc')
-        f2 = self.ds.files['test.nc']
+        f1 = self.spec.new_file('test.nc')
+        f2 = self.spec.files['test.nc']
         self.assertIs(f1, f2)
 
     def test_get_file_not_found_raises_key_error(self):
         with self.assertRaises(KeyError):
-            self.ds.files['test.nc']
+            self.spec.files['test.nc']
 
     def test_default_coordinates_is_empty_set(self):
-        self.assertEqual(self.ds.coordinates, {})
+        self.assertEqual(self.spec.coordinates, {})
 
     def test_setting_coordinates_by_matching_dimensions_and_variable_names(self):
-        self.ds.new_dimension('x')
-        x = self.ds.new_variable('x')
+        self.spec.new_dimension('x')
+        x = self.spec.new_variable('x')
         x.dimensions = ('x',)
-        self.assertEqual(self.ds.coordinates, {'x': x})
+        self.assertEqual(self.spec.coordinates, {'x': x})
 
     def test_setting_coordinates_with_coordinates_attribute(self):
-        self.ds.new_dimension('i')
-        self.ds.new_dimension('j')
-        x = self.ds.new_variable('x')
+        self.spec.new_dimension('i')
+        self.spec.new_dimension('j')
+        x = self.spec.new_variable('x')
         x.dimensions = ('i', 'j')
-        y = self.ds.new_variable('y')
+        y = self.spec.new_variable('y')
         y.dimensions = ('i', 'j')
-        v = self.ds.new_variable('v')
+        v = self.spec.new_variable('v')
         v.dimensions = ('i', 'j')
         v.auxcoords = ('x', 'y')
-        self.assertEqual(self.ds.coordinates, {'x': x, 'y': y})
+        self.assertEqual(self.spec.coordinates, {'x': x, 'y': y})
 
     def test_setting_coordinates_with_axis_attribute(self):
-        self.ds.new_dimension('i')
-        x = self.ds.new_variable('x')
+        self.spec.new_dimension('i')
+        x = self.spec.new_variable('x')
         x.axis = 'X'
-        self.assertEqual(self.ds.coordinates, {'x': x})
+        self.assertEqual(self.spec.coordinates, {'x': x})
 
     def test_from_standardization_with_non_dict_raises_type_error(self):
         with self.assertRaises(TypeError):
@@ -171,19 +171,19 @@ class DatasetTests(unittest.TestCase):
 
     def test_from_standardization(self):
         std = self.create_standardization()
-        ods = Specification.from_standardization(std)
-        self.assertIsInstance(ods, Specification)
-        self.assertItemsEqual(ods.dimensions, ('x', 'y', 't'))
-        self.assertItemsEqual(ods.variables, ('x', 'y', 't', 'v', 'u'))
-        self.assertItemsEqual(ods.files, ('u_1.nc',))
-        v = ods.variables['v']
+        spec = Specification.from_standardization(std)
+        self.assertIsInstance(spec, Specification)
+        self.assertItemsEqual(spec.dimensions, ('x', 'y', 't'))
+        self.assertItemsEqual(spec.variables, ('x', 'y', 't', 'v', 'u'))
+        self.assertItemsEqual(spec.files, ('u_1.nc',))
+        v = spec.variables['v']
         self.assertEqual(v.definition, 'f(V)')
         self.assertEqual(v.datatype, 'float')
         self.assertEqual(v.units, 'kg')
-        u = ods.variables['u']
+        u = spec.variables['u']
         self.assertEqual(u.definition, 'U')
         self.assertEqual(u.attributes, OrderedDict())
-        f = ods.files['u_1.nc']
+        f = spec.files['u_1.nc']
         self.assertEqual(f.deflate, 5)
         self.assertEqual(f.shuffle, 'on')
         self.assertEqual(f.attributes, {'var': 'u'})

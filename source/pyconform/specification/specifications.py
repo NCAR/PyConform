@@ -12,7 +12,7 @@ from . import Dimension, Variable, File
 
 class Specification(object):
     """
-    Metadata describing an entire NetCDF dataset
+    Metadata describing an entire NetCDF specification
     """
 
     def __init__(self):
@@ -49,7 +49,7 @@ class Specification(object):
         if name in obj_dict:
             msg = 'A {} with name {!r} is already contained in Specification'
             raise ValueError(msg.format(cls.__name__, name))
-        return cls(name, dataset=self, **kwds)
+        return cls(name, specification=self, **kwds)
 
     def _add_file(self, f):
         self.__check_dimension_references(f.dimensions)
@@ -62,7 +62,7 @@ class Specification(object):
         not_found = [d for d in dimensions if d not in self.__dimensions]
         if not_found:
             dstr = ', '.join('{!r}'.format(d) for d in not_found)
-            msg = 'Dimension(s) {} not found in dataset'
+            msg = 'Dimension(s) {} not found in specification'
             raise KeyError(msg.format(dstr))
 
     def __check_variable_references(self, variables):
@@ -71,7 +71,7 @@ class Specification(object):
         not_found = [v for v in variables if v not in self.__variables]
         if not_found:
             dstr = ', '.join('{!r}'.format(v) for v in not_found)
-            msg = 'Variable(s) {} not found in dataset'
+            msg = 'Variable(s) {} not found in specification'
             raise KeyError(msg.format(dstr))
 
     def _add_variable(self, v):

@@ -6,13 +6,17 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.dataset import Dataset
+
 import unittest
 
 
 class DatasetTests(unittest.TestCase):
 
-    def testName(self):
-        pass
+    def test_create(self):
+        ds = Dataset()
+        self.assertIsInstance(ds, Dataset)
+    
+    def test_
 
 
 if __name__ == '__main__':

@@ -51,7 +51,7 @@ class Variable(MemberObject):
         return Variable._NETCDF4_TYPES_[idt]
 
     def __init__(self, name, **kwds):
-        super(Variable, self).__init__(name, dataset=kwds.pop('dataset', None))
+        super(Variable, self).__init__(name, specification=kwds.pop('specification', None))
         self.__attributes = OrderedDict()
         self.__files = OrderedDict()
         self.definition = kwds.pop('definition', None)
@@ -101,7 +101,7 @@ class Variable(MemberObject):
     def dimensions(self):
         if self.__dimensions is None:
             return None
-        return Frozen(OrderedDict((d, self.dataset.dimensions[d]) for d in self.__dimensions))
+        return Frozen(OrderedDict((d, self.specification.dimensions[d]) for d in self.__dimensions))
 
     @dimensions.setter
     def dimensions(self, dimensions):
@@ -109,10 +109,10 @@ class Variable(MemberObject):
             self.__dimensions = None
         elif isinstance(dimensions, (list, tuple)):
             not_found = [d for d in dimensions
-                         if d not in self.dataset.dimensions]
+                         if d not in self.specification.dimensions]
             if not_found:
                 dstr = ', '.join(str(d) for d in not_found)
-                msg = 'Variable {!r} references dimensions {} not found in dataset'
+                msg = 'Variable {!r} references dimensions {} not found in specification'
                 raise KeyError(msg.format(self.name, dstr))
             self.__dimensions = dimensions
         else:
@@ -128,7 +128,7 @@ class Variable(MemberObject):
         return Frozen(self.__files)
 
     def _add_to_file(self, fname):
-        self.__files[fname] = self.dataset.files[fname]
+        self.__files[fname] = self.specification.files[fname]
 
     @property
     def standard_name(self):
@@ -223,13 +223,13 @@ class Variable(MemberObject):
     def bounds(self):
         if 'bounds' in self.__attributes:
             bounds = self.__attributes['bounds']
-            return self.dataset.variables[bounds]
+            return self.specification.variables[bounds]
         else:
             return None
 
     @bounds.setter
     def bounds(self, bounds):
-        if bounds not in self.dataset.variables:
+        if bounds not in self.specification.variables:
             msg = 'Bounds variable {!r} not found'
             raise KeyError(msg.format(bounds))
         self.__attributes['bounds'] = str(bounds)
@@ -237,17 +237,17 @@ class Variable(MemberObject):
     @property
     def auxcoords(self):
         auxcoords = self.__attributes.get('coordinates', '').split()
-        return Frozen(OrderedDict((c, self.dataset.variables[c]) for c in auxcoords))
+        return Frozen(OrderedDict((c, self.specification.variables[c]) for c in auxcoords))
 
     @auxcoords.setter
     def auxcoords(self, auxcoords):
         if not isinstance(auxcoords, (tuple, list)):
             msg = 'Auxiliary coordinates must be given as a list or tuple'
             raise ValueError(msg)
-        not_found = [c for c in auxcoords if c not in self.dataset.variables]
+        not_found = [c for c in auxcoords if c not in self.specification.variables]
         if not_found:
             cstr = ', '.join(str(c) for c in not_found)
-            msg = 'Auxiliary coordinate(s) {} not found in dataset'
+            msg = 'Auxiliary coordinate(s) {} not found in specification'
             raise KeyError(msg.format(cstr))
         self.__attributes['coordinates'] = ' '.join(str(c) for c in auxcoords)
 
@@ -256,8 +256,8 @@ class Variable(MemberObject):
         if self.dimensions is None:
             return self.auxcoords
         else:
-            coords = OrderedDict((n, self.dataset.variables[n]) for n in self.dimensions
-                                 if n in self.dataset.variables)
+            coords = OrderedDict((n, self.specification.variables[n]) for n in self.dimensions
+                                 if n in self.specification.variables)
             coords.update(self.auxcoords)
             return Frozen(coords)
 

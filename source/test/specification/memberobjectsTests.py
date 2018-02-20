@@ -14,8 +14,8 @@ from pyconform.specification import Specification
 class MemberObjectTests(unittest.TestCase):
 
     def setUp(self):
-        self.ds = Specification()
-        self.m = MemberObject('name', dataset=self.ds)
+        self.spec = Specification()
+        self.m = MemberObject('name', specification=self.spec)
 
     def test_create(self):
         self.assertIsInstance(self.m, MemberObject)
@@ -23,8 +23,8 @@ class MemberObjectTests(unittest.TestCase):
     def test_name_is_stored(self):
         self.assertEqual(self.m.name, 'name')
 
-    def test_setting_dataset_to_dataset_stores_dataset(self):
-        self.assertIs(self.m.dataset, self.ds)
+    def test_setting_specification_to_specification_stores_specification(self):
+        self.assertIs(self.m.specification, self.spec)
 
 
 if __name__ == '__main__':

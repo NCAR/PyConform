@@ -10,20 +10,20 @@ from namedobjects import NamedObject
 
 class MemberObject(NamedObject):
     """
-    A member of a dataset
+    A member of a specification
     """
 
-    def __init__(self, name, dataset=None):
+    def __init__(self, name, specification=None):
         super(MemberObject, self).__init__(name)
-        self.__dataset = self.__validate_dataset(dataset)
+        self.__specification = self.__validate_specification(specification)
 
-    def __validate_dataset(self, dataset):
+    def __validate_specification(self, specification):
         from pyconform.specification.specifications import Specification
-        if not isinstance(dataset, Specification):
-            msg = 'Object needs a dataset for construction'
+        if not isinstance(specification, Specification):
+            msg = 'Object needs a specification for construction'
             raise TypeError(msg)
-        return dataset
+        return specification
 
     @property
-    def dataset(self):
-        return self.__dataset
+    def specification(self):
+        return self.__specification
