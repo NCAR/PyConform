@@ -10,7 +10,7 @@ from pyconform.streams import expressions
 import unittest
 
 
-class Tests(unittest.TestCase):
+class ExpressionTests(unittest.TestCase):
 
     def test_uint_expr(self):
         token = expressions.uint_expr.parseString('142')[0]
