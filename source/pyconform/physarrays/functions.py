@@ -18,7 +18,7 @@ def convert(obj, to_units):
     if from_units == to_units:
         return obj
     elif from_units.is_convertible(to_units):
-        new_obj = xr.apply_ufunc(from_units.convert, obj, to_units,
+        new_obj = xr.apply_ufunc(from_units.convert, obj, to_units, keep_attrs=True,
                                  dask='parallelized', output_dtypes=[get_dtype(obj)])
         new_obj.name = "convert({}, to='{!s}')".format(obj.name, to_units)
         set_cfunits(new_obj, to_units)
