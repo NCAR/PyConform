@@ -8,8 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 import unittest
 
 from cf_units import Unit
-from pyconform.metadata import Variable
-from pyconform.metadata.datasets import Dataset
+from pyconform.specification import Variable, Dataset
 
 
 class VariableTests(unittest.TestCase):

@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata.namedobjects import NamedObject
+from pyconform.specification.namedobjects import NamedObject
 
 
 class NamedObjectTests(unittest.TestCase):

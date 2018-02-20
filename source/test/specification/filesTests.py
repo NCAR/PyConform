@@ -7,8 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata import File
-from pyconform.metadata.datasets import Dataset
+from pyconform.specification import File, Dataset
 
 
 class FileTests(unittest.TestCase):

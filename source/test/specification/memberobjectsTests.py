@@ -7,8 +7,8 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 
-from pyconform.metadata.memberobjects import MemberObject
-from pyconform.metadata.datasets import Dataset
+from pyconform.specification.memberobjects import MemberObject
+from pyconform.specification import Dataset
 
 
 class MemberObjectTests(unittest.TestCase):
