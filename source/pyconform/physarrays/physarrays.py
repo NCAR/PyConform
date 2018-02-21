@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 import functions as fn
 import xarray as xr
 import operator as op
+from xarray.core.utils import is_scalar
 
 __OP_SYMBOLS__ = {'__add__': '+', '__radd__': '+', '__iadd__': '+',
                   '__sub__': '-', '__rsub__': '-', '__isub__': '-',
@@ -15,7 +16,8 @@ __OP_SYMBOLS__ = {'__add__': '+', '__radd__': '+', '__iadd__': '+',
                   '__div__': '/', '__rdiv__': '/', '__idiv__': '/',
                   '__truediv__': '/', '__rtruediv__': '/', '__itruediv__': '/'}
 
-__SYMBOL_OPS__ = {'+': op.add, '-': op.sub, '*': op.mul, '/': op.div}
+__SYMBOL_OPS__ = {'+': op.add, '-': op.sub,
+                  '*': op.mul, '/': op.div}
 
 __ROP_NAMES__ = {'__radd__', '__rsub__',
                  '__rmul__', '__rdiv__', '__rtruediv__'}
@@ -155,3 +157,16 @@ class PhysArray(xr.DataArray):
     @_bin_op_compute_units_decorator
     def __itruediv__(self, other):
         return super(PhysArray, self).__itruediv__(other)
+
+    def __pow__(self, other):
+        other_units = fn.get_cfunits(other)
+        if other_units.is_convertible(1) and is_scalar(other):
+            new_other = fn.convert(other, 1)
+            new_units = op.pow(fn.get_cfunits(self), new_other)
+            new_array = super(PhysArray, self).__pow__(new_other)
+            fn.set_cfunits(new_array, new_units)
+            new_array.name = '({}**{})'.format(self.name, fn.get_name(other))
+            return new_array
+        else:
+            msg = "Exponents in 'pow' function must be unitless scalars, not {}"
+            raise TypeError(msg.format(type(other)))
