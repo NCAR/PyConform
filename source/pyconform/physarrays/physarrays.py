@@ -5,7 +5,8 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarrays import generics as fn
+from pyconform.physarrays import functions as fn
+from pyconform.physarrays import generics as gn
 import xarray as xr
 import operator as op
 from xarray.core.utils import is_scalar
@@ -24,8 +25,8 @@ __ROP_NAMES__ = {'__radd__', '__rsub__',
 
 
 def _bin_op_name(func, self, other):
-    nself = fn.get_name(self)
-    nother = fn.get_name(other)
+    nself = gn.get_name(self)
+    nother = gn.get_name(other)
     if func.__name__ in __ROP_NAMES__:
         return '({}{}{})'.format(nother, __OP_SYMBOLS__[func.__name__], nself)
     else:
@@ -34,10 +35,10 @@ def _bin_op_name(func, self, other):
 
 def _bin_op_match_units_decorator(func):
     def wrapper(self, other):
-        self_units = fn.get_cfunits(self)
+        self_units = gn.get_cfunits(self)
         new_other = fn.convert(other, self_units)
         new_array = func(self, new_other)
-        fn.set_cfunits(new_array, self_units)
+        gn.set_cfunits(new_array, self_units)
         new_array.name = _bin_op_name(func, self, new_other)
         return new_array
     return wrapper
@@ -45,12 +46,12 @@ def _bin_op_match_units_decorator(func):
 
 def _bin_op_compute_units_decorator(func):
     def wrapper(self, other):
-        self_units = fn.get_cfunits(self)
-        other_units = fn.get_cfunits(other)
+        self_units = gn.get_cfunits(self)
+        other_units = gn.get_cfunits(other)
         op = __SYMBOL_OPS__[__OP_SYMBOLS__[func.__name__]]
         new_units = op(self_units, other_units)
         new_array = func(self, other)
-        fn.set_cfunits(new_array, new_units)
+        gn.set_cfunits(new_array, new_units)
         new_array.name = _bin_op_name(func, self, other)
         return new_array
     return wrapper
@@ -58,10 +59,10 @@ def _bin_op_compute_units_decorator(func):
 
 def _bin_op_match_positive_decorator(func):
     def wrapper(self, other):
-        self_pos = fn.get_positive(self)
+        self_pos = gn.get_positive(self)
         new_other = fn.flip(other, self_pos)
         new_array = func(self, new_other)
-        fn.set_positive(new_array, self_pos)
+        gn.set_positive(new_array, self_pos)
         return new_array
     return wrapper
 
@@ -159,13 +160,13 @@ class PhysArray(xr.DataArray):
         return super(PhysArray, self).__itruediv__(other)
 
     def __pow__(self, other):
-        other_units = fn.get_cfunits(other)
+        other_units = gn.get_cfunits(other)
         if other_units.is_convertible(1) and is_scalar(other):
             new_other = fn.convert(other, 1)
-            new_units = op.pow(fn.get_cfunits(self), new_other)
+            new_units = op.pow(gn.get_cfunits(self), new_other)
             new_array = super(PhysArray, self).__pow__(new_other)
-            fn.set_cfunits(new_array, new_units)
-            new_array.name = '({}**{})'.format(self.name, fn.get_name(other))
+            gn.set_cfunits(new_array, new_units)
+            new_array.name = '({}**{})'.format(self.name, gn.get_name(other))
             return new_array
         else:
             msg = "Exponents in 'pow' function must be unitless scalars, not {}"
