@@ -6,4 +6,4 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from parser import parse_definition, KwdType, FuncType, VarType, OpType
-from functionregistry import FunctionRegistry
+from functionregistry import registry

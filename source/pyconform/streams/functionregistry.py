@@ -8,11 +8,13 @@ LICENSE: See the LICENSE.rst file for details
 from types import FunctionType
 
 
+__LAMBDA_NAME__ = (lambda: None).__name__
+
+
 class FunctionRegistry(object):
     """
     A Registry for functions that can be referenced in variable definitions
     """
-    __LAMBDA_NAME__ = (lambda: None).__name__
 
     def __init__(self):
         self.__callables = {}
@@ -34,6 +36,17 @@ class FunctionRegistry(object):
     def add(self, func, name=None):
         if name is None:
             name = self.__get_func_name__(func)
-        if name == FunctionRegistry.__LAMBDA_NAME__:
+        if name == __LAMBDA_NAME__:
             raise TypeError('Lambda functions require a separate name')
+        if name in self:
+            raise KeyError('Function {!r} already registered'.format(name))
         self.__callables[name] = func
+
+    def remove(self, name):
+        del self.__callables[name]
+
+    def clear(self):
+        self.__callables.clear()
+
+
+registry = FunctionRegistry()

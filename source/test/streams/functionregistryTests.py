@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.streams import FunctionRegistry
+from pyconform.streams.functionregistry import FunctionRegistry
 
 import unittest
 
@@ -99,6 +99,29 @@ class RegistryTests(unittest.TestCase):
         self.reg.add(plus2)
         p = self.reg['PlusY']
         self.assertEqual(p(1), 3)
+
+    def test_add_duplicate_function_raises_key_error(self):
+        self.reg.add(lambda x: x + 2, name='f')
+        with self.assertRaises(KeyError):
+            self.reg.add(lambda y: y * 2, name='f')
+
+    def test_remove_function(self):
+        self.reg.add(lambda x: x + 2, name='f')
+        self.reg.add(lambda y: y * 2, name='g')
+        self.reg.remove('g')
+        self.assertIn('f', self.reg)
+        self.assertNotIn('g', self.reg)
+
+    def test_remove_function_not_contained_raises_key_error(self):
+        with self.assertRaises(KeyError):
+            self.reg.remove('g')
+
+    def test_clear(self):
+        self.reg.add(lambda x: x + 2, name='f')
+        self.reg.add(lambda y: y * 2, name='g')
+        self.reg.clear()
+        self.assertNotIn('f', self.reg)
+        self.assertNotIn('g', self.reg)
 
 
 if __name__ == "__main__":
