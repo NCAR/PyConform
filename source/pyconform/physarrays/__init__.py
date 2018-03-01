@@ -6,5 +6,5 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from physarrays import PhysArray
-from pyconform.physarrays.generics import *
+from generics import *
 from exceptions import *
