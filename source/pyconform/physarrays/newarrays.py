@@ -6,9 +6,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from exceptions import PositiveError
+from functions import get_name, get_cfunits, set_cfunits
 
 import xarray as xr
-import cf_units as cu
 
 
 class PhysArray(object):
@@ -33,18 +33,24 @@ class PhysArray(object):
         return self.__data
 
     @property
+    def name(self):
+        return self.__data.name
+
+    @name.setter
+    def name(self, name):
+        self.__data.name = name
+
+    @property
+    def dtype(self):
+        return self.__data.dtype
+
+    @property
     def units(self):
         return self.__data.attrs.get('units', None)
 
     @units.setter
     def units(self, to_units):
-        if to_units is None:
-            self.__data.attrs.pop('units', None)
-            self.calendar = None
-        else:
-            self.__data.attrs['units'] = str(to_units)
-            if isinstance(to_units, cu.Unit) and to_units.calendar:
-                self.calendar = to_units.calendar
+        set_cfunits(self.__data, to_units)
 
     @property
     def calendar(self):
@@ -72,4 +78,12 @@ class PhysArray(object):
             self.__data.attrs['positive'] = pstr
 
     def cfunits(self):
-        return cu.Unit(self.units, calendar=self.calendar)
+        return get_cfunits(self.__data)
+
+    @property
+    def attrs(self):
+        return self.__data.attrs
+
+    def __add__(self, other):
+        name = '({}+{})'.format(self.name, get_name(other))
+        return PhysArray(self.__data + other, name=name)
