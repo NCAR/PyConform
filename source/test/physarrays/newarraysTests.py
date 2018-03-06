@@ -17,7 +17,7 @@ class PhysArrayTests(unittest.TestCase):
 
     def assertPhysArraysEqual(self, obj1, obj2):
         self.assertEqual(type(obj1), type(obj2))
-        xr.testing.assert_equal(obj1.data_array, obj2.data_array)
+        xr.testing.assert_identical(obj1.data_array, obj2.data_array)
         self.assertEqual(obj1.name, obj2.name)
         self.assertEqual(obj1.cfunits(), obj2.cfunits())
         self.assertEqual(obj1.positive, obj2.positive)
@@ -133,10 +133,22 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysEqual(x, z)
 
     def test_add_scalars_with_unit_conversion(self):
-        x = PhysArray(3.5, name='x', units='kg')
+        x = PhysArray(3.5, name='x', units='kg', attrs={'a': 'b'})
         y = PhysArray(500.0, name='y', units='g')
-        z = PhysArray(4.0, name="(x+y)", units='kg')
+        z = PhysArray(4.0, name="(x+convert(y, to='kg'))", units='kg')
         self.assertPhysArraysEqual(x + y, z)
+
+    def test_sub_scalar_to_scalar(self):
+        x = PhysArray(3.5, name='x')
+        y = PhysArray(2.0, name='y')
+        z = PhysArray(1.5, name="(x-y)")
+        self.assertPhysArraysEqual(x - y, z)
+
+    def test_sub_float_to_scalar(self):
+        x = 3.5
+        y = PhysArray(2.0, name='y')
+        z = PhysArray(1.5, name="(3.5-y)")
+        self.assertPhysArraysEqual(x - y, z)
 
 
 if __name__ == "__main__":

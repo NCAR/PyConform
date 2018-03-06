@@ -6,6 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.physarrays.newarrays import PhysArray
+from pyconform.physarrays import UnitsError
 
 import pyconform.physarrays.functions as fn
 import xarray as xr
@@ -172,9 +173,43 @@ class FunctionsTests(unittest.TestCase):
         x1 = PhysArray(2.3, name='x', attrs=attrs1)
         fn.set_cfunits(x1, cu.Unit('g'))
         x2 = PhysArray(2.3, name='x', attrs={'units': 'g'})
-        xr.testing.assert_equal(x1.data_array, x2.data_array)
+        xr.testing.assert_identical(x1.data_array, x2.data_array)
         self.assertEqual(x1.attrs['units'], x2.attrs['units'])
         self.assertNotIn('calendar', x1.attrs)
+
+    def test_convert_float_to_percent(self):
+        x = fn.convert(1.5, '%')
+        self.assertEqual(x, 150.0)
+
+    def test_convert_str_raises_units_error(self):
+        with self.assertRaises(UnitsError):
+            fn.convert('c', '1')
+
+    def test_convert_xarray_with_units(self):
+        x = xr.DataArray(2500., name='x', attrs={'units': 'm'})
+        y = fn.convert(x, 'km')
+        z = xr.DataArray(2.5, name="convert(x, to='km')",
+                         attrs={'units': 'km'})
+        xr.testing.assert_identical(y, z)
+        self.assertEqual(y.attrs['units'], z.attrs['units'])
+
+    def test_convert_physarray_with_units(self):
+        x = PhysArray(2500., name='x', attrs={'units': 'm'})
+        y = fn.convert(x, 'km')
+        z = PhysArray(2.5, name="convert(x, to='km')", attrs={'units': 'km'})
+        xr.testing.assert_identical(y.data_array, z.data_array)
+        self.assertEqual(y.attrs['units'], z.attrs['units'])
+
+    def test_convert_physarray_with_reftime_units(self):
+        xattrs = {'units': 'days since 1999-01-01', 'calendar': 'noleap'}
+        x = PhysArray(365., name='x', attrs=xattrs)
+        yunits = cu.Unit('hours since 2000-01-01', calendar='noleap')
+        y = fn.convert(x, yunits)
+        z = PhysArray(0.0, name="convert(x, to='hours since 2000-01-01')",
+                      attrs={'units': str(yunits), 'calendar': str(yunits.calendar)})
+        xr.testing.assert_identical(y.data_array, z.data_array)
+        self.assertEqual(y.attrs['units'], z.attrs['units'])
+        self.assertEqual(y.attrs['calendar'], z.attrs['calendar'])
 
 
 if __name__ == "__main__":
