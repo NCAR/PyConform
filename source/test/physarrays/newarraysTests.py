@@ -17,7 +17,7 @@ class PhysArrayTests(unittest.TestCase):
 
     def assertPhysArraysEqual(self, obj1, obj2):
         self.assertEqual(type(obj1), type(obj2))
-        xr.testing.assert_identical(obj1.data_array, obj2.data_array)
+        xr.testing.assert_equal(obj1.data_array, obj2.data_array)
         self.assertEqual(obj1.name, obj2.name)
         self.assertEqual(obj1.cfunits(), obj2.cfunits())
         self.assertEqual(obj1.positive, obj2.positive)
@@ -144,6 +144,12 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(4.0, name="(x+convert(y, to='kg'))", units='kg')
         self.assertPhysArraysEqual(x + y, z)
 
+    def test_add_scalars_with_positive_flipping(self):
+        x = PhysArray(3.5, name='x', positive='up')
+        y = PhysArray(0.5, name='y', positive='down')
+        z = PhysArray(3.0, name="(x+flip(y, to='up'))", positive='up')
+        self.assertPhysArraysEqual(x + y, z)
+
     def test_sub_scalar_to_scalar(self):
         x = PhysArray(3.5, name='x')
         y = PhysArray(2.0, name='y')
@@ -155,6 +161,30 @@ class PhysArrayTests(unittest.TestCase):
         y = PhysArray(2.0, name='y')
         z = PhysArray(1.5, name="(3.5-y)")
         self.assertPhysArraysEqual(x - y, z)
+
+    def test_mul_scalar_to_scalar(self):
+        x = PhysArray(3.5, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='s')
+        z = PhysArray(7.0, name="(x*y)", units='m.s')
+        self.assertPhysArraysEqual(x * y, z)
+
+    def test_mul_float_to_scalar(self):
+        x = 3.5
+        y = PhysArray(2.0, name='y', units='s')
+        z = PhysArray(7.0, name="(3.5*y)", units='s')
+        self.assertPhysArraysEqual(x * y, z)
+
+    def test_div_scalar_to_scalar(self):
+        x = PhysArray(3.5, name='x', units='m')
+        y = PhysArray(2.0, name='y', units='s')
+        z = PhysArray(1.75, name="(x/y)", units='m/s')
+        self.assertPhysArraysEqual(x / y, z)
+
+    def test_div_float_to_scalar(self):
+        x = 3.5
+        y = PhysArray(2.0, name='y', units='s')
+        z = PhysArray(1.75, name="(3.5/y)", units='Hz')
+        self.assertPhysArraysEqual(x / y, z)
 
 
 if __name__ == "__main__":
