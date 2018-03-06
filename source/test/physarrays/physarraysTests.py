@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarrays.newarrays import PhysArray
+from pyconform.physarrays import PhysArray
 
 import xarray as xr
 import cf_units as cu

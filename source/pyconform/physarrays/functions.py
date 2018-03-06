@@ -5,10 +5,10 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from exceptions import UnitsError, PositiveError
 from os import linesep
 from numpy import asarray
 from cf_units import Unit
-from pyconform.physarrays import UnitsError, PositiveError
 
 import xarray as xr
 

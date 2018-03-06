@@ -6,5 +6,5 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from physarrays import PhysArray
-from generics import *
+from functions import *
 from exceptions import *

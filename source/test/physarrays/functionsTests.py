@@ -5,8 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarrays.newarrays import PhysArray
-from pyconform.physarrays import UnitsError, PositiveError
+from pyconform.physarrays import PhysArray, UnitsError, PositiveError
 
 import pyconform.physarrays.functions as fn
 import xarray as xr
