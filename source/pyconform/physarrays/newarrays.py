@@ -95,6 +95,10 @@ class PhysArray(object):
     def attrs(self):
         return self.__data.attrs
 
+    def __neg__(self):
+        name = '(-{})'.format(self.name)
+        return PhysArray(-self.__data, name=name, attrs=self.attrs)
+
     @bin_op_match_units
     def __add__(self, other):
         name = '({}+{})'.format(self.name, get_name(other))

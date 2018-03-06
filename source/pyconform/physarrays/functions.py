@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from os import linesep
 from numpy import asarray
 from cf_units import Unit
-from pyconform.physarrays import UnitsError
+from pyconform.physarrays import UnitsError, PositiveError
 
 import xarray as xr
 
@@ -78,3 +78,42 @@ def convert(obj, to_units):
     else:
         msg = 'Unable to convert units {!s} to {!s}'
         raise UnitsError(msg.format(from_units, to_units))
+
+
+def get_positive(obj):
+    if hasattr(obj, 'attrs'):
+        return obj.attrs.get('positive', None)
+    else:
+        return None
+
+
+def set_positive(obj, to_pos):
+    if to_pos is None:
+        if hasattr(obj, 'attrs'):
+            obj.attrs.pop('positive', None)
+    elif hasattr(obj, 'attrs'):
+        str_pos = str(to_pos).strip().lower()
+        if str_pos in ('up', 'down'):
+            obj.attrs['positive'] = str_pos
+        else:
+            msg = 'Invalid positive value {}'
+            raise PositiveError(msg.format(to_pos))
+    else:
+        msg = 'Cannot set positive for object of type {}'
+        raise TypeError(msg.format(type(obj)))
+
+
+def flip(obj, to_pos):
+    from_pos = get_positive(obj)
+    to_pos = None if to_pos is None else str(to_pos).strip().lower()
+    if from_pos == to_pos:
+        return obj
+    elif from_pos is None or to_pos is None:
+        msg = "No rule for changing positive from '{}' to '{}'"
+        raise PositiveError(msg.format(from_pos, to_pos))
+    else:
+        new_obj = -obj
+        set_positive(new_obj, to_pos)
+        if hasattr(new_obj, 'name'):
+            new_obj.name = "flip({}, to='{!s}')".format(obj.name, to_pos)
+        return new_obj

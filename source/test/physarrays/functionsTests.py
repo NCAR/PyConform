@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.physarrays.newarrays import PhysArray
-from pyconform.physarrays import UnitsError
+from pyconform.physarrays import UnitsError, PositiveError
 
 import pyconform.physarrays.functions as fn
 import xarray as xr
@@ -210,6 +210,70 @@ class FunctionsTests(unittest.TestCase):
         xr.testing.assert_identical(y.data_array, z.data_array)
         self.assertEqual(y.attrs['units'], z.attrs['units'])
         self.assertEqual(y.attrs['calendar'], z.attrs['calendar'])
+
+    def test_get_positive_of_int_returns_none(self):
+        self.assertIsNone(fn.get_positive(1))
+
+    def test_get_positive_of_xarray_returns_none_if_no_attr(self):
+        x = xr.DataArray(100., name='x')
+        self.assertIsNone(fn.get_positive(x))
+
+    def test_get_positive_of_xarray_returns_attr(self):
+        x = xr.DataArray(100., name='x', attrs={'positive': 'up'})
+        self.assertEqual(fn.get_positive(x), 'up')
+
+    def test_get_positive_of_physarray_returns_attr(self):
+        x = PhysArray(100., name='x', attrs={'positive': 'up'})
+        self.assertEqual(fn.get_positive(x), 'up')
+
+    def test_set_positive_of_int_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            fn.set_positive(1, 'up')
+
+    def test_set_positive_of_int_to_none_does_nothing(self):
+        fn.set_positive(1, None)
+
+    def test_set_positive_of_xarray_to_none_removes_positive_attr(self):
+        x = xr.DataArray(1., name='x', attrs={'positive': 'up'})
+        fn.set_positive(x, None)
+        self.assertNotIn('positive', x.attrs)
+
+    def test_set_positive_of_xarray_to_up_sets_attr(self):
+        x = xr.DataArray(1., name='x')
+        fn.set_positive(x, 'Up')
+        self.assertEqual(x.attrs['positive'], 'up')
+
+    def test_set_positive_of_xarray_to_invalid_raises_positive_error(self):
+        x = xr.DataArray(1., name='x')
+        with self.assertRaises(PositiveError):
+            fn.set_positive(x, 'x')
+
+    def test_flip_of_int_to_none_does_nothing(self):
+        x = fn.flip(1, None)
+        self.assertEqual(x, 1)
+
+    def test_flip_of_int_to_up_raises_positive_error(self):
+        with self.assertRaises(PositiveError):
+            fn.flip(1, 'up')
+
+    def test_flip_of_xarray_to_up_from_none_raises_positive_error(self):
+        x = xr.DataArray(1., name='x')
+        with self.assertRaises(PositiveError):
+            fn.flip(x, 'Up')
+
+    def test_flip_of_xarray_to_up_from_down_negates_and_sets_positive(self):
+        x = xr.DataArray(1., name='x', attrs={'positive': 'down'})
+        y = fn.flip(x, 'Up')
+        z = xr.DataArray(-1., name="flip(x, to='up')",
+                         attrs={'positive': 'up'})
+        xr.testing.assert_identical(y, z)
+
+    def test_flip_of_physarray_to_down_from_up_negates_and_sets_positive(self):
+        x = PhysArray(1., name='x', attrs={'positive': 'up'})
+        y = fn.flip(x, 'Down ')
+        z = PhysArray(-1., name="flip(x, to='down')",
+                      attrs={'positive': 'down'})
+        xr.testing.assert_identical(y.data_array, z.data_array)
 
 
 if __name__ == "__main__":
