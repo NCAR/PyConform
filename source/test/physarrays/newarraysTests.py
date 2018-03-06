@@ -186,6 +186,31 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(1.75, name="(3.5/y)", units='Hz')
         self.assertPhysArraysEqual(x / y, z)
 
+    def test_pow_scalar(self):
+        x = PhysArray(2.0, name='x', units='m')
+        y = x**3
+        z = PhysArray(8.0, name='(x**3)', units='m3')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_sqrt_scalar(self):
+        x = PhysArray(4.0, name='x', units='m2')
+        y = np.sqrt(x)
+        z = PhysArray(2.0, name='sqrt(x)', units='m')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_hypotnuse_scalar(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(4.0, name='y', units='m')
+        z = np.sqrt(x**2 + y**2)
+        zz = PhysArray(5.0, name='sqrt(((x**2)+(y**2)))', units='m')
+        self.assertPhysArraysEqual(z, zz)
+
+    def test_trig_scalar(self):
+        x = PhysArray(90.0, name='x', units='degree')
+        y = np.sin(x)
+        z = PhysArray(1.0, name='sin(x)')
+        self.assertPhysArraysEqual(y, z)
+
 
 if __name__ == "__main__":
     unittest.main()
