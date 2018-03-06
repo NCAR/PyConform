@@ -211,6 +211,12 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(1.0, name='sin(x)')
         self.assertPhysArraysEqual(y, z)
 
+    def test_exp_scalar(self):
+        x = PhysArray(0.0, name='x', units='degree')
+        y = np.exp(x)
+        z = PhysArray(1.0, name='exp(x)')
+        self.assertPhysArraysEqual(y, z)
+
 
 if __name__ == "__main__":
     unittest.main()

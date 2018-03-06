@@ -13,7 +13,6 @@ from xarray.core.utils import is_scalar
 
 import xarray as xr
 import numpy as np
-import cf_units as cu
 
 _COMPUTE_UNITS_ = {'__mul__': lambda x, y: x * y,
                    '__rmul__': lambda x, y: y * x,
@@ -55,7 +54,7 @@ def bin_op_match_positive(func):
     return wrapper
 
 
-def uni_op_trig_units(func):
+def unit_one(func):
     def wrapper(self):
         old_name = self.name
         new_array = func(convert(self, 1))
@@ -224,14 +223,18 @@ class PhysArray(object):
         new_array.name = 'sqrt({})'.format(self.name)
         return PhysArray(new_array)
 
-    @uni_op_trig_units
+    @unit_one
     def sin(self):
         return PhysArray(np.sin(self._data))
 
-    @uni_op_trig_units
+    @unit_one
     def cos(self):
         return PhysArray(np.cos(self._data))
 
-    @uni_op_trig_units
+    @unit_one
     def tan(self):
         return PhysArray(np.tan(self._data))
+
+    @unit_one
+    def exp(self):
+        return PhysArray(np.exp(self._data))
