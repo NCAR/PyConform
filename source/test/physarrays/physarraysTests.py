@@ -198,6 +198,12 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(2.0, name='sqrt(x)', units='m')
         self.assertPhysArraysEqual(y, z)
 
+    def test_cbrt_scalar(self):
+        x = PhysArray(8.0, name='x', units='m3')
+        y = np.cbrt(x)
+        z = PhysArray(2.0, name='cbrt(x)', units='m')
+        self.assertPhysArraysEqual(y, z)
+
     def test_hypotnuse_scalar(self):
         x = PhysArray(3.0, name='x', units='m')
         y = PhysArray(4.0, name='y', units='m')

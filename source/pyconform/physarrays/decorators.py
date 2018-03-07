@@ -49,7 +49,7 @@ def bin_op_match_positive(func):
     return wrapper
 
 
-def unit_one(func):
+def uni_op_unitless(func):
     def wrapper(self):
         old_name = self.name
         new_array = func(convert(self, 1))

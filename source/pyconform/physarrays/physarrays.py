@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from exceptions import PositiveError
-from decorators import bin_op_compute_units, bin_op_match_positive, bin_op_match_units, unit_one
+from decorators import bin_op_compute_units, bin_op_match_positive, bin_op_match_units, uni_op_unitless
 from functions import get_data, get_name
 from functions import get_cfunits, set_cfunits, convert
 from xarray.core.utils import is_scalar
@@ -175,18 +175,25 @@ class PhysArray(object):
         new_array.name = 'sqrt({})'.format(self.name)
         return PhysArray(new_array)
 
-    @unit_one
+    def cbrt(self):
+        new_units = get_cfunits(self).root(3)
+        new_array = np.cbrt(self._data)
+        set_cfunits(new_array, new_units)
+        new_array.name = 'cbrt({})'.format(self.name)
+        return PhysArray(new_array)
+
+    @uni_op_unitless
     def sin(self):
         return PhysArray(np.sin(self._data))
 
-    @unit_one
+    @uni_op_unitless
     def cos(self):
         return PhysArray(np.cos(self._data))
 
-    @unit_one
+    @uni_op_unitless
     def tan(self):
         return PhysArray(np.tan(self._data))
 
-    @unit_one
+    @uni_op_unitless
     def exp(self):
         return PhysArray(np.exp(self._data))
