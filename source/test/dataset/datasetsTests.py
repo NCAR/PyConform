@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.dataset import Dataset
-from pyconform.physarray import PhysArray
+from pyconform.physarrays import PhysArray
 
 import unittest
 import netCDF4 as nc
