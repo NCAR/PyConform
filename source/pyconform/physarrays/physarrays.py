@@ -91,6 +91,9 @@ class PhysArray(object):
     def __str__(self):
         return str(self._data).replace('xarray.DataArray', 'PhysArray')
 
+    def __repr__(self):
+        return repr(self._data).replace('xarray.DataArray', 'PhysArray')
+
     def __neg__(self):
         name = '(-{})'.format(self.name)
         return PhysArray(-self._data, name=name, attrs=self.attrs)
