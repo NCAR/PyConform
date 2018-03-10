@@ -315,7 +315,7 @@ class PhysArrayTests(unittest.TestCase):
     def test_arctanh_scalar(self):
         x = PhysArray(5.0, name='x', units=0.1)
         y = np.arctanh(x)
-        z = PhysArray(-0.5 * np.log(1. / 3.), name='arctanh(x)')
+        z = PhysArray(0.5 * np.log(3.), name='arctanh(x)')
         self.assertPhysArraysClose(y, z)
 
 
