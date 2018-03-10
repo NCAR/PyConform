@@ -94,96 +94,110 @@ class PhysArray(object):
     def __repr__(self):
         return repr(self._data).replace('xarray.DataArray', 'PhysArray')
 
+    def __array_ufunc__(self, ufunc, method, *args, **kwds):
+        fname = ufunc.__name__
+        if 'name' in kwds:
+            name = kwds.pop('name')
+        else:
+            names = [get_name(a) for a in args]
+            names += ['{}={}'.format(k, get_name(kwds[k])) for k in kwds]
+            name = '{}({})'.format(fname, ', '.join(names))
+        if hasattr(self, fname):
+            _args = tuple(a for a in args if a is not self)
+            result = getattr(self, fname)(*_args, **kwds)
+        else:
+            _args = tuple(get_data(a) for a in args)
+            _kwds = dict((k, get_data(kwds[k])) for k in kwds)
+            ufunc_method = getattr(ufunc, method)
+            result = PhysArray(xr.apply_ufunc(ufunc_method, *_args, **_kwds))
+        result.name = name
+        return result
+
     def __neg__(self):
         name = '(-{})'.format(self.name)
-        return PhysArray(-self._data, name=name, attrs=self.attrs)
+        return self.__array_ufunc__(np.negative, '__call__', self, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
     def __add__(self, other):
         name = '({}+{})'.format(self.name, get_name(other))
-        return PhysArray(self._data + get_data(other), name=name)
+        return self.__array_ufunc__(np.add, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
     def __radd__(self, other):
         name = '({}+{})'.format(get_name(other), self.name)
-        return PhysArray(get_data(other) + self._data, name=name)
+        return self.__array_ufunc__(np.add, '__call__', other, self, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
     def __sub__(self, other):
         name = '({}-{})'.format(self.name, get_name(other))
-        return PhysArray(self._data - get_data(other), name=name)
+        return self.__array_ufunc__(np.subtract, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
     def __rsub__(self, other):
         name = '({}-{})'.format(get_name(other), self.name)
-        return PhysArray(get_data(other) - self._data, name=name)
+        return self.__array_ufunc__(np.subtract, '__call__', other, self, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __mul__(self, other):
         name = '({}*{})'.format(self.name, get_name(other))
-        return PhysArray(self._data * get_data(other), name=name)
+        return self.__array_ufunc__(np.multiply, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __rmul__(self, other):
         name = '({}*{})'.format(get_name(other), self.name)
-        return PhysArray(get_data(other) * self._data, name=name)
+        return self.__array_ufunc__(np.multiply, '__call__', other, self, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __div__(self, other):
         name = '({}/{})'.format(self.name, get_name(other))
-        return PhysArray(self._data / get_data(other), name=name)
+        return self.__array_ufunc__(np.divide, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __rdiv__(self, other):
         name = '({}/{})'.format(get_name(other), self.name)
-        return PhysArray(get_data(other) / self._data, name=name)
+        return self.__array_ufunc__(np.divide, '__call__', other, self, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __truediv__(self, other):
         name = '({}/{})'.format(self.name, get_name(other))
-        return PhysArray(self._data / get_data(other), name=name)
+        return self.__array_ufunc__(np.true_divide, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_compute_units
     def __rtruediv__(self, other):
         name = '({}/{})'.format(get_name(other), self.name)
-        return PhysArray(get_data(other) / self._data, name=name)
+        return self.__array_ufunc__(np.true_divide, '__call__', other, self, name=name)
 
     def __pow__(self, other):
         other_units = get_cfunits(other)
         if other_units.is_convertible(1) and is_scalar(other):
             new_other = convert(other, 1)
             new_units = pow(get_cfunits(self), new_other)
-            new_array = pow(self._data, new_other)
+            new_name = '({}**{})'.format(self.name, get_name(other))
+            new_array = self.__array_ufunc__(
+                np.power, '__call__', self, new_other, name=new_name)
             set_cfunits(new_array, new_units)
-            new_array.name = '({}**{})'.format(self.name, get_name(other))
-            return PhysArray(new_array)
+            return new_array
         else:
             msg = "Exponents in 'pow' function must be unitless scalars, not {}"
             raise TypeError(msg.format(type(other)))
 
     def sqrt(self):
         new_units = get_cfunits(self).root(2)
-        new_array = np.sqrt(self._data)
-        set_cfunits(new_array, new_units)
-        new_array.name = 'sqrt({})'.format(self.name)
-        return PhysArray(new_array)
+        return PhysArray(np.sqrt(self._data), units=new_units)
 
     def cbrt(self):
         new_units = get_cfunits(self).root(3)
-        new_array = np.cbrt(self._data)
-        set_cfunits(new_array, new_units)
-        new_array.name = 'cbrt({})'.format(self.name)
-        return PhysArray(new_array)
+        return PhysArray(np.cbrt(self._data), units=new_units)
 
     @uni_op_unitless
     def sin(self):

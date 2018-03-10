@@ -96,6 +96,14 @@ class PhysArrayTests(unittest.TestCase):
         x.attrs['c'] = 'd'
         self.assertEqual(x.attrs, {'a': 'b', 'c': 'd'})
 
+    def test_str(self):
+        x = PhysArray(2.3, name='x')
+        self.assertEqual(str(x), "<PhysArray 'x' ()>\narray(2.3)")
+
+    def test_repr(self):
+        x = PhysArray(2.3, name='x')
+        self.assertEqual(repr(x), str(x))
+
     def test_negate_scalar(self):
         x = PhysArray(2.0, name='x')
         y = -x
@@ -133,9 +141,9 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysEqual(x, z)
 
     def test_iadd_to_array(self):
-        x = PhysArray(3.5, name='x')
+        x = PhysArray([3.5, 4.5], name='x')
         x += PhysArray([1.0, 2.0], name='y')
-        z = PhysArray([4.5, 5.5], name="(x+y)")
+        z = PhysArray([4.5, 6.5], name="(x+y)")
         self.assertPhysArraysEqual(x, z)
 
     def test_add_scalars_with_unit_conversion(self):
