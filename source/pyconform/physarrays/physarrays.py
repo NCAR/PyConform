@@ -207,20 +207,20 @@ class PhysArray(object):
         return PhysArray(np.sin(self._data))
 
     @uni_op_unitless
-    def cos(self):
-        return PhysArray(np.cos(self._data))
-
-    @uni_op_unitless
-    def tan(self):
-        return PhysArray(np.tan(self._data))
-
-    @uni_op_unitless
     def arcsin(self):
         return PhysArray(np.arcsin(self._data))
 
     @uni_op_unitless
+    def cos(self):
+        return PhysArray(np.cos(self._data))
+
+    @uni_op_unitless
     def arccos(self):
         return PhysArray(np.arccos(self._data))
+
+    @uni_op_unitless
+    def tan(self):
+        return PhysArray(np.tan(self._data))
 
     @uni_op_unitless
     def arctan(self):
@@ -233,3 +233,27 @@ class PhysArray(object):
     @uni_op_unitless
     def exp(self):
         return PhysArray(np.exp(self._data))
+
+    @uni_op_unitless
+    def sinh(self):
+        return PhysArray(np.sinh(self._data))
+
+    @uni_op_unitless
+    def arcsinh(self):
+        return PhysArray(np.arcsinh(self._data))
+
+    @uni_op_unitless
+    def cosh(self):
+        return PhysArray(np.cosh(self._data))
+
+    @uni_op_unitless
+    def arccosh(self):
+        return PhysArray(np.arccosh(self._data))
+
+    @uni_op_unitless
+    def tanh(self):
+        return PhysArray(np.tanh(self._data))
+
+    @uni_op_unitless
+    def arctanh(self):
+        return PhysArray(np.arctanh(self._data))

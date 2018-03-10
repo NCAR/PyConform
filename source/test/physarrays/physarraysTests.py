@@ -233,12 +233,6 @@ class PhysArrayTests(unittest.TestCase):
         zz = PhysArray(5.0, name='hypot(x, y)', units='m')
         self.assertPhysArraysEqual(z, zz)
 
-    def test_exp_scalar(self):
-        x = PhysArray(0.0, name='x', units='degree')
-        y = np.exp(x)
-        z = PhysArray(1.0, name='exp(x)')
-        self.assertPhysArraysEqual(y, z)
-
     def test_sin_scalar(self):
         x = PhysArray(90.0, name='x', units='degree')
         y = np.sin(x)
@@ -246,7 +240,7 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysEqual(y, z)
 
     def test_arcsin_scalar(self):
-        x = PhysArray(1.0, name='x')
+        x = PhysArray(10.0, name='x', units=0.1)
         y = np.arcsin(x)
         z = PhysArray(np.pi / 2.0, name='arcsin(x)')
         self.assertPhysArraysEqual(y, z)
@@ -258,7 +252,7 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysEqual(y, z)
 
     def test_arccos_scalar(self):
-        x = PhysArray(1.0, name='x')
+        x = PhysArray(10.0, name='x', units=0.1)
         y = np.arccos(x)
         z = PhysArray(0.0, name='arccos(x)')
         self.assertPhysArraysEqual(y, z)
@@ -270,7 +264,7 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysClose(y, z)
 
     def test_arctan_scalar(self):
-        x = PhysArray(1.0, name='x')
+        x = PhysArray(10.0, name='x', units=0.1)
         y = np.arctan(x)
         z = PhysArray(np.pi / 4., name='arctan(x)')
         self.assertPhysArraysEqual(y, z)
@@ -281,6 +275,48 @@ class PhysArrayTests(unittest.TestCase):
         z = np.arctan2(x, y)
         zz = PhysArray(np.pi / 3., name='arctan2(x, y)')
         self.assertPhysArraysEqual(z, zz)
+
+    def test_exp_scalar(self):
+        x = PhysArray(0.0, name='x', units='degree')
+        y = np.exp(x)
+        z = PhysArray(1.0, name='exp(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_sinh_scalar(self):
+        x = PhysArray(10.0, name='x', units=0.1)
+        y = np.sinh(x)
+        z = PhysArray(0.5 * (np.e - 1 / np.e), name='sinh(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arcsinh_scalar(self):
+        x = PhysArray(10.0, name='x', units=0.1)
+        y = np.arcsinh(x)
+        z = PhysArray(np.log(1.0 + np.sqrt(2.0)), name='arcsinh(x)')
+        self.assertPhysArraysClose(y, z)
+
+    def test_cosh_scalar(self):
+        x = PhysArray(10.0, name='x', units=0.1)
+        y = np.cosh(x)
+        z = PhysArray(0.5 * (np.e + 1 / np.e), name='cosh(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arccosh_scalar(self):
+        x = PhysArray(10.0, name='x', units=0.1)
+        y = np.arccosh(x)
+        z = PhysArray(0.0, name='arccosh(x)')
+        self.assertPhysArraysClose(y, z)
+
+    def test_tanh_scalar(self):
+        x = PhysArray(10.0, name='x', units=0.1)
+        y = np.tanh(x)
+        z = PhysArray((np.e - 1 / np.e) / (np.e + 1 / np.e), name='tanh(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arctanh_scalar(self):
+        x = PhysArray(5.0, name='x', units=0.1)
+        y = np.arctanh(x)
+        z = PhysArray(-0.5 * np.log(1. / 3.), name='arctanh(x)')
+        self.assertPhysArraysClose(y, z)
 
 
 if __name__ == "__main__":
