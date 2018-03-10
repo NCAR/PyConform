@@ -22,6 +22,13 @@ class PhysArrayTests(unittest.TestCase):
         self.assertEqual(obj1.cfunits(), obj2.cfunits())
         self.assertEqual(obj1.positive, obj2.positive)
 
+    def assertPhysArraysClose(self, obj1, obj2):
+        self.assertEqual(type(obj1), type(obj2))
+        xr.testing.assert_allclose(obj1.data_array, obj2.data_array)
+        self.assertEqual(obj1.name, obj2.name)
+        self.assertEqual(obj1.cfunits(), obj2.cfunits())
+        self.assertEqual(obj1.positive, obj2.positive)
+
     def test_create(self):
         a = PhysArray(2.3)
         self.assertIsInstance(a, PhysArray)
@@ -219,17 +226,61 @@ class PhysArrayTests(unittest.TestCase):
         zz = PhysArray(5.0, name='sqrt(((x**2)+(y**2)))', units='m')
         self.assertPhysArraysEqual(z, zz)
 
-    def test_trig_scalar(self):
-        x = PhysArray(90.0, name='x', units='degree')
-        y = np.sin(x)
-        z = PhysArray(1.0, name='sin(x)')
-        self.assertPhysArraysEqual(y, z)
+    def test_hypot_scalar(self):
+        x = PhysArray(3.0, name='x', units='m')
+        y = PhysArray(4.0, name='y', units='m')
+        z = np.hypot(x, y)
+        zz = PhysArray(5.0, name='hypot(x, y)', units='m')
+        self.assertPhysArraysEqual(z, zz)
 
     def test_exp_scalar(self):
         x = PhysArray(0.0, name='x', units='degree')
         y = np.exp(x)
         z = PhysArray(1.0, name='exp(x)')
         self.assertPhysArraysEqual(y, z)
+
+    def test_sin_scalar(self):
+        x = PhysArray(90.0, name='x', units='degree')
+        y = np.sin(x)
+        z = PhysArray(1.0, name='sin(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arcsin_scalar(self):
+        x = PhysArray(1.0, name='x')
+        y = np.arcsin(x)
+        z = PhysArray(np.pi / 2.0, name='arcsin(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_cos_scalar(self):
+        x = PhysArray(45.0, name='x', units='degree')
+        y = np.cos(x)
+        z = PhysArray(np.sqrt(2) / 2, name='cos(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arccos_scalar(self):
+        x = PhysArray(1.0, name='x')
+        y = np.arccos(x)
+        z = PhysArray(0.0, name='arccos(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_tan_scalar(self):
+        x = PhysArray(45.0, name='x', units='degree')
+        y = np.tan(x)
+        z = PhysArray(1., name='tan(x)')
+        self.assertPhysArraysClose(y, z)
+
+    def test_arctan_scalar(self):
+        x = PhysArray(1.0, name='x')
+        y = np.arctan(x)
+        z = PhysArray(np.pi / 4., name='arctan(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_arctan2_scalar(self):
+        x = PhysArray(np.sqrt(3), name='x', units='m')
+        y = PhysArray(100.0, name='y', units='cm')
+        z = np.arctan2(x, y)
+        zz = PhysArray(np.pi / 3., name='arctan2(x, y)')
+        self.assertPhysArraysEqual(z, zz)
 
 
 if __name__ == "__main__":

@@ -105,9 +105,12 @@ class PhysArray(object):
         if hasattr(self, fname):
             _args = tuple(a for a in args if a is not self)
             result = getattr(self, fname)(*_args, **kwds)
+            print result
         else:
             _args = tuple(get_data(a) for a in args)
             _kwds = dict((k, get_data(kwds[k])) for k in kwds)
+            _kwds['keep_attrs'] = True
+            _kwds['dask'] = 'parallelize'
             ufunc_method = getattr(ufunc, method)
             result = PhysArray(xr.apply_ufunc(ufunc_method, *_args, **_kwds))
         result.name = name
@@ -210,6 +213,22 @@ class PhysArray(object):
     @uni_op_unitless
     def tan(self):
         return PhysArray(np.tan(self._data))
+
+    @uni_op_unitless
+    def arcsin(self):
+        return PhysArray(np.arcsin(self._data))
+
+    @uni_op_unitless
+    def arccos(self):
+        return PhysArray(np.arccos(self._data))
+
+    @uni_op_unitless
+    def arctan(self):
+        return PhysArray(np.arctan(self._data))
+
+    def arctan2(self, other):
+        new_other = convert(other, get_cfunits(self))
+        return PhysArray(np.arctan2(self._data, get_data(new_other)))
 
     @uni_op_unitless
     def exp(self):
