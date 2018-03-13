@@ -277,9 +277,15 @@ class PhysArrayTests(unittest.TestCase):
         self.assertPhysArraysEqual(z, zz)
 
     def test_exp_scalar(self):
-        x = PhysArray(0.0, name='x', units='degree')
+        x = PhysArray(1.0, name='x', units='0.1')
         y = np.exp(x)
-        z = PhysArray(1.0, name='exp(x)')
+        z = PhysArray(np.exp(0.1), name='exp(x)')
+        self.assertPhysArraysEqual(y, z)
+
+    def test_log_scalar(self):
+        x = PhysArray(2.0, name='x', units='0.1')
+        y = np.log(x)
+        z = PhysArray(np.log(0.20), name='log(x)')
         self.assertPhysArraysEqual(y, z)
 
     def test_sinh_scalar(self):

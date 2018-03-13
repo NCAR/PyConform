@@ -235,6 +235,10 @@ class PhysArray(object):
         return PhysArray(np.exp(self._data))
 
     @uni_op_unitless
+    def log(self):
+        return PhysArray(np.log(self._data))
+
+    @uni_op_unitless
     def sinh(self):
         return PhysArray(np.sinh(self._data))
 
