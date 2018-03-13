@@ -51,6 +51,10 @@ def get_cfunits(obj):
 
 def set_cfunits(obj, to_units):
     if hasattr(obj, 'attrs'):
+        if to_units is None:
+            obj.attrs.pop('units', None)
+            obj.attrs.pop('calendar', None)
+            return
         obj.attrs['units'] = str(to_units)
         if isinstance(to_units, Unit):
             if to_units.calendar is None:

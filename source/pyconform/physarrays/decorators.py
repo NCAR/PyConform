@@ -39,6 +39,16 @@ def bin_op_match_units(func):
     return wrapper
 
 
+def bin_op_match_and_drop_units(func):
+    def wrapper(self, other):
+        new_units = get_cfunits(self)
+        new_other = convert(other, new_units)
+        new_array = func(self, new_other)
+        set_cfunits(new_array, None)
+        return new_array
+    return wrapper
+
+
 def bin_op_match_positive(func):
     def wrapper(self, other):
         self_pos = get_positive(self)

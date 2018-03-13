@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from exceptions import PositiveError
-from decorators import bin_op_compute_units, bin_op_match_positive, bin_op_match_units, uni_op_unitless
+from decorators import bin_op_compute_units, bin_op_match_positive, bin_op_match_units, bin_op_match_and_drop_units, uni_op_unitless
 from functions import get_data, get_name
 from functions import get_cfunits, set_cfunits, convert
 from xarray.core.utils import is_scalar
@@ -180,37 +180,37 @@ class PhysArray(object):
         return self.__array_ufunc__(np.true_divide, '__call__', other, self, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __gt__(self, other):
         name = '({}>{})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.greater, '__call__', self, other, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __ge__(self, other):
         name = '({}>={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.greater_equal, '__call__', self, other, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __lt__(self, other):
         name = '({}<{})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.less, '__call__', self, other, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __le__(self, other):
         name = '({}<={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.less_equal, '__call__', self, other, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __ne__(self, other):
         name = '({}!={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.not_equal, '__call__', self, other, name=name)
 
     @bin_op_match_positive
-    @bin_op_match_units
+    @bin_op_match_and_drop_units
     def __eq__(self, other):
         name = '({}=={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.equal, '__call__', self, other, name=name)
