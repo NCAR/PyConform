@@ -318,6 +318,14 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(0.5 * np.log(3.), name='arctanh(x)')
         self.assertPhysArraysClose(y, z)
 
+    def test_prod_array(self):
+        xdata = np.array([[1, 2], [3, 4]], dtype='f')
+        x = PhysArray(xdata, name='x', units='m', dims=['i', 'j'])
+        y = np.prod(x, axis=1)
+        zdata = np.array([2., 12.], dtype='f')
+        z = PhysArray(zdata, name='prod(x, axis=1)', units='m2', dims=['i'])
+        self.assertPhysArraysClose(y, z)
+
 
 if __name__ == "__main__":
     unittest.main()

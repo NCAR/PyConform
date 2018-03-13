@@ -257,3 +257,13 @@ class PhysArray(object):
     @uni_op_unitless
     def arctanh(self):
         return PhysArray(np.arctanh(self._data))
+
+    def prod(self, **kwds):
+        new_array = np.prod(self._data, **kwds)
+        factor = np.prod([s for s, d in zip(self._data.shape, self._data.dims)
+                          if d not in new_array.dims])
+        new_units = pow(self.cfunits(), factor)
+        kwds_strs = ['{}={}'.format(k, get_name(kwds[k]))
+                     for k in kwds if kwds[k]]
+        new_name = 'prod({}, {})'.format(self.name, ', '.join(kwds_strs))
+        return PhysArray(new_array, units=new_units, name=new_name)
