@@ -193,6 +193,18 @@ class PhysArray(object):
 
     @bin_op_match_positive
     @bin_op_match_units
+    def __ge__(self, other):
+        name = '({}>={})'.format(self.name, get_name(other))
+        return self.__array_ufunc__(np.greater_equal, '__call__', self, other, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
+    def __le__(self, other):
+        name = '({}<={})'.format(self.name, get_name(other))
+        return self.__array_ufunc__(np.less_equal, '__call__', self, other, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
     def minimum(self, other, *args, **kwds):
         return PhysArray(np.minimum(self._data, get_data(other), *args, **kwds))
 
