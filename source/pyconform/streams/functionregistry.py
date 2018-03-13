@@ -11,7 +11,7 @@ from types import FunctionType
 __LAMBDA_NAME__ = (lambda: None).__name__
 
 
-class FunctionRegistry(object):
+class _FunctionRegistry(object):
     """
     A Registry for functions that can be referenced in variable definitions
     """
@@ -49,4 +49,4 @@ class FunctionRegistry(object):
         self.__callables.clear()
 
 
-registry = FunctionRegistry()
+FunctionRegistry = _FunctionRegistry()

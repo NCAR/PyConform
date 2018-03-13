@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.streams.functionregistry import FunctionRegistry
+from pyconform.streams.functionregistry import _FunctionRegistry
 
 import unittest
 
@@ -13,7 +13,7 @@ import unittest
 class RegistryTests(unittest.TestCase):
 
     def setUp(self):
-        self.reg = FunctionRegistry()
+        self.reg = _FunctionRegistry()
 
     def test_add_lambda_function_with_name(self):
         self.reg.add(lambda: 2, name='two')
