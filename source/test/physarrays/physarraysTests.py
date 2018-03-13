@@ -330,6 +330,22 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(0.5 * np.log(3.), name='arctanh(x)')
         self.assertPhysArraysClose(y, z)
 
+    def test_minimum_arrays(self):
+        x = PhysArray([5., 3., 1.], name='x', units=0.1, dims=['i'])
+        y = PhysArray([4., 6., 0.], name='y', units=1, dims=['i'])
+        z1 = np.minimum(x, y)
+        z2 = PhysArray([5., 3., 0.], name='minimum(x, y)',
+                       units=0.1, dims=['i'])
+        self.assertPhysArraysClose(z1, z2)
+
+    def test_maximum_arrays(self):
+        x = PhysArray([5., 3., 1.], name='x', units=0.1, dims=['i'])
+        y = PhysArray([4., 6., 0.], name='y', units=1, dims=['i'])
+        z1 = np.maximum(x, y)
+        z2 = PhysArray([40., 60., 1.], name='maximum(x, y)',
+                       units=0.1, dims=['i'])
+        self.assertPhysArraysClose(z1, z2)
+
 
 if __name__ == "__main__":
     unittest.main()

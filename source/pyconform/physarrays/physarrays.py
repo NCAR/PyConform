@@ -105,7 +105,6 @@ class PhysArray(object):
         if hasattr(self, fname):
             _args = tuple(a for a in args if a is not self)
             result = getattr(self, fname)(*_args, **kwds)
-            print result
         else:
             _args = tuple(get_data(a) for a in args)
             _kwds = dict((k, get_data(kwds[k])) for k in kwds)
@@ -179,6 +178,16 @@ class PhysArray(object):
     def __rtruediv__(self, other):
         name = '({}/{})'.format(get_name(other), self.name)
         return self.__array_ufunc__(np.true_divide, '__call__', other, self, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
+    def minimum(self, other, *args, **kwds):
+        return PhysArray(np.minimum(self._data, get_data(other), *args, **kwds))
+
+    @bin_op_match_positive
+    @bin_op_match_units
+    def maximum(self, other, *args, **kwds):
+        return PhysArray(np.maximum(self._data, get_data(other), *args, **kwds))
 
     def __pow__(self, other):
         other_units = get_cfunits(other)
