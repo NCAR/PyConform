@@ -288,6 +288,12 @@ class PhysArrayTests(unittest.TestCase):
         z = PhysArray(np.log(0.20), name='log(x)')
         self.assertPhysArraysEqual(y, z)
 
+    def test_log10_scalar(self):
+        x = PhysArray(2.0, name='x', units='0.1')
+        y = np.log10(x)
+        z = PhysArray(np.log10(0.20), name='log10(x)')
+        self.assertPhysArraysEqual(y, z)
+
     def test_sinh_scalar(self):
         x = PhysArray(10.0, name='x', units=0.1)
         y = np.sinh(x)

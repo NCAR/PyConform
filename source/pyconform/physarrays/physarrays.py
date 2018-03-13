@@ -194,70 +194,74 @@ class PhysArray(object):
             msg = "Exponents in 'pow' function must be unitless scalars, not {}"
             raise TypeError(msg.format(type(other)))
 
-    def sqrt(self):
+    def sqrt(self, *args, **kwds):
         new_units = get_cfunits(self).root(2)
-        return PhysArray(np.sqrt(self._data), units=new_units)
+        return PhysArray(np.sqrt(self._data, *args, **kwds), units=new_units)
 
-    def cbrt(self):
+    def cbrt(self, *args, **kwds):
         new_units = get_cfunits(self).root(3)
-        return PhysArray(np.cbrt(self._data), units=new_units)
+        return PhysArray(np.cbrt(self._data, *args, **kwds), units=new_units)
 
     @uni_op_unitless
-    def sin(self):
-        return PhysArray(np.sin(self._data))
+    def sin(self, *args, **kwds):
+        return PhysArray(np.sin(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arcsin(self):
-        return PhysArray(np.arcsin(self._data))
+    def arcsin(self, *args, **kwds):
+        return PhysArray(np.arcsin(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def cos(self):
-        return PhysArray(np.cos(self._data))
+    def cos(self, *args, **kwds):
+        return PhysArray(np.cos(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arccos(self):
-        return PhysArray(np.arccos(self._data))
+    def arccos(self, *args, **kwds):
+        return PhysArray(np.arccos(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def tan(self):
-        return PhysArray(np.tan(self._data))
+    def tan(self, *args, **kwds):
+        return PhysArray(np.tan(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arctan(self):
-        return PhysArray(np.arctan(self._data))
+    def arctan(self, *args, **kwds):
+        return PhysArray(np.arctan(self._data, *args, **kwds))
 
-    def arctan2(self, other):
+    def arctan2(self, other, *args, **kwds):
         new_other = convert(other, get_cfunits(self))
-        return PhysArray(np.arctan2(self._data, get_data(new_other)))
+        return PhysArray(np.arctan2(self._data, get_data(new_other), *args, **kwds))
 
     @uni_op_unitless
-    def exp(self):
-        return PhysArray(np.exp(self._data))
+    def exp(self, *args, **kwds):
+        return PhysArray(np.exp(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def log(self):
-        return PhysArray(np.log(self._data))
+    def log(self, *args, **kwds):
+        return PhysArray(np.log(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def sinh(self):
-        return PhysArray(np.sinh(self._data))
+    def log10(self, *args, **kwds):
+        return PhysArray(np.log10(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arcsinh(self):
-        return PhysArray(np.arcsinh(self._data))
+    def sinh(self, *args, **kwds):
+        return PhysArray(np.sinh(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def cosh(self):
-        return PhysArray(np.cosh(self._data))
+    def arcsinh(self, *args, **kwds):
+        return PhysArray(np.arcsinh(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arccosh(self):
-        return PhysArray(np.arccosh(self._data))
+    def cosh(self, *args, **kwds):
+        return PhysArray(np.cosh(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def tanh(self):
-        return PhysArray(np.tanh(self._data))
+    def arccosh(self, *args, **kwds):
+        return PhysArray(np.arccosh(self._data, *args, **kwds))
 
     @uni_op_unitless
-    def arctanh(self):
-        return PhysArray(np.arctanh(self._data))
+    def tanh(self, *args, **kwds):
+        return PhysArray(np.tanh(self._data, *args, **kwds))
+
+    @uni_op_unitless
+    def arctanh(self, *args, **kwds):
+        return PhysArray(np.arctanh(self._data, *args, **kwds))
