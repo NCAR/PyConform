@@ -382,6 +382,24 @@ class PhysArrayTests(unittest.TestCase):
                       units=0.1, positive='down', dims=['i'])
         self.assertPhysArraysEqual(x <= y, z)
 
+    def test_not_equal_arrays(self):
+        x = PhysArray([3., 5.], name='x', units=0.1,
+                      positive='down', dims=['i'])
+        y = PhysArray([-1., -0.5], name='y', units=1,
+                      positive='up', dims=['i'])
+        z = PhysArray([True, False], name="(x!=convert(flip(y, to='down'), to='0.1'))",
+                      units=0.1, positive='down', dims=['i'])
+        self.assertPhysArraysEqual(x != y, z)
+
+    def test_equal_arrays(self):
+        x = PhysArray([3., 5.], name='x', units=0.1,
+                      positive='down', dims=['i'])
+        y = PhysArray([-1., -0.5], name='y', units=1,
+                      positive='up', dims=['i'])
+        z = PhysArray([False, True], name="(x==convert(flip(y, to='down'), to='0.1'))",
+                      units=0.1, positive='down', dims=['i'])
+        self.assertPhysArraysEqual(x == y, z)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -187,21 +187,33 @@ class PhysArray(object):
 
     @bin_op_match_positive
     @bin_op_match_units
-    def __lt__(self, other):
-        name = '({}<{})'.format(self.name, get_name(other))
-        return self.__array_ufunc__(np.less, '__call__', self, other, name=name)
-
-    @bin_op_match_positive
-    @bin_op_match_units
     def __ge__(self, other):
         name = '({}>={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.greater_equal, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
+    def __lt__(self, other):
+        name = '({}<{})'.format(self.name, get_name(other))
+        return self.__array_ufunc__(np.less, '__call__', self, other, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
     def __le__(self, other):
         name = '({}<={})'.format(self.name, get_name(other))
         return self.__array_ufunc__(np.less_equal, '__call__', self, other, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
+    def __ne__(self, other):
+        name = '({}!={})'.format(self.name, get_name(other))
+        return self.__array_ufunc__(np.not_equal, '__call__', self, other, name=name)
+
+    @bin_op_match_positive
+    @bin_op_match_units
+    def __eq__(self, other):
+        name = '({}=={})'.format(self.name, get_name(other))
+        return self.__array_ufunc__(np.equal, '__call__', self, other, name=name)
 
     @bin_op_match_positive
     @bin_op_match_units
