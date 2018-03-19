@@ -15,6 +15,13 @@ class RegistryTests(unittest.TestCase):
     def setUp(self):
         self.reg = _FunctionRegistry()
 
+    def test_iter(self):
+        self.reg.add(lambda: 1, name='a')
+        self.reg.add(lambda: 2, name='b')
+        self.reg.add(lambda: 3, name='c')
+        actual = tuple(n for n in self.reg)
+        self.assertItemsEqual(('a', 'b', 'c'), actual)
+
     def test_add_lambda_function_with_name(self):
         self.reg.add(lambda: 2, name='two')
         self.assertIn('two', self.reg)

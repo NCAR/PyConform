@@ -7,4 +7,4 @@ LICENSE: See the LICENSE.rst file for details
 
 from pyconform.streams.expressions import KwdType, FuncType, VarType, OpType
 from pyconform.streams.parser import parse_definition
-from functionregistry import FunctionRegistry
+from registeredfunctions import FunctionRegistry

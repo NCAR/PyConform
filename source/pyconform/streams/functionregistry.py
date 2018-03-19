@@ -29,9 +29,12 @@ class _FunctionRegistry(object):
         if isinstance(func, FunctionType):
             return func.__name__
         elif callable(func):
-            return func.__class__.__name__
+            return func.__name__ if hasattr(func, '__name__') else func.__class__.__name__
         else:
             raise TypeError('Object {} not callable'.format(func))
+
+    def __iter__(self):
+        return iter(self.__callables)
 
     def add(self, func, name=None):
         if name is None:
@@ -47,6 +50,3 @@ class _FunctionRegistry(object):
 
     def clear(self):
         self.__callables.clear()
-
-
-FunctionRegistry = _FunctionRegistry()
