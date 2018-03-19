@@ -111,6 +111,17 @@ class PhysArrayTests(unittest.TestCase):
         x = PhysArray(2.3, name='x')
         self.assertEqual(repr(x), str(x))
 
+    def test_dims(self):
+        x = PhysArray([1, 2, 3], name='x', dims=['i'], coords=[[0, 1, 2]])
+        self.assertEqual(x.dims, ('i',))
+
+    def test_coords(self):
+        xdata = np.array([1, 2, 3], dtype='f')
+        idata = np.array([0, 1, 2], dtype='d')
+        dx = xr.DataArray(xdata, name='x', dims=['i'], coords=[idata])
+        x = PhysArray(dx)
+        np.testing.assert_array_equal(x.coords['i'], idata)
+
     def test_negate_scalar(self):
         x = PhysArray(2.0, name='x')
         y = -x

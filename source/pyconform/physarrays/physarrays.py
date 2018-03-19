@@ -85,6 +85,14 @@ class PhysArray(object):
         return get_cfunits(self._data)
 
     @property
+    def dims(self):
+        return self._data.dims
+
+    @property
+    def coords(self):
+        return self._data.coords
+
+    @property
     def attrs(self):
         return self._data.attrs
 
