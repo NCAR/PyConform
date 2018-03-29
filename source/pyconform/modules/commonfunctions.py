@@ -3,7 +3,24 @@
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
 from cf_units import Unit
-from numpy import diff, empty
+from numpy import diff, empty, mean
+
+#===================================================================================================
+# ZonalMeanFunction
+#===================================================================================================
+class ZonalMeanFunction(Function):
+    key = 'zonalmean'
+
+    def __init__(self, data):
+        super(ZonalMeanFunction, self).__init__(data)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('mean: Data must be a PhysArray')
+
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        return mean(data, axis=3)
+
 
 #=======================================================================================================================
 # BoundsFunction

@@ -324,6 +324,17 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         var["datatype"]  = data_types[v['type']]
     else:
         var["datatype"] = 'real' #  This is done because some of the variables in the request have no type listed yet
+
+    #### Needed to get working with netcdf4_classic and netcdf3_classic
+#    if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] != None:
+#        if 'real' in data_types[v['type']]:
+#            var["datatype"]  = "float"
+#        else:
+#            var["datatype"]  = data_types[v['type']]
+#    else:
+#        var["datatype"] = 'float' #  This is done because some of the variables in the request have no type listed yet
+
+
     if 'requested' in v.keys():
         if v['requested'] != '':
             var['definition'] =  v['requested']
