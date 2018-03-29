@@ -181,7 +181,7 @@ class MultiplicationOperator(Operator):
 # DivisionOperator
 #===================================================================================================
 class DivisionOperator(Operator):
-    key = '-'
+    key = '/'
     numargs = 2
 
     def __init__(self, left, right):
