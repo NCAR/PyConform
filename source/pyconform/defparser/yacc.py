@@ -10,6 +10,7 @@ from ply import yacc
 from collections import namedtuple
 
 VarType = namedtuple('VarType', ['name', 'indices'])
+FuncType = namedtuple('FuncType', ['name', 'arguments'])
 
 
 precedence = (('right', 'NEGATIVE', 'POSITIVE'),)
@@ -21,6 +22,28 @@ def p_expression_number(p):
     expression : INT
     """
     p[0] = p[1]
+
+
+def p_expression_function(p):
+    """
+    expression : NAME LPAREN arguments RPAREN
+    """
+    p[0] = FuncType(p[1], p[3])
+
+
+def p_arguments(p):
+    """
+    arguments : arguments COMMA expression
+    """
+    p[0] = p[1] + [p[3]]
+
+
+def p_argument(p):
+    """
+    arguments : expression
+    arguments : 
+    """
+    p[0] = [p[1]] if len(p) > 1 else []
 
 
 def p_expression_variable(p):

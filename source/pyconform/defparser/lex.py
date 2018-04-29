@@ -7,7 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 from ply import lex
 
-tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET',
+tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET', 'LPAREN', 'RPAREN',
           'MINUS', 'PLUS', 'COLON', 'COMMA')
 
 t_ignore = r' \t'
@@ -15,6 +15,8 @@ t_ignore = r' \t'
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
 t_MINUS = r'\-'
 t_PLUS = r'\+'
 t_COLON = r'\:'

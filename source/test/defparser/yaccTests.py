@@ -76,6 +76,10 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('x[1:4]')
         self.assertEqual(p, yacc.VarType('x', [slice(1, 4)]))
 
+    def test_function_no_args(self):
+        p = yacc_parse('f()')
+        self.assertEqual(p, yacc.FuncType('f', []))
+
 
 if __name__ == '__main__':
     unittest.main()

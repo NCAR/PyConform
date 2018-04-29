@@ -92,6 +92,16 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'RBRACKET')
         self.assertEqual(token.value, ']')
 
+    def test_lparen(self):
+        token = get_lex_token('(1)')
+        self.assertEqual(token.type, 'LPAREN')
+        self.assertEqual(token.value, '(')
+
+    def test_rparen(self):
+        token = get_lex_token(')')
+        self.assertEqual(token.type, 'RPAREN')
+        self.assertEqual(token.value, ')')
+
     def test_minus(self):
         token = get_lex_token('-')
         self.assertEqual(token.type, 'MINUS')
