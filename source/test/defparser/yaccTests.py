@@ -53,8 +53,8 @@ class YaccTests(unittest.TestCase):
         self.assertEqual(p, yacc.VarType('x', [2]))
 
     def test_variable_integer_indices(self):
-        p = yacc_parse('x[ 2 , -3 ,4]')
-        self.assertEqual(p, yacc.VarType('x', [2, -3, 4]))
+        p = yacc_parse('xyz[ 2 , -3 ,4]')
+        self.assertEqual(p, yacc.VarType('xyz', [2, -3, 4]))
 
     def test_variable_slice(self):
         p = yacc_parse('x[2:-3:4]')
