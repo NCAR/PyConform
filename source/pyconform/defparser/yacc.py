@@ -12,21 +12,22 @@ from collections import namedtuple
 VarType = namedtuple('VarType', ['name', 'indices'])
 FuncType = namedtuple('FuncType', ['name', 'arguments'])
 
-
 precedence = (('right', 'NEGATIVE', 'POSITIVE'),)
 
 
-def p_expression_number(p):
+def p_expression(p):
     """
     expression : FLOAT
     expression : INT
+    expression : variable
+    expression : function
     """
     p[0] = p[1]
 
 
 def p_expression_function(p):
     """
-    expression : NAME LPAREN arguments RPAREN
+    function : NAME LPAREN arguments RPAREN
     """
     p[0] = FuncType(p[1], p[3])
 
@@ -41,17 +42,23 @@ def p_arguments(p):
 def p_argument(p):
     """
     arguments : expression
+    """
+    p[0] = [p[1]]
+
+
+def p_no_argument(p):
+    """
     arguments : 
     """
-    p[0] = [p[1]] if len(p) > 1 else []
+    p[0] = []
 
 
 def p_expression_variable(p):
     """
-    expression : NAME LBRACKET indices RBRACKET
-    expression : NAME
+    variable : NAME LBRACKET indices RBRACKET
+    variable : NAME
     """
-    indices = p[3] if len(p) == 5 else []
+    indices = p[3] if len(p) > 3 else []
     p[0] = VarType(p[1], indices)
 
 
@@ -73,16 +80,16 @@ def p_index(p):
 
 def p_slice(p):
     """
-    slice : index_none COLON index_none COLON index_none
-    slice : index_none COLON index_none
+    slice : slice_argument COLON slice_argument COLON slice_argument
+    slice : slice_argument COLON slice_argument
     """
     p[0] = p[1] if len(p) == 2 else slice(*p[1::2])
 
 
 def p_slice_argument(p):
     """
-    index_none : INT
-    index_none : 
+    slice_argument : INT
+    slice_argument : 
     """
     p[0] = p[1] if len(p) > 1 else None
 
