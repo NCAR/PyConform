@@ -127,6 +127,16 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'EQUALS')
         self.assertEqual(token.value, '=')
 
+    def test_string_1(self):
+        token = get_lex_token("' asdf  3 5 dasd '")
+        self.assertEqual(token.type, 'STRING')
+        self.assertEqual(token.value, ' asdf  3 5 dasd ')
+
+    def test_string_2(self):
+        token = get_lex_token('" asdf  3 5 dasd "')
+        self.assertEqual(token.type, 'STRING')
+        self.assertEqual(token.value, ' asdf  3 5 dasd ')
+
 
 if __name__ == '__main__':
     unittest.main()

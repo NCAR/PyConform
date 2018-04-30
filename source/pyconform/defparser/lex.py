@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from ply import lex
 
 tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET', 'LPAREN', 'RPAREN',
-          'MINUS', 'PLUS', 'COLON', 'COMMA', 'EQUALS')
+          'MINUS', 'PLUS', 'COLON', 'COMMA', 'EQUALS', 'STRING')
 
 t_ignore = r' \t'
 
@@ -36,8 +36,14 @@ def t_INT(t):
     return t
 
 
+def t_STRING(t):
+    r'(\"([^\\\"]|\\.)*\"|\'([^\\\']|\\.)*\')'
+    t.value = t.value[1:-1]
+    return t
+
+
 def t_error(t):
-    raise TypeError('Unexpected string when parsing: {!r}'.format(t.value))
+    raise TypeError('Unexpected string: {!r}'.format(t.value))
 
 
 lex.lex()

@@ -16,6 +16,14 @@ def yacc_parse(s):
 
 class YaccTests(unittest.TestCase):
 
+    def test_string_1(self):
+        p = yacc_parse("'1 b 4'")
+        self.assertEqual(p, '1 b 4')
+
+    def test_string_2(self):
+        p = yacc_parse('"1 b 4"')
+        self.assertEqual(p, '1 b 4')
+
     def test_int(self):
         p = yacc_parse('143')
         self.assertEqual(p, 143)
@@ -39,6 +47,10 @@ class YaccTests(unittest.TestCase):
     def test_variable_positive(self):
         p = yacc_parse('+x')
         self.assertEqual(p, yacc.VarType('x', []))
+#
+#     def test_variable_negative(self):
+#         p = yacc_parse('-x')
+#         self.assertEqual(p, yacc.VarType('x', []))
 
     def test_variable_integer_index(self):
         p = yacc_parse('x[2]')

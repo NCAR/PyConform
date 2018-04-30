@@ -19,6 +19,7 @@ def p_expression(p):
     """
     expression : FLOAT
     expression : INT
+    expression : STRING
     expression : variable
     expression : function
     """
