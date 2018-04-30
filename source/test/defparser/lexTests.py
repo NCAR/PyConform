@@ -122,6 +122,11 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'COMMA')
         self.assertEqual(token.value, ',')
 
+    def test_equals(self):
+        token = get_lex_token('=')
+        self.assertEqual(token.type, 'EQUALS')
+        self.assertEqual(token.value, '=')
+
 
 if __name__ == '__main__':
     unittest.main()

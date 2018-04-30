@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from ply import lex
 
 tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET', 'LPAREN', 'RPAREN',
-          'MINUS', 'PLUS', 'COLON', 'COMMA')
+          'MINUS', 'PLUS', 'COLON', 'COMMA', 'EQUALS')
 
 t_ignore = r' \t'
 
@@ -21,6 +21,7 @@ t_MINUS = r'\-'
 t_PLUS = r'\+'
 t_COLON = r'\:'
 t_COMMA = r'\,'
+t_EQUALS = r'='
 
 
 def t_FLOAT(t):

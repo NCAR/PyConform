@@ -78,7 +78,27 @@ class YaccTests(unittest.TestCase):
 
     def test_function_no_args(self):
         p = yacc_parse('f()')
-        self.assertEqual(p, yacc.FuncType('f', []))
+        self.assertEqual(p, yacc.FuncType('f', [], {}))
+
+    def test_function_one_arg(self):
+        p = yacc_parse('f(1)')
+        self.assertEqual(p, yacc.FuncType('f', [1], {}))
+
+    def test_function_two_arg(self):
+        p = yacc_parse('f(1, 2)')
+        self.assertEqual(p, yacc.FuncType('f', [1, 2], {}))
+
+    def test_function_one_kwd(self):
+        p = yacc_parse('f(x=4)')
+        self.assertEqual(p, yacc.FuncType('f', [], {'x': 4}))
+
+    def test_function_one_arg_one_kwd(self):
+        p = yacc_parse('f(1, a = 4)')
+        self.assertEqual(p, yacc.FuncType('f', [1], {'a': 4}))
+
+    def test_function_two_arg_two_kwd(self):
+        p = yacc_parse('f(1, 2, a = 4, b=-8)')
+        self.assertEqual(p, yacc.FuncType('f', [1, 2], {'a': 4, 'b': -8}))
 
 
 if __name__ == '__main__':

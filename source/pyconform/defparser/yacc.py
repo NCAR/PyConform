@@ -10,7 +10,7 @@ from ply import yacc
 from collections import namedtuple
 
 VarType = namedtuple('VarType', ['name', 'indices'])
-FuncType = namedtuple('FuncType', ['name', 'arguments'])
+FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 
 precedence = (('right', 'NEGATIVE', 'POSITIVE'),)
 
@@ -23,34 +23,6 @@ def p_expression(p):
     expression : function
     """
     p[0] = p[1]
-
-
-def p_expression_function(p):
-    """
-    function : NAME LPAREN arguments RPAREN
-    """
-    p[0] = FuncType(p[1], p[3])
-
-
-def p_arguments(p):
-    """
-    arguments : arguments COMMA expression
-    """
-    p[0] = p[1] + [p[3]]
-
-
-def p_argument(p):
-    """
-    arguments : expression
-    """
-    p[0] = [p[1]]
-
-
-def p_no_argument(p):
-    """
-    arguments : 
-    """
-    p[0] = []
 
 
 def p_expression_variable(p):
@@ -92,6 +64,58 @@ def p_slice_argument(p):
     slice_argument : 
     """
     p[0] = p[1] if len(p) > 1 else None
+
+
+def p_expression_function(p):
+    """
+    function : NAME LPAREN arguments COMMA keywords RPAREN
+    """
+    p[0] = FuncType(p[1], p[3], p[5])
+
+
+def p_expression_function_args_only(p):
+    """
+    function : NAME LPAREN arguments RPAREN
+    """
+    p[0] = FuncType(p[1], p[3], {})
+
+
+def p_expression_function_kwds_only(p):
+    """
+    function : NAME LPAREN keywords RPAREN
+    """
+    p[0] = FuncType(p[1], [], p[3])
+
+
+def p_arguments(p):
+    """
+    arguments : arguments COMMA expression
+    """
+    p[0] = p[1] + [p[3]]
+
+
+def p_argument(p):
+    """
+    arguments : expression
+    arguments : 
+    """
+    p[0] = [p[1]] if len(p) > 1 else []
+
+
+def p_keywords(p):
+    """
+    keywords : keywords COMMA NAME EQUALS expression
+    """
+    p[1][p[3]] = p[5]
+    p[0] = p[1]
+
+
+def p_keyword(p):
+    """
+    keywords : NAME EQUALS expression
+    keywords : 
+    """
+    p[0] = {p[1]: p[3]} if len(p) > 1 else {}
 
 
 def p_expression_unary(p):
