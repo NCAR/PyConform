@@ -147,8 +147,8 @@ class YaccTests(unittest.TestCase):
         self.assertEqual(p, 2**3.5)
 
     def test_precidence(self):
-        p = yacc_parse('1 + 5.0/2 ** 3 - 2*3/2.0')
-        self.assertEqual(p, -2 + 5.0 / 8)
+        p = yacc_parse('1 + -5.0/2 ** 3 - 2*3/2.0')
+        self.assertEqual(p, -2 - 5.0 / 8)
 
 
 if __name__ == '__main__':
