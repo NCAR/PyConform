@@ -174,6 +174,8 @@ def p_expression_binary(p):
     if (isinstance(p[1], (OpType, VarType, FuncType)) or
             isinstance(p[3], (OpType, VarType, FuncType))):
         p[0] = OpType(p[2], [p[1], p[3]])
+    elif p[2] == '**':
+        p[0] = p[1] ** p[3]
     elif p[2] == '-':
         p[0] = p[1] - p[3]
     elif p[2] == '+':
@@ -182,8 +184,6 @@ def p_expression_binary(p):
         p[0] = p[1] * p[3]
     elif p[2] == '/':
         p[0] = p[1] / p[3]
-    elif p[2] == '**':
-        p[0] = p[1] ** p[3]
     elif p[2] == '<':
         p[0] = p[1] < p[3]
     elif p[2] == '>':
