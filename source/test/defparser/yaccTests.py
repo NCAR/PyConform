@@ -150,6 +150,26 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('6 + -5.0/2 ** 3 - 2*3/2.0 + -(2**2) + (2*2)**3')
         self.assertEqual(p, 6 - 5.0 / 8.0 - 3.0 - 4 + 64)
 
+    def test_lt_numbers(self):
+        p = yacc_parse('2 < 3')
+        self.assertTrue(p)
+
+    def test_gt_numbers(self):
+        p = yacc_parse('5 > 3')
+        self.assertTrue(p)
+
+    def test_leq_numbers(self):
+        p = yacc_parse('3 <= 3')
+        self.assertTrue(p)
+
+    def test_geq_numbers(self):
+        p = yacc_parse('3 >= 3')
+        self.assertTrue(p)
+
+    def test_eq_numbers(self):
+        p = yacc_parse('3 == 3')
+        self.assertTrue(p)
+
 
 if __name__ == '__main__':
     unittest.main()

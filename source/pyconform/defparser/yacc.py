@@ -13,11 +13,12 @@ OpType = namedtuple('VarType', ['name', 'arguments'])
 VarType = namedtuple('VarType', ['name', 'indices'])
 FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 
-precedence = (('left', '+', '-'),
+precedence = (('left', 'EQ'),
+              ('left', '<', '>', 'LEQ', 'GEQ'),
+              ('left', '+', '-'),
               ('left', '*', '/'),
               ('right', 'NEG', 'POS'),
-              ('left', 'POW'),
-              )
+              ('left', 'POW'))
 
 
 def p_array_like(p):
@@ -164,6 +165,11 @@ def p_expression_binary(p):
     array_like : array_like '+' array_like
     array_like : array_like '*' array_like
     array_like : array_like '/' array_like
+    array_like : array_like '<' array_like
+    array_like : array_like '>' array_like
+    array_like : array_like LEQ array_like
+    array_like : array_like GEQ array_like
+    array_like : array_like EQ array_like
     """
     if (isinstance(p[1], (OpType, VarType, FuncType)) or
             isinstance(p[3], (OpType, VarType, FuncType))):
@@ -178,6 +184,16 @@ def p_expression_binary(p):
         p[0] = p[1] / p[3]
     elif p[2] == '**':
         p[0] = p[1] ** p[3]
+    elif p[2] == '<':
+        p[0] = p[1] < p[3]
+    elif p[2] == '>':
+        p[0] = p[1] > p[3]
+    elif p[2] == '<=':
+        p[0] = p[1] <= p[3]
+    elif p[2] == '>=':
+        p[0] = p[1] >= p[3]
+    elif p[2] == '==':
+        p[0] = p[1] == p[3]
 
 
 def p_error(p):
