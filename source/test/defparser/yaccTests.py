@@ -16,14 +16,6 @@ def yacc_parse(s):
 
 class YaccTests(unittest.TestCase):
 
-    def test_string_1(self):
-        p = yacc_parse("'1 b 4'")
-        self.assertEqual(p, '1 b 4')
-
-    def test_string_2(self):
-        p = yacc_parse('"1 b 4"')
-        self.assertEqual(p, '1 b 4')
-
     def test_int(self):
         p = yacc_parse('143')
         self.assertEqual(p, 143)
@@ -100,6 +92,14 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('f(1)')
         self.assertEqual(p, yacc.FuncType('f', [1], {}))
 
+    def test_function_str1_arg(self):
+        p = yacc_parse('f("1")')
+        self.assertEqual(p, yacc.FuncType('f', ['1'], {}))
+
+    def test_function_str2_arg(self):
+        p = yacc_parse("f('1')")
+        self.assertEqual(p, yacc.FuncType('f', ['1'], {}))
+
     def test_function_two_arg(self):
         p = yacc_parse('f(1, 2)')
         self.assertEqual(p, yacc.FuncType('f', [1, 2], {}))
@@ -148,7 +148,7 @@ class YaccTests(unittest.TestCase):
 
     def test_precidence(self):
         p = yacc_parse('1 + -5.0/2 ** 3 - 2*3/2.0')
-        self.assertEqual(p, -2 - 5.0 / 8)
+        self.assertEqual(p, -2.0 - 5.0 / 8.0)
 
 
 if __name__ == '__main__':
