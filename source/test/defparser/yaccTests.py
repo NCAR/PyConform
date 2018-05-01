@@ -170,6 +170,17 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('3 == 3')
         self.assertTrue(p)
 
+    def test_leq_number_variable(self):
+        p = yacc_parse('x[2,3] > 4.0')
+        self.assertEqual(p, yacc.OpType('>', [yacc.VarType('x', [2, 3]), 4.0]))
+
+    def test_function_variable_group(self):
+        p = yacc_parse('2*(f(1,2, c=4) - x[2:3])')
+        f = yacc.FuncType('f', [1, 2], {'c': 4})
+        x = yacc.VarType('x', [slice(2, 3)])
+        f_minus_x = yacc.OpType('-', [f, x])
+        self.assertEqual(p, yacc.OpType('*', [2, f_minus_x]))
+
 
 if __name__ == '__main__':
     unittest.main()
