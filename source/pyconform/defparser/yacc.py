@@ -9,10 +9,14 @@ from lex import *  # @UnusedWildImport
 from ply import yacc
 from collections import namedtuple
 
+OpType = namedtuple('VarType', ['name', 'arguments'])
 VarType = namedtuple('VarType', ['name', 'indices'])
 FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 
-precedence = (('right', 'NEGATIVE', 'POSITIVE'),)
+precedence = (('left', 'PLUS', 'MINUS'),
+              ('left', 'TIMES', 'DIVIDE'),
+              ('left', 'POWER'),
+              ('right', 'NEGATIVE', 'POSITIVE'),)
 
 
 def p_expression(p):
@@ -127,7 +131,30 @@ def p_expression_unary(p):
     if p[1] == '+':
         p[0] = p[2]
     elif p[1] == '-':
-        p[0] = -p[2]
+        p[0] = OpType(p[1], [p[2]])
+
+
+def p_expression_binary(p):
+    """
+    expression : expression POWER expression
+    expression : expression MINUS expression
+    expression : expression PLUS expression
+    expression : expression TIMES expression
+    expression : expression DIVIDE expression
+    """
+    if (isinstance(p[1], (OpType, VarType, FuncType)) or
+            isinstance(p[3], (OpType, VarType, FuncType))):
+        p[0] = OpType(p[2], [p[1], p[3]])
+    elif p[2] == '-':
+        p[0] = p[1] - p[3]
+    elif p[2] == '+':
+        p[0] = p[1] + p[3]
+    elif p[2] == '*':
+        p[0] = p[1] * p[3]
+    elif p[2] == '/':
+        p[0] = p[1] / p[3]
+    elif p[2] == '**':
+        p[0] = p[1] ** p[3]
 
 
 def p_error(p):

@@ -112,6 +112,21 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'PLUS')
         self.assertEqual(token.value, '+')
 
+    def test_times(self):
+        token = get_lex_token('*')
+        self.assertEqual(token.type, 'TIMES')
+        self.assertEqual(token.value, '*')
+
+    def test_divide(self):
+        token = get_lex_token('/')
+        self.assertEqual(token.type, 'DIVIDE')
+        self.assertEqual(token.value, '/')
+
+    def test_power(self):
+        token = get_lex_token('**')
+        self.assertEqual(token.type, 'POWER')
+        self.assertEqual(token.value, '**')
+
     def test_colon(self):
         token = get_lex_token(':')
         self.assertEqual(token.type, 'COLON')

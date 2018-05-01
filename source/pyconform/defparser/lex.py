@@ -8,7 +8,8 @@ LICENSE: See the LICENSE.rst file for details
 from ply import lex
 
 tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET', 'LPAREN', 'RPAREN',
-          'MINUS', 'PLUS', 'COLON', 'COMMA', 'EQUALS', 'STRING')
+          'MINUS', 'PLUS', 'TIMES', 'DIVIDE', 'POWER',
+          'COLON', 'COMMA', 'EQUALS', 'STRING')
 
 t_ignore = r' \t'
 
@@ -17,8 +18,11 @@ t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
+t_POWER = r'\*\*'
 t_MINUS = r'\-'
 t_PLUS = r'\+'
+t_TIMES = r'\*'
+t_DIVIDE = r'\/'
 t_COLON = r'\:'
 t_COMMA = r'\,'
 t_EQUALS = r'='
