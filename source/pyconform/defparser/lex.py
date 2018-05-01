@@ -7,25 +7,15 @@ LICENSE: See the LICENSE.rst file for details
 
 from ply import lex
 
-tokens = ('INT', 'FLOAT', 'NAME', 'LBRACKET', 'RBRACKET', 'LPAREN', 'RPAREN',
-          'MINUS', 'PLUS', 'TIMES', 'DIVIDE', 'POWER',
-          'COLON', 'COMMA', 'EQUALS', 'STRING')
-
+tokens = ('INT', 'FLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
+literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')
 t_ignore = r' \t'
 
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_LBRACKET = r'\['
-t_RBRACKET = r'\]'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_POWER = r'\*\*'
-t_MINUS = r'\-'
-t_PLUS = r'\+'
-t_TIMES = r'\*'
-t_DIVIDE = r'\/'
-t_COLON = r'\:'
-t_COMMA = r'\,'
-t_EQUALS = r'='
+t_POW = r'\*\*'
+t_LEQ = r'<='
+t_GEQ = r'>='
+t_EQ = r'=='
 
 
 def t_FLOAT(t):

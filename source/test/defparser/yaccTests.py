@@ -146,9 +146,9 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('2 ** 3.5')
         self.assertEqual(p, 2**3.5)
 
-    def test_precidence(self):
-        p = yacc_parse('1 + -5.0/2 ** 3 - 2*3/2.0')
-        self.assertEqual(p, -2.0 - 5.0 / 8.0)
+    def test_precedence(self):
+        p = yacc_parse('6 + -5.0/2 ** 3 - 2*3/2.0 + -(2**2) + (2*2)**3')
+        self.assertEqual(p, 6 - 5.0 / 8.0 - 3.0 - 4 + 64)
 
 
 if __name__ == '__main__':

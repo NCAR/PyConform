@@ -13,10 +13,11 @@ OpType = namedtuple('VarType', ['name', 'arguments'])
 VarType = namedtuple('VarType', ['name', 'indices'])
 FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 
-precedence = (('left', 'PLUS', 'MINUS'),
-              ('left', 'TIMES', 'DIVIDE'),
-              ('left', 'POWER'),
-              ('right', 'NEGATIVE', 'POSITIVE'),)
+precedence = (('left', '+', '-'),
+              ('left', '*', '/'),
+              ('right', 'NEG', 'POS'),
+              ('left', 'POW'),
+              )
 
 
 def p_array_like(p):
@@ -29,30 +30,37 @@ def p_array_like(p):
     p[0] = p[1]
 
 
+def p_array_like_group(p):
+    """
+    array_like : '(' array_like ')'
+    """
+    p[0] = p[2]
+
+
 def p_function_with_arguments_and_keywords(p):
     """
-    function : NAME LPAREN argument_list COMMA keyword_dict RPAREN
+    function : NAME '(' argument_list ',' keyword_dict ')'
     """
     p[0] = FuncType(p[1], p[3], p[5])
 
 
 def p_function_with_arguments_only(p):
     """
-    function : NAME LPAREN argument_list RPAREN
+    function : NAME '(' argument_list ')'
     """
     p[0] = FuncType(p[1], p[3], {})
 
 
 def p_function_with_keywords_only(p):
     """
-    function : NAME LPAREN keyword_dict RPAREN
+    function : NAME '(' keyword_dict ')'
     """
     p[0] = FuncType(p[1], [], p[3])
 
 
 def p_argument_list_append(p):
     """
-    argument_list : argument_list COMMA argument
+    argument_list : argument_list ',' argument
     """
     p[0] = p[1] + [p[3]]
 
@@ -75,7 +83,7 @@ def p_argument(p):
 
 def p_keyword_dict_setitem(p):
     """
-    keyword_dict : keyword_dict COMMA NAME EQUALS argument
+    keyword_dict : keyword_dict ',' NAME '=' argument
     """
     p[1][p[3]] = p[5]
     p[0] = p[1]
@@ -83,40 +91,46 @@ def p_keyword_dict_setitem(p):
 
 def p_single_item_keyword_dict(p):
     """
-    keyword_dict : NAME EQUALS argument
+    keyword_dict : NAME '=' argument
     """
     p[0] = {p[1]: p[3]}
 
 
 def p_variable(p):
     """
-    variable : NAME LBRACKET index_slice_list RBRACKET
+    variable : NAME '[' index_list ']'
     variable : NAME
     """
     indices = p[3] if len(p) > 3 else []
     p[0] = VarType(p[1], indices)
 
 
-def p_index_slice_list_append(p):
+def p_index_list_append(p):
     """
-    index_slice_list : index_slice_list COMMA slice
-    index_slice_list : index_slice_list COMMA INT
+    index_list : index_list ',' index
     """
     p[0] = p[1] + [p[3]]
 
 
-def p_single_item_index_slice_list(p):
+def p_single_item_index_list(p):
     """
-    index_slice_list : slice
-    index_slice_list : INT
+    index_list : index
     """
     p[0] = [p[1]]
 
 
+def p_index(p):
+    """
+    index : slice
+    index : INT
+    """
+    p[0] = p[1]
+
+
 def p_slice(p):
     """
-    slice : slice_argument COLON slice_argument COLON slice_argument
-    slice : slice_argument COLON slice_argument
+    slice : slice_argument ':' slice_argument ':' slice_argument
+    slice : slice_argument ':' slice_argument
     """
     p[0] = slice(*p[1::2])
 
@@ -131,22 +145,25 @@ def p_slice_argument(p):
 
 def p_expression_unary(p):
     """
-    array_like : MINUS array_like %prec NEGATIVE
-    array_like : PLUS array_like %prec POSITIVE
+    array_like : '-' array_like %prec NEG
+    array_like : '+' array_like %prec POS
     """
     if p[1] == '+':
         p[0] = p[2]
     elif p[1] == '-':
-        p[0] = OpType(p[1], [p[2]])
+        if isinstance(p[2], (OpType, VarType, FuncType)):
+            p[0] = OpType(p[1], [p[2]])
+        else:
+            p[0] = -p[2]
 
 
 def p_expression_binary(p):
     """
-    array_like : array_like POWER array_like
-    array_like : array_like MINUS array_like
-    array_like : array_like PLUS array_like
-    array_like : array_like TIMES array_like
-    array_like : array_like DIVIDE array_like
+    array_like : array_like POW array_like
+    array_like : array_like '-' array_like
+    array_like : array_like '+' array_like
+    array_like : array_like '*' array_like
+    array_like : array_like '/' array_like
     """
     if (isinstance(p[1], (OpType, VarType, FuncType)) or
             isinstance(p[3], (OpType, VarType, FuncType))):

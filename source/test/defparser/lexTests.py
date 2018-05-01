@@ -82,66 +82,6 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'NAME')
         self.assertEqual(token.value, 'x')
 
-    def test_lbracket(self):
-        token = get_lex_token('[1]')
-        self.assertEqual(token.type, 'LBRACKET')
-        self.assertEqual(token.value, '[')
-
-    def test_rbracket(self):
-        token = get_lex_token(']')
-        self.assertEqual(token.type, 'RBRACKET')
-        self.assertEqual(token.value, ']')
-
-    def test_lparen(self):
-        token = get_lex_token('(1)')
-        self.assertEqual(token.type, 'LPAREN')
-        self.assertEqual(token.value, '(')
-
-    def test_rparen(self):
-        token = get_lex_token(')')
-        self.assertEqual(token.type, 'RPAREN')
-        self.assertEqual(token.value, ')')
-
-    def test_minus(self):
-        token = get_lex_token('-')
-        self.assertEqual(token.type, 'MINUS')
-        self.assertEqual(token.value, '-')
-
-    def test_plus(self):
-        token = get_lex_token('+')
-        self.assertEqual(token.type, 'PLUS')
-        self.assertEqual(token.value, '+')
-
-    def test_times(self):
-        token = get_lex_token('*')
-        self.assertEqual(token.type, 'TIMES')
-        self.assertEqual(token.value, '*')
-
-    def test_divide(self):
-        token = get_lex_token('/')
-        self.assertEqual(token.type, 'DIVIDE')
-        self.assertEqual(token.value, '/')
-
-    def test_power(self):
-        token = get_lex_token('**')
-        self.assertEqual(token.type, 'POWER')
-        self.assertEqual(token.value, '**')
-
-    def test_colon(self):
-        token = get_lex_token(':')
-        self.assertEqual(token.type, 'COLON')
-        self.assertEqual(token.value, ':')
-
-    def test_comma(self):
-        token = get_lex_token(',')
-        self.assertEqual(token.type, 'COMMA')
-        self.assertEqual(token.value, ',')
-
-    def test_equals(self):
-        token = get_lex_token('=')
-        self.assertEqual(token.type, 'EQUALS')
-        self.assertEqual(token.value, '=')
-
     def test_string_1(self):
         token = get_lex_token("' asdf  3 5 dasd '")
         self.assertEqual(token.type, 'STRING')
@@ -151,6 +91,91 @@ class LexTest(unittest.TestCase):
         token = get_lex_token('" asdf  3 5 dasd "')
         self.assertEqual(token.type, 'STRING')
         self.assertEqual(token.value, ' asdf  3 5 dasd ')
+
+    def test_lbracket(self):
+        token = get_lex_token('[1]')
+        self.assertEqual(token.type, '[')
+        self.assertEqual(token.value, '[')
+
+    def test_rbracket(self):
+        token = get_lex_token(']')
+        self.assertEqual(token.type, ']')
+        self.assertEqual(token.value, ']')
+
+    def test_lparen(self):
+        token = get_lex_token('(1)')
+        self.assertEqual(token.type, '(')
+        self.assertEqual(token.value, '(')
+
+    def test_rparen(self):
+        token = get_lex_token(')')
+        self.assertEqual(token.type, ')')
+        self.assertEqual(token.value, ')')
+
+    def test_minus(self):
+        token = get_lex_token('-')
+        self.assertEqual(token.type, '-')
+        self.assertEqual(token.value, '-')
+
+    def test_plus(self):
+        token = get_lex_token('+')
+        self.assertEqual(token.type, '+')
+        self.assertEqual(token.value, '+')
+
+    def test_times(self):
+        token = get_lex_token('*')
+        self.assertEqual(token.type, '*')
+        self.assertEqual(token.value, '*')
+
+    def test_divide(self):
+        token = get_lex_token('/')
+        self.assertEqual(token.type, '/')
+        self.assertEqual(token.value, '/')
+
+    def test_power(self):
+        token = get_lex_token('**')
+        self.assertEqual(token.type, 'POW')
+        self.assertEqual(token.value, '**')
+
+    def test_colon(self):
+        token = get_lex_token(':')
+        self.assertEqual(token.type, ':')
+        self.assertEqual(token.value, ':')
+
+    def test_comma(self):
+        token = get_lex_token(',')
+        self.assertEqual(token.type, ',')
+        self.assertEqual(token.value, ',')
+
+    def test_equals(self):
+        token = get_lex_token('=')
+        self.assertEqual(token.type, '=')
+        self.assertEqual(token.value, '=')
+
+    def test_lessthan(self):
+        token = get_lex_token('<')
+        self.assertEqual(token.type, '<')
+        self.assertEqual(token.value, '<')
+
+    def test_greaterthan(self):
+        token = get_lex_token('>')
+        self.assertEqual(token.type, '>')
+        self.assertEqual(token.value, '>')
+
+    def test_lessequal(self):
+        token = get_lex_token('<=')
+        self.assertEqual(token.type, 'LEQ')
+        self.assertEqual(token.value, '<=')
+
+    def test_greaterequal(self):
+        token = get_lex_token('>=')
+        self.assertEqual(token.type, 'GEQ')
+        self.assertEqual(token.value, '>=')
+
+    def test_equalto(self):
+        token = get_lex_token('==')
+        self.assertEqual(token.type, 'EQ')
+        self.assertEqual(token.value, '==')
 
 
 if __name__ == '__main__':
