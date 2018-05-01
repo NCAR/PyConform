@@ -9,7 +9,7 @@ from lex import *  # @UnusedWildImport
 from ply import yacc
 from collections import namedtuple
 
-OpType = namedtuple('VarType', ['name', 'arguments'])
+OpType = namedtuple('OpType', ['name', 'arguments'])
 VarType = namedtuple('VarType', ['name', 'indices'])
 FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 

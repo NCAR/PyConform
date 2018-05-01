@@ -181,6 +181,25 @@ class YaccTests(unittest.TestCase):
         f_minus_x = yacc.OpType('-', [f, x])
         self.assertEqual(p, yacc.OpType('*', [2, f_minus_x]))
 
+    def test_sum_vars_factors(self):
+        p = yacc_parse('MEG_ISOP*60/68+MEG_MTERP*120/136+MEG_BCARY*180/204')
+        MEG_ISOP = yacc.VarType(name='MEG_ISOP', indices=[])
+        A = yacc.OpType(name='*', arguments=[MEG_ISOP, 60])
+        A = yacc.OpType(name='/', arguments=[A, 68])
+        MEG_MTERP = yacc.VarType('MEG_MTERP', [])
+        B = yacc.OpType(name='*', arguments=[MEG_MTERP, 120])
+        B = yacc.OpType(name='/', arguments=[B, 136])
+        MEG_BCARY = yacc.VarType('MEG_BCARY', [])
+        C = yacc.OpType(name='*', arguments=[MEG_BCARY, 180])
+        C = yacc.OpType(name='/', arguments=[C, 204])
+        A_plus_B = yacc.OpType('+', arguments=[A, B])
+        A_plus_B_plus_C = yacc.OpType(name='+', arguments=[A_plus_B, C])
+        self.assertEqual(p, A_plus_B_plus_C)
+
+    def test_pyparsing_killer(self):
+        s = 'MEG_ISOP*60/68+MEG_MTERP*120/136+MEG_BCARY*180/204+MEG_CH3OH*12/32+MEG_CH3COCH3*36/58+MEG_CH3CHO*24/44+MEG_CH2O*12/30+MEG_CO*12/28+MEG_C2H6*24/30+MEG_C3H8*36/44+MEG_C2H4*24/28+MEG_C3H6*36/42+MEG_C2H5OH*24/46+MEG_BIGALK*60/72+MEG_BIGENE*48/56+MEG_TOLUENE*84/92+MEG_HCN*12/27+MEG_HCOOH*12/46+MEG_CH3COOH*24/60'
+        yacc_parse(s)
+
 
 if __name__ == '__main__':
     unittest.main()
