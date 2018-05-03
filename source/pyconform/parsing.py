@@ -9,6 +9,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from ply import lex, yacc
+from collections import namedtuple
 
 tokens = ('UINT', 'UFLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
 literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')
@@ -43,10 +44,7 @@ def t_error(t):
     raise TypeError('Unexpected string: {!r}'.format(t.value))
 
 
-lex.lex()
-
-
-from collections import namedtuple
+lex.lex(debug=False)
 
 
 def ind_str(index):
@@ -268,7 +266,7 @@ def p_error(p):
     raise TypeError('Parsing error at {!r}'.format(p.value))
 
 
-yacc.yacc()
+yacc.yacc(debug=False)
 
 
 #=========================================================================
