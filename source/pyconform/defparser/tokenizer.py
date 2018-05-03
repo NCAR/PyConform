@@ -10,7 +10,7 @@ from ply import lex
 
 class Tokenizer(object):
     """
-    Tokenizer
+    Lex-based Tokenizer
     """
 
     def __init__(self, **kwds):

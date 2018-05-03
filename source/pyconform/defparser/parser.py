@@ -16,7 +16,7 @@ FuncType = namedtuple('FuncType', ['name', 'arguments', 'keywords'])
 
 class Parser(Tokenizer):
     """
-    Parser
+    Yacc-based Definition Parser
     """
 
     def __init__(self, **kwds):
