@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.functions.functionregistry import _FunctionRegistry
+from pyconform.functions.registry import _FunctionRegistry
 
 import unittest
 

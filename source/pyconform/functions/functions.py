@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from functionregistry import _FunctionRegistry
+from registry import _FunctionRegistry
 
 import numpy as np
 
