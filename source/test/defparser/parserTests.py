@@ -9,6 +9,7 @@ from pyconform.defparser.parser import Parser, OpType, VarType, FuncType
 
 import unittest
 import numpy as np
+from pip._vendor.distlib._backport.tarfile import S_IFREG
 
 
 class ParserTests(unittest.TestCase):
@@ -230,6 +231,13 @@ class ParserTests(unittest.TestCase):
         parser = Parser(variables=vdict)
         p = parser.parse_definition('x + y[1:3]')
         np.testing.assert_array_equal(p, np.array([6.0, 7.0]))
+
+    def test_function_registry(self):
+        def f(x): return x**2
+        freg = {'f': f}
+        parser = Parser(functions=freg)
+        p = parser.parse_definition('f(3)')
+        self.assertEqual(p, 9)
 
 
 if __name__ == "__main__":

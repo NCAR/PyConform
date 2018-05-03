@@ -22,6 +22,7 @@ class Parser(Tokenizer):
     def __init__(self, **kwds):
         super(Parser, self).__init__(**kwds)
         self.variables = kwds.get('variables', None)
+        self.functions = kwds.get('functions', None)
         yacc.yacc(module=self, debug=self.debug)
 
     precedence = (('left', 'EQ'),
@@ -50,19 +51,31 @@ class Parser(Tokenizer):
         """
         function : NAME '(' argument_list ',' keyword_dict ')'
         """
-        p[0] = FuncType(p[1], p[3], p[5])
+        if self.functions is None:
+            p[0] = FuncType(p[1], p[3], p[5])
+        else:
+            f = self.functions[p[1]]
+            p[0] = f(*p[3], **p[5])
 
     def p_function_with_arguments_only(self, p):
         """
         function : NAME '(' argument_list ')'
         """
-        p[0] = FuncType(p[1], p[3], {})
+        if self.functions is None:
+            p[0] = FuncType(p[1], p[3], {})
+        else:
+            f = self.functions[p[1]]
+            p[0] = f(*p[3])
 
     def p_function_with_keywords_only(self, p):
         """
         function : NAME '(' keyword_dict ')'
         """
-        p[0] = FuncType(p[1], [], p[3])
+        if self.functions is None:
+            p[0] = FuncType(p[1], [], p[3])
+        else:
+            f = self.functions[p[1]]
+            p[0] = f(**p[3])
 
     def p_argument_list_append(self, p):
         """
