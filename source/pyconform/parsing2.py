@@ -12,7 +12,7 @@ from ply import lex, yacc
 
 tokens = ('UINT', 'UFLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
 literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')
-t_ignore = r' '
+t_ignore = ' \t'
 
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_POW = r'\*\*'
