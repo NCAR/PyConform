@@ -16,9 +16,9 @@ import unittest
 import numpy
 
 
-#=======================================================================================================================
+#=========================================================================
 # DataFlowTests
-#=======================================================================================================================
+#=========================================================================
 class DataFlowTests(unittest.TestCase):
     """
     Unit tests for the flownodes.FlowNode class
@@ -32,7 +32,8 @@ class DataFlowTests(unittest.TestCase):
 
         self.fattribs = OrderedDict([('a1', 'attribute 1'),
                                      ('a2', 'attribute 2')])
-        self.dims = OrderedDict([('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3), ('bnds', 2)])
+        self.dims = OrderedDict(
+            [('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3), ('bnds', 2)])
         self.vdims = OrderedDict([('time', ('time',)),
                                   ('time_bnds', ('time', 'bnds')),
                                   ('lat', ('lat',)),
@@ -58,14 +59,16 @@ class DataFlowTests(unittest.TestCase):
                                    ('u3', {'units': 'kg',
                                            'standard_name': 'u variable 3',
                                            'positive': 'down'})])
-        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd', 'time_bnds': 'd', 'cat': 'c', 'u1': 'f', 'u2': 'f', 'u3': 'f'}
-        
-        ulen = reduce(lambda x, y: x * y, (self.dims[d] for d in self.vdims['u1']), 1)
+        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd',
+                       'time_bnds': 'd', 'cat': 'c', 'u1': 'f', 'u2': 'f', 'u3': 'f'}
+
+        ulen = reduce(lambda x, y: x * y,
+                      (self.dims[d] for d in self.vdims['u1']), 1)
         ushape = tuple(self.dims[d] for d in self.vdims['u1'])
         self.vdat = {'lat': numpy.linspace(-90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']),
                      'lon': -numpy.linspace(-180, 180, num=self.dims['lon'], dtype=self.dtypes['lon'])[::-1],
                      'time': numpy.arange(self.dims['time'], dtype=self.dtypes['time']),
-                     'time_bnds': numpy.array([[i,i+1] for i in range(self.dims['time'])], dtype=self.dtypes['time_bnds']),
+                     'time_bnds': numpy.array([[i, i + 1] for i in range(self.dims['time'])], dtype=self.dtypes['time_bnds']),
                      'cat': numpy.asarray(['left', 'middle', 'right'], dtype='S').view(self.dtypes['cat']),
                      'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(ushape),
                      'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(ushape),
@@ -80,8 +83,10 @@ class DataFlowTests(unittest.TestCase):
                 dsize = self.dims[dname] if dname != 'time' else None
                 ncf.createDimension(dname, dsize)
             for uname in [u for u in self.vdims if u not in self.filenames]:
-                ncvars[uname] = ncf.createVariable(uname, self.dtypes[uname], self.vdims[uname])
-            ncvars[vname] = ncf.createVariable(vname, self.dtypes[vname], self.vdims[vname])
+                ncvars[uname] = ncf.createVariable(
+                    uname, self.dtypes[uname], self.vdims[uname])
+            ncvars[vname] = ncf.createVariable(
+                vname, self.dtypes[vname], self.vdims[vname])
             for vnam in ncvars:
                 vobj = ncvars[vnam]
                 for aname in self.vattrs[vnam]:
@@ -91,7 +96,8 @@ class DataFlowTests(unittest.TestCase):
             print_ncfile(fname)
             print
 
-        self.inpds = datasets.InputDatasetDesc('inpds', self.filenames.values())
+        self.inpds = datasets.InputDatasetDesc(
+            'inpds', self.filenames.values())
 
         vdicts = OrderedDict()
 
@@ -107,7 +113,7 @@ class DataFlowTests(unittest.TestCase):
 
         vdicts['C'] = OrderedDict()
         vdicts['C']['datatype'] = 'char'
-        vdicts['C']['dimensions'] = ('c','n')
+        vdicts['C']['dimensions'] = ('c', 'n')
         vdicts['C']['definition'] = 'cat'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'category'
@@ -220,7 +226,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_min'] = 1.0
         vattribs['valid_max'] = 200.0
         vdicts['V4']['attributes'] = vattribs
-        
+
         vdicts['V5'] = OrderedDict()
         vdicts['V5']['datatype'] = 'double'
         vdicts['V5']['dimensions'] = ('t', 'y')
@@ -282,7 +288,7 @@ class DataFlowTests(unittest.TestCase):
         vattribs['valid_max'] = -1.0
         vattribs['positive'] = 'up'
         vdicts['V8']['attributes'] = vattribs
-        
+
         self.dsdict = vdicts
 
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
@@ -317,7 +323,8 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().dimension_map'
         df = dataflow.DataFlow(self.inpds, self.outds)
         actual = df.dimension_map
-        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x', 'ncat': 'c', 'time': 't', 'bnds': 'd'}
+        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x',
+                    'ncat': 'c', 'time': 't', 'bnds': 'd'}
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -357,7 +364,8 @@ class DataFlowTests(unittest.TestCase):
         df = dataflow.DataFlow(self.inpds, self.outds)
         expected = ValueError
         print_test_message(testname, expected=expected)
-        self.assertRaises(expected, df.execute, chunks=OrderedDict([('x', 4), ('y', 3)]))
+        self.assertRaises(expected, df.execute,
+                          chunks=OrderedDict([('x', 4), ('y', 3)]))
 
     def test_execute_chunks_2D_t_y(self):
         testname = 'DataFlow().execute()'
@@ -372,8 +380,8 @@ class DataFlowTests(unittest.TestCase):
             print
 
 
-#===============================================================================
+#=========================================================================
 # Command-Line Operation
-#===============================================================================
+#=========================================================================
 if __name__ == "__main__":
     unittest.main()
