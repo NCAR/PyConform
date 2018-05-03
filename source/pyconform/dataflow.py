@@ -12,13 +12,13 @@ graph edges is assumed to a Numpy.NDArray-like object.
 The action associated with each node is not performed until the data is
 "requested" with the __getitem__ interface, via Node[key].  
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
 from pyconform.parsing import parse_definition
-from pyconform.parsing import ParsedVariable, ParsedFunction, ParsedUniOp, ParsedBinOp
+from pyconform.parsing import VarType, FuncType, UniOpType, BinOpType
 from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
@@ -120,8 +120,9 @@ class DataFlow(object):
             vdesc = self._ods.variables[vname]
             if isinstance(vdesc.definition, basestring):
                 try:
-                    vnode = self._construct_flow_(parse_definition(
-                        vdesc.definition), datnodes=datnodes)
+                    print '{!r} = {!r}:'.format(vname, vdesc.definition)
+                    pdef = parse_definition(vdesc.definition)
+                    vnode = self._construct_flow_(pdef, datnodes=datnodes)
                 except VariableNotFoundError, err:
                     warn('{}. Skipping output variable {}.'.format(
                         str(err), vname), DefinitionWarning)
@@ -130,10 +131,13 @@ class DataFlow(object):
         return defnodes
 
     def _construct_flow_(self, obj, datnodes={}):
-        if isinstance(obj, ParsedVariable):
+        print '   {}'.format(obj)
+        if isinstance(obj, VarType):
             vname = obj.key
             if vname in self._ids.variables:
-                return ReadNode(self._ids.variables[vname], index=obj.args)
+                indices = numpy.index_exp[tuple(obj.ind)] if len(
+                    obj.ind) > 0 else ()
+                return ReadNode(self._ids.variables[vname], index=indices)
 
             elif vname in datnodes:
                 return datnodes[vname]
@@ -142,7 +146,7 @@ class DataFlow(object):
                 raise VariableNotFoundError(
                     'Input variable {!r} not found or cannot be used as input'.format(vname))
 
-        elif isinstance(obj, (ParsedUniOp, ParsedBinOp)):
+        elif isinstance(obj, (UniOpType, BinOpType)):
             name = obj.key
             nargs = len(obj.args)
             op = find_operator(name, numargs=nargs)
@@ -150,7 +154,7 @@ class DataFlow(object):
                     for arg in obj.args]
             return EvalNode(name, op, *args)
 
-        elif isinstance(obj, ParsedFunction):
+        elif isinstance(obj, FuncType):
             name = obj.key
             func = find_function(name)
             args = [self._construct_flow_(arg, datnodes=datnodes)
@@ -211,8 +215,7 @@ class DataFlow(object):
         # Now that we know how dimensions are mapped, compute the output
         # dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
-            idname = o2imap.get(dname, None)
-            if idname and idname in self._ids.dimensions:
+            if dname in o2imap:
                 idd = self._ids.dimensions[o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
                     ddesc.set(idd)
