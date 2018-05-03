@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.defparser.parser import Parser, OpType, VarType, FuncType
 
 import unittest
+import numpy as np
 
 
 class ParserTests(unittest.TestCase):
@@ -211,6 +212,24 @@ class ParserTests(unittest.TestCase):
              'MEG_C2H5OH*24/46+MEG_BIGALK*60/72+MEG_BIGENE*48/56+MEG_TOLUENE*84/92+'
              'MEG_HCN*12/27+MEG_HCOOH*12/46+MEG_CH3COOH*24/60')
         self.parser.parse_definition(s)
+
+    def test_floats_variable_dict(self):
+        vdict = {'x': 3.5, 'y': 2.5}
+        parser = Parser(variables=vdict)
+        p = parser.parse_definition('x + y')
+        self.assertEqual(p, 6.0)
+
+    def test_array_variable_dict(self):
+        vdict = {'x': 3.5, 'y': np.array([1.5, 2.5, 3.5, 4.5])}
+        parser = Parser(variables=vdict)
+        p = parser.parse_definition('x + y[1]')
+        self.assertEqual(p, 6.0)
+
+    def test_array_slice_variable_dict(self):
+        vdict = {'x': 3.5, 'y': np.array([1.5, 2.5, 3.5, 4.5])}
+        parser = Parser(variables=vdict)
+        p = parser.parse_definition('x + y[1:3]')
+        np.testing.assert_array_equal(p, np.array([6.0, 7.0]))
 
 
 if __name__ == "__main__":

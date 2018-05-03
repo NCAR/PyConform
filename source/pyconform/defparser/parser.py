@@ -21,6 +21,7 @@ class Parser(Tokenizer):
 
     def __init__(self, **kwds):
         super(Parser, self).__init__(**kwds)
+        self.variables = kwds.get('variables', None)
         yacc.yacc(module=self, debug=self.debug)
 
     precedence = (('left', 'EQ'),
@@ -102,7 +103,11 @@ class Parser(Tokenizer):
         variable : NAME
         """
         indices = p[3] if len(p) > 3 else []
-        p[0] = VarType(p[1], indices)
+        if self.variables is None:
+            p[0] = VarType(p[1], indices)
+        else:
+            v = self.variables[p[1]]
+            p[0] = v if len(indices) == 0 else v[indices]
 
     def p_index_list_append(self, p):
         """
