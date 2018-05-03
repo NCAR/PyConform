@@ -48,10 +48,10 @@ class ParsedStringTypeTests(unittest.TestCase):
 
     def test_operpst_init(self):
         indata = (['x'], {})
-        pst = parsing.BinOpType(indata)
+        pst = parsing.OpType(indata)
         actual = type(pst)
-        expected = parsing.BinOpType
-        testname = 'BinOpType.__init__({0!r})'.format(indata)
+        expected = parsing.OpType
+        testname = 'OpType.__init__({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Types do not match')
@@ -453,7 +453,7 @@ class DefinitionParserTests(unittest.TestCase):
         indata = '-x'
         actual = parsing.parse_definition(indata)
         x = parsing.VarType('x')
-        expected = parsing.UniOpType('-', [x])
+        expected = parsing.OpType('-', [x])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -463,7 +463,7 @@ class DefinitionParserTests(unittest.TestCase):
         indata = '-f()'
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
-        expected = parsing.UniOpType('-', [f])
+        expected = parsing.OpType('-', [f])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -532,7 +532,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
         g1 = parsing.FuncType('g', [1])
-        expected = parsing.BinOpType('**', [f, g1])
+        expected = parsing.OpType('**', [f, g1])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -543,7 +543,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         x1 = parsing.VarType('x', [1])
         y = parsing.VarType('y')
-        expected = parsing.BinOpType('**', [x1, y])
+        expected = parsing.OpType('**', [x1, y])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -574,7 +574,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
         g1 = parsing.FuncType('g', [1])
-        expected = parsing.BinOpType('/', [f, g1])
+        expected = parsing.OpType('/', [f, g1])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -585,7 +585,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         x1 = parsing.VarType('x', [1])
         y = parsing.VarType('y')
-        expected = parsing.BinOpType('/', [x1, y])
+        expected = parsing.OpType('/', [x1, y])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -618,7 +618,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
         g1 = parsing.FuncType('g', [1])
-        expected = parsing.BinOpType('*', [f, g1])
+        expected = parsing.OpType('*', [f, g1])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -630,7 +630,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         x1 = parsing.VarType('x', [1])
         y = parsing.VarType('y')
-        expected = parsing.BinOpType('*', [x1, y])
+        expected = parsing.OpType('*', [x1, y])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -662,7 +662,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
         g1 = parsing.FuncType('g', [1])
-        expected = parsing.BinOpType('+', [f, g1])
+        expected = parsing.OpType('+', [f, g1])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -673,7 +673,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         x1 = parsing.VarType('x', [1])
         y = parsing.VarType('y')
-        expected = parsing.BinOpType('+', [x1, y])
+        expected = parsing.OpType('+', [x1, y])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -706,7 +706,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         f = parsing.FuncType('f')
         g1 = parsing.FuncType('g', [1])
-        expected = parsing.BinOpType('-', [f, g1])
+        expected = parsing.OpType('-', [f, g1])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -718,7 +718,7 @@ class DefinitionParserTests(unittest.TestCase):
         actual = parsing.parse_definition(indata)
         x1 = parsing.VarType('x', [1])
         y = parsing.VarType('y')
-        expected = parsing.BinOpType('-', [x1, y])
+        expected = parsing.OpType('-', [x1, y])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -731,9 +731,9 @@ class DefinitionParserTests(unittest.TestCase):
         indata = '2-17.3*x**2'
         actual = parsing.parse_definition(indata)
         x = parsing.VarType('x')
-        x2 = parsing.BinOpType('**', [x, 2])
-        m17p3x2 = parsing.BinOpType('*', [17.3, x2])
-        expected = parsing.BinOpType('-', [2, m17p3x2])
+        x2 = parsing.OpType('**', [x, 2])
+        m17p3x2 = parsing.OpType('*', [17.3, x2])
+        expected = parsing.OpType('-', [2, m17p3x2])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
@@ -746,9 +746,9 @@ class DefinitionParserTests(unittest.TestCase):
         x = parsing.VarType('x')
         x25 = parsing.VarType('x', [slice(2, 5)])
         f = parsing.FuncType('f', [2.3, x25])
-        m17p3x = parsing.BinOpType('*', [17.3, x])
-        dm17p3xf = parsing.BinOpType('/', [m17p3x, f])
-        expected = parsing.BinOpType('-', [2, dm17p3xf])
+        m17p3x = parsing.OpType('*', [17.3, x])
+        dm17p3xf = parsing.OpType('/', [m17p3x, f])
+        expected = parsing.OpType('-', [2, dm17p3xf])
         testname = 'parse_definition({0!r})'.format(indata)
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)

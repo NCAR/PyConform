@@ -58,14 +58,16 @@ def ind_str(index):
         return str(index)
 
 
-UniOpType = namedtuple('UniOpType', ['key', 'args'])
-UniOpType.__new__.__defaults__ = (None, [])
-UniOpType.__str__ = lambda self: '({}{})'.format(self.key, self.args[0])
+def op_str(self):
+    if len(self.args) == 1:
+        return '({}{})'.format(self.key, self.args[0])
+    elif len(self.args) == 2:
+        return '({}{}{})'.format(self.args[0], self.key, self.args[1])
 
-BinOpType = namedtuple('BinOpType', ['key', 'args'])
-BinOpType.__new__.__defaults__ = (None, [])
-BinOpType.__str__ = lambda self: '({}{}{})'.format(
-    self.args[0], self.key, self.args[1])
+
+OpType = namedtuple('OpType', ['key', 'args'])
+OpType.__new__.__defaults__ = (None, [])
+OpType.__str__ = lambda self: op_str(self)
 
 FuncType = namedtuple('FuncType', ['key', 'args', 'kwds'])
 FuncType.__new__.__defaults__ = (None, [], {})
@@ -218,8 +220,8 @@ def p_expression_unary(p):
     if p[1] == '+':
         p[0] = p[2]
     elif p[1] == '-':
-        if isinstance(p[2], (UniOpType, BinOpType, FuncType, VarType)):
-            p[0] = UniOpType(p[1], [p[2]])
+        if isinstance(p[2], (OpType, FuncType, VarType)):
+            p[0] = OpType(p[1], [p[2]])
         else:
             p[0] = -p[2]
 
@@ -237,9 +239,9 @@ def p_expression_binary(p):
     array_like : array_like GEQ array_like
     array_like : array_like EQ array_like
     """
-    if (isinstance(p[1], (UniOpType, BinOpType, FuncType, VarType)) or
-            isinstance(p[3], (UniOpType, BinOpType, FuncType, VarType))):
-        p[0] = BinOpType(p[2], [p[1], p[3]])
+    if (isinstance(p[1], (OpType, FuncType, VarType)) or
+            isinstance(p[3], (OpType, FuncType, VarType))):
+        p[0] = OpType(p[2], [p[1], p[3]])
     elif p[2] == '**':
         p[0] = p[1] ** p[3]
     elif p[2] == '-':
