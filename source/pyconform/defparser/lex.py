@@ -9,7 +9,7 @@ from ply import lex
 
 tokens = ('INT', 'FLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
 literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')
-t_ignore = r' \t'
+t_ignore = ' \t'
 
 t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
 t_POW = r'\*\*'

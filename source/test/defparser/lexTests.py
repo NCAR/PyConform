@@ -82,6 +82,11 @@ class LexTest(unittest.TestCase):
         self.assertEqual(token.type, 'NAME')
         self.assertEqual(token.value, 'x')
 
+    def test_name_time(self):
+        token = get_lex_token('time')
+        self.assertEqual(token.type, 'NAME')
+        self.assertEqual(token.value, 'time')
+
     def test_string_1(self):
         token = get_lex_token("' asdf  3 5 dasd '")
         self.assertEqual(token.type, 'STRING')

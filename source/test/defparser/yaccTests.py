@@ -36,6 +36,10 @@ class YaccTests(unittest.TestCase):
         p = yacc_parse('x')
         self.assertEqual(p, yacc.VarType('x', []))
 
+    def test_variable_time(self):
+        p = yacc_parse('time')
+        self.assertEqual(p, yacc.VarType('time', []))
+
     def test_variable_positive(self):
         p = yacc_parse('+x')
         self.assertEqual(p, yacc.VarType('x', []))

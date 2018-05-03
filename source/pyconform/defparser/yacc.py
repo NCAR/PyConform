@@ -25,8 +25,8 @@ def p_array_like(p):
     """
     array_like : FLOAT
     array_like : INT
-    array_like : function
     array_like : variable
+    array_like : function
     """
     p[0] = p[1]
 
