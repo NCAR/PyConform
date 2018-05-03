@@ -9,7 +9,6 @@ from pyconform.defparser.parser import Parser, OpType, VarType, FuncType
 
 import unittest
 import numpy as np
-from pip._vendor.distlib._backport.tarfile import S_IFREG
 
 
 class ParserTests(unittest.TestCase):
