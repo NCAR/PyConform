@@ -17,8 +17,8 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
-from pyconform.parsing2 import parse_definition
-from pyconform.parsing2 import VarType, FuncType, UniOpType, BinOpType
+from pyconform.parsing import parse_definition
+from pyconform.parsing import VarType, FuncType, OpType
 from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
@@ -146,7 +146,7 @@ class DataFlow(object):
                 raise VariableNotFoundError(
                     'Input variable {!r} not found or cannot be used as input'.format(vname))
 
-        elif isinstance(obj, (UniOpType, BinOpType)):
+        elif isinstance(obj, OpType):
             name = obj.key
             nargs = len(obj.args)
             op = find_operator(name, numargs=nargs)
