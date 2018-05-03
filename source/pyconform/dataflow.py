@@ -19,7 +19,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
 from pyconform.parsing import parse_definition
 from pyconform.parsing import VarType, FuncType, OpType
-from pyconform.functions import find_operator, find_function
+from pyconform.functionsOld import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
 from pyconform.flownodes import MapNode, ValidateNode, WriteNode

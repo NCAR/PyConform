@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
-from pyconform.functions import Function, is_constant
+from pyconform.functionsOld import Function, is_constant
 from cf_units import Unit
 from numpy import diff, empty
 

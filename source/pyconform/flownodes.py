@@ -10,7 +10,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
-from pyconform.functions import Function
+from pyconform.functionsOld import Function
 from cf_units import Unit, num2date
 from datetime import datetime
 from os.path import exists, dirname

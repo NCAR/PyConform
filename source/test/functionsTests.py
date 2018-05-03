@@ -5,7 +5,7 @@ Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import functions
+from pyconform import functionsOld
 from pyconform.physarray import PhysArray
 from cf_units import Unit
 from testutils import print_test_message
@@ -20,7 +20,7 @@ import operator as op
 #===================================================================================================
 class FindTests(unittest.TestCase):
     """
-    Unit tests for finding functions and operators
+    Unit tests for finding functionsOld and operators
     """
 
     def setUp(self):
@@ -33,8 +33,8 @@ class FindTests(unittest.TestCase):
         key = '-'
         numargs = 1
         testname = 'find_operator({!r}, {})'.format(key, numargs)
-        actual = functions.find_operator(key, numargs)
-        expected = functions.NegationOperator
+        actual = functionsOld.find_operator(key, numargs)
+        expected = functionsOld.NegationOperator
         print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -42,8 +42,8 @@ class FindTests(unittest.TestCase):
         key = '+'
         numargs = 2
         testname = 'find_operator({!r}, {})'.format(key, numargs)
-        actual = functions.find_operator(key, numargs)
-        expected = functions.AdditionOperator
+        actual = functionsOld.find_operator(key, numargs)
+        expected = functionsOld.AdditionOperator
         print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -51,32 +51,32 @@ class FindTests(unittest.TestCase):
         key = '-'
         numargs = 2
         testname = 'find_operator({!r}, {})'.format(key, numargs)
-        actual = functions.find_operator(key, numargs)
-        expected = functions.SubtractionOperator
+        actual = functionsOld.find_operator(key, numargs)
+        expected = functionsOld.SubtractionOperator
         print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_mul(self):
         key = '*'
         testname = 'find_operator({!r})'.format(key)
-        actual = functions.find_operator(key)
-        expected = functions.MultiplicationOperator
+        actual = functionsOld.find_operator(key)
+        expected = functionsOld.MultiplicationOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_div(self):
         key = '/'
         testname = 'find_operator({!r})'.format(key)
-        actual = functions.find_operator(key)
-        expected = functions.DivisionOperator
+        actual = functionsOld.find_operator(key)
+        expected = functionsOld.DivisionOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_pow(self):
         key = '**'
         testname = 'find_operator({!r})'.format(key)
-        actual = functions.find_operator(key)
-        expected = functions.PowerOperator
+        actual = functionsOld.find_operator(key)
+        expected = functionsOld.PowerOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -85,7 +85,7 @@ class FindTests(unittest.TestCase):
         testname = 'find_operator({!r})'.format(key)
         expected = KeyError
         print_test_message(testname, key=key, expected=expected)
-        self.assertRaises(KeyError, functions.find_operator, key)
+        self.assertRaises(KeyError, functionsOld.find_operator, key)
 
     def test_operator_numargs_failure(self):
         key = '*'
@@ -93,13 +93,13 @@ class FindTests(unittest.TestCase):
         testname = 'find_operator({!r}, {})'.format(key, numargs)
         expected = KeyError
         print_test_message(testname, key=key, numargs=numargs, expected=expected)
-        self.assertRaises(KeyError, functions.find_operator, key, numargs)
+        self.assertRaises(KeyError, functionsOld.find_operator, key, numargs)
 
     def test_function_sqrt(self):
         key = 'sqrt'
         testname = 'find_function({!r})'.format(key)
-        actual = functions.find_function(key)
-        expected = functions.SquareRootFunction
+        actual = functionsOld.find_function(key)
+        expected = functionsOld.SquareRootFunction
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -108,21 +108,21 @@ class FindTests(unittest.TestCase):
         testname = 'find_function({!r})'.format(key)
         expected = KeyError
         print_test_message(testname, key=key, expected=expected)
-        self.assertRaises(KeyError, functions.find_function, key)
+        self.assertRaises(KeyError, functionsOld.find_function, key)
 
     def test_sqrt(self):
         key = 'sqrt'
         testname = 'find({!r})'.format(key)
-        actual = functions.find(key)
-        expected = functions.SquareRootFunction
+        actual = functionsOld.find(key)
+        expected = functionsOld.SquareRootFunction
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_mul(self):
         key = '*'
         testname = 'find({!r})'.format(key)
-        actual = functions.find(key)
-        expected = functions.MultiplicationOperator
+        actual = functionsOld.find(key)
+        expected = functionsOld.MultiplicationOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         
@@ -131,7 +131,7 @@ class FindTests(unittest.TestCase):
         testname = 'find({!r})'.format(key)
         expected = KeyError
         print_test_message(testname, key=key, expected=expected)
-        self.assertRaises(KeyError, functions.find, key)
+        self.assertRaises(KeyError, functionsOld.find, key)
 
     def test_numargs_failure(self):
         key = '*'
@@ -139,10 +139,10 @@ class FindTests(unittest.TestCase):
         testname = 'find({!r}, {})'.format(key, numargs)
         expected = KeyError
         print_test_message(testname, key=key, numargs=numargs, expected=expected)
-        self.assertRaises(KeyError, functions.find, key, numargs)
+        self.assertRaises(KeyError, functionsOld.find, key, numargs)
 
     def test_user_defined(self):
-        class myfunc(functions.Function):
+        class myfunc(functionsOld.Function):
             key = 'myfunc'
             def __init__(self, x):
                 super(myfunc, self).__init__(x)
@@ -151,21 +151,21 @@ class FindTests(unittest.TestCase):
 
         key = 'myfunc'
         testname = 'find({})'.format(key)
-        actual = functions.find(key)
+        actual = functionsOld.find(key)
         expected = myfunc
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
     
     def test_list_operators(self):
         testname = 'list_operators()'
-        actual = functions.list_operators()
-        expected = sorted(functions.__OPERATORS__.keys())
+        actual = functionsOld.list_operators()
+        expected = sorted(functionsOld.__OPERATORS__.keys())
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_list_functions(self):
         testname = 'list_functions()'
-        actual = sorted(functions.list_functions())
+        actual = sorted(functionsOld.list_functions())
         expected = sorted(['sqrt', 'mean', 'up', 'down', 'chunits', 'limit'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -176,14 +176,14 @@ class FindTests(unittest.TestCase):
 #===============================================================================
 class EvaluationTests(unittest.TestCase):
     """
-    Unit tests for evaluating functions and operators
+    Unit tests for evaluating functionsOld and operators
     """
 
     def test_op_neg_int(self):
         key = '-'
         indata = 3
         testname = '({}{})'.format(key, indata)
-        funcref = functions.find(key, 1)
+        funcref = functionsOld.find(key, 1)
         func = funcref(indata)
         actual = func[:]
         expected = op.neg(indata)
@@ -194,7 +194,7 @@ class EvaluationTests(unittest.TestCase):
         key = '-'
         indata = 3.1
         testname = '({}{})'.format(key, indata)
-        func = functions.find(key, 1)
+        func = functionsOld.find(key, 1)
         actual = func(indata)[:]
         expected = op.neg(indata)
         print_test_message(testname, input=indata, actual=actual, expected=expected)
@@ -204,7 +204,7 @@ class EvaluationTests(unittest.TestCase):
         key = '-'
         indata = PhysArray(3, units='m')
         testname = '({}{})'.format(key, indata)
-        funcref = functions.find(key, 1)
+        funcref = functionsOld.find(key, 1)
         func = funcref(indata)
         actual = func[:]
         expected = PhysArray(-3, name='3', units='m')
@@ -216,7 +216,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2
         right = 3
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 5
@@ -228,7 +228,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2.4
         right = 3.2
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 5.6
@@ -240,7 +240,7 @@ class EvaluationTests(unittest.TestCase):
         x = PhysArray(1.5, name='x', units='m')
         y = PhysArray(7.9, name='y', units='km')
         testname = '({} {} {})'.format(x, key, y)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(x, y)
         actual = func[:]
         expected = PhysArray(7901.5, name='(x+convert(y, from=km, to=m))', units='m')
@@ -254,7 +254,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2
         right = 3
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = -1
@@ -266,7 +266,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2.4
         right = 3.2
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 - 3.2
@@ -278,7 +278,7 @@ class EvaluationTests(unittest.TestCase):
         x = PhysArray(1.5, name='x', units='m')
         y = PhysArray(7.9, name='y', units='km')
         testname = '({} {} {})'.format(x, key, y)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(-7898.5, name='(x-convert(y, from=km, to=m))', units='m')
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
@@ -291,7 +291,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2
         right = 3
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 6
@@ -303,7 +303,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2.4
         right = 3.2
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 * 3.2
@@ -315,7 +315,7 @@ class EvaluationTests(unittest.TestCase):
         x = PhysArray(1.5, name='x', units='m')
         y = PhysArray(7.9, name='y', units='km')
         testname = '({} {} {})'.format(x, key, y)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(1.5 * 7.9, name='(x*y)', units='m-km')
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
@@ -328,7 +328,7 @@ class EvaluationTests(unittest.TestCase):
         left = 7
         right = 3
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 2
@@ -340,7 +340,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2.4
         right = 3.2
         testname = '({} {} {})'.format(left, key, right)
-        funcref = functions.find(key, 2)
+        funcref = functionsOld.find(key, 2)
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 / 3.2
@@ -352,7 +352,7 @@ class EvaluationTests(unittest.TestCase):
         x = PhysArray(1.5, name='x', units='m')
         y = PhysArray(7.9, name='y', units='km')
         testname = '({} {} {})'.format(x, key, y)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(1.5 / 7.9, name='(x/y)', units='0.001 1')
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
@@ -366,7 +366,7 @@ class EvaluationTests(unittest.TestCase):
         left = 7
         right = 3
         testname = '({} {} {})'.format(left, key, right)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(left, right)[:]
         expected = 7 ** 3
         print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
@@ -377,7 +377,7 @@ class EvaluationTests(unittest.TestCase):
         left = 2.4
         right = 3.2
         testname = '({} {} {})'.format(left, key, right)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(left, right)[:]
         expected = 2.4 ** 3.2
         print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
@@ -388,7 +388,7 @@ class EvaluationTests(unittest.TestCase):
         x = PhysArray(4.3, name='x', units='m')
         y = PhysArray(2, name='y')
         testname = '({} {} {})'.format(x, key, y)
-        func = functions.find(key, 2)
+        func = functionsOld.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(4.3 ** 2, name='(x**y)', units=Unit('m') ** 2)
         print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
@@ -400,7 +400,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'sqrt'
         indata = 4
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = np.sqrt(indata)
         print_test_message(testname, input=indata, actual=actual, expected=expected)
@@ -410,7 +410,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'sqrt'
         indata = 4.0
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         fobj = func(indata)
         actual = fobj[:]
         expected = np.sqrt(indata)
@@ -421,7 +421,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'sqrt'
         indata = PhysArray([9.0, 16.0, 4.0], name='x', units='m^2')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray([3.0, 4.0, 2.0], name='sqrt(x)', units='m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -433,7 +433,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'mean'
         indata = PhysArray([1.0, 2.0, 3.0], name='x', units='m', dimensions=('t',))
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray(2.0, name='mean(x, dims=[t])', units='m')
@@ -446,7 +446,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'mean'
         indata = PhysArray([1.0, 2.0, 3.0], mask=[False, False, True], name='x', units='m', dimensions=('t',))
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray(1.5, name='mean(x, dims=[t])', units='m')
@@ -459,7 +459,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'mean'
         indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [True, False]], name='x', units='m', dimensions=('t','u'))
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray([1.0, 3.0], name='mean(x, dims=[t])', units='m', dimensions=('u',))
@@ -471,7 +471,7 @@ class EvaluationTests(unittest.TestCase):
     def test_func_sqrt_sumlike(self):
         key = 'sqrt'
         testname = '{}.sumlike_dimensions'.format(key)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(2.0).sumlike_dimensions
         expected = set()
         print_test_message(testname, actual=actual, expected=expected)
@@ -481,7 +481,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'mean'
         indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0], name='x', units='m', dimensions=('t',))
         testname = '{}({}).sumlike_dimensions'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         fobj = func(indata, 't')
         fobj[None]
         actual = fobj.sumlike_dimensions
@@ -493,7 +493,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'up'
         indata = PhysArray(2.5, name='x')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='up(x)', positive='up')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -505,7 +505,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'up'
         indata = PhysArray(2.5, name='x', positive='up')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='x', positive='up')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -517,7 +517,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'up'
         indata = PhysArray(2.5, name='x', positive='down')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(-2.5, name='up(x)', positive='up')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -529,7 +529,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'down'
         indata = PhysArray(2.5, name='x')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='down(x)', positive='down')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -541,7 +541,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'down'
         indata = PhysArray(2.5, name='x', positive='down')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(2.5, name='x', positive='down')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -553,7 +553,7 @@ class EvaluationTests(unittest.TestCase):
         key = 'down'
         indata = PhysArray(2.5, name='x', positive='up')
         testname = '{}({})'.format(key, indata)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata)[:]
         expected = PhysArray(-2.5, name='down(x)', positive='down')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -566,7 +566,7 @@ class EvaluationTests(unittest.TestCase):
         indata = PhysArray(2.5, name='x', units='m')
         new_units = 'kg'
         testname = '{}({}, units={})'.format(key, indata, new_units)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata, units=new_units)[:]
         expected = PhysArray(2.5, name='chunits(x, units=kg)', units=new_units)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
@@ -579,7 +579,7 @@ class EvaluationTests(unittest.TestCase):
         indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
         new_cal = 'gregorian'
         testname = '{}({}, calendar={})'.format(key, indata, new_cal)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata, calendar=new_cal)[:]
         expected = PhysArray(2.5, name='chunits(t, units=days since 1850-01-01|gregorian)',
                              units=Unit('days since 1850-01-01', calendar=new_cal))
@@ -593,7 +593,7 @@ class EvaluationTests(unittest.TestCase):
         indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
         new_ref = '0001-01-01'
         testname = '{}({}, refdate={})'.format(key, indata, new_ref)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata, refdate=new_ref)[:]
         expected = PhysArray(2.5, name='chunits(t, units=days since {}|noleap)'.format(new_ref),
                              units=Unit('days since {}'.format(new_ref), calendar='noleap'))
@@ -608,7 +608,7 @@ class EvaluationTests(unittest.TestCase):
         new_ref = '0001-01-01'
         new_cal = 'gregorian'
         testname = '{}({}, refdate={}, calendar={})'.format(key, indata, new_ref, new_cal)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata, refdate=new_ref, calendar=new_cal)[:]
         expected = PhysArray(2.5, name='chunits(t, units=days since {}|{})'.format(new_ref, new_cal),
                              units=Unit('days since {}'.format(new_ref), calendar=new_cal))
@@ -623,7 +623,7 @@ class EvaluationTests(unittest.TestCase):
         below_val = 3.0
         above_val = 7.5
         testname = '{}({}, above={}, below={})'.format(key, indata, above_val, below_val)
-        func = functions.find(key)
+        func = functionsOld.find(key)
         actual = func(indata, above=above_val, below=below_val)[:]
         expected = PhysArray([3.0, 7.3, 7.5, 3.0], name=testname, units='m', dimensions=('t',))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)

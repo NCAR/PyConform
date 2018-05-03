@@ -8,7 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
 from pyconform.physarray import PhysArray, DimensionsError, UnitsError
 from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
-from pyconform.functions import Function, find_operator
+from pyconform.functionsOld import Function, find_operator
 from testutils import print_test_message, print_ncfile
 from cf_units import Unit
 from os.path import exists
