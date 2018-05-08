@@ -46,7 +46,8 @@ def variable_search(obj, vars=None):
     if isinstance(obj, parsing.VarType):
         vars.add(obj.key)
     elif isinstance(obj, parsing.OpType):
-        vars = variable_search(arg, vars=vars)
+        for arg in obj.args:
+            vars = variable_search(arg, vars=vars)
     elif isinstance(obj, parsing.FuncType):
         for arg in obj.args:
             vars = variable_search(arg, vars=vars)
