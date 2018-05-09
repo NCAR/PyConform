@@ -175,7 +175,7 @@ class DataFlow(object):
                 info = node[None]
             except Exception, err:
                 ndef = self._ods.variables[name].definition
-                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(
+                err_msg = 'Failure to generate variable {!r} info with definition {!r}: {}'.format(
                     name, ndef, str(err))
                 raise RuntimeError(err_msg)
             else:
