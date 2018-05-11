@@ -119,7 +119,6 @@ class DataFlow(object):
             vdesc = self._ods.variables[vname]
             if isinstance(vdesc.definition, basestring):
                 try:
-                    print '{!r} = {!r}:'.format(vname, vdesc.definition)
                     pdef = parse_definition(vdesc.definition)
                     vnode = self._construct_flow_(pdef, datnodes=datnodes)
                 except VariableNotFoundError, err:
@@ -130,7 +129,6 @@ class DataFlow(object):
         return defnodes
 
     def _construct_flow_(self, obj, datnodes={}):
-        print '   {}'.format(obj)
         if isinstance(obj, VarType):
             vname = obj.key
             if vname in self._ids.variables:
@@ -214,7 +212,7 @@ class DataFlow(object):
         # Now that we know how dimensions are mapped, compute the output
         # dimension sizes
         for dname, ddesc in self._ods.dimensions.iteritems():
-            if dname in o2imap:
+            if dname in o2imap and o2imap[dname] in self._ids.dimensions:
                 idd = self._ids.dimensions[o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
                     ddesc.set(idd)
