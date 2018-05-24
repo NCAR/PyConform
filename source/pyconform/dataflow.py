@@ -295,7 +295,7 @@ class DataFlow(object):
                                    for vnode in wnode.inputs)
         return filesizes
 
-    def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None):
+    def execute(self, chunks={}, serial=False, history=False, scomm=None, deflate=None, debug=False):
         """
         Execute the Data Flow
 
@@ -311,6 +311,7 @@ class DataFlow(object):
             scomm (SimpleComm): An externally created SimpleComm object to use for managing
                 parallel operation
             deflate (int): Override all output file deflate levels with given value
+            debug (bool): Whether to enable some rudimentary debugging features
         """
         # Check chunks type
         if not isinstance(chunks, dict):
@@ -329,8 +330,12 @@ class DataFlow(object):
         sumlike_chunk_dims = sorted(
             d for d in chunks if d in self._sumlike_dimensions)
         if len(sumlike_chunk_dims) > 0:
-            raise ValueError(('Cannot chunk over dimensions that are summed over (or "sum-like")'
-                              ': {}'.format(', '.join(sumlike_chunk_dims))))
+            if debug:
+                for d in sumlike_chunk_dims:
+                    chunks.pop(d)
+            else:
+                raise ValueError('Cannot chunk over dimensions that are summed over (or "sum-like")'
+                                 ': {}'.format(', '.join(sumlike_chunk_dims)))
 
         # Create the simple communicator, if necessary
         if scomm is None:
