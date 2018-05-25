@@ -21,20 +21,38 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 
     def __getitem__(self, index):
 
-        EFLX_LH_TOT = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
-        ntim = self.arguments[1] if is_constant(self.arguments[1]) else self.arguments[1][index]
-        nlat = self.arguments[2] if is_constant(self.arguments[2]) else self.arguments[2][index]
-        nlon = self.arguments[3] if is_constant(self.arguments[3]) else self.arguments[3][index]
-        grid1d_ixy = self.arguments[4] if is_constant(self.arguments[4]) else self.arguments[4][index]
-        grid1d_jxy  = self.arguments[5] if is_constant(self.arguments[5]) else self.arguments[5][index]
-        grid1d_lon = self.arguments[6] if is_constant(self.arguments[6]) else self.arguments[6][index]
-        grid1d_lat = self.arguments[7] if is_constant(self.arguments[7]) else self.arguments[7][index]
-        land1d_lon = self.arguments[8] if is_constant(self.arguments[8]) else self.arguments[8][index]
-        land1d_lat = self.arguments[9] if is_constant(self.arguments[9]) else self.arguments[9][index]
-        land1d_ityplunit = self.arguments[10] if is_constant(self.arguments[10]) else self.arguments[10][index]
-        land1d_active = self.arguments[11] if is_constant(self.arguments[11]) else self.arguments[11][index]
-        land1d_wtgcell = self.arguments[12] if is_constant(self.arguments[12]) else self.arguments[12][index]
+        pEFLX_LH_TOT = self.arguments[0][index]
+        pntim = self.arguments[1][index]
+        pnlat = self.arguments[2][index]
+        pnlon = self.arguments[3][index]
+        pgrid1d_ixy = self.arguments[4][index]
+        pgrid1d_jxy  = self.arguments[5][index]
+        pgrid1d_lon = self.arguments[6][index]
+        pgrid1d_lat = self.arguments[7][index]
+        pland1d_lon = self.arguments[8][index]
+        pland1d_lat = self.arguments[9][index]
+        pland1d_ityplunit = self.arguments[10][index]
+        pland1d_active = self.arguments[11][index]
+        pland1d_wtgcell = self.arguments[12][index]
 
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[pntim.dimensions[0],pnlat.dimensions[0],pnlon.dimensions[0]])
+
+        EFLX_LH_TOT = pEFLX_LH_TOT.data 
+        ntim = pntim.data
+        nlat = pnlat.data
+        nlon = pnlon.data
+        grid1d_ixy = pgrid1d_ixy.data
+        grid1d_jxy  = pgrid1d_jxy.data
+        grid1d_lon = pgrid1d_lon.data
+        grid1d_lat = pgrid1d_lat.data
+        land1d_lon = pland1d_lon.data
+        land1d_lat = pland1d_lat.data
+        land1d_ityplunit = pland1d_ityplunit.data
+        land1d_active = pland1d_active.data
+        land1d_wtgcell = pland1d_wtgcell.data
+
+        missing = 1e+20
 
 	long_name = "latent heat flux on land use tile (lut=0:natveg, =1:crop, =2:pasture, =3:urban)"
 	nlut    = 4
@@ -47,9 +65,10 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 	eps = 1.e-5
 
 	# Will contain landunit variables for veg, crop, pasture, and urban on 2d grid
-	varo_lut = np.full([len(ntim),4,len(nlat),len(nlon)],fill_value=1.e36)
+	varo_lut_temp = np.full([len(ntim),4,len(nlat),len(nlon)],fill_value=missing)
+        varo_lut = np.ma.masked_values(varo_lut_temp, missing)
 	# Set pasture to fill value
-	varo_lut[:,pasture,:,:] = 1.e36
+	varo_lut[:,pasture,:,:] = missing
 
 	# If 1, landunit is active
 	active_lunit = 1
@@ -104,13 +123,13 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 		    if landunit_indx_veg.size > 0:
 			varo_lut[:,veg,jxy,ixy] = EFLX_LH_TOT[:,landunit_indx_veg].squeeze()
 		    else:
-			varo_lut[:,veg,jxy,ixy] = 1.e36
+			varo_lut[:,veg,jxy,ixy] = missing
 
 		    # Check for valid crop landunit
 		    if landunit_indx_crop.size > 0:
 			varo_lut[:,crop,jxy,ixy] = EFLX_LH_TOT[:,landunit_indx_crop].squeeze()
 		    else:
-			varo_lut[:,crop,jxy,ixy] = 1.e36
+			varo_lut[:,crop,jxy,ixy] = missing
 
 		    # Check for valid urban landunit and compute weighted-average
 		    if landunit_indx_urban.size > 0:
@@ -122,12 +141,18 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 			    sys.exit(-1)
 			varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights)
 		    else:
-			varo_lut[:,urban,jxy,ixy] = 1.e36
+			varo_lut[:,urban,jxy,ixy] = missing
 
-        new_name = 'CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})'.format(EFLX_LH_TOT.name, 
-                              ntim.name, nlat.name, nlon.name, grid1d_ixy.name, grid1d_jxy.name, grid1d_lon.name,
-                              grid1d_lat.name, land1d_lon.name, land1d_lat.name, land1d_ityplunit.name,
-                              land1d_active.name, land1d_wtgcell.name) 
-	return PhysArray(varo_lut,  name=new_name)
+        mvaro_lut = np.ma.mean(varo_lut, axis=1)
+
+        new_name = 'CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})'.format(pEFLX_LH_TOT.name, 
+                              pntim.name, pnlat.name, pnlon.name, pgrid1d_ixy.name, pgrid1d_jxy.name, pgrid1d_lon.name,
+                              pgrid1d_lat.name, pland1d_lon.name, pland1d_lat.name, pland1d_ityplunit.name,
+                              pland1d_active.name, pland1d_wtgcell.name) 
+
+        #mvaro_lut[mvaro_lut>=1e+16] = 1e+20
+        #ma_mvaro_lut = np.ma.masked_values(mvaro_lut, 1e+20) 
+
+	return PhysArray(mvaro_lut,  name=new_name, units=pEFLX_LH_TOT.units)
 
 

@@ -19,7 +19,9 @@ class ZonalMeanFunction(Function):
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
-        return mean(data, axis=3)
+        m = mean(data, axis=3)
+        return m
+        #return mean(data, axis=3)
 
 
 #=======================================================================================================================
