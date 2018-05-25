@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 from pyconform.physarray import PhysArray, UnitsError
 from numpy.ma import sqrt, where
 from cf_units import Unit
+import numpy as np
 
 #=======================================================================================================================
 # is_constant - Determine if an argument is a constant (number or string)
@@ -307,6 +308,91 @@ class MeanFunction(Function):
         dimensions = self.arguments[1:]
         indims = [d for d in dimensions if d in data.dimensions]
         return data.mean(dimensions=indims)
+
+
+#===================================================================================================
+# SumFunction
+#===================================================================================================
+class SumFunction(Function):
+    key = 'sum'
+
+    def __init__(self, data, *dimensions):
+        super(SumFunction, self).__init__(data, *dimensions)
+        self.add_sumlike_dimensions(*dimensions)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('sum: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('sum: Dimensions must be strings')
+
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        dimensions = self.arguments[1:]
+        indims = []
+        for d in dimensions:
+             print d,'in',data.dimensions,'?'
+             if d in data.dimensions:
+                 print 'will append ',data.dimensions.index(d)
+                 indims.append(data.dimensions.index(d))
+        return np.sum(data, indims[0])
+
+#===================================================================================================
+# MinFunction
+#===================================================================================================
+class MinFunction(Function):
+    key = 'min'
+
+    def __init__(self, data, *dimensions):
+        super(MinFunction, self).__init__(data, *dimensions)
+        self.add_sumlike_dimensions(*dimensions)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('min: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('min: Dimensions must be strings')
+
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        dimensions = self.arguments[1:]
+        indims = []
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[data.dimensions[0],data.dimensions[2],data.dimensions[3]])
+        for d in dimensions:
+             if d in data.dimensions:
+                 indims.append(data.dimensions.index(d))
+        new_name='min({},{})'.format(data.name,dimensions)
+        m = np.amin(data, axis=indims[0])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0],data.dimensions[2],data.dimensions[3]])
+
+
+#===================================================================================================
+# MaxFunction
+#===================================================================================================
+class MaxFunction(Function):
+    key = 'max'
+
+    def __init__(self, data, *dimensions):
+        super(MaxFunction, self).__init__(data, *dimensions)
+        self.add_sumlike_dimensions(*dimensions)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('max: Data must be a PhysArray')
+        if not all(isinstance(d, basestring) for d in dimensions):
+            raise TypeError('max: Dimensions must be strings')
+
+    def __getitem__(self, index):
+        data = self.arguments[0][index]
+        dimensions = self.arguments[1:]
+        indims = []
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), units=data.units, dimensions=[data.dimensions[0],data.dimensions[2],data.dimensions[3]])
+        for d in dimensions:
+             if d in data.dimensions:
+                 indims.append(data.dimensions.index(d))
+        new_name='max({},{})'.format(data.name,dimensions[0])
+        m = np.amax(data, axis=indims[0])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0],data.dimensions[2],data.dimensions[3]])
+
 
 
 #===================================================================================================
