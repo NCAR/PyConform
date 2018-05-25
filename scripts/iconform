@@ -16,6 +16,9 @@ import datetime
 from dreqPy import dreq
 import uuid
 
+
+version = 'v'+str(datetime.datetime.now().year)+str(datetime.datetime.now().month).zfill(2)+str(datetime.datetime.now().day).zfill(2)
+
 # Map netcdf types to python types
 #data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
 #              'float': 'float32', 'real': 'float32', 'double': 'float64', 
@@ -152,7 +155,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             if "parent_source_id" in attr.keys():
                 attr["parent_source_id"] = attr["source_id"]
             if "parent_time_units" in attr.keys():
-                attr["parent_time_units"] = "days since 0000-01-01 00:00:00"
+                attr["parent_time_units"] = "days since 0001-01-01 00:00:00"
     else:
         if "branch_time_in_child" in attr.keys():
             attr["branch_time_in_child"] = "none"
@@ -167,13 +170,13 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 
     if "variant_label" in attr.keys():
         pre = attr["variant_label"].split('r')[1]
-        attr["realization_index"] = int(pre.split('i')[0])
+        attr["realization_index"] = (pre.split('i')[0])
         pre = pre.split('i')[1]
-        attr["initialization_index"] = int(pre.split('p')[0])
+        attr["initialization_index"] = (pre.split('p')[0])
         pre = pre.split('p')[1]
-        attr["physics_index"] = int(pre.split('f')[0])
+        attr["physics_index"] = (pre.split('f')[0])
         pre = int(pre.split('f')[1])
-        attr["forcing_index"] = pre
+        attr["forcing_index"] = str(pre)
 
     if "further_info_url" in attr.keys():
         if "__FILL__" in attr["further_info_url"]:       
@@ -260,7 +263,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         source_id = attributes['source_id']
     else:
         source_id = ''
-    if 'grid_labels' in attributes.keys():
+    if 'grid_label' in attributes.keys():
         grid = attributes['grid_label']
     else:
         grid = ''
@@ -298,11 +301,10 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         dst = date_strings[v["frequency"]]
     else:
         dst = ''
-    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}_{11}_{12}_{13}_{14}_{15}{16}.nc".format(
+    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}_{17}.nc".format(
                out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
-               varName, grid, 
+               varName, grid, version, 
                varName, mipTable, source_id, experiment, ripf, grid, dst))
-
     var = {}
 
     # put together the dictionary entry for this variable    
@@ -364,7 +366,7 @@ def defineAxes(v, name):
             v2.pop(key,None)
     # Hardcode this value in for time.  Not ideal, but the request has it listed as "days since ?" and this will fail.
     if 'time' in name:
-        v2["units"] = "days since 0000-01-01 00:00:00"
+        v2["units"] = "days since 0001-01-01 00:00:00"
 
     # put everything into a variable dictionary
     var["attributes"] = v2

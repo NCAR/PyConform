@@ -59,7 +59,7 @@ def variable_search(obj, vars=None):
 #=========================================================================
 # print_columnar
 #=========================================================================
-def print_columnar(x, textwidth=100, indent=0, header=''):
+def print_columnar(x, textwidth=10000000, indent=0, header=''):
     hrstrp = '{}  '.format(str(header).rstrip())
     if len(hrstrp) > indent:
         indent = len(hrstrp)
