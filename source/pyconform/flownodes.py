@@ -528,8 +528,8 @@ class ValidateNode(FlowNode):
         if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
             indata = indata.astype(odtype)
         else:
-            raise TypeError('Cannot cast datatype {!s} to {!s} in ValidateNode '
-                            '{!r}').format(indata.dtype, odtype, self.label)
+            raise TypeError(('Cannot cast datatype {!s} to {!s} in ValidateNode '
+                             '{!r}').format(indata.dtype, odtype, self.label))
 
         # Check that units match as expected, otherwise convert
         if 'units' in self.attributes:
