@@ -28,10 +28,29 @@ data_types = {'char': 'char', 'byte': 'byte', 'short': 'short', 'int': 'int',
               'character':'char', 'integer':'int'}
 
 # The way the date should be formatted in the filenames
-date_strings = {'yr': '{%Y-%Y}', 'mon': '{%Y%m-%Y%m}', 'monClim': '{%Y%m-%Y%m-clim}', 
-                'day': '{%Y%m%d-%Y%m%d}', '6hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', 
-                '3hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hr': '{%Y%m%d%H%M-%Y%m%d%H%M}',
-                'subhr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hrClimMon': '{%Y%m%d%H%M-%Y%m%d%H%M-clim}'}
+#date_strings = {'yr': '{%Y-%Y}', 'mon': '{%Y%m-%Y%m}', 'monClim': '{%Y%m-%Y%m-clim}', 
+#                'day': '{%Y%m%d-%Y%m%d}', '6hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', 
+#                '3hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hr': '{%Y%m%d%H%M-%Y%m%d%H%M}',
+#                'subhr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hrClimMon': '{%Y%m%d%H%M-%Y%m%d%H%M-clim}'}
+date_strings = {"1hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "1hrCM":'_{%Y%m%d%H%M-%Y%m%d%H%M}-clim',
+                "1hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "3hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "3hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "6hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}', 
+                "6hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}', 
+                "day":'_{%Y%m%d-%Y%m%d}',
+                "dec":'_{%Y-%Y}',
+                "fx":'',
+                "mon":'_{%Y%m-%Y%m}',
+                "monC":'_{%Y%m-%Y%m}-clim',
+                "monPt":'_{%Y%m-%Y%m}',
+                "subhrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "yr":'_{%Y-%Y}',
+                "yrPt":'_{%Y-%Y}'
+}
+
+
 
 #===================================================================================================
 # parseArgs
@@ -301,7 +320,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         dst = date_strings[v["frequency"]]
     else:
         dst = ''
-    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}_{17}.nc".format(
+    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
                out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
                varName, grid, version, 
                varName, mipTable, source_id, experiment, ripf, grid, dst))

@@ -4,6 +4,7 @@ from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
 from cf_units import Unit
 from numpy import diff, empty, mean
+import numpy as np
 
 #===================================================================================================
 # ZonalMeanFunction
@@ -112,5 +113,119 @@ class BoundsFunction(Function):
             new_data[:,1] = ifc_data[1:]
 
         return new_data
+
+#===================================================================================================
+# AgeofAirFunction
+#===================================================================================================
+class AgeofAirFunction(Function):
+    key = 'ageofair'
+
+    def __init__(self, spc_zm,date,time,lat,lev):
+        super(AgeofAirFunction, self).__init__(spc_zm,date,time,lat,lev)
+
+    def __getitem__(self, index):
+        p_spc_zm = self.arguments[0][index]
+        p_date = self.arguments[1][index]
+        p_time = self.arguments[2][index]
+        p_lat = self.arguments[3][index]
+        p_lev = self.arguments[4][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[p_time.dimensions[0],p_lev.dimensions[0],p_lat.dimensions[0]])
+      
+        spc_zm = p_spc_zm.data
+        date = p_date.data
+        time = p_time.data
+        lat = p_lat.data
+        lev = p_lev.data
+ 
+        a = np.zeros((len(time),len(lev),len(lat)))
+
+        # Unpack month and year.  Adjust to compensate for the output convention in h0 files
+        year = date/10000
+        month = (date/100 % 100)
+        day   = date - 10000*year - 100*month
+
+        month = month - 1
+        for m in range(len(month)):
+            if month[m] == 12:
+                year[m] = year[m]-1
+                month[m] = 0
+
+        timeyr = year + (month-0.5)/12.
+
+        spc_ref = spc_zm[:,0,0]
+        for iy in range(len(lat)):
+            for iz in range(len(lev)):
+                spc_local = spc_zm[:,iz,iy]
+                time0 = np.interp(spc_local,spc_ref,timeyr)
+                a[:,iz,iy] = timeyr - time0
+
+
+        new_name = 'ageofair({}{}{}{}{})'.format(p_spc_zm.name,p_date.name,p_time.name,p_lat.name,p_lev.name)
+
+        return PhysArray(a, name = new_name, units="yr")
+
+
+#===================================================================================================
+# yeartomonth_dataFunction
+#===================================================================================================
+class YeartoMonth_dataFunction(Function):
+    key = 'yeartomonth_data'
+
+    def __init__(self, data, time, lat, lon):
+        super(YeartoMonth_dataFunction, self).__init__(data, time, lat, lon)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+        p_time = self.arguments[1][index]
+        p_lat = self.arguments[2][index]
+        p_lon = self.arguments[3][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[p_time.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]])
+
+        data = p_data.data
+        time = p_time.data
+        lat = p_lat.data
+        lon = p_lon.data
+
+        a = np.zeros((len(time)*12,len(lat),len(lon)))
+        for i in range(len(time)):
+            for j in range(12):
+                a[((i*12)+j),:,:] = data[i,:,:]
+
+        new_name = 'yeartomonth_data({}{}{}{})'.format(p_data.name, p_time.name, p_lat.name, p_lon.name)
+
+        return PhysArray(a, name = new_name, units=p_data.units)                 
+
+#===================================================================================================
+# yeartomonth_timeFunction
+#===================================================================================================
+class YeartoMonth_timeFunction(Function):
+    key = 'yeartomonth_time'
+
+    def __init__(self, time):
+        super(YeartoMonth_timeFunction, self).__init__(time)
+
+    def __getitem__(self, index):
+        p_time = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0)), dimensions=[p_time.dimensions[0]], units=p_time.units, calendar='noleap')
+
+        time = p_time.data
+        monLens = [31.0,28.0,31.0,30.0,31.0,30.0,31.0,31.0,30.0,31.0,30.0,31.0]
+
+        a = np.zeros((len(time)*12))
+        for i in range(len(time)):
+            prev = 0
+            for j in range(12):
+                a[((i*12)+j)] = float((time[i]-365)+prev+float(monLens[j]/2.0))
+                prev += monLens[j]
+
+        new_name = 'yeartomonth_time({})'.format(p_time.name)
+
+        return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0]], units=p_time.units, calendar='noleap')
 
 
