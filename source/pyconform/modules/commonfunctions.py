@@ -229,3 +229,132 @@ class YeartoMonth_timeFunction(Function):
         return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0]], units=p_time.units, calendar='noleap')
 
 
+#===================================================================================================
+# POP_bottom_layerFunction
+#===================================================================================================
+class POP_bottom_layerFunction(Function):
+    key = 'POP_bottom_layer'
+
+    def __init__(self, KMT, data):
+        super(POP_bottom_layerFunction, self).__init__(KMT, data)
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_data = self.arguments[1][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[p_data.dimensions[0],p_data.dimensions[2],p_data.dimensions[3]])
+
+        data = p_data.data
+        KMT = p_KMT.data
+
+        a = np.zeros((p_data.shape[0],p_data.shape[2],p_data.shape[3]))
+
+        for j in range(KMT.shape[0]):
+            for i in range(KMT.shape[1]):
+                a[:,j,i] = data[:,KMT[j,i]-1,j,i] 
+
+        new_name = 'POP_bottom_layer({}{})'.format( p_KMT.name, p_data.name)
+
+        return PhysArray(a, name = new_name, units=p_data.units)
+
+
+#===================================================================================================
+# masked_invalidFunction
+#===================================================================================================
+class masked_invalidFunction(Function):
+    key = 'masked_invalid'
+
+    def __init__(self, data):
+        super(masked_invalidFunction, self).__init__(data)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0,0)), dimensions=[p_data.dimensions[0],p_data.dimensions[1],p_data.dimensions[2]])
+
+        data = p_data.data
+
+        a = np.ma.masked_invalid(data)
+
+        new_name = 'masked_invalid({})'.format(p_data.name)
+
+        return PhysArray(a, name = new_name, units=p_data.units)
+
+
+#===================================================================================================
+# hemisphereFunction
+#===================================================================================================
+class hemisphereFunction(Function):
+    key = 'hemisphere'
+
+    def __init__(self, data, dim='dim', dr='dr'):
+        super(hemisphereFunction, self).__init__(data, dim=dim, dr=dr)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+        dim = self.keywords['dim']
+        dr = self.keywords['dr']
+
+        data = p_data.data
+
+        a = None
+
+        # dim0?
+        if dim in p_data.dimensions[0]:
+            if ">" in dr:
+                return p_data[(data.shape[0]/2):data.shape[0],:,:]
+            elif "<" in dr:
+                return p_data[0:(data.shape[0]/2),:,:]
+        # dim1?
+        if dim in p_data.dimensions[1]:
+            if ">" in dr:
+               return p_data[:,(data.shape[1]/2):data.shape[1],:]
+            elif "<" in dr:
+                return p_data[:,0:(data.shape[1]/2),:]
+        # dim2?
+        if dim in p_data.dimensions[2]:
+            if ">" in dr:
+                return p_data[:,:,(data.shape[2]/2):data.shape[2]]
+            elif "<" in dr:
+                return p_data[:,:,0:(data.shape[2]/2)]
+
+
+#===================================================================================================
+# cice_whereFunction
+#===================================================================================================
+class cice_whereFunction(Function):
+    key = 'cice_where'
+
+    # np.where(x < 5, x, -1) 
+
+    def __init__(self, a1, condition, a2, var, value):
+        super(cice_whereFunction, self).__init__(a1, condition, a2, var, value)
+
+    def __getitem__(self, index):
+        a1 = self.arguments[0][index]
+        condition = self.arguments[1]
+        a2 = self.arguments[2]
+        var = self.arguments[3][index]
+        value = self.arguments[4]
+
+        if index is None:
+            return PhysArray(a1.data, dimensions=[a1.dimensions[0],a1.dimensions[1],a1.dimensions[2]])
+        
+        a = np.ma.zeros(a1.shape)
+        for t in range(a1.data.shape[0]):
+            if '>=' in condition:
+                a[t,:,:] = np.ma.where(a1[t,:,:] >= a2, var, value)
+            elif '<=' in condition:
+                a[t,:,:] = np.ma.where(a1[t,:,:] <= a2, var, value) 
+            elif '==' in condition:
+                a[t,:,:] = np.ma.where(a1[t,:,:] == a2, var, value)
+            elif '<' in condition:
+                a[t,:,:] = np.ma.where(a1[t,:,:] < a2, var, value)
+            elif '>' in condition:
+                a[t,:,:] = np.ma.where(a1[t,:,:] > a2, var, value)
+        return PhysArray(a, dimensions=[a1.dimensions[0],a1.dimensions[1],a1.dimensions[2]], units=var.units) 
+
+
+
