@@ -138,6 +138,7 @@ def load(defs,key=None):
 def fill_missing_glob_attributes(attr, table, v, grids):
 
     for a,d in attr.iteritems():
+      if d is not None:
         if "__FILL__" in d:
             if "activity_id" in a:
                 attr["activity_id"] = table["activity_id"] 
@@ -490,7 +491,10 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
                          TableSpec[ts_key][dim] = defineAxes(axes[dim], dim)
                          if 'Coords_'+t_realm in definitions.keys():
                              if dim in definitions['Coords_'+t_realm].keys():
-                                 TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
+                                 if 'landUse' in dim:
+                                     TableSpec[ts_key][dim]['definition'] = [0,1,2,3]
+                                 else:
+                                     TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
                              else:
                                  if 'definition' not in  TableSpec[ts_key][dim].keys():
                                      print "MISSING "+dim+" in "+'Coords_'+t_realm+" (for variable "+v+")"

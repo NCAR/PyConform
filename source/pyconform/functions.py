@@ -351,9 +351,9 @@ class SumFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         for d in dimensions:
-            print d, 'in', data.dimensions, '?'
+            #print d, 'in', data.dimensions, '?'
             if d in data.dimensions:
-                print 'will append ', data.dimensions.index(d)
+                #print 'will append ', data.dimensions.index(d)
                 indims.append(data.dimensions.index(d))
         return np.sum(data, indims[0])
 
