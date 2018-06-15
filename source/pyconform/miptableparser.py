@@ -497,6 +497,17 @@ class ParseXML(object):
                                 if hasattr(t_var,'title'):
                                     var['time_title'] = t_var.title
 
+                            # Is there did? 
+                            if hasattr(s_var, 'dids'):
+                                if isinstance(s_var.dids, tuple): 
+                                    extra_dim = dq.inx.uid[s_var.dids[0]].label
+                                    if 'coordinates' not in var.keys():
+                                        var['coordinates'] = extra_dim
+                                    else:
+                                        var['coordinates'] = extra_dim + "|"+ var['coordinates']
+                                    if extra_dim not in axes_list:
+                                        axes_list.append(extra_dim) 
+
                             # Set what we can from the spatial section
                             if hasattr(s_var, 'spid'):
 	                        sp_var = dq.inx.uid[s_var.spid]
@@ -536,9 +547,7 @@ class ParseXML(object):
 
                             # Add variable to variable dictionary
                             variables[c_var.label] = var
-
                 for a in axes_list:
-                    #print a
                     if a in dq.inx.grids.label.keys():
                         id = dq.inx.grids.label[a]
                         if len(id) > 0:
@@ -565,7 +574,10 @@ class ParseXML(object):
                             else:
                                 ax['standard_name'] = a
                         if hasattr(v,'type'):
-                            ax['type'] = v.type
+                            if 'landUse' in a:
+                                ax['type'] = 'int'
+                            else:
+                                ax['type'] = v.type
                         if hasattr(v,'id'):
                             ax['id'] = v.label
                         if hasattr(v,'positive'):
