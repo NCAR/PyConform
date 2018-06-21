@@ -521,6 +521,8 @@ class ParseXML(object):
                                             var['coordinates'] = sp_var_d + '|' + var['coordinates']
                                         else:
                                             var['coordinates'] = sp_var.dimensions
+                                        if 'grid_latitude' in var['coordinates']:
+                                            var['coordinates'] = var['coordinates'].replace('grid_latitude','gridlatitude')
                                         dims = var['coordinates'].split('|')
                                         for d in dims:
                                             if d not in axes_list and d != '' and d != 'None':
@@ -548,6 +550,8 @@ class ParseXML(object):
                             # Add variable to variable dictionary
                             variables[c_var.label] = var
                 for a in axes_list:
+                    if 'grid_latitude' in a:
+                        a = 'gridlatitude'
                     if a in dq.inx.grids.label.keys():
                         id = dq.inx.grids.label[a]
                         if len(id) > 0:
