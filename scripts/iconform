@@ -514,15 +514,17 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             with open(f, 'w') as outfile:
                 json.dump(t, outfile, sort_keys=True, indent=4)
     else:
+        ignore = ['latitude','longitude','olevel','plev19','time','time1','alevhalf','ygre','xgre','vegtype','spectband','areacellg','alevel','xant','yant','rho','tau','plev3','gridlatitude','plev39','plev4','plev27','plev3','plev7h','plev7c','plev8','plev7h']
         for n,t in TableSpec.iteritems():
             for vn,var in t.iteritems():
-                varD={}
-                varD[vn]=var
-                for d in var["dimensions"]:
-                    varD[d]=t[d]
-                f = output_path + "/" + experiment + '_' + n + '_' + vn + '_spec.json'
-                with open(f, 'w') as outfile:
-                    json.dump(varD, outfile, sort_keys=True, indent=4)
+                if vn not in ignore:
+                    varD={}
+                    varD[vn]=var
+                    for d in var["dimensions"]:
+                        varD[d]=t[d]
+                    f = output_path + "/" + experiment + '_' + n + '_' + vn + '_spec.json'
+                    with open(f, 'w') as outfile:
+                        json.dump(varD, outfile, sort_keys=True, indent=4)
 
     #f1 = output_path + '/MISSING_DEFS.json'
     #with open(f1, 'w') as outfile:
