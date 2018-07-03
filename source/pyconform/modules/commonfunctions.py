@@ -259,6 +259,74 @@ class POP_bottom_layerFunction(Function):
         return PhysArray(a, name = new_name, units=p_data.units)
 
 
+
+#===================================================================================================
+# sftofFunction
+#===================================================================================================
+class sftofFunction(Function):
+    key = 'sftof'
+
+    def __init__(self, KMT):
+        super(sftofFunction, self).__init__(KMT)
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0)), dimensions=[p_KMT.dimensions[0],p_KMT.dimensions[1]])
+
+        KMT = p_KMT.data
+
+        a = np.zeros((KMT.shape[0],KMT.shape[1]))
+
+        for j in range(KMT.shape[0]):
+            for i in range(KMT.shape[1]):
+                if KMT[j,i] > 0:
+                    a[j,i] = 1
+
+        new_name = 'sftof({})'.format( p_KMT.name)
+
+        return PhysArray(a, name = new_name, dimensions=[p_KMT.dimensions[0],p_KMT.dimensions[1]], units=p_KMT.units)
+
+
+
+#===================================================================================================
+# POP_bottom_layer_multFunction
+#===================================================================================================
+class POP_bottom_layer_multaddFunction(Function):
+    key = 'POP_bottom_layer_multadd'
+
+    def __init__(self, KMT, data1, data2):
+        super(POP_bottom_layer_multaddFunction, self).__init__(KMT, data1, data2)
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_data1 = self.arguments[1][index]
+        p_data2 = self.arguments[2][index]
+
+        data1 = p_data1.data
+        data2 = p_data2.data
+        KMT = p_KMT.data
+
+        a1 = np.zeros((p_data2.shape[0],p_data2.shape[2],p_data2.shape[3]))
+        a2 = np.zeros((p_data2.shape[0]))
+
+        for t in range(p_data2.shape[0]):
+            for j in range(KMT.shape[0]):
+                for i in range(KMT.shape[1]):
+                    k = KMT[j,i]-1
+                    if data2[t,k,j,i] < 1e+16:
+                        a1[t,j,i] = data1[k]*data2[t,k,j,i]
+                        #print a1[t,j,i],data1[k],data2[t,k,j,i]
+        for t in range(p_data2.shape[0]):
+            a2[t] = np.ma.sum(a1[t,:,:])
+            #print a2[t]
+
+        return PhysArray(a2, dimensions=[p_data2.dimensions[0]], units=p_data2.units)
+
+
+
+
 #===================================================================================================
 # masked_invalidFunction
 #===================================================================================================
@@ -357,4 +425,189 @@ class cice_whereFunction(Function):
         return PhysArray(a, dimensions=[a1.dimensions[0],a1.dimensions[1],a1.dimensions[2]], units=var.units) 
 
 
+#===================================================================================================
+# cice_regions
+#===================================================================================================
+class cice_regionsFunction(Function):
+    key = 'cice_regions'
+
+    def __init__(self, p_aice, p_uvel, p_vvel, p_HTE, p_HTN, p_siline, multiple):
+        super(cice_regionsFunction, self).__init__(p_aice, p_uvel, p_vvel, p_HTE, p_HTN, p_siline, multiple)
+
+    def __getitem__(self, index):
+        p_aice = self.arguments[0][index]
+        p_uvel = self.arguments[1][index]
+        p_vvel = self.arguments[2][index]
+        p_HTE = self.arguments[3][index]
+        p_HTN = self.arguments[4][index]
+        p_siline = self.arguments[5][index]
+        multiple = self.arguments[6]
+
+        aice=p_aice
+        uvel=p_uvel
+        vvel=p_vvel
+        HTE=p_HTE
+        HTN=p_HTN
+        siline=p_siline
+        a = np.ma.zeros((aice.data.shape[0],siline.data.shape[0]))
+
+        for t in range(aice.data.shape[0]):
+            #1
+            i = 92
+            for j in range(370, 381):
+                if aice[t,j,i] < 1e+16 and aice[t,j,i+1] < 1e+16 and HTE[j,i] < 1e+16 and uvel[t,j,i] < 1e+16 and uvel[t,j-1,i] < 1e+16: 
+                    a[t,0] += 0.5*(aice[t,j,i]+aice[t,j,i+1])*0.5*(HTE[j,i]*uvel[t,j,i]+HTE[j,i]*uvel[t,j-1,i])
+            #2
+            i = 214
+            for j in range(375,377):
+                if aice[t,j,i] < 1e+16 and aice[t,j,i+1] < 1e+16 and HTE[j,i] < 1e+16 and uvel[t,j,i] < 1e+16 and uvel[t,j-1,i] < 1e+16 and aice[t,j+1,i] < 1e+16 and HTN[j,i] < 1e+16 and vvel[t,j,i] < 1e+16 and vvel[t,j,i-1] < 1e+16: 
+                    a[t,1] += 0.5*(aice[t,j,i]+aice[t,j,i+1])*0.5*(HTE[j,i]*uvel[t,j,i]+HTE[j,i]*uvel[t,j-1,i]) + 0.5*(aice[t,j,i]+aice[t,j+1,i])*0.5*(HTN[j,i]*vvel[t,j,i]+HTN[j,i]*vvel[t,j,i-1])
+            j = 366
+            for i in range(240,244):
+                if aice[t,j,i] < 1e+16 and aice[t,j,i+1] < 1e+16 and HTE[j,i] < 1e+16 and uvel[t,j,i] < 1e+16 and uvel[t,j-1,i] < 1e+16 and aice[t,j+1,i] < 1e+16 and HTN[j,i] < 1e+16 and vvel[t,j,i] < 1e+16 and vvel[t,j,i-1] < 1e+16: 
+                    a[t,1] += 0.5*(aice[t,j,i]+aice[t,j,i+1])*0.5*(HTE[j,i]*uvel[t,j,i]+HTE[j,i]*uvel[t,j-1,i]) + 0.5*(aice[t,j,i]+aice[t,j+1,i])*0.5*(HTN[j,i]*vvel[t,j,i]+HTN[j,i]*vvel[t,j,i-1])
+            #3
+            i = 85
+            for j in range(344,366):
+                if aice[t,j,i] < 1e+16 and aice[t,j,i+1] < 1e+16 and HTE[j,i] < 1e+16 and uvel[t,j,i] < 1e+16 and uvel[t,j-1,i] < 1e+16: 
+                    a[t,2] += 0.5*(aice[t,j,i]+aice[t,j,i+1])*0.5*(HTE[j,i]*uvel[t,j,i]+HTE[j,i]*uvel[t,j-1,i])
+            #4
+            j = 333
+            for j in range(198,201):
+                if aice[t,j,i] < 1e+16 and aice[t,j+1,i] < 1e+16 and HTN[j,i] < 1e+16 and vvel[t,j,i] < 1e+16 and vvel[t,j,i-1] < 1e+16: 
+                    a[t,3] +=  0.5*(aice[t,j,i]+aice[t,j+1,i])*0.5*(HTN[j,i]*vvel[t,j,i]+HTN[j,i]*vvel[t,j,i-1])
+
+        a = a*multiple
+
+        return PhysArray(a, dimensions=[p_aice.dimensions[0],p_siline.dimensions[0]], units=uvel.units)
+
+
+#===================================================================================================
+# reduce_luFunction
+#===================================================================================================
+class reduce_luFunction(Function):
+    key = 'reduce_lu'
+
+    # np.where(x < 5, x, -1) 
+
+    def __init__(self, p_data,p_lu):
+        super(reduce_luFunction, self).__init__(p_data,p_lu)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+        p_lu = self.arguments[1][index]
+
+        #if index is None:
+        #    return PhysArray(p_data.data, dimensions=[p_data.dimensions[0],p_lu.dimensions[0],p_data.dimensions[2],p_data.dimensions[3]])
+
+        data = p_data.data
+        lu = p_lu.data 
+
+        data2 = np.ma.zeros((data.shape[0],4,data.shape[2],data.shape[3]))
+
+        for t in range(data.shape[0]):
+            for x in range(data.shape[2]):
+                for y in range(data.shape[3]):
+                    data2[t,0,x,y] = data[t,0,x,y]
+                    data2[t,1,x,y] = 0
+                    data2[t,2,x,y] = data[t,1,x,y]
+                    data2[t,3,x,y] = data[t,6,x,y]+data[t,7,x,y]+data[t,8,x,y]
+        data2[data2>=1e+16] = 1e+20
+
+        return PhysArray(data2, dimensions=[p_data.dimensions[0],p_lu.dimensions[0],p_data.dimensions[2],p_data.dimensions[3]], units=p_data.units)
+
+
+#===================================================================================================
+# soilpoolsFunction
+#===================================================================================================
+class soilpoolsFunction(Function):
+    key = 'soilpools'
+
+    def __init__(self, p_data1,p_data2,p_data3,p_soilpool):
+        super(soilpoolsFunction, self).__init__(p_data1,p_data2,p_data3,p_soilpool)
+
+    def __getitem__(self, index):
+        p_data1 = self.arguments[0][index]
+        p_data2 = self.arguments[1][index]
+        p_data3 = self.arguments[2][index]
+        p_soilpool = self.arguments[3][index]
+
+        data1 = p_data1.data
+        data2 = p_data2.data
+        data3 = p_data3.data
+        soilpool = p_soilpool.data
+
+        data = np.ma.zeros((data1.shape[0],3,data1.shape[1],data1.shape[2]))
+
+        data[:,0,:,:] = data1
+        data[:,1,:,:] = data2
+        data[:,2,:,:] = data3
+
+        data[data>=1e+16] = 1e+20
+        data = np.ma.masked_values(data, 1e+20)
+
+        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_soilpool.dimensions[0],p_data1.dimensions[1],p_data1.dimensions[2]], units=p_data1.units)
+
+
+#===================================================================================================
+# expand_latlonFunction
+#===================================================================================================
+class expand_latlonFunction(Function):
+    key = 'expand_latlon'
+
+    def __init__(self, p_data1,p_lat,p_lon):
+        super(expand_latlonFunction, self).__init__(p_data1,p_lat,p_lon)
+
+    def __getitem__(self, index):
+        p_data1 = self.arguments[0][index]
+        p_lat = self.arguments[1][index]
+        p_lon = self.arguments[2][index]
+
+        data1 = p_data1.data
+        lat = p_lat.data
+        lon = p_lon.data
+
+        data = np.ma.zeros((data1.shape[0],lat.shape[0],lon.shape[0]))
+
+        for x in range(lat.shape[0]):
+            for y in range(lon.shape[0]):
+                data[:,x,y] = data1 
+
+        data[data>=1e+16] = 1e+20
+        data = np.ma.masked_values(data, 1e+20)
+
+        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data1.units)
+
+
+#===================================================================================================
+# ocean_basinFunction
+#===================================================================================================
+class ocean_basinFunction(Function):
+    key = 'ocean_basin'
+
+    def __init__(self, p_data1, p_comp, p_basin):
+        super(ocean_basinFunction, self).__init__(p_data1, p_comp, p_basin)
+
+    def __getitem__(self, index):
+        p_data1 = self.arguments[0][index]
+        p_comp = self.arguments[1]
+        p_basin = self.arguments[2][index]
+
+        data1 = p_data1.data
+        comp = int(p_comp)
+        basin = p_basin.data
+
+        data = np.ma.zeros((data1.shape[0],data1.shape[4],data1.shape[3],basin.shape[0]))
+
+        for t in range(data1.shape[0]):
+            for x in range(data1.shape[4]):
+                for y in range(data1.shape[3]):
+                    data[t,x,y,0] = data1[t,1,comp,y,x]
+                    data[t,x,y,1] = data1[t,0,comp,y,x]-data1[t,1,comp,y,x]
+                    data[t,x,y,2] = data1[t,0,comp,y,x]
+
+        data[data>=1e+16] = 1e+20
+        data = np.ma.masked_values(data, 1e+20)
+
+        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_data1.dimensions[4],p_data1.dimensions[3],p_basin.dimensions[0]], units=p_data1.units)
 
