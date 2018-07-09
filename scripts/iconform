@@ -467,6 +467,7 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             ts_key = None
             mip = d['mipTable']
             if mip in definitions.keys():
+                ig = ""
                 if v in definitions[mip].keys():
                     if "N/A" in definitions[mip][v].upper():
                         v_def = ""
@@ -614,6 +615,9 @@ def main(argv=None):
                 if "json" in gaFile:
                     with open(gaFile) as gaF: 
                         ga = json.load(gaF)
+                    for k in ga.keys():
+                        if ga[k] is None:
+                            ga[k] = ""
                     attributes.update(ga)             
                 else:
                     with open(gaFile) as y_attributes:

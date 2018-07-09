@@ -322,7 +322,8 @@ class POP_bottom_layer_multaddFunction(Function):
             a2[t] = np.ma.sum(a1[t,:,:])
             #print a2[t]
 
-        return PhysArray(a2, dimensions=[p_data2.dimensions[0]], units=p_data2.units)
+        new_name = 'POP_bottom_layer_multadd({}{}{})'.format(KMT.name, data1.name, data2.name)
+        return PhysArray(a2, name=new_name, dimensions=[p_data2.dimensions[0]], units=p_data2.units)
 
 
 
@@ -422,7 +423,9 @@ class cice_whereFunction(Function):
                 a[t,:,:] = np.ma.where(a1[t,:,:] < a2, var, value)
             elif '>' in condition:
                 a[t,:,:] = np.ma.where(a1[t,:,:] > a2, var, value)
-        return PhysArray(a, dimensions=[a1.dimensions[0],a1.dimensions[1],a1.dimensions[2]], units=var.units) 
+
+        new_name = 'cice_where()'.format()
+        return PhysArray(a, name=new_name, dimensions=[a1.dimensions[0],a1.dimensions[1],a1.dimensions[2]], units=var.units) 
 
 
 #===================================================================================================
@@ -473,13 +476,14 @@ class cice_regionsFunction(Function):
                     a[t,2] += 0.5*(aice[t,j,i]+aice[t,j,i+1])*0.5*(HTE[j,i]*uvel[t,j,i]+HTE[j,i]*uvel[t,j-1,i])
             #4
             j = 333
-            for j in range(198,201):
+            for i in range(198,201):
                 if aice[t,j,i] < 1e+16 and aice[t,j+1,i] < 1e+16 and HTN[j,i] < 1e+16 and vvel[t,j,i] < 1e+16 and vvel[t,j,i-1] < 1e+16: 
                     a[t,3] +=  0.5*(aice[t,j,i]+aice[t,j+1,i])*0.5*(HTN[j,i]*vvel[t,j,i]+HTN[j,i]*vvel[t,j,i-1])
 
         a = a*multiple
 
-        return PhysArray(a, dimensions=[p_aice.dimensions[0],p_siline.dimensions[0]], units=uvel.units)
+        new_name = 'cice_regions()'.format()
+        return PhysArray(a, name=new_name, dimensions=[p_aice.dimensions[0],p_siline.dimensions[0]], units=uvel.units)
 
 
 #===================================================================================================
@@ -514,7 +518,8 @@ class reduce_luFunction(Function):
                     data2[t,3,x,y] = data[t,6,x,y]+data[t,7,x,y]+data[t,8,x,y]
         data2[data2>=1e+16] = 1e+20
 
-        return PhysArray(data2, dimensions=[p_data.dimensions[0],p_lu.dimensions[0],p_data.dimensions[2],p_data.dimensions[3]], units=p_data.units)
+        new_name = 'reduce_lu({}{})'.format(p_data.name,p_lu.name)
+        return PhysArray(data2, name=new_name, dimensions=[p_data.dimensions[0],p_lu.dimensions[0],p_data.dimensions[2],p_data.dimensions[3]], units=p_data.units)
 
 
 #===================================================================================================
@@ -546,7 +551,8 @@ class soilpoolsFunction(Function):
         data[data>=1e+16] = 1e+20
         data = np.ma.masked_values(data, 1e+20)
 
-        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_soilpool.dimensions[0],p_data1.dimensions[1],p_data1.dimensions[2]], units=p_data1.units)
+        new_name = 'soilpools({}{}{}{})'.format(p_data1.name,p_data2.name,p_data3.name,p_soilpool.name)
+        return PhysArray(data, name=new_name, dimensions=[p_data1.dimensions[0],p_soilpool.dimensions[0],p_data1.dimensions[1],p_data1.dimensions[2]], units=p_data1.units)
 
 
 #===================================================================================================
@@ -576,7 +582,8 @@ class expand_latlonFunction(Function):
         data[data>=1e+16] = 1e+20
         data = np.ma.masked_values(data, 1e+20)
 
-        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data1.units)
+        new_name = 'expand_latlon({}{}{})'.format( p_data1.name, p_lat.name, p_lon.name)
+        return PhysArray(data, name=new_name, dimensions=[p_data1.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data1.units)
 
 
 #===================================================================================================
@@ -609,5 +616,7 @@ class ocean_basinFunction(Function):
         data[data>=1e+16] = 1e+20
         data = np.ma.masked_values(data, 1e+20)
 
-        return PhysArray(data, dimensions=[p_data1.dimensions[0],p_data1.dimensions[4],p_data1.dimensions[3],p_basin.dimensions[0]], units=p_data1.units)
+        new_name = 'ocean_basin({}{})'.format(p_data1.name, p_basin.name)
+        return PhysArray(data, name=new_name, dimensions=[p_data1.dimensions[0],p_data1.dimensions[4],p_data1.dimensions[3],p_basin.dimensions[0]], units=p_data1.units)
+
 
