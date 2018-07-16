@@ -166,10 +166,12 @@ def fill_missing_glob_attributes(attr, table, v, grids):
                 attr["variable_id"] = v["variable_id"]
     if "branch_method" in attr.keys():
         if "none" not in attr["branch_method"]:
-            #if "branch_time_in_child" in attr.keys():
-            #    attr["branch_time_in_child"] = "Get correct date format"
-            #if "branch_time_in_parent" in attr.keys():
-            #    attr["branch_time_in_parent"] = "Get correct date format"
+            if "branch_time_in_child" in attr.keys():
+              if len(attr["branch_time_in_child"])>0:
+                attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0]) 
+            if "branch_time_in_parent" in attr.keys():
+              if len(attr["branch_time_in_parent"])>0:
+                attr["branch_time_in_parent"] = float(attr["branch_time_in_parent"].split('D')[0])
             if "parent_mip_era" in attr.keys():
                 attr["parent_mip_era"] = attr["mip_era"]
             if "parent_source_id" in attr.keys():
@@ -190,13 +192,13 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 
     if "variant_label" in attr.keys():
         pre = attr["variant_label"].split('r')[1]
-        attr["realization_index"] = (pre.split('i')[0])
+        attr["realization_index"] = int(pre.split('i')[0])
         pre = pre.split('i')[1]
-        attr["initialization_index"] = (pre.split('p')[0])
+        attr["initialization_index"] = int(pre.split('p')[0])
         pre = pre.split('p')[1]
-        attr["physics_index"] = (pre.split('f')[0])
+        attr["physics_index"] = int(pre.split('f')[0])
         pre = int(pre.split('f')[1])
-        attr["forcing_index"] = str(pre)
+        attr["forcing_index"] = int(pre)
 
     if "further_info_url" in attr.keys():
         if "__FILL__" in attr["further_info_url"]:       
@@ -225,7 +227,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             else:
                 ripf = ''
             info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment_id, sub_experiment_id, ripf)
-            attr['further_info_url'] = "http://furtherinfo.es-doc.org/" + info_url
+            attr['further_info_url'] = "https://furtherinfo.es-doc.org/" + info_url
     if "grid" in attr.keys():
         if len(attr["realm"])>0:
             attr["grid"] = grids[attr["realm"].split()[0]]
@@ -260,10 +262,10 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     # Get variables needed to piece together the filename
     ripf_list = ['realization_index','initialization_index','physics_index','forcing_index']
     if all (ripf in attributes for ripf in ripf_list):
-        ripf = ("r{0}i{1}p{2}f{3}".format(attributes['realization_index'],
-                                                     attributes['initialization_index'],
-                                                     attributes['physics_index'],
-                                                     attributes['forcing_index']))
+        ripf = ("r{0}i{1}p{2}f{3}".format(str(attributes['realization_index']),
+                                                     str(attributes['initialization_index']),
+                                                     str(attributes['physics_index']),
+                                                     str(attributes['forcing_index'])))
     else:
         ripf = ''
 
@@ -467,6 +469,7 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             ts_key = None
             mip = d['mipTable']
             if mip in definitions.keys():
+                ig = ""
                 if v in definitions[mip].keys():
                     if "N/A" in definitions[mip][v].upper():
                         v_def = ""
@@ -514,15 +517,17 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             with open(f, 'w') as outfile:
                 json.dump(t, outfile, sort_keys=True, indent=4)
     else:
+        ignore = ['latitude','longitude','olevel','plev19','time','time1','alevhalf','ygre','xgre','vegtype','spectband','areacellg','alevel','xant','yant','rho','tau','plev3','gridlatitude','plev39','plev4','plev27','plev3','plev7h','plev7c','plev8','plev7h','sdepth','siline','basin','olevel','site','soilpools','snowdepth','snowband','vegtype']
         for n,t in TableSpec.iteritems():
             for vn,var in t.iteritems():
-                varD={}
-                varD[vn]=var
-                for d in var["dimensions"]:
-                    varD[d]=t[d]
-                f = output_path + "/" + experiment + '_' + n + '_' + vn + '_spec.json'
-                with open(f, 'w') as outfile:
-                    json.dump(varD, outfile, sort_keys=True, indent=4)
+                if vn not in ignore:
+                    varD={}
+                    varD[vn]=var
+                    for d in var["dimensions"]:
+                        varD[d]=t[d]
+                    f = output_path + "/" + experiment + '_' + n + '_' + vn + '_spec.json'
+                    with open(f, 'w') as outfile:
+                        json.dump(varD, outfile, sort_keys=True, indent=4)
 
     #f1 = output_path + '/MISSING_DEFS.json'
     #with open(f1, 'w') as outfile:
@@ -612,6 +617,9 @@ def main(argv=None):
                 if "json" in gaFile:
                     with open(gaFile) as gaF: 
                         ga = json.load(gaF)
+                    for k in ga.keys():
+                        if ga[k] is None:
+                            ga[k] = ""
                     attributes.update(ga)             
                 else:
                     with open(gaFile) as y_attributes:

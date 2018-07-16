@@ -421,6 +421,7 @@ class ParseXML(object):
                         var['mipTable']=c_var.mipTable
                         if c_var.mipTable in tables or '--ALL--' in tables: 
                             var["_FillValue"] = "1e+20"
+                            #var["missing_value"] = "1e+20"
                             if hasattr(c_var,'deflate'):
                                 var['deflate']= c_var.deflate
                             if hasattr(c_var,'deflate_level'):
