@@ -525,11 +525,11 @@ class reduce_luFunction(Function):
 #===================================================================================================
 # soilpoolsFunction
 #===================================================================================================
-class soilpoolsFunction(Function):
-    key = 'soilpools'
+class get_soilpoolsFunction(Function):
+    key = 'get_soilpools'
 
     def __init__(self, p_data1,p_data2,p_data3,p_soilpool):
-        super(soilpoolsFunction, self).__init__(p_data1,p_data2,p_data3,p_soilpool)
+        super(get_soilpoolsFunction, self).__init__(p_data1,p_data2,p_data3,p_soilpool)
 
     def __getitem__(self, index):
         p_data1 = self.arguments[0][index]
