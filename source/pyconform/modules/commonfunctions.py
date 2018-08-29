@@ -269,6 +269,7 @@ class POP_bottom_layerFunction(Function):
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
+    
 #=========================================================================
 # diff_axis1_ind0bczero_4dFunction
 #=========================================================================
@@ -287,18 +288,18 @@ class diff_axis1_ind0bczero_4dFunction(Function):
         p_data = self.arguments[0][index]
 
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_data.dimensions])
+            a = np.zeros((0, 0, 0, 0))
+        else:
+            data = p_data.data
 
-        data = p_data.data
+            a = np.empty((p_data.shape))
+            a[:, 0, :, :] = data[:, 0, :, :]
+            a[:, 1:, :, :] = np.diff(data, axis=1)
 
-        a = np.zeros((p_data.shape))
-
-        a[:, 0, :, :] = data[:, 0, :, :]
-        a[:, 1:, :, :] = np.diff(data, axis=1)
-
-        new_name = 'diff_axis1_ind0bczero_4d({})'.format(p_data.name)
-
-        return PhysArray(a, name=new_name, units=p_data.units)
+        new_name = '{}({})'.format(self.key, p_data.name)
+        new_units = p_data.units
+        new_dims = p_data.dimensions
+        return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
 
 
 #=========================================================================
