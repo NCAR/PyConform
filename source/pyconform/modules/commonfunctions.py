@@ -269,6 +269,38 @@ class POP_bottom_layerFunction(Function):
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
+    
+#=========================================================================
+# diff_axis1_ind0bczero_4dFunction
+#=========================================================================
+class diff_axis1_ind0bczero_4dFunction(Function):
+    key = 'diff_axis1_ind0bczero_4d'
+
+    def __init__(self, data):
+        super(diff_axis1_ind0bczero_4dFunction, self).__init__(data)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('diff_axis1_ind0bczero_4d: data must be a PhysArray')
+        if len(data_info.dimensions) != 4:
+            raise DimensionsError('diff_axis1_ind0bczero_4d: data can only be 4D')
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+
+        if index is None:
+            a = np.zeros((0, 0, 0, 0))
+        else:
+            data = p_data.data
+
+            a = np.empty((p_data.shape))
+            a[:, 0, :, :] = data[:, 0, :, :]
+            a[:, 1:, :, :] = np.diff(data, axis=1)
+
+        new_name = '{}({})'.format(self.key, p_data.name)
+        new_units = p_data.units
+        new_dims = p_data.dimensions
+        return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
+
 
 #=========================================================================
 # sftofFunction
