@@ -6,7 +6,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.physarray import PhysArray, UnitsError
+from pyconform.physarray import PhysArray, UnitsError, getname
 from numpy.ma import sqrt, where
 from cf_units import Unit
 import numpy as np
@@ -351,9 +351,9 @@ class SumFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         for d in dimensions:
-            #print d, 'in', data.dimensions, '?'
+            # print d, 'in', data.dimensions, '?'
             if d in data.dimensions:
-                #print 'will append ', data.dimensions.index(d)
+                # print 'will append ', data.dimensions.index(d)
                 indims.append(data.dimensions.index(d))
         return np.sum(data, indims[0])
 
@@ -539,3 +539,19 @@ class LimitFunction(Function):
 
         new_name = 'limit({}{}{})'.format(data.name, above_str, below_str)
         return PhysArray(data, name=new_name)
+
+
+#=========================================================================
+# RemoveUnitsFunction
+#=========================================================================
+class RemoveUnitsFunction(Function):
+    key = 'rmunits'
+
+    def __init__(self, data):
+        super(RemoveUnitsFunction, self).__init__(data)
+
+    def __getitem__(self, index):
+        data = (self.arguments[0] if is_constant(self.arguments[0])
+                else self.arguments[0][index])
+        new_name = 'rmunits({!s})'.format(getname(data))
+        return PhysArray(data, name=new_name, units=1)
