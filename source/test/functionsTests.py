@@ -187,6 +187,24 @@ class EvaluationTests(unittest.TestCase):
     Unit tests for evaluating functions and operators
     """
 
+    def assertPhysArraysEqual(self, left, right, testname='Test', decimal=0):
+        if type(left) != type(right):
+            self.fail('{} failed - type')
+        elif isinstance(left, PhysArray):
+            ldata = np.ma.asarray(left)
+            rdata = np.ma.asarray(right)
+            if decimal == 0:
+                np.testing.assert_array_equal(ldata, rdata, '{} failed - data'.format(testname))
+            else:
+                np.testing.assert_array_almost_equal(left, right, decimal, '{} failed - data'.format(testname))
+            self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+            self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+            self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+            self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+            self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+        else:
+            self.assertEqual(left, right, '{} failed')
+
     def test_op_neg_int(self):
         key = '-'
         indata = 3
@@ -466,14 +484,8 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray([3.0, 4.0, 2.0], name='sqrt(x)', units='m')
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        np.testing.assert_array_equal(
-            actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name,
-                         '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units,
-                         '{} failed - units'.format(testname))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_mean_ndarray(self):
         key = 'mean'
@@ -513,22 +525,15 @@ class EvaluationTests(unittest.TestCase):
 
     def test_func_mean_physarray_2d(self):
         key = 'mean'
-        indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [
-                           True, False]], name='x', units='m', dimensions=('t', 'u'))
+        indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [True, False]],
+                           name='x', units='m', dimensions=('t', 'u'))
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
-        expected = PhysArray(
-            [1.0, 3.0], name='mean(x, dims=[t])', units='m', dimensions=('u',))
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        np.testing.assert_array_equal(
-            actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name,
-                         '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units,
-                         '{} failed - units'.format(testname))
+        expected = PhysArray([1.0, 3.0], name='mean(x, dims=[t])', units='m', dimensions=('u',))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_sqrt_sumlike(self):
         key = 'sqrt'
@@ -726,24 +731,15 @@ class EvaluationTests(unittest.TestCase):
 
     def test_func_limit(self):
         key = 'limit'
-        indata = PhysArray([2.5, 7.3, 8.2, 1.4], name='x',
-                           units='m', dimensions=('t',))
+        indata = PhysArray([2.5, 7.3, 8.2, 1.4], name='x', units='m', dimensions=('t',))
         below_val = 3.0
         above_val = 7.5
-        testname = '{}({}, above={}, below={})'.format(
-            key, indata, above_val, below_val)
+        testname = '{}({}, above={}, below={})'.format(key, indata, above_val, below_val)
         func = functions.find(key)
         actual = func(indata, above=above_val, below=below_val)[:]
-        expected = PhysArray([3.0, 7.3, 7.5, 3.0],
-                             name=testname, units='m', dimensions=('t',))
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        np.testing.assert_array_equal(
-            actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name,
-                         '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units,
-                         '{} failed - units'.format(testname))
+        expected = PhysArray([3.0, 7.3, 7.5, 3.0], name=testname, units='m', dimensions=('t',))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_rmunits(self):
         key = 'rmunits'
@@ -752,15 +748,8 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(2.5, name='rmunits(x)')
-        print_test_message(testname, indata=indata,
-                           actual=actual, expected=expected)
-        np.testing.assert_array_equal(
-            actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name,
-                         '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units,
-                         '{} failed - units'.format(testname))
-
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
 #=========================================================================
