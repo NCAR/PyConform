@@ -555,3 +555,24 @@ class RemoveUnitsFunction(Function):
                 else self.arguments[0][index])
         new_name = 'rmunits({!s})'.format(getname(data))
         return PhysArray(data, name=new_name, units=1)
+
+
+#=========================================================================
+# RenameDimensionsFunction
+#=========================================================================
+class RenameDimensionsFunction(Function):
+    key = 'chdims'
+
+    def __init__(self, data, *dims):
+        super(RenameDimensionsFunction, self).__init__(data, *dims)
+
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        if len(self.arguments) == 1:
+            return data
+        dims = self.arguments[1:]
+        dim_names = ', '.join([repr(dim) for dim in dims])
+        new_name = 'chdims({!s}, {!s})'.format(getname(data), dim_names)
+        new_dims = list(data.dimensions)
+        new_dims[:len(dims)] = dims
+        return PhysArray(data, name=new_name, dimensions=new_dims)

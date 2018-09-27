@@ -173,7 +173,7 @@ class FindTests(unittest.TestCase):
     def test_list_functions(self):
         testname = 'list_functions()'
         actual = sorted(functions.list_functions())
-        expected = sorted(['chunits', 'down', 'limit', 'max',
+        expected = sorted(['chdims', 'chunits', 'down', 'limit', 'max',
                            'mean', 'min', 'rmunits', 'sqrt', 'sum', 'up'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -748,6 +748,17 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(2.5, name='rmunits(x)')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A']
+        testname = "{}({}, 'A')".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A')", dimensions=('A', 'b'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
