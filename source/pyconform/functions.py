@@ -574,5 +574,6 @@ class RenameDimensionsFunction(Function):
         dim_names = ', '.join([repr(dim) for dim in dims])
         new_name = 'chdims({!s}, {!s})'.format(getname(data), dim_names)
         new_dims = list(data.dimensions)
-        new_dims[:len(dims)] = dims
+        dlen = min(len(dims), len(new_dims))
+        new_dims[:dlen] = dims[:dlen]
         return PhysArray(data, name=new_name, dimensions=new_dims)

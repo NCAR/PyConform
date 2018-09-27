@@ -751,7 +751,7 @@ class EvaluationTests(unittest.TestCase):
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
-    def test_func_chdims(self):
+    def test_func_chdims_short(self):
         key = 'chdims'
         indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
         inargs = ['A']
@@ -759,6 +759,28 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata, *inargs)[:]
         expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A')", dimensions=('A', 'b'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims_full(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A', 'B']
+        testname = "{}({}, 'A', 'B')".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B')", dimensions=('A', 'B'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims_long(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A', 'B', 'C']
+        testname = "{}({}, 'A', 'B', 'C)".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B', 'C')", dimensions=('A', 'B'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
