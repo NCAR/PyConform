@@ -19,10 +19,17 @@ import numpy
 _signature_letters = 'ijklmnabcdefgh'
 
 
-def deriv(x1, y1, axis=0):
+def deriv(x, y=None, axis=0):
     """
     Python version of GDL deriv function
     """
+    if y is None:
+        y1 = numpy.array(x)
+        x1 = numpy.arange(len(x), dtype=y1.dtype)
+    else:
+        y1 = numpy.array(y)
+        x1 = numpy.array(x)
+
     x0 = numpy.roll(x1, 1)
     x2 = numpy.roll(x1, -1)
     y0 = numpy.roll(y1, 1, axis=axis)
@@ -126,10 +133,10 @@ def spl_interp(xa, ya, y2a, x, axis=0):
 
     jhi = [khi if k == axis else slice(None) for k in range(numpy.ndim(ya))]
     jlo = [klo if k == axis else slice(None) for k in range(numpy.ndim(ya))]
-    yahi = ya[jhi]
-    yalo = ya[jlo]
-    y2ahi = y2a[jhi]
-    y2alo = y2a[jlo]
+    yahi = ya[tuple(jhi)]
+    yalo = ya[tuple(jlo)]
+    y2ahi = y2a[tuple(jhi)]
+    y2alo = y2a[tuple(jlo)]
 
     a = (xahi - x) / h
     b = (x - xalo) / h
