@@ -238,15 +238,32 @@ class PhysArrayTests(unittest.TestCase):
             print_test_message(testname, actual=actual, expected=expected)
             self.assertPhysArraysEqual(actual, expected, testname=testname)
 
+
 #===============================================================================
 # PhysArrayBinOpTests
 #===============================================================================
-
-
-class PhysArrayBinOpTests(PhysArrayTests):
+class PhysArrayBinOpTests(unittest.TestCase):
     """
     Unit tests for binary operators of the PhysArray class
     """
+
+    def assertPhysArraysEqual(self, left, right, testname='Test', decimal=0):
+        if type(left) != type(right):
+            self.fail('{} failed - type')
+        elif isinstance(left, PhysArray):
+            ldata = numpy.ma.asarray(left)
+            rdata = numpy.ma.asarray(right)
+            if decimal == 0:
+                npt.assert_array_equal(ldata, rdata, '{} failed - data'.format(testname))
+            else:
+                npt.assert_array_almost_equal(left, right, decimal, '{} failed - data'.format(testname))
+            self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+            self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+            self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+            self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+            self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+        else:
+            self.assertEqual(left, right, '{} failed')
 
     def setUp(self):
         self.vs = {0: 1.0,
