@@ -46,7 +46,7 @@ class BoundsFunction(Function):
         if len(data_info.dimensions) != 1:
             raise DimensionsError('bounds: data can only be 1D')
         self._mod_end = bool(endpoints)
-        self.add_sumlike_dimensions(data_info.dimensions[0])
+#        self.add_sumlike_dimensions(data_info.dimensions[0])
         if idata is None:
             self._compute_idata = True
         else:
@@ -56,7 +56,7 @@ class BoundsFunction(Function):
                 raise TypeError('bounds: interface-data must be a PhysArray')
             if len(idata_info.dimensions) != 1:
                 raise DimensionsError('bounds: interface-data can only be 1D')
-            self.add_sumlike_dimensions(idata_info.dimensions[0])
+#            self.add_sumlike_dimensions(idata_info.dimensions[0])
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -195,16 +195,68 @@ class YeartoMonth_dataFunction(Function):
         time = p_time.data
         lat = p_lat.data
         lon = p_lon.data
+       
+        if time[0] == 0:
+            a = np.ma.zeros(((len(time)-1)*12,len(lat),len(lon)))
+        else:
+            a = np.ma.zeros((len(time)*12,len(lat),len(lon)))
 
-        a = np.zeros((len(time) * 12, len(lat), len(lon)))
+        k=0
         for i in range(len(time)):
-            for j in range(12):
-                a[((i * 12) + j), :, :] = data[i, :, :]
+            if time[i] != 0:
+                for j in range(12):
+                    a[((k*12)+j),:,:] = data[i,:,:]
+                k+=1
 
-        new_name = 'yeartomonth_data({}{}{}{})'.format(
-            p_data.name, p_time.name, p_lat.name, p_lon.name)
+        a[a>=1e+16] = 1e+20
+        a = np.ma.masked_values(a, 1e+20)
+        new_name = 'yeartomonth_data({}{}{}{})'.format(p_data.name, p_time.name, p_lat.name, p_lon.name)
 
-        return PhysArray(a, name=new_name, units=p_data.units)
+        return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data.units)                 
+
+
+#===================================================================================================
+# yeartomonth_data3DFunction
+#===================================================================================================
+class YeartoMonth_data3DFunction(Function):
+    key = 'yeartomonth_data3D'
+
+    def __init__(self, data, time, lat, lon, v):
+        super(YeartoMonth_data3DFunction, self).__init__(data, time, lat, lon, v)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+        p_time = self.arguments[1][index]
+        p_lat = self.arguments[2][index]
+        p_lon = self.arguments[3][index]
+        p_v = self.arguments[4][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,0,0,0)), dimensions=[p_time.dimensions[0],p_v.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]])
+
+        data = p_data.data
+        time = p_time.data
+        lat = p_lat.data
+        lon = p_lon.data
+        v = p_v.data
+
+        if time[0] == 0:
+            a = np.ma.zeros(((len(time)-1)*12,len(v),len(lat),len(lon)))
+        else:
+            a = np.ma.zeros((len(time)*12,len(v),len(lat),len(lon)))
+
+        k=0
+        for i in range(len(time)):
+            if time[i] != 0:
+                for j in range(12):
+                    a[((k*12)+j),:,:,:] = data[i,:,:,:]
+                k+=1
+
+        a[a>=1e+16] = 1e+20
+        a = np.ma.masked_values(a, 1e+20)
+        new_name = 'yeartomonth_data({}{}{}{}{})'.format(p_data.name, p_time.name, p_lat.name, p_lon.name, p_v.name)
+
+        return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0],p_v.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data.units)
 
 #=========================================================================
 # yeartomonth_timeFunction
@@ -227,17 +279,24 @@ class YeartoMonth_timeFunction(Function):
         monLens = [31.0, 28.0, 31.0, 30.0, 31.0,
                    30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0]
 
-        a = np.zeros((len(time) * 12))
+        a = np.zeros((len(time)*12))
+
+        k=0
         for i in range(len(time)):
             prev = 0
-            for j in range(12):
-                a[((i * 12) + j)] = float((time[i] - 365) +
-                                          prev + float(monLens[j] / 2.0))
-                prev += monLens[j]
+            if time[i] != 0:
+                for j in range(12):
+                        a[((k*12)+j)] = float((time[i]-365)+prev+float(monLens[j]/2.0))
+                        prev += monLens[j]
+                k+=1
 
+        if a[-1] == 0 and not np.all(a==0):
+            b = np.resize(a,((len(time)-1)*12))
+        else:
+            b = a
         new_name = 'yeartomonth_time({})'.format(p_time.name)
 
-        return PhysArray(a, name=new_name, dimensions=[p_time.dimensions[0]], units=p_time.units, calendar='noleap')
+        return PhysArray(b, name = new_name, dimensions=[p_time.dimensions[0]], units=p_time.units, calendar='noleap')
 
 
 #=========================================================================
@@ -269,7 +328,7 @@ class POP_bottom_layerFunction(Function):
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
-    
+
 #=========================================================================
 # diff_axis1_ind0bczero_4dFunction
 #=========================================================================
@@ -300,6 +359,7 @@ class diff_axis1_ind0bczero_4dFunction(Function):
         new_units = p_data.units
         new_dims = p_data.dimensions
         return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
+
 
 
 #=========================================================================
@@ -365,7 +425,7 @@ class POP_bottom_layer_multaddFunction(Function):
             # print a2[t]
 
         new_name = 'POP_bottom_layer_multadd({}{}{})'.format(
-            KMT.name, data1.name, data2.name)
+            p_KMT.name, p_data1.name, p_data2.name)
         new_units = p_data1.units * p_data2.units
         return PhysArray(a2, name=new_name, dimensions=[p_data2.dimensions[0]], units=new_units)
 
@@ -489,49 +549,76 @@ class cice_regionsFunction(Function):
         p_siline = self.arguments[5][index]
         multiple = self.arguments[6]
 
-        aice = p_aice
-        uvel = p_uvel
-        vvel = p_vvel
-        HTE = p_HTE
-        HTN = p_HTN
-        siline = p_siline
-        a = np.ma.zeros((aice.data.shape[0], siline.data.shape[0]))
+        aice = p_aice.data
+        uvel = p_uvel.data
+        vvel = p_vvel.data
+        HTE = p_HTE.data
+        HTN = p_HTN.data
+        siline = p_siline.data
+        a = np.ma.zeros((aice.shape[0], siline.shape[0]))
 
-        for t in range(aice.data.shape[0]):
+        uvel[uvel >= 1e+16] = 0.0
+        vvel[vvel >= 1e+16] = 0.0  
+ 
+        for t in range(aice.shape[0]):
             # 1
             i = 92
             for j in range(370, 381):
-                if aice[t, j, i] < 1e+16 and aice[t, j, i + 1] < 1e+16 and HTE[j, i] < 1e+16 and uvel[t, j, i] < 1e+16 and uvel[t, j - 1, i] < 1e+16:
+                if aice[t, j, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
+                elif aice[t, j, i + 1] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
+                else:
                     a[t, 0] += 0.5 * (aice[t, j, i] + aice[t, j, i + 1]) * 0.5 * (
                         HTE[j, i] * uvel[t, j, i] + HTE[j, i] * uvel[t, j - 1, i])
             # 2
             i = 214
             for j in range(375, 377):
-                if aice[t, j, i] < 1e+16 and aice[t, j, i + 1] < 1e+16 and HTE[j, i] < 1e+16 and uvel[t, j, i] < 1e+16 and uvel[t, j - 1, i] < 1e+16 and aice[t, j + 1, i] < 1e+16 and HTN[j, i] < 1e+16 and vvel[t, j, i] < 1e+16 and vvel[t, j, i - 1] < 1e+16:
+                if aice[t, j, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
+                elif aice[t, j, i + 1] >= 1e+16: 
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
+                elif aice[t, j + 1, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j + 1, i
+                else:
                     a[t, 1] += 0.5 * (aice[t, j, i] + aice[t, j, i + 1]) * 0.5 * (HTE[j, i] * uvel[t, j, i] + HTE[j, i] * uvel[t, j - 1, i]) + 0.5 * (
                         aice[t, j, i] + aice[t, j + 1, i]) * 0.5 * (HTN[j, i] * vvel[t, j, i] + HTN[j, i] * vvel[t, j, i - 1])
             j = 366
             for i in range(240, 244):
-                if aice[t, j, i] < 1e+16 and aice[t, j, i + 1] < 1e+16 and HTE[j, i] < 1e+16 and uvel[t, j, i] < 1e+16 and uvel[t, j - 1, i] < 1e+16 and aice[t, j + 1, i] < 1e+16 and HTN[j, i] < 1e+16 and vvel[t, j, i] < 1e+16 and vvel[t, j, i - 1] < 1e+16:
+                if aice[t, j, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
+                elif aice[t, j, i + 1] >= 1e+16: 
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
+                elif aice[t, j + 1, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j + 1, i
+                else:
                     a[t, 1] += 0.5 * (aice[t, j, i] + aice[t, j, i + 1]) * 0.5 * (HTE[j, i] * uvel[t, j, i] + HTE[j, i] * uvel[t, j - 1, i]) + 0.5 * (
                         aice[t, j, i] + aice[t, j + 1, i]) * 0.5 * (HTN[j, i] * vvel[t, j, i] + HTN[j, i] * vvel[t, j, i - 1])
             # 3
             i = 85
             for j in range(344, 366):
-                if aice[t, j, i] < 1e+16 and aice[t, j, i + 1] < 1e+16 and HTE[j, i] < 1e+16 and uvel[t, j, i] < 1e+16 and uvel[t, j - 1, i] < 1e+16:
+                if aice[t, j, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
+                elif aice[t, j, i + 1] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
+                else:
                     a[t, 2] += 0.5 * (aice[t, j, i] + aice[t, j, i + 1]) * 0.5 * (
                         HTE[j, i] * uvel[t, j, i] + HTE[j, i] * uvel[t, j - 1, i])
             # 4
             j = 333
             for i in range(198, 201):
-                if aice[t, j, i] < 1e+16 and aice[t, j + 1, i] < 1e+16 and HTN[j, i] < 1e+16 and vvel[t, j, i] < 1e+16 and vvel[t, j, i - 1] < 1e+16:
+                if aice[t, j, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
+                elif aice[t, j + 1, i] >= 1e+16:
+                    print "CICE aice WARNING: this point should not contain a missing value ",t, j + 1, i
+                else:
                     a[t, 3] += 0.5 * (aice[t, j, i] + aice[t, j + 1, i]) * 0.5 * (
                         HTN[j, i] * vvel[t, j, i] + HTN[j, i] * vvel[t, j, i - 1])
 
         a = a * multiple
 
         new_name = 'cice_regions()'.format()
-        return PhysArray(a, name=new_name, dimensions=[p_aice.dimensions[0], p_siline.dimensions[0]], units=uvel.units)
+        return PhysArray(a, name=new_name, dimensions=[p_aice.dimensions[0], p_siline.dimensions[0]], units=p_uvel.units)
 
 
 #=========================================================================
@@ -605,6 +692,49 @@ class get_soilpoolsFunction(Function):
         new_name = 'soilpools({}{}{}{})'.format(
             p_data1.name, p_data2.name, p_data3.name, p_soilpool.name)
         return PhysArray(data, name=new_name, dimensions=[p_data1.dimensions[0], p_soilpool.dimensions[0], p_data1.dimensions[1], p_data1.dimensions[2]], units=p_data1.units)
+
+
+#=========================================================================
+# nonwoodyvegFunction
+#=========================================================================
+class get_nonwoodyvegFunction(Function):
+    key = 'get_nonwoodyveg'
+
+    def __init__(self, p_pct_nat_pft, p_landfrac, p_landUse):
+        super(get_nonwoodyvegFunction, self).__init__(
+            p_pct_nat_pft,p_landfrac,p_landUse)
+
+    def __getitem__(self, index):
+        p_pct_nat_pft = self.arguments[0][index]
+        p_landfrac = self.arguments[1][index]
+        p_landUse = self.arguments[2][index]
+
+        pct_nat_pft = p_pct_nat_pft.data
+        landfrac = p_landfrac.data
+        landUse = p_landUse.data
+
+        data = np.ma.zeros((p_pct_nat_pft.shape[0], 4, p_pct_nat_pft.shape[2], p_pct_nat_pft.shape[3]))
+        if index is None:
+            return data
+
+        data[:, 0, :, :] = pct_nat_pft[:,12,:,:]+pct_nat_pft[:,13,:,:]+pct_nat_pft[:,14,:,:]
+        for i in range(p_pct_nat_pft.shape[2]):
+            for j in range(p_pct_nat_pft.shape[3]):
+                if landfrac[i,j] <= 1.0:
+                    data[:, 1, i, j] = 1.0 
+                    data[:, 2, i, j] = 0.0
+                    data[:, 3, i, j] = 0.0
+                else:
+                    data[:, 1, i, j] = 1e+20
+                    data[:, 2, i, j] = 1e+20
+                    data[:, 3, i, j] = 1e+20
+
+        data[data >= 1e+16] = 1e+20
+        data = np.ma.masked_values(data, 1e+20)
+
+        new_name = 'get_nonwoodyveg({})'.format(
+            p_pct_nat_pft.name)
+        return PhysArray(data, name=new_name, dimensions=[p_pct_nat_pft.dimensions[0], p_landUse.dimensions[0], p_pct_nat_pft.dimensions[1], p_pct_nat_pft.dimensions[2]], units=p_pct_nat_pft.units)
 
 
 #=========================================================================

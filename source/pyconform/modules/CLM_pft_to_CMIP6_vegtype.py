@@ -177,7 +177,6 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                                  ppfts1d_lon.name, ppfts1d_lat.name, ppfts1d_active.name, ppfts1d_itype_veg.name,
                                  ppfts1d_wtgcell.name, ppfts1d_wtlunit.name) 
 
-        print 'FINISHED FUNCTION'
 
         varo_vegType[varo_vegType>=1e+16] = 1e+20
         ma_varo_vegType = np.ma.masked_values(varo_vegType, 1e+20)
