@@ -9,6 +9,7 @@ from pyconform.physarray import PhysArray
 from pyconform.functions import Function
 
 import pyconform.modules.dynvarmipdiags as dvmd
+import numpy as np
 
 
 #=========================================================================
@@ -20,13 +21,16 @@ class DynVarMIPFunction(Function):
     def __init__(self, time, lev, lat, *args):
         super(DynVarMIPFunction, self).__init__(time, lev, lat, *args)
         self._dynvarmip_func = None
+        self._units = None
+        self._positive = None
 
     def __getitem__(self, index):
-        args = [arg[index] for arg in self.arguments]
+        args = [np.ma.asarray(arg[index]) for arg in self.arguments]
         arg_names = ','.join([arg.name for arg in args])
         data = self._dynvarmip_func(*args)
         name = '{}({})'.format(self.key, arg_names)
-        return PhysArray(data, name=name, dimensions=args[-1].dimensions)
+        return PhysArray(data, name=name, dimensions=args[-1].dimensions,
+                         units=self._units, positive=self._positive)
 
 
 #=========================================================================
@@ -39,6 +43,8 @@ class wtemDynVarMIPFunction(DynVarMIPFunction):
         super(wtemDynVarMIPFunction, self).__init__(
             time, lev, lat, wzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.wtem
+        self._units = 'm s-1'
+        self._positive = None
 
 
 #=========================================================================
@@ -51,6 +57,8 @@ class utendwtemDynVarMIPFunction(DynVarMIPFunction):
         super(utendwtemDynVarMIPFunction, self).__init__(
             time, lev, lat, uzm, wzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.utendwtem
+        self._units = 'm s-1 d-1'
+        self._positive = None
 
 
 #=========================================================================
@@ -63,6 +71,8 @@ class vtemDynVarMIPFunction(DynVarMIPFunction):
         super(vtemDynVarMIPFunction, self).__init__(
             time, lev, lat, vzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.vtem
+        self._units = 'm s-1'
+        self._positive = None
 
 
 #=========================================================================
@@ -75,6 +85,8 @@ class utendvtemDynVarMIPFunction(DynVarMIPFunction):
         super(utendvtemDynVarMIPFunction, self).__init__(
             time, lev, lat, uzm, vzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.utendvtem
+        self._units = 'm s-1 d-1'
+        self._positive = None
 
 
 #=========================================================================
@@ -87,6 +99,8 @@ class epfyDynVarMIPFunction(DynVarMIPFunction):
         super(epfyDynVarMIPFunction, self).__init__(
             time, lev, lat, uzm, uvzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.epfy
+        self._units = 'm3 s-2'
+        self._positive = None
 
 
 #=========================================================================
@@ -99,6 +113,8 @@ class epfzDynVarMIPFunction(DynVarMIPFunction):
         super(epfzDynVarMIPFunction, self).__init__(
             time, lev, lat, uzm, uwzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.epfz
+        self._units = 'm3 s-2'
+        self._positive = 'up'
 
 
 #=========================================================================
@@ -111,6 +127,8 @@ class utendepfdDynVarMIPFunction(DynVarMIPFunction):
         super(utendepfdDynVarMIPFunction, self).__init__(
             time, lev, lat, uzm, uvzm, uwzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.utendepfd
+        self._units = 'm s-2'
+        self._positive = None
 
 
 #=========================================================================
@@ -123,3 +141,5 @@ class psitemDynVarMIPFunction(DynVarMIPFunction):
         super(psitemDynVarMIPFunction, self).__init__(
             time, lev, lat, vzm, vthzm, thzm)
         self._dynvarmip_func = dvmd.psitem
+        self._units = 'kg s-1'
+        self._positive = None
