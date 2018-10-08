@@ -1,6 +1,8 @@
 """
 Basic functions for the DynVarMIP Diagnostics
 
+NOTE:  All of these functions return numpy arrays!
+
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
@@ -29,7 +31,8 @@ def _init_wtem(time, levi, lat, wzm, vthzm, thzm):
     for itime in range(ntime):
         dthdp = deriv(levi100, thzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
-        dpsidy = deriv(latrad, psieddy * coslat, axis=1) / (a * coslat)
+        tmp = numpy.einsum('ij...,j->ij...', psieddy, coslat)
+        dpsidy = numpy.einsum('ij...,j->ij...', deriv(latrad, tmp, axis=1), 1.0 / (a * coslat))
         wtem[itime, ...] = _wzm[itime, ...] + dpsidy
     return wtem
 
@@ -60,14 +63,15 @@ def utendvtem(time, levi, lat, uzm, vzm, vthzm, thzm):
 
     latrad = (lat / 180.0) * numpy.pi
     coslat = numpy.cos(latrad)
-    f = 2 * om * numpy.sin(latrad)
-    vtem = vtem(time, levi, lat, vzm, vthzm, thzm)
+    fshape = (1, len(lat)) + tuple([1] * (uzm.ndim - 3))
+    f = 2 * om * numpy.sin(latrad).reshape(fshape)
+    _vtem = vtem(time, levi, lat, vzm, vthzm, thzm)
 
     utendvtem = numpy.zeros(uzm.shape, dtype='d')
     for itime in range(ntime):
         ucos = numpy.einsum('ij...,j->ij...', uzm[itime, ...], coslat)
         dudphi = deriv(latrad, ucos, axis=1) / a
-        utendvtem[itime, ...] = vtem[itime, ...] * (f - dudphi)
+        utendvtem[itime, ...] = _vtem[itime, ...] * (f - dudphi)
     return utendvtem
 
 
@@ -96,7 +100,7 @@ def _init_epfy(time, levi, lat, uzm, uvzm, vthzm, thzm):
         dthdp = deriv(levi100, thzm[itime, ...])
         dudp = deriv(levi100, uzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
-        epfy[itime, ...] = a * coslat * (dudp * psieddy - uvzm[itime, ...])
+        epfy[itime, ...] = a * numpy.einsum('j,ij...->ij...', coslat, (dudp * psieddy - uvzm[itime, ...]))
     return epfy
 
 
@@ -112,7 +116,8 @@ def _init_epfz(time, levi, lat, uzm, uwzm, vthzm, thzm):
 
     latrad = (lat / 180.0) * numpy.pi
     coslat = numpy.cos(latrad)
-    f = 2 * om * numpy.sin(latrad)
+    fshape = (1, len(lat)) + tuple([1] * (uzm.ndim - 3))
+    f = 2 * om * numpy.sin(latrad).reshape(fshape)
     levi100 = 100.0 * levi
 
     _uwzm = -1.0 * numpy.einsum('ij...,j->ij...', uwzm, levi100) / H
@@ -123,7 +128,7 @@ def _init_epfz(time, levi, lat, uzm, uwzm, vthzm, thzm):
         dudphi = deriv(latrad, ucos, axis=1) / a
         dthdp = deriv(levi100, thzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
-        epfz[itime, ...] = a * coslat * (((f - dudphi) * psieddy) - _uwzm[itime, ...])
+        epfz[itime, ...] = a * numpy.einsum('j,ij...->ij...', coslat, (f - dudphi) * psieddy - _uwzm[itime, ...])
     return epfz
 
 
@@ -139,15 +144,17 @@ def utendepfd(time, levi, lat, uzm, uvzm, uwzm, vthzm, thzm):
     latrad = (lat / 180.0) * numpy.pi
     coslat = numpy.cos(latrad)
     levi100 = 100.0 * levi
+    iacoslat = 1.0 / (a * coslat)
 
     epfy = _init_epfy(time, levi, lat, uzm, uvzm, vthzm, thzm)
     epfz = _init_epfz(time, levi, lat, uzm, uwzm, vthzm, thzm)
 
     utendepfd = numpy.zeros(uzm.shape, dtype='d')
     for itime in range(ntime):
-        depfydphi = deriv(latrad, epfy[itime, ...] * coslat, axis=1) / (a * coslat)
+        tmp = numpy.einsum('ij...,j->ij...', epfy[itime, ...], coslat)
+        depfydphi = numpy.einsum('ij...,j->ij...', deriv(latrad, tmp, axis=1), iacoslat)
         depfzdp = deriv(levi100, epfz[itime, ...])
-        utendepfd[itime, ...] = (depfydphi + depfzdp) / (a * coslat)
+        utendepfd[itime, ...] = numpy.einsum('ij...,j->ij...', depfydphi + depfzdp, iacoslat)
     return utendepfd
 
 
@@ -171,6 +178,8 @@ def psitem(time, levi, lat, vzm, vthzm, thzm):
         vzmwithzero[1:, ...] = vzm[itime, ...]
         for ilev in range(1, nlevi + 1):
             result = int_tabulated(levi100withzero[0:ilev + 1], vzmwithzero[0:ilev + 1, ...])
-            psitem[itime, ilev - 1, ...] = ((2 * numpy.pi * a * coslat) / g0) * (result - psieddy[ilev - 1, ...])
+            tmp1 = (2 * numpy.pi * a * coslat) / g0
+            tmp2 = result - psieddy[ilev - 1, ...]
+            psitem[itime, ilev - 1, ...] = numpy.einsum('i,i...->i...', tmp1, tmp2)
 
     return psitem
