@@ -11,19 +11,17 @@ from numpy.ma import sqrt, where
 from cf_units import Unit
 import numpy as np
 
+
 #=========================================================================
 # is_constant - Determine if an argument is a constant (number or string)
 #=========================================================================
-
-
 def is_constant(arg):
     return isinstance(arg, (basestring, float, int)) or arg is None
+
 
 #=========================================================================
 # Find a function or operator based on key and number of arguments
 #=========================================================================
-
-
 def find(key, numargs=None):
     try:
         fop = find_operator(key, numargs=numargs)
@@ -221,6 +219,7 @@ __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
                  '*': {2: MultiplicationOperator},
                  '/': {2: DivisionOperator}}
 
+
 ##########################################################################
 ##### FUNCTIONS ##########################################################
 ##########################################################################
@@ -228,10 +227,9 @@ __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
 #=========================================================================
 # Recursively return all subclasses of a given class
 #=========================================================================
-
-
 def _all_subclasses_(cls):
-    return cls.__subclasses__() + [c for s in cls.__subclasses__() for c in _all_subclasses_(s)]
+    return cls.__subclasses__() + [c for s in cls.__subclasses__()
+                                   for c in _all_subclasses_(s)]
 
 
 #=========================================================================
@@ -378,13 +376,16 @@ class MinFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+            return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0],
+                                                              data.dimensions[2],
+                                                              data.dimensions[3]])
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'min({},{})'.format(data.name, dimensions)
         m = np.amin(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
+                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
 #=========================================================================
@@ -407,13 +408,16 @@ class MaxFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+            return PhysArray(np.zeros((0, 0, 0)), units=data.units, dimensions=[data.dimensions[0],
+                                                                                data.dimensions[2],
+                                                                                data.dimensions[3]])
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'max({},{})'.format(data.name, dimensions[0])
         m = np.amax(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
+                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
 #=========================================================================
