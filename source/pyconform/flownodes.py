@@ -3,7 +3,7 @@ Data Flow Node Classes and Functions
 
 This module contains the classes and functions needed to define nodes in Data Flows.
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -272,13 +272,7 @@ class ReadNode(FlowNode):
             # Compute the joined index object
             index12 = join(shape0, index1, index2)
 
-            # Retrieve the data from file, unpacking if necessary
-            if 'scale_factor' in attrs or 'add_offset' in attrs and not ncvar.scale:
-                scale_factor = attrs.get('scale_factor', 1)
-                add_offset = attrs.get('add_offset', 0)
-                data = scale_factor * ncvar[index12] + add_offset
-            else:
-                data = ncvar[index12]
+            data = ncvar[index12]
 
             # Upconvert, if possible
             if issubclass(ncvar.dtype.type, numpy.float) and ncvar.dtype.itemsize < 8:

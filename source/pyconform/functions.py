@@ -1,29 +1,27 @@
 """
 Functions for FunctionEvaluator Actions
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.physarray import PhysArray, UnitsError
+from pyconform.physarray import PhysArray, UnitsError, getname
 from numpy.ma import sqrt, where
 from cf_units import Unit
 import numpy as np
 
+
 #=========================================================================
 # is_constant - Determine if an argument is a constant (number or string)
 #=========================================================================
-
-
 def is_constant(arg):
     return isinstance(arg, (basestring, float, int)) or arg is None
+
 
 #=========================================================================
 # Find a function or operator based on key and number of arguments
 #=========================================================================
-
-
 def find(key, numargs=None):
     try:
         fop = find_operator(key, numargs=numargs)
@@ -221,6 +219,7 @@ __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
                  '*': {2: MultiplicationOperator},
                  '/': {2: DivisionOperator}}
 
+
 ##########################################################################
 ##### FUNCTIONS ##########################################################
 ##########################################################################
@@ -228,10 +227,9 @@ __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
 #=========================================================================
 # Recursively return all subclasses of a given class
 #=========================================================================
-
-
 def _all_subclasses_(cls):
-    return cls.__subclasses__() + [c for s in cls.__subclasses__() for c in _all_subclasses_(s)]
+    return cls.__subclasses__() + [c for s in cls.__subclasses__()
+                                   for c in _all_subclasses_(s)]
 
 
 #=========================================================================
@@ -351,9 +349,9 @@ class SumFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         for d in dimensions:
-            #print d, 'in', data.dimensions, '?'
+            # print d, 'in', data.dimensions, '?'
             if d in data.dimensions:
-                #print 'will append ', data.dimensions.index(d)
+                # print 'will append ', data.dimensions.index(d)
                 indims.append(data.dimensions.index(d))
         return np.sum(data, indims[0])
 
@@ -378,13 +376,16 @@ class MinFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+            return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0],
+                                                              data.dimensions[2],
+                                                              data.dimensions[3]])
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'min({},{})'.format(data.name, dimensions)
         m = np.amin(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
+                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
 #=========================================================================
@@ -407,13 +408,16 @@ class MaxFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+            return PhysArray(np.zeros((0, 0, 0)), units=data.units, dimensions=[data.dimensions[0],
+                                                                                data.dimensions[2],
+                                                                                data.dimensions[3]])
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'max({},{})'.format(data.name, dimensions[0])
         m = np.amax(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units, dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
+                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
 #=========================================================================
@@ -539,3 +543,41 @@ class LimitFunction(Function):
 
         new_name = 'limit({}{}{})'.format(data.name, above_str, below_str)
         return PhysArray(data, name=new_name)
+
+
+#=========================================================================
+# RemoveUnitsFunction
+#=========================================================================
+class RemoveUnitsFunction(Function):
+    key = 'rmunits'
+
+    def __init__(self, data):
+        super(RemoveUnitsFunction, self).__init__(data)
+
+    def __getitem__(self, index):
+        data = (self.arguments[0] if is_constant(self.arguments[0])
+                else self.arguments[0][index])
+        new_name = 'rmunits({!s})'.format(getname(data))
+        return PhysArray(data, name=new_name, units=1)
+
+
+#=========================================================================
+# RenameDimensionsFunction
+#=========================================================================
+class RenameDimensionsFunction(Function):
+    key = 'chdims'
+
+    def __init__(self, data, *dims):
+        super(RenameDimensionsFunction, self).__init__(data, *dims)
+
+    def __getitem__(self, index):
+        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        if len(self.arguments) == 1:
+            return data
+        dims = self.arguments[1:]
+        dim_names = ', '.join([repr(dim) for dim in dims])
+        new_name = 'chdims({!s}, {!s})'.format(getname(data), dim_names)
+        new_dims = list(data.dimensions)
+        dlen = min(len(dims), len(new_dims))
+        new_dims[:dlen] = dims[:dlen]
+        return PhysArray(data, name=new_name, dimensions=new_dims)

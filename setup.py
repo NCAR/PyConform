@@ -2,7 +2,7 @@
 """
 PyConform -- Setup Script
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 See the LICENSE.rst file for details
 """
 
@@ -18,8 +18,8 @@ setup(name='PyConform',
       url='https://github.com/NCAR/PyConform',
       download_url='https://github.com/NCAR/PyConform/tarball/v' + __version__,
       license='https://github.com/NCAR/PyConform/blob/master/LICENSE.rst',
-      packages=['pyconform'],
-      package_dir={'pyconform': 'source/pyconform'},
+      packages=['pyconform', 'pyconform.modules'],
+      package_dir={'pyconform': 'source/pyconform', 'pyconform.modules': 'source/pyconform/modules'},
       package_data={'pyconform': ['LICENSE.rst']},
       scripts=['scripts/iconform', 'scripts/xconform', 'scripts/vardeps'],
       install_requires=['asaptools', 'netCDF4', 'ply']

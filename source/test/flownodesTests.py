@@ -1,7 +1,7 @@
 """
 FlowNode Unit Tests
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -22,9 +22,33 @@ import netCDF4
 
 
 #=======================================================================================================================
+# BaseTests
+#=======================================================================================================================
+class BaseTests(unittest.TestCase):
+
+    def assertPhysArraysEqual(self, left, right, testname='Test', decimal=0):
+        if type(left) != type(right):
+            self.fail('{} failed - type')
+        elif isinstance(left, PhysArray):
+            ldata = numpy.ma.asarray(left)
+            rdata = numpy.ma.asarray(right)
+            if decimal == 0:
+                numpy.testing.assert_array_equal(ldata, rdata, '{} failed - data'.format(testname))
+            else:
+                numpy.testing.assert_array_almost_equal(left, right, decimal, '{} failed - data'.format(testname))
+            self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+            self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+            self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+            self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+            self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+        else:
+            self.assertEqual(left, right, '{} failed')
+
+
+#=======================================================================================================================
 # FlowNodeTests
 #=======================================================================================================================
-class FlowNodeTests(unittest.TestCase):
+class FlowNodeTests(BaseTests):
     """
     Unit tests for the flownodes.FlowNode class
     """
@@ -69,7 +93,7 @@ class FlowNodeTests(unittest.TestCase):
 #=======================================================================================================================
 # DataNodeTests
 #=======================================================================================================================
-class DataNodeTests(unittest.TestCase):
+class DataNodeTests(BaseTests):
     """
     Unit tests for the flownodes.DataNode class
     """
@@ -81,9 +105,7 @@ class DataNodeTests(unittest.TestCase):
         actual = N[:]
         expected = indata
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
         indata = PhysArray(numpy.arange(10), units='m', dimensions=('x',))
@@ -92,9 +114,7 @@ class DataNodeTests(unittest.TestCase):
         actual = N[:5]
         expected = PhysArray(indata[:5], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
         indata = PhysArray(numpy.arange(10), name=0, units='m', dimensions=('x',))
@@ -104,15 +124,13 @@ class DataNodeTests(unittest.TestCase):
         actual = N[indict]
         expected = PhysArray(indata[indict['x']], units='m', dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
 #=======================================================================================================================
 # ReadNodeTests
 #=======================================================================================================================
-class ReadNodeTests(unittest.TestCase):
+class ReadNodeTests(BaseTests):
     """
     Unit tests for the flownodes.ReadNode class
     """
@@ -127,13 +145,12 @@ class ReadNodeTests(unittest.TestCase):
                         'y': PhysArray(numpy.arange(self.shape['y'], dtype='f'),
                                        units='km', dimensions=('y',), name='x'),
                         'v': PhysArray(numpy.arange(self.shape['x'] * self.shape['y'],
-                                                    dtype='d').reshape(self.shape['x'],
-                                                                       self.shape['y']),
+                                                    dtype='d').reshape(self.shape['x'], self.shape['y']),
                                        units='K', dimensions=self.dimensions, name='v')}
 
-        dimdescs = {d:DimensionDesc(d, s) for d, s in self.shape.iteritems()}
-        vardescs = {vn:VariableDesc(vn, datatype=vd.dtype, attributes={'units': str(vd.units)},
-                                    dimensions=[dimdescs[dd] for dd in vd.dimensions])
+        dimdescs = {d: DimensionDesc(d, s) for d, s in self.shape.iteritems()}
+        vardescs = {vn: VariableDesc(vn, datatype=vd.dtype, attributes={'units': str(vd.units)},
+                                     dimensions=[dimdescs[dd] for dd in vd.dimensions])
                     for vn, vd in self.vardata.iteritems()}
         self.filedesc = FileDesc(self.filename, variables=vardescs.values())
         self.vardesc = self.filedesc.variables[self.varname]
@@ -143,7 +160,7 @@ class ReadNodeTests(unittest.TestCase):
                 ncfile.createDimension(d, self.shape[d])
 
             for v in self.vardata:
-                ncv = ncfile.createVariable(v, 'f', self.vardata[v].dimensions)
+                ncv = ncfile.createVariable(v, self.vardata[v].dtype, self.vardata[v].dimensions)
                 ncv.setncatts({'units': str(self.vardata[v].units)})
                 ncv[:] = self.vardata[v]
 
@@ -157,9 +174,8 @@ class ReadNodeTests(unittest.TestCase):
         actual = N[:]
         expected = self.vardata[self.varname]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        print actual.dtype, expected.dtype
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
         testname = 'ReadNode.__getitem__(:2)'
@@ -167,21 +183,18 @@ class ReadNodeTests(unittest.TestCase):
         actual = N[:2]
         expected = self.vardata[self.varname][:2]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_none(self):
         testname = 'ReadNode.__getitem__(None)'
         N = ReadNode(self.vardesc)
         actual = N[None]
         expected = PhysArray(numpy.zeros((0,) * len(self.shape), dtype='d'),
-                                       units=self.vardata[self.varname].units,
-                                       dimensions=self.vardata[self.varname].dimensions)
+                             units=self.vardata[self.varname].units,
+                             dimensions=self.vardata[self.varname].dimensions,
+                             name=self.varname)
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_tuple(self):
         intuple = (3, slice(2, 4))
@@ -190,9 +203,7 @@ class ReadNodeTests(unittest.TestCase):
         actual = N[intuple]
         expected = PhysArray(self.vardata[self.varname][intuple], dimensions=('y',))
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
         indict = {'a': 4, 'x': slice(1, 5, 2)}
@@ -201,9 +212,7 @@ class ReadNodeTests(unittest.TestCase):
         actual = N[indict]
         expected = self.vardata[self.varname][slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_dict_2(self):
         indict = {'a': 4, 'y': slice(1, 5, 2)}
@@ -212,15 +221,13 @@ class ReadNodeTests(unittest.TestCase):
         actual = N[indict]
         expected = self.vardata[self.varname][:, slice(1, 5, 2)]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
 #=======================================================================================================================
 # EvalNodeTests
 #=======================================================================================================================
-class EvalNodeTests(unittest.TestCase):
+class EvalNodeTests(BaseTests):
     """
     Unit tests for the flownodes.EvalNode class
     """
@@ -232,9 +239,7 @@ class EvalNodeTests(unittest.TestCase):
         actual = N[:]
         expected = indata
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_none(self):
         indata = PhysArray(range(10), units='m', dimensions=('x',))
@@ -242,11 +247,9 @@ class EvalNodeTests(unittest.TestCase):
         N = EvalNode(0, lambda x: x, indata)
         actual = N[None]
         expected = PhysArray(numpy.zeros((0,), dtype=indata.dtype),
-                                       units='m', dimensions=('x',))
+                             units='m', dimensions=('x',), name='[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]')
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
         indata = PhysArray(range(10), units='m', dimensions=('x',))
@@ -255,9 +258,7 @@ class EvalNodeTests(unittest.TestCase):
         actual = N[:5]
         expected = indata[:5]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_dict(self):
         indata = PhysArray(range(10), units='m', dimensions=('x',))
@@ -266,9 +267,7 @@ class EvalNodeTests(unittest.TestCase):
         actual = N[{'x': slice(5, None), 'y': 6}]
         expected = indata[slice(5, None)]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_add(self):
         d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
@@ -280,9 +279,7 @@ class EvalNodeTests(unittest.TestCase):
         actual = N3[:]
         expected = d1 + d2
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_add_slice(self):
         d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
@@ -294,9 +291,7 @@ class EvalNodeTests(unittest.TestCase):
         actual = N3[:2]
         expected = d1[:2] + d2[:2]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_add_none(self):
         d1 = PhysArray(numpy.arange(1, 5), name='X1', units='m', dimensions=('x',))
@@ -306,18 +301,18 @@ class EvalNodeTests(unittest.TestCase):
         N3 = EvalNode(3, find_operator('+', numargs=2), N1, N2)
         testname = 'EvalNode.__getitem__(None)'
         actual = N3[None]
-        expected = PhysArray([], units='m', dimensions=('x',))
+        expected = PhysArray([], dtype='int64', units='m', dimensions=('x',), name='(X1+X2)')
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_sumlike_dimensions(self):
         class myfunc(Function):
             key = 'myfunc'
+
             def __init__(self, d, *dims):
                 super(myfunc, self).__init__(d, *dims)
                 self.add_sumlike_dimensions(*dims)
+
             def __getitem__(self, _):
                 return self.arguments[0]
         d = PhysArray(numpy.arange(1, 5), name='d', units='m', dimensions=('x',))
@@ -332,12 +327,12 @@ class EvalNodeTests(unittest.TestCase):
         expected = set(['x'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-                        
+
 
 #=======================================================================================================================
 # MapNodeTests
 #=======================================================================================================================
-class MapNodeTests(unittest.TestCase):
+class MapNodeTests(BaseTests):
     """
     Unit tests for the flownodes.MapNode class
     """
@@ -350,31 +345,26 @@ class MapNodeTests(unittest.TestCase):
         testname = 'MapNode.__getitem__(:)'
         N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[:]
-        expected = PhysArray(self.indata[:], dimensions=('y',))
+        expected = PhysArray(self.indata[:], dimensions=('y',), name='map(0, from=[x], to=[y])')
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_slice(self):
         testname = 'MapNode.__getitem__(:3)'
         N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[:3]
-        expected = PhysArray(self.indata[:3], dimensions=('y',))
+        expected = PhysArray(self.indata[:3], dimensions=('y',), name='map(0, from=[x], to=[y])',
+                             dtype=actual.dtype)
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_none(self):
         testname = 'MapNode.__getitem__(None)'
         N = MapNode(0, self.indata, dmap={'x': 'y'})
         actual = N[None]
-        expected = PhysArray(numpy.arange(0), units='km', dimensions=('y',))
+        expected = PhysArray(numpy.arange(0), units='km', dimensions=('y',), name='map(0, from=[x], to=[y])')
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_getitem_slice_no_dmap(self):
         testname = 'MapNode(dmap={}, dimensions=indims).__getitem__(:3)'
@@ -382,15 +372,13 @@ class MapNodeTests(unittest.TestCase):
         actual = N[:3]
         expected = PhysArray(self.indata[:3], dimensions=('x',))
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
 #=======================================================================================================================
 # ValidateNodeTests
 #=======================================================================================================================
-class ValidateNodeTests(unittest.TestCase):
+class ValidateNodeTests(BaseTests):
     """
     Unit tests for the flownodes.ValidateNode class
     """
@@ -403,9 +391,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -415,21 +401,18 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_time_units_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
-        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'})
+        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={
+                              'units': 'days since 2000-01-01 00:00:00', 'calendar': 'gregorian'})
         testname = 'OK: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_dimensions_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -439,9 +422,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_min_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -451,9 +432,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_max_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -463,21 +442,18 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_minmax_getitem_none(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
-        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={'valid_min': 0, 'valid_max': 2})
+        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),),
+                              attributes={'valid_min': 0, 'valid_max': 2})
         testname = 'OK: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
         actual = N1[None]
         expected = N0[None]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_min_mean_abs_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
@@ -487,9 +463,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_max_mean_abs_ok(self):
         N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
@@ -499,9 +473,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_convert(self):
         N0 = DataNode(PhysArray(numpy.arange(10.0), name='x', units='m', dimensions=('x',)))
@@ -514,9 +486,7 @@ class ValidateNodeTests(unittest.TestCase):
         expected.units = Unit('km')
         expected.mask = False
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_units_inherit(self):
         N0 = DataNode(PhysArray(numpy.arange(10.0), name='x', units='m', dimensions=('x',)))
@@ -526,12 +496,10 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_dimensions_transpose(self):
-        N0 = DataNode(PhysArray([[1.,2.],[3.,4.]], name='a', units='m', dimensions=('x', 'y')))
+        N0 = DataNode(PhysArray([[1., 2.], [3., 4.]], name='a', units='m', dimensions=('x', 'y')))
         indata = VariableDesc('validate(a)', dimensions=(DimensionDesc('y'), DimensionDesc('x')))
         testname = 'TRANSPOSE: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
@@ -542,15 +510,14 @@ class ValidateNodeTests(unittest.TestCase):
 
     def test_time_units_convert(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
-        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'})
+        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={
+                              'units': 'hours since 2000-01-01 00:00:00', 'calendar': 'gregorian'})
         testname = 'CONVERT: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
         actual = N1[:]
         expected = N0[:].convert(Unit('hours since 2000-01-01 00:00:00'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_time_units_inherit(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
@@ -560,9 +527,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_time_units_inherit_refdatetime(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
@@ -572,26 +537,24 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:].convert('hours since 2000-01-01 00:00:00')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_time_units_convert_nocal(self):
-        N0 = DataNode(PhysArray(numpy.arange(10), name='x', dimensions=('x',), 
+        N0 = DataNode(PhysArray(numpy.arange(10), name='x', dimensions=('x',),
                                 units=Unit('days since 2000-01-01 00:00:00', calendar='noleap')))
-        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={'units': 'hours since 2000-01-01 00:00:00'})
+        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),),
+                              attributes={'units': 'hours since 2000-01-01 00:00:00'})
         testname = 'CONVERT: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
         actual = N1[:]
         expected = N0[:].convert(Unit('hours since 2000-01-01 00:00:00', calendar='noleap'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
-        
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
     def test_time_units_error_calendar(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='days since 2000-01-01 00:00:00', dimensions=('x',)))
-        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'})
+        indata = VariableDesc('validate(x)', dimensions=(DimensionDesc('x'),), attributes={
+                              'units': 'days since 2000-01-01 00:00:00', 'calendar': 'noleap'})
         testname = 'FAIL: ValidateNode({!r}).__getitem__(:)'.format(indata)
         N1 = ValidateNode(indata, N0)
         print_test_message(testname, indata=indata, expected=UnitsError)
@@ -614,9 +577,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_max_warn(self):
         N0 = DataNode(PhysArray(numpy.arange(10), name='x', units='m', dimensions=('x',)))
@@ -626,9 +587,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_min_mean_abs_warn(self):
         N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
@@ -638,9 +597,7 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_max_mean_abs_warn(self):
         N0 = DataNode(PhysArray(numpy.arange(-5, 10), name='x', units='m', dimensions=('x',)))
@@ -650,15 +607,13 @@ class ValidateNodeTests(unittest.TestCase):
         actual = N1[:]
         expected = N0[:]
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        numpy.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed'.format(testname))
-        self.assertEqual(actual.dimensions, expected.dimensions, '{} failed'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
 #=======================================================================================================================
 # WriteNodeTests
 #=======================================================================================================================
-class WriteNodeTests(unittest.TestCase):
+class WriteNodeTests(BaseTests):
     """
     Unit tests for the flownodes.WriteNode class
     """
@@ -666,37 +621,37 @@ class WriteNodeTests(unittest.TestCase):
     def setUp(self):
         NX = 15
         X0 = -5
-        xdata = PhysArray(numpy.arange(X0, X0+NX, dtype='d'), name='X', units='m', dimensions=('x',))
-        
+        xdata = PhysArray(numpy.arange(X0, X0 + NX, dtype='d'), name='X', units='m', dimensions=('x',))
+
         NY = 8
         Y0 = 0
-        ydata = PhysArray(numpy.arange(Y0, Y0+NY, dtype='d'), name='Y', units='m', dimensions=('y',))
-        
+        ydata = PhysArray(numpy.arange(Y0, Y0 + NY, dtype='d'), name='Y', units='m', dimensions=('y',))
+
         NT = 3
         tunits = Unit('days since 2000-01-01', calendar='noleap')
         tdata = PhysArray(numpy.arange(0, NT, dtype='d'), name='T', units=tunits, dimensions=('t',))
-        
-        vdata = PhysArray(numpy.arange(0, NX*NY*NT, dtype='f').reshape(NX,NY,NT), name='V', units='K',
+
+        vdata = PhysArray(numpy.arange(0, NX * NY * NT, dtype='f').reshape(NX, NY, NT), name='V', units='K',
                           dimensions=('x', 'y', 't'))
 
         self.data = {'X': xdata, 'Y': ydata, 'T': tdata, 'V': vdata}
         self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X', 'units': str(xdata.units)},
-                     'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2', 'axis': 'Y', 
+                     'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2', 'axis': 'Y',
                            'direction': 'decreasing', 'units': str(ydata.units)},
                      'T': {'axis': 'T', 'ta1': 'time attribute', 'units': str(tdata.units),
                            'calendar': tdata.units.calendar},
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2', 'units': str(vdata.units)}}
 
-        dimdescs = {n:DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
-        vardescs = {n:VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
-                                   dimensions=[dimdescs[d] for d in self.data[n].dimensions]) for n in self.data}
+        dimdescs = {n: DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
+        vardescs = {n: VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
+                                    dimensions=[dimdescs[d] for d in self.data[n].dimensions]) for n in self.data}
         self.vardescs = vardescs
-        self.nodes = {n:ValidateNode(self.vardescs[n], DataNode(self.data[n])) for n in self.data}
+        self.nodes = {n: ValidateNode(self.vardescs[n], DataNode(self.data[n])) for n in self.data}
 
     def tearDown(self):
         for fname in glob('*.nc'):
             remove(fname)
-    
+
     def test_init(self):
         filename = 'test.nc'
         testname = 'WriteNode.__init__({})'.format(filename)
@@ -770,7 +725,7 @@ class WriteNodeTests(unittest.TestCase):
 
     def test_invert_dims(self):
         dsizes = OrderedDict([('x', 4), ('y', 5)])
-        chunk = OrderedDict([('x', slice(0,2)), ('y', slice(1,3))])
+        chunk = OrderedDict([('x', slice(0, 2)), ('y', slice(1, 3))])
         idims = {'y'}
         testname = 'WriteNode._invert_dims({}, {}, idims={})'.format(dsizes, chunk, idims)
         actual = WriteNode._invert_dims_(dsizes, chunk, idims=idims)
@@ -808,9 +763,9 @@ class WriteNodeTests(unittest.TestCase):
     def test_execute_simple_autoparse_fail(self):
         filename = 'v.{%Y%m%d-%Y%m%d}.nc'
         testname = 'WriteNode({}).execute()'.format(filename)
-        vdescs = {n:self.vardescs[n] for n in self.vardescs if n != 'T'}
+        vdescs = {n: self.vardescs[n] for n in self.vardescs if n != 'T'}
         filedesc = FileDesc(filename, variables=vdescs.values(), attributes={'ga': 'global attribute'})
-        vnodes = {n:self.nodes[n] for n in self.nodes if n != 'T'}
+        vnodes = {n: self.nodes[n] for n in self.nodes if n != 'T'}
         N = WriteNode(filedesc, inputs=vnodes.values())
         N.enable_history()
         N.execute()
@@ -819,7 +774,7 @@ class WriteNodeTests(unittest.TestCase):
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print_ncfile(filename)
-        
+
     def test_execute_simple_nc3(self):
         filename = 'v_x_y_simple_nc3.nc'
         testname = 'WriteNode({}).execute()'.format(filename)

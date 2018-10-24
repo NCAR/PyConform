@@ -1,7 +1,7 @@
 """
 Functions Unit Tests
 
-Copyright 2017, University Corporation for Atmospheric Research
+Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -15,9 +15,9 @@ import numpy as np
 import operator as op
 
 
-#===================================================================================================
+#=========================================================================
 # FindTests
-#===================================================================================================
+#=========================================================================
 class FindTests(unittest.TestCase):
     """
     Unit tests for finding functions and operators
@@ -35,7 +35,8 @@ class FindTests(unittest.TestCase):
         testname = 'find_operator({!r}, {})'.format(key, numargs)
         actual = functions.find_operator(key, numargs)
         expected = functions.NegationOperator
-        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        print_test_message(testname, actual=actual,
+                           expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_add(self):
@@ -44,7 +45,8 @@ class FindTests(unittest.TestCase):
         testname = 'find_operator({!r}, {})'.format(key, numargs)
         actual = functions.find_operator(key, numargs)
         expected = functions.AdditionOperator
-        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        print_test_message(testname, actual=actual,
+                           expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_sub(self):
@@ -53,7 +55,8 @@ class FindTests(unittest.TestCase):
         testname = 'find_operator({!r}, {})'.format(key, numargs)
         actual = functions.find_operator(key, numargs)
         expected = functions.SubtractionOperator
-        print_test_message(testname, actual=actual, expected=expected, key=key, numargs=numargs)
+        print_test_message(testname, actual=actual,
+                           expected=expected, key=key, numargs=numargs)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_operator_mul(self):
@@ -92,7 +95,8 @@ class FindTests(unittest.TestCase):
         numargs = 1
         testname = 'find_operator({!r}, {})'.format(key, numargs)
         expected = KeyError
-        print_test_message(testname, key=key, numargs=numargs, expected=expected)
+        print_test_message(testname, key=key,
+                           numargs=numargs, expected=expected)
         self.assertRaises(KeyError, functions.find_operator, key, numargs)
 
     def test_function_sqrt(self):
@@ -125,7 +129,7 @@ class FindTests(unittest.TestCase):
         expected = functions.MultiplicationOperator
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
+
     def test_key_failure(self):
         key = '?'
         testname = 'find({!r})'.format(key)
@@ -138,14 +142,17 @@ class FindTests(unittest.TestCase):
         numargs = 3
         testname = 'find({!r}, {})'.format(key, numargs)
         expected = KeyError
-        print_test_message(testname, key=key, numargs=numargs, expected=expected)
+        print_test_message(testname, key=key,
+                           numargs=numargs, expected=expected)
         self.assertRaises(KeyError, functions.find, key, numargs)
 
     def test_user_defined(self):
         class myfunc(functions.Function):
             key = 'myfunc'
+
             def __init__(self, x):
                 super(myfunc, self).__init__(x)
+
             def __getitem__(self, index):
                 return self.arguments[0][index]
 
@@ -155,7 +162,7 @@ class FindTests(unittest.TestCase):
         expected = myfunc
         print_test_message(testname, key=key, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-    
+
     def test_list_operators(self):
         testname = 'list_operators()'
         actual = functions.list_operators()
@@ -166,18 +173,37 @@ class FindTests(unittest.TestCase):
     def test_list_functions(self):
         testname = 'list_functions()'
         actual = sorted(functions.list_functions())
-        expected = sorted(['sqrt', 'mean', 'up', 'down', 'chunits', 'limit'])
+        expected = sorted(['chdims', 'chunits', 'down', 'limit', 'max',
+                           'mean', 'min', 'rmunits', 'sqrt', 'sum', 'up'])
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        
 
-#===============================================================================
+
+#=========================================================================
 # EvaluationTests
-#===============================================================================
+#=========================================================================
 class EvaluationTests(unittest.TestCase):
     """
     Unit tests for evaluating functions and operators
     """
+
+    def assertPhysArraysEqual(self, left, right, testname='Test', decimal=0):
+        if type(left) != type(right):
+            self.fail('{} failed - type')
+        elif isinstance(left, PhysArray):
+            ldata = np.ma.asarray(left)
+            rdata = np.ma.asarray(right)
+            if decimal == 0:
+                np.testing.assert_array_equal(ldata, rdata, '{} failed - data'.format(testname))
+            else:
+                np.testing.assert_array_almost_equal(left, right, decimal, '{} failed - data'.format(testname))
+            self.assertEqual(left.dtype, right.dtype, '{} failed - dtype'.format(testname))
+            self.assertEqual(left.name, right.name, '{} failed - name'.format(testname))
+            self.assertEqual(left.units, right.units, '{} failed - units'.format(testname))
+            self.assertEqual(left.dimensions, right.dimensions, '{} failed - dimensions'.format(testname))
+            self.assertEqual(left.positive, right.positive, '{} failed - positive'.format(testname))
+        else:
+            self.assertEqual(left, right, '{} failed')
 
     def test_op_neg_int(self):
         key = '-'
@@ -187,7 +213,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(indata)
         actual = func[:]
         expected = op.neg(indata)
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        print_test_message(testname, input=indata,
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_neg_float(self):
@@ -197,7 +224,8 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 1)
         actual = func(indata)[:]
         expected = op.neg(indata)
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        print_test_message(testname, input=indata,
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_neg_physarray(self):
@@ -208,8 +236,10 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(indata)
         actual = func[:]
         expected = PhysArray(-3, name='3', units='m')
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed'.format(testname))
+        print_test_message(testname, input=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed'.format(testname))
 
     def test_op_add_int(self):
         key = '+'
@@ -220,7 +250,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 5
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_add_float(self):
@@ -232,7 +263,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 5.6
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_add_physarray(self):
@@ -243,11 +275,15 @@ class EvaluationTests(unittest.TestCase):
         funcref = functions.find(key, 2)
         func = funcref(x, y)
         actual = func[:]
-        expected = PhysArray(7901.5, name='(x+convert(y, from=km, to=m))', units='m')
-        print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
+        expected = PhysArray(
+            7901.5, name='(x+convert(y, from=km, to=m))', units='m')
+        print_test_message(testname, actual=actual,
+                           expected=expected, x=x, y=y)
         self.assertEqual(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_op_sub_int(self):
         key = '-'
@@ -258,7 +294,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = -1
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_sub_float(self):
@@ -270,7 +307,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 - 3.2
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_sub_physarray(self):
@@ -280,11 +318,15 @@ class EvaluationTests(unittest.TestCase):
         testname = '({} {} {})'.format(x, key, y)
         func = functions.find(key, 2)
         actual = func(x, y)[:]
-        expected = PhysArray(-7898.5, name='(x-convert(y, from=km, to=m))', units='m')
-        print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
+        expected = PhysArray(-7898.5,
+                             name='(x-convert(y, from=km, to=m))', units='m')
+        print_test_message(testname, actual=actual,
+                           expected=expected, x=x, y=y)
         self.assertEqual(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_op_mul_int(self):
         key = '*'
@@ -295,7 +337,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 6
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_mul_float(self):
@@ -307,7 +350,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 * 3.2
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_mul_physarray(self):
@@ -318,10 +362,13 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(1.5 * 7.9, name='(x*y)', units='m-km')
-        print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
+        print_test_message(testname, actual=actual,
+                           expected=expected, x=x, y=y)
         self.assertEqual(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_op_div_int(self):
         key = '/'
@@ -332,7 +379,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 2
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_div_float(self):
@@ -344,7 +392,8 @@ class EvaluationTests(unittest.TestCase):
         func = funcref(left, right)
         actual = func[:]
         expected = 2.4 / 3.2
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_div_physarray(self):
@@ -355,11 +404,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(1.5 / 7.9, name='(x/y)', units='0.001 1')
-        print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
+        print_test_message(testname, actual=actual,
+                           expected=expected, x=x, y=y)
         np.testing.assert_array_almost_equal(actual, expected, 16,
                                              '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_op_pow_int(self):
         key = '**'
@@ -369,7 +421,8 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 2)
         actual = func(left, right)[:]
         expected = 7 ** 3
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_pow_float(self):
@@ -380,7 +433,8 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 2)
         actual = func(left, right)[:]
         expected = 2.4 ** 3.2
-        print_test_message(testname, actual=actual, expected=expected, left=left, right=right)
+        print_test_message(testname, actual=actual,
+                           expected=expected, left=left, right=right)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_op_pow_physarray(self):
@@ -391,10 +445,13 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key, 2)
         actual = func(x, y)[:]
         expected = PhysArray(4.3 ** 2, name='(x**y)', units=Unit('m') ** 2)
-        print_test_message(testname, actual=actual, expected=expected, x=x, y=y)
+        print_test_message(testname, actual=actual,
+                           expected=expected, x=x, y=y)
         self.assertEqual(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_func_sqrt_int(self):
         key = 'sqrt'
@@ -403,8 +460,10 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = np.sqrt(indata)
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        print_test_message(testname, input=indata,
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))\
+
 
     def test_func_sqrt_float(self):
         key = 'sqrt'
@@ -414,7 +473,8 @@ class EvaluationTests(unittest.TestCase):
         fobj = func(indata)
         actual = fobj[:]
         expected = np.sqrt(indata)
-        print_test_message(testname, input=indata, actual=actual, expected=expected)
+        print_test_message(testname, input=indata,
+                           actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_sqrt_physarray(self):
@@ -425,49 +485,56 @@ class EvaluationTests(unittest.TestCase):
         actual = func(indata)[:]
         expected = PhysArray([3.0, 4.0, 2.0], name='sqrt(x)', units='m')
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
     def test_func_mean_ndarray(self):
         key = 'mean'
-        indata = PhysArray([1.0, 2.0, 3.0], name='x', units='m', dimensions=('t',))
+        indata = PhysArray([1.0, 2.0, 3.0], name='x',
+                           units='m', dimensions=('t',))
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray(2.0, name='mean(x, dims=[t])', units='m')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
+
     def test_func_mean_physarray(self):
         key = 'mean'
-        indata = PhysArray([1.0, 2.0, 3.0], mask=[False, False, True], name='x', units='m', dimensions=('t',))
+        indata = PhysArray([1.0, 2.0, 3.0], mask=[
+                           False, False, True], name='x', units='m', dimensions=('t',))
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray(1.5, name='mean(x, dims=[t])', units='m')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_func_mean_physarray_2d(self):
         key = 'mean'
-        indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [True, False]], name='x', units='m', dimensions=('t','u'))
+        indata = PhysArray([[1.0, 2.0], [3.0, 4.0]], mask=[[False, False], [True, False]],
+                           name='x', units='m', dimensions=('t', 'u'))
         testname = '{}({})'.format(key, indata)
         func = functions.find(key)
         fobj = func(indata, 't')
         actual = fobj[:]
         expected = PhysArray([1.0, 3.0], name='mean(x, dims=[t])', units='m', dimensions=('u',))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
     def test_func_sqrt_sumlike(self):
         key = 'sqrt'
         testname = '{}.sumlike_dimensions'.format(key)
@@ -479,7 +546,8 @@ class EvaluationTests(unittest.TestCase):
 
     def test_func_mean_sumlike(self):
         key = 'mean'
-        indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0], name='x', units='m', dimensions=('t',))
+        indata = PhysArray([1.0, 2.0, 3.0, 4.0, 5.0],
+                           name='x', units='m', dimensions=('t',))
         testname = '{}({}).sumlike_dimensions'.format(key, indata)
         func = functions.find(key)
         fobj = func(indata, 't')
@@ -496,10 +564,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='up(x)', positive='up')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
 
     def test_func_up_physarray_up(self):
         key = 'up'
@@ -508,11 +580,15 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='x', positive='up')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
-        
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
+
     def test_func_up_physarray_down(self):
         key = 'up'
         indata = PhysArray(2.5, name='x', positive='down')
@@ -520,10 +596,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(-2.5, name='up(x)', positive='up')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
 
     def test_func_down_physarray_none(self):
         key = 'down'
@@ -532,10 +612,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(indata, name='down(x)', positive='down')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
 
     def test_func_down_physarray_down(self):
         key = 'down'
@@ -544,10 +628,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(2.5, name='x', positive='down')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
 
     def test_func_down_physarray_up(self):
         key = 'down'
@@ -556,10 +644,14 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata)[:]
         expected = PhysArray(-2.5, name='down(x)', positive='down')
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.positive, expected.positive, '{} failed - positive'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.positive, expected.positive,
+                         '{} failed - positive'.format(testname))
 
     def test_func_chunits(self):
         key = 'chunits'
@@ -569,54 +661,74 @@ class EvaluationTests(unittest.TestCase):
         func = functions.find(key)
         actual = func(indata, units=new_units)[:]
         expected = PhysArray(2.5, name='chunits(x, units=kg)', units=new_units)
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
 
     def test_func_chunits_calendar(self):
         key = 'chunits'
-        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        indata = PhysArray(2.5, name='t', units=Unit(
+            'days since 1850-01-01', calendar='noleap'))
         new_cal = 'gregorian'
         testname = '{}({}, calendar={})'.format(key, indata, new_cal)
         func = functions.find(key)
         actual = func(indata, calendar=new_cal)[:]
         expected = PhysArray(2.5, name='chunits(t, units=days since 1850-01-01|gregorian)',
                              units=Unit('days since 1850-01-01', calendar=new_cal))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-       
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
+
     def test_func_chunits_refdate(self):
         key = 'chunits'
-        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        indata = PhysArray(2.5, name='t', units=Unit(
+            'days since 1850-01-01', calendar='365_day'))
         new_ref = '0001-01-01'
         testname = '{}({}, refdate={})'.format(key, indata, new_ref)
         func = functions.find(key)
         actual = func(indata, refdate=new_ref)[:]
-        expected = PhysArray(2.5, name='chunits(t, units=days since {}|noleap)'.format(new_ref),
+        expected = PhysArray(2.5, name='chunits(t, units=days since {}|365_day)'.format(new_ref),
                              units=Unit('days since {}'.format(new_ref), calendar='noleap'))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
- 
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
+
     def test_func_chunits_refdate_calendar(self):
         key = 'chunits'
-        indata = PhysArray(2.5, name='t', units=Unit('days since 1850-01-01', calendar='noleap'))
+        indata = PhysArray(2.5, name='t', units=Unit(
+            'days since 1850-01-01', calendar='365_day'))
         new_ref = '0001-01-01'
         new_cal = 'gregorian'
-        testname = '{}({}, refdate={}, calendar={})'.format(key, indata, new_ref, new_cal)
+        testname = '{}({}, refdate={}, calendar={})'.format(
+            key, indata, new_ref, new_cal)
         func = functions.find(key)
         actual = func(indata, refdate=new_ref, calendar=new_cal)[:]
         expected = PhysArray(2.5, name='chunits(t, units=days since {}|{})'.format(new_ref, new_cal),
                              units=Unit('days since {}'.format(new_ref), calendar=new_cal))
-        print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        
+        print_test_message(testname, indata=indata,
+                           actual=actual, expected=expected)
+        np.testing.assert_array_equal(
+            actual, expected, '{} failed - data'.format(testname))
+        self.assertEqual(actual.name, expected.name,
+                         '{} failed - name'.format(testname))
+        self.assertEqual(actual.units, expected.units,
+                         '{} failed - units'.format(testname))
+
     def test_func_limit(self):
         key = 'limit'
         indata = PhysArray([2.5, 7.3, 8.2, 1.4], name='x', units='m', dimensions=('t',))
@@ -627,14 +739,55 @@ class EvaluationTests(unittest.TestCase):
         actual = func(indata, above=above_val, below=below_val)[:]
         expected = PhysArray([3.0, 7.3, 7.5, 3.0], name=testname, units='m', dimensions=('t',))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        np.testing.assert_array_equal(actual, expected, '{} failed - data'.format(testname))
-        self.assertEqual(actual.name, expected.name, '{} failed - name'.format(testname))
-        self.assertEqual(actual.units, expected.units, '{} failed - units'.format(testname))
-        
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
-#===============================================================================
+    def test_func_rmunits(self):
+        key = 'rmunits'
+        indata = PhysArray(2.5, name='x', units='m')
+        testname = '{}({})'.format(key, indata)
+        func = functions.find(key)
+        actual = func(indata)[:]
+        expected = PhysArray(2.5, name='rmunits(x)')
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims_short(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A']
+        testname = "{}({}, 'A')".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A')", dimensions=('A', 'b'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims_full(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A', 'B']
+        testname = "{}({}, 'A', 'B')".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B')", dimensions=('A', 'B'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+    def test_func_chdims_long(self):
+        key = 'chdims'
+        indata = PhysArray([[1, 2], [3, 4]], name='x', dimensions=('a', 'b'))
+        inargs = ['A', 'B', 'C']
+        testname = "{}({}, 'A', 'B', 'C)".format(key, indata)
+        func = functions.find(key)
+        actual = func(indata, *inargs)[:]
+        expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B', 'C')", dimensions=('A', 'B'))
+        print_test_message(testname, indata=indata, actual=actual, expected=expected)
+        self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
+
+
+#=========================================================================
 # Command-Line Operation
-#===============================================================================
+#=========================================================================
 if __name__ == "__main__":
     # import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
