@@ -151,9 +151,31 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             elif "external_variables" in a:
                 if "cell_measures" in v.keys():
                     if "areacello" in v["cell_measures"]:
-                        attr["external_variables"] = "areacello"
-                    elif "areacella" in v["cell_measures"]:
-                        attr["external_variables"] = "areacella"
+                        if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
+                            attr["external_variables"] = "areacello"
+                        else:
+                            attr["external_variables"] = attr["external_variables"]+" areacello"
+                    if "areacella" in v["cell_measures"]:
+                        if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
+                            attr["external_variables"] = "areacella"
+                        else:
+                            attr["external_variables"] = attr["external_variables"]+" areacella"
+                    if "areacellr" in v["cell_measures"]:
+                        if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
+                            attr["external_variables"] = "areacellr"
+                        else:
+                            attr["external_variables"] = attr["external_variables"]+" areacellr"
+                    if "areacellg" in v["cell_measures"]:
+                        if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
+                            attr["external_variables"] = "areacellg"
+                        else:
+                            attr["external_variables"] = attr["external_variables"]+" areacellg"
+                    if "volcello" in v["cell_measures"]:
+                        if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
+                            attr["external_variables"] = "volcello"
+                        else:
+                            attr["external_variables"] = attr["external_variables"]+" volcello"
+
             elif "frequency" in a:
                 attr["frequency"] = v["frequency"]
             elif "realm" in a and "realm" in v.keys():
@@ -164,6 +186,10 @@ def fill_missing_glob_attributes(attr, table, v, grids):
                 attr["tracking_id"] = "hdl:21.14100/"+str(uuid.uuid4())
             elif "variable_id" in a and "variable_id" in v.keys():
                 attr["variable_id"] = v["variable_id"]
+
+    if "FILL" in attr["external_variables"]:
+        attr.pop("external_variables")
+
     if "branch_method" in attr.keys():
         if "none" not in attr["branch_method"]:
             if "branch_time_in_child" in attr.keys():
@@ -364,7 +390,8 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
             var['definition'] =  v['requested']
     if 'coordinates' in v.keys():
         var["dimensions"] = list(reversed(v['coordinates'].split('|')))
-        var["attributes"].pop('coordinates')
+        var["attributes"]['coordinates'] = ' '.join(list(reversed(v['coordinates'].split('|'))))
+        #var["attributes"].pop('coordinates')
     else: 
         var["dimensions"] = []
 
@@ -517,7 +544,7 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             with open(f, 'w') as outfile:
                 json.dump(t, outfile, sort_keys=True, indent=4)
     else:
-        ignore = ['latitude','longitude','olevel','plev19','time','time1','alevhalf','ygre','xgre','vegtype','spectband','areacellg','alevel','xant','yant','rho','tau','plev3','gridlatitude','plev39','plev4','plev27','plev3','plev7h','plev7c','plev8','plev7h','sdepth','siline','basin','olevel','site','soilpools','snowdepth','snowband','vegtype']
+        ignore = ['latitude','longitude','olevel','plev19','time','time1','alevhalf','ygre','xgre','vegtype','spectband','areacellg','alevel','xant','yant','rho','tau','plev3','gridlatitude','plev39','plev4','plev27','plev3','plev7h','plev7c','plev8','plev7h','sdepth','siline','basin','olevel','site','soilpools','snowdepth','snowband','vegtype','lat','lon','lev']
         for n,t in TableSpec.iteritems():
             for vn,var in t.iteritems():
                 if vn not in ignore:

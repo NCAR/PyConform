@@ -480,7 +480,7 @@ class ParseXML(object):
                                 if hasattr(s_var,'coords'):
                                     #if len(s_var.coords)>0:
                                         if isinstance(s_var.cids,list) :
-                                            var['coordinate'] = dq.inx.uid[s_var.cids[0]].label
+                                            var['coordinates'] = dq.inx.uid[s_var.cids[0]].label
                                             c = dq.inx.uid[s_var.cids[0]]
                                             if c not in axes_list and c != '' and c != 'None':
                                                 axes_list.append(c)
@@ -596,6 +596,8 @@ class ParseXML(object):
                                 ax['bounds'] = v.label+"_bnds"
                         if hasattr(v,'requested'):
                             ax['requested'] = v.requested
+                        if hasattr(v,'altLabel'):
+                            ax['altLabel'] = v.altLabel
                         #if hasattr(v,'boundsValues'):
                         #    ax['boundsValues'] = v.boundsValues
                         if hasattr(v,'coords'):
