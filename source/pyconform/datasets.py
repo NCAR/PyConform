@@ -783,6 +783,9 @@ class OutputDatasetDesc(DatasetDesc):
                 if 'deflate' in fdict:
                     files[fname]['deflate'] = fdict['deflate']
 
+                if 'autoparse_time_variable' in fdict:
+                    files[fname]['autoparse_time_variable'] = fdict['autoparse_time_variable']
+
                 if 'attributes' in fdict:
                     files[fname]['attributes'] = fdict['attributes']
 

@@ -184,12 +184,23 @@ class DataFlowTests(unittest.TestCase):
         vattribs['calendar'] = 'noleap'
         vdicts['T2']['attributes'] = vattribs
 
+        vdicts['_T'] = OrderedDict()
+        vdicts['_T']['datatype'] = 'double'
+        vdicts['_T']['dimensions'] = ('t',)
+        vdicts['_T']['definition'] = 'chunits(rmunits(tyears) * 365 + 10, units="days since 1979-01-01", calendar="noleap")'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'time_hidden'
+        vattribs['units'] = 'days since 1979-01-01 00:00:00'
+        vattribs['calendar'] = 'noleap'
+        vdicts['_T']['attributes'] = vattribs
+
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'double'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
         fdict = OrderedDict()
         fdict['filename'] = 'var1_{%Y%m%d-%Y%m%d}.nc'
+        fdict['autoparse_time_variable'] = '_T'
         fdict['attributes'] = {'variable': 'V1'}
         fdict['metavars'] = ['L', 'C']
         vdicts['V1']['file'] = fdict
@@ -310,6 +321,7 @@ class DataFlowTests(unittest.TestCase):
 
         self.outfiles = dict((vname, vdict['file']['filename'].replace('{%Y%m%d-%Y%m%d}', '19790101-19790104'))
                              for vname, vdict in vdicts.iteritems() if 'file' in vdict)
+        self.outfiles['V1'] = 'var1_19790111-19790114.nc'
         self.cleanOutputFiles()
 
     def cleanInputFiles(self):
