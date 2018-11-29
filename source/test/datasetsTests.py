@@ -579,6 +579,24 @@ class FileDescTests(unittest.TestCase):
         print_test_message('FileDesc.dimensions', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
 
+    def test_autoparse_time_variable_missing(self):
+        indata = (VariableDesc('a'), VariableDesc('b'))
+        with self.assertRaises(ValueError):
+            FileDesc('test.nc', variables=indata, autoparse_time_variable='t')
+
+    def test_autoparse_time_variable_hidden(self):
+        indata = (VariableDesc('a'), VariableDesc('b'), VariableDesc('_t'))
+        fdesc = FileDesc('test.nc', variables=indata, autoparse_time_variable='_t')
+        actual = fdesc.variables
+        expected = OrderedDict((d.name, d) for d in indata)
+        print_test_message('FileDesc.variables', input=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'FileDesc.variables failed')
+        actual = fdesc.dimensions
+        expected = OrderedDict()
+        print_test_message('FileDesc.dimensions', input=indata, actual=actual, expected=expected)
+        self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
+
+
 
 #=========================================================================
 # DatasetDescTests - Tests for the datasets module
