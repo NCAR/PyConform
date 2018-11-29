@@ -683,26 +683,31 @@ class WriteNode(FlowNode):
         if '{' in fname:
 
             possible_tvars = []
-            for var in self._filedesc.variables:
-                vdesc = self._filedesc.variables[var]
-                if var in ('time', 'time1', 'time2', 'time3'):
-                    possible_tvars.append(var)
-                elif vdesc.cfunits().is_time_reference() and len(vdesc.dimensions) == 1:
-                    possible_tvars.append(var)
-                elif 'standard_name' in vdesc.attributes and vdesc.attributes['standard_name'] == 'time':
-                    possible_tvars.append(var)
-                elif 'axis' in vdesc.attributes and vdesc.attributes['axis'] == 'T':
-                    possible_tvars.append(var)
+            possible_inputs = list(self.inputs)
+            if self._filedesc.autoparse_time_variable:
+                possible_tvars.append(self._filedesc.autoparse_time_variable)
+                possible_inputs += self._hidden_inputs
+            else:
+                for var in self._filedesc.variables:
+                    vdesc = self._filedesc.variables[var]
+                    if var in ('time', 'time1', 'time2', 'time3'):
+                        possible_tvars.append(var)
+                    elif vdesc.cfunits().is_time_reference() and len(vdesc.dimensions) == 1:
+                        possible_tvars.append(var)
+                    elif 'standard_name' in vdesc.attributes and vdesc.attributes['standard_name'] == 'time':
+                        possible_tvars.append(var)
+                    elif 'axis' in vdesc.attributes and vdesc.attributes['axis'] == 'T':
+                        possible_tvars.append(var)
             if len(possible_tvars) == 0:
-                msg = 'Could not identify a time variable to autoparse filename {!r}'.format(
-                    fname)
+                msg = 'Could not identify a time variable to autoparse filename {!r}'.format(fname)
                 warn(msg, DateTimeAutoParseWarning)
                 return fname
-
-            possible_tnodes = {vnode.label:vnode for vnode in self.inputs if vnode.label in possible_tvars}
+            possible_tnodes = {vnode.label:vnode for vnode in possible_inputs
+                               if vnode.label in possible_tvars}
             if len(possible_tnodes) == 0:
                 raise ValueError('Time variable input missing for file {!r}'.format(fname))
             tnode = possible_tnodes['time'] if 'time' in possible_tnodes else possible_tnodes.values()[0]
+
             t1 = tnode[0:1]
             t2 = tnode[-1:]
 

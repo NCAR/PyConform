@@ -619,15 +619,15 @@ class WriteNodeTests(BaseTests):
     """
 
     def setUp(self):
-        NX = 3
+        NX = 2
         X0 = -1
         xdata = PhysArray(numpy.arange(X0, X0 + NX, dtype='d'), name='X', units='m', dimensions=('x',))
 
-        NY = 4
+        NY = 3
         Y0 = 0
         ydata = PhysArray(numpy.arange(Y0, Y0 + NY, dtype='d'), name='Y', units='m', dimensions=('y',))
 
-        NT = 2
+        NT = 4
         tunits = Unit('days since 2000-01-01', calendar='noleap')
         tdata = PhysArray(numpy.arange(0, NT, dtype='d'), name='T', units=tunits, dimensions=('t',))
         t2data = PhysArray(numpy.arange(0, NT, dtype='d') + 2, name='_T', units=tunits, dimensions=('t',))
@@ -756,7 +756,7 @@ class WriteNodeTests(BaseTests):
         N = WriteNode(filedesc, inputs=self.nodes.values())
         N.enable_history()
         N.execute()
-        newfname = 'v.20000101-20000102.nc'
+        newfname = 'v.20000101-20000104.nc'
         actual = exists(newfname)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -781,7 +781,7 @@ class WriteNodeTests(BaseTests):
         N = WriteNode(filedesc, inputs=vnodes.values())
         N.enable_history()
         N.execute()
-        newfname = 'v.20000103-20000104.nc'
+        newfname = 'v.20000103-20000106.nc'
         actual = exists(newfname)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
