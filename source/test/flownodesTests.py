@@ -619,32 +619,35 @@ class WriteNodeTests(BaseTests):
     """
 
     def setUp(self):
-        NX = 15
-        X0 = -5
+        NX = 3
+        X0 = -1
         xdata = PhysArray(numpy.arange(X0, X0 + NX, dtype='d'), name='X', units='m', dimensions=('x',))
 
-        NY = 8
+        NY = 4
         Y0 = 0
         ydata = PhysArray(numpy.arange(Y0, Y0 + NY, dtype='d'), name='Y', units='m', dimensions=('y',))
 
-        NT = 3
+        NT = 2
         tunits = Unit('days since 2000-01-01', calendar='noleap')
         tdata = PhysArray(numpy.arange(0, NT, dtype='d'), name='T', units=tunits, dimensions=('t',))
+        t2data = PhysArray(numpy.arange(0, NT, dtype='d') + 2, name='_T', units=tunits, dimensions=('t',))
 
         vdata = PhysArray(numpy.arange(0, NX * NY * NT, dtype='f').reshape(NX, NY, NT), name='V', units='K',
                           dimensions=('x', 'y', 't'))
 
-        self.data = {'X': xdata, 'Y': ydata, 'T': tdata, 'V': vdata}
+        self.data = {'X': xdata, 'Y': ydata, 'T': tdata, '_T': t2data, 'V': vdata}
         self.atts = {'X': {'xa1': 'x attribute 1', 'xa2': 'x attribute 2', 'axis': 'X', 'units': str(xdata.units)},
                      'Y': {'ya1': 'y attribute 1', 'ya2': 'y attribute 2', 'axis': 'Y',
                            'direction': 'decreasing', 'units': str(ydata.units)},
                      'T': {'axis': 'T', 'ta1': 'time attribute', 'units': str(tdata.units),
                            'calendar': tdata.units.calendar},
+                     '_T': {'ta1': 'hidden time attribute', 'units': str(t2data.units),
+                           'calendar': t2data.units.calendar},
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2', 'units': str(vdata.units)}}
 
         dimdescs = {n: DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
         vardescs = {n: VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
-                                    dimensions=[dimdescs[d] for d in self.data[n].dimensions]) for n in self.data}
+                                    dimensions=tuple(dimdescs[d] for d in self.data[n].dimensions)) for n in self.data}
         self.vardescs = vardescs
         self.nodes = {n: ValidateNode(self.vardescs[n], DataNode(self.data[n])) for n in self.data}
 
@@ -753,7 +756,7 @@ class WriteNodeTests(BaseTests):
         N = WriteNode(filedesc, inputs=self.nodes.values())
         N.enable_history()
         N.execute()
-        newfname = 'v.20000101-20000103.nc'
+        newfname = 'v.20000101-20000102.nc'
         actual = exists(newfname)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
@@ -762,18 +765,28 @@ class WriteNodeTests(BaseTests):
 
     def test_execute_simple_autoparse_fail(self):
         filename = 'v.{%Y%m%d-%Y%m%d}.nc'
-        testname = 'WriteNode({}).execute()'.format(filename)
         vdescs = {n: self.vardescs[n] for n in self.vardescs if n != 'T'}
         filedesc = FileDesc(filename, variables=vdescs.values(), attributes={'ga': 'global attribute'})
+        vnodes = {n: self.nodes[n] for n in self.nodes if n != 'T'}
+        with self.assertRaises(ValueError):
+            WriteNode(filedesc, inputs=vnodes.values())
+
+    def test_execute_simple_autoparse_hidden_time(self):
+        filename = 'v.{%Y%m%d-%Y%m%d}.nc'
+        testname = 'WriteNode({}).execute()'.format(filename)
+        vdescs = {n: self.vardescs[n] for n in self.vardescs if n != 'T'}
+        filedesc = FileDesc(filename, variables=vdescs.values(), attributes={'ga': 'global attribute'},
+                            autoparse_time_variable='_T')
         vnodes = {n: self.nodes[n] for n in self.nodes if n != 'T'}
         N = WriteNode(filedesc, inputs=vnodes.values())
         N.enable_history()
         N.execute()
-        actual = exists(filename)
+        newfname = 'v.20000103-20000104.nc'
+        actual = exists(newfname)
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
-        print_ncfile(filename)
+        print_ncfile(newfname)
 
     def test_execute_simple_nc3(self):
         filename = 'v_x_y_simple_nc3.nc'

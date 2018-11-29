@@ -637,6 +637,11 @@ class WriteNode(FlowNode):
                 raise TypeError(('WriteNode {!r} cannot accept input from type {}, must be a '
                                  'ValidateNode').format(filedesc.name, type(inp)))
 
+        # Extract hidden variables (names starting with '_') from list of input nodes
+        hidden_labels = [inp.label for inp in inputs if inp.label[0] == '_']
+        self._hidden_inputs = [inp for inp in inputs if inp.label in hidden_labels]
+        inputs = [inp for inp in inputs if inp.label not in hidden_labels]
+
         # Call base class (label is filename)
         super(WriteNode, self).__init__(filedesc.name, *inputs)
 
@@ -647,7 +652,7 @@ class WriteNode(FlowNode):
         for inp in inputs:
             if inp.label not in self._filedesc.variables:
                 raise ValueError(('WriteNode {!r} takes input from variable {!r} that is not '
-                                  'contained in the descibed file').format(filedesc.name, inp.label))
+                                  'contained in the described file').format(filedesc.name, inp.label))
 
         # Construct the proper filename
         fname = self._autoparse_filename_(self.label)
@@ -694,12 +699,10 @@ class WriteNode(FlowNode):
                 warn(msg, DateTimeAutoParseWarning)
                 return fname
 
-            tvar = 'time' if 'time' in possible_tvars else possible_tvars[0]
-            tnodes = [vnode for vnode in self.inputs if vnode.label == tvar]
-            if len(tnodes) == 0:
-                raise ValueError(
-                    'Time variable input missing for file {!r}'.format(fname))
-            tnode = tnodes[0]
+            possible_tnodes = {vnode.label:vnode for vnode in self.inputs if vnode.label in possible_tvars}
+            if len(possible_tnodes) == 0:
+                raise ValueError('Time variable input missing for file {!r}'.format(fname))
+            tnode = possible_tnodes['time'] if 'time' in possible_tnodes else possible_tnodes.values()[0]
             t1 = tnode[0:1]
             t2 = tnode[-1:]
 
@@ -806,8 +809,7 @@ class WriteNode(FlowNode):
             for vnode in self.inputs:
                 vname = vnode.label
                 vdesc = self._filedesc.variables[vname]
-                vattrs = OrderedDict((k, v)
-                                     for k, v in vnode.attributes.iteritems())
+                vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
 
                 vdtype = vdesc.dtype
                 fillval = vattrs.get('_FillValue', None)
@@ -824,8 +826,8 @@ class WriteNode(FlowNode):
                             'Override deflate value range from 0 to 9')
                     zlib = deflate > 0
                     clev = deflate if zlib else 1
-                ncvar = self._file.createVariable(
-                    vname, vdtype, vdims, fill_value=fillval, zlib=zlib, complevel=clev)
+                ncvar = self._file.createVariable(vname, vdtype, vdims, fill_value=fillval,
+                                                  zlib=zlib, complevel=clev)
 
                 for aname in vattrs:
                     if aname not in self._unwritten_attributes:
@@ -926,19 +928,16 @@ class WriteNode(FlowNode):
         # Open the file and write the header information
         self._open_(deflate=deflate)
 
-        # Create data structure to keep track of which variable chunks we have
-        # written
+        # Create data structure to keep track of which variable chunks we have written
         vchunks = {vnode.label: set() for vnode in self.inputs}
 
-        # Compute the Global Dimension Sizes dictionary from the input variable
-        # nodes
+        # Compute the Global Dimension Sizes dictionary from the input variable nodes
         inputdims = []
         for vnode in self.inputs:
             for d in self._filedesc.variables[vnode.label].dimensions:
                 if d not in inputdims:
                     inputdims.append(d)
-        gdims = OrderedDict(
-            (d, self._filedesc.dimensions[d].size) for d in inputdims)
+        gdims = OrderedDict((d, self._filedesc.dimensions[d].size) for d in inputdims)
 
         # Iterate over the global dimension space
         for chunk in WriteNode._chunk_iter_(gdims, chunks=chunks):
