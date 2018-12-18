@@ -142,26 +142,27 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                           
 			# Check for valid pfts and compute weighted average
 			if pft_indx.size > 0:
-			    if 'grass' in vegType:
-				pfts1d_wtlunit_grass = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
-				dum = GPP[:,pft_indx]
-				weights = pfts1d_wtlunit_grass / np.sum(pfts1d_wtlunit_grass)
-				if np.absolute(1.-np.sum(weights)) > eps:
-				   print("Weights do not sum to 1, exiting")
-				   sys.exit(-1)
-				varo_vegType[:,jxy,ixy] = np.sum(dum * weights)
+                            for t in range(len(time)):
+			        if 'grass' in vegType:
+				    pfts1d_wtlunit_grass = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+				    dum = GPP[t,pft_indx]
+				    weights = pfts1d_wtlunit_grass / np.sum(pfts1d_wtlunit_grass)
+				    if np.absolute(1.-np.sum(weights)) > eps:
+				       print("Weights do not sum to 1, exiting")
+				       sys.exit(-1)
+				    varo_vegType[t,jxy,ixy] = np.sum(dum * weights)
 
-			    elif 'shrub' in vegType:
-				pfts1d_wtlunit_shrub = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
-				dum = GPP[:,pft_indx]
-				weights = pfts1d_wtlunit_shrub / np.sum(pfts1d_wtlunit_shrub)
-				varo_vegType[:,jxy,ixy] = np.sum(dum * weights)
+			        elif 'shrub' in vegType:
+				    pfts1d_wtlunit_shrub = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+				    dum = GPP[t,pft_indx]
+				    weights = pfts1d_wtlunit_shrub / np.sum(pfts1d_wtlunit_shrub)
+				    varo_vegType[t,jxy,ixy] = np.sum(dum * weights)
 
-			    elif 'tree' in vegType:
-				pfts1d_wtlunit_tree = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
-				dum = GPP[:,pft_indx]
-				weights = pfts1d_wtlunit_tree / np.sum(pfts1d_wtlunit_tree)     
-				varo_vegType[:,jxy,ixy] = np.sum(dum * weights)
+			        elif 'tree' in vegType:
+				    pfts1d_wtlunit_tree = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+				    dum = GPP[t,pft_indx]
+				    weights = pfts1d_wtlunit_tree / np.sum(pfts1d_wtlunit_tree)     
+				    varo_vegType[t,jxy,ixy] = np.sum(dum * weights)
 
 			else:
 			    varo_vegType[:,jxy,ixy] = 1e+20
