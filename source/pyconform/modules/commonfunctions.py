@@ -28,6 +28,115 @@ class ZonalMeanFunction(Function):
 
 
 #=========================================================================
+# OclimFunction
+#=========================================================================
+class OclimFunction(Function):
+    key = 'oclim'
+
+    def __init__(self, data):
+        super(OclimFunction, self).__init__(data)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('oclim: Data must be a PhysArray')
+
+    def __getitem__(self, index):
+ 
+        data = self.arguments[0][index]
+        new_name = 'oclim({})'.format(data.name)
+
+        if index is None:
+            if len(data.dimensions) == 3:
+                return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]], units=data.units)
+            elif len(data.dimensions) == 4:
+                return PhysArray(np.zeros((0, 0, 0, 0)), units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
+       
+        if len(data.dimensions) == 3:
+            a = np.ma.zeros((12,data.data.shape[1],data.data.shape[2]))
+        elif len(data.dimensions) == 4:
+            a = np.ma.zeros((12,data.data.shape[1],data.data.shape[2],data.data.shape[3]))
+
+        dim_count = len(data.dimensions)
+        time = data.data.shape[0]
+        print dim_count
+        dataD = data.data
+
+        for i in range(12):
+            a[i,...] = np.ma.mean(dataD[i::12,...],axis=0)  
+
+        a[a>=1e+16] = 1e+20
+        a = np.ma.masked_values(a, 1e+20)
+
+        if dim_count == 3:
+            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]])
+        elif dim_count == 4:
+            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
+
+        return a
+
+
+#=========================================================================
+# oclim_timeFunction
+#=========================================================================
+
+
+class oclim_timeFunction(Function):
+    key = 'oclim_time'
+
+    def __init__(self, time_bnds):
+        super(oclim_timeFunction, self).__init__(time_bnds)
+
+    def __getitem__(self, index):
+        p_time_bnds = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0)), dimensions=[p_time_bnds.dimensions[0]], units=p_time_bnds.units, calendar='noleap')
+
+        time_bnds = p_time_bnds.data
+
+        b = np.zeros((12))
+        for i in range(12):
+            b[i] = (time_bnds[i][0]+time_bnds[i][1])/2        
+
+        new_name = 'oclim_time({})'.format(p_time_bnds.name)
+
+        return PhysArray(b, name = new_name, dimensions=[p_time_bnds.dimensions[0]], units=p_time_bnds.units, calendar='noleap')
+
+
+#=========================================================================
+# oclim_timebndsFunction
+#=========================================================================
+
+
+class oclim_timebndsFunction(Function):
+    key = 'oclim_timebnds'
+
+    def __init__(self, time, bdim='bnds'):
+        super(oclim_timebndsFunction, self).__init__(time, bdim='d2')
+
+    def __getitem__(self, index):
+        p_time = self.arguments[0][index]
+        bdim = self.keywords['bdim']
+
+        bnds = PhysArray([1, 1], dimensions=(bdim,))
+
+        if index is None:
+            return PhysArray(np.zeros((12,2)), dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+
+        b = np.zeros((12,2))
+        time = p_time.data
+
+        monLens = [31.0, 28.0, 31.0, 30.0, 31.0,
+                   30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0]
+
+        for i in range(11,-1,-1):
+            b[i][0] = time[i] - monLens[i]
+            b[i][1] = time[-(12-i)]
+        new_name = 'oclim_timebnds({})'.format(p_time.name)
+
+        return PhysArray(b, name = new_name, dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+
+
+#=========================================================================
 # BoundsFunction
 #=========================================================================
 class BoundsFunction(Function):
@@ -64,7 +173,7 @@ class BoundsFunction(Function):
         location = self.keywords['location']
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
-        new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name))
+        new_data = PhysArray(data * bnds, name='bounds({})'.format(data.name), units=data.units)
         if index is None:
             return new_data
 
