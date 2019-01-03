@@ -57,7 +57,6 @@ class OclimFunction(Function):
 
         dim_count = len(data.dimensions)
         time = data.data.shape[0]
-        print dim_count
         dataD = data.data
 
         for i in range(12):
@@ -132,6 +131,116 @@ class oclim_timebndsFunction(Function):
             b[i][0] = time[i] - monLens[i]
             b[i][1] = time[-(12-i)]
         new_name = 'oclim_timebnds({})'.format(p_time.name)
+
+        return PhysArray(b, name = new_name, dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+
+
+#=========================================================================
+# monthtoyear_noleapFunction
+#=========================================================================
+class monthtoyear_noleapFunction(Function):
+    key = 'monthtoyear_noleap'
+
+    def __init__(self, data):
+        super(monthtoyear_noleapFunction, self).__init__(data)
+        data_info = data if is_constant(data) else data[None]
+        if not isinstance(data_info, PhysArray):
+            raise TypeError('monthtoyear_noleap: Data must be a PhysArray')
+
+    def __getitem__(self, index):
+
+        data = self.arguments[0][index]
+        new_name = 'monthtoyear_noleap({})'.format(data.name)
+
+        if index is None:
+            if len(data.dimensions) == 3:
+                return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]], units=data.units)
+            elif len(data.dimensions) == 4:
+                return PhysArray(np.zeros((0, 0, 0, 0)), units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
+
+        if len(data.dimensions) == 3:
+            a = np.ma.zeros((data.data.shape[0]/12,data.data.shape[1],data.data.shape[2]))
+        elif len(data.dimensions) == 4:
+            a = np.ma.zeros((data.data.shape[0]/12,data.data.shape[1],data.data.shape[2],data.data.shape[3]))
+
+        dim_count = len(data.dimensions)
+        time = data.data.shape[0]
+        dataD = data.data
+
+        for i in range(time/12):
+            start = i*12
+            end = (i*12)+11
+            a[i,...] = np.ma.mean(dataD[start:end,...],axis=0)
+
+        a[a>=1e+16] = 1e+20
+        a = np.ma.masked_values(a, 1e+20)
+
+        if dim_count == 3:
+            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]])
+        elif dim_count == 4:
+            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
+
+        return a
+
+
+#=========================================================================
+# monthtoyear_timeFunction
+#=========================================================================
+
+
+class monthtoyear_noleap_timeFunction(Function):
+    key = 'monthtoyear_noleap_time'
+
+    def __init__(self, time_bnds):
+        super(monthtoyear_noleap_timeFunction, self).__init__(time_bnds)
+
+    def __getitem__(self, index):
+        p_time_bnds = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0)), dimensions=[p_time_bnds.dimensions[0]], units=p_time_bnds.units, calendar='noleap')
+
+        time_bnds = p_time_bnds.data
+
+        b = np.zeros((time_bnds.shape[0]/12))
+        time = time_bnds.shape[0]
+        for i in range(time/12):
+            start = i*12
+            end = (i*12)+11
+            b[i] = (time_bnds[start][0]+time_bnds[end][1])/2
+
+        new_name = 'monthtoyear_noleap_time({})'.format(p_time_bnds.name)
+
+        return PhysArray(b, name = new_name, dimensions=[p_time_bnds.dimensions[0]], units=p_time_bnds.units, calendar='noleap')
+
+
+#=========================================================================
+# monthtoyear_timebndsFunction
+#=========================================================================
+
+
+class monthtoyear_noleap_timebndsFunction(Function):
+    key = 'monthtoyear_noleap_timebnds'
+
+    def __init__(self, time, bdim='bnds'):
+        super(monthtoyear_noleap_timebndsFunction, self).__init__(time, bdim='d2')
+
+    def __getitem__(self, index):
+        p_time = self.arguments[0][index]
+        bdim = self.keywords['bdim']
+
+        bnds = PhysArray([1, 1], dimensions=(bdim,))
+
+        if index is None:
+            return PhysArray(np.zeros((12,2)), dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+
+        time = p_time.data
+        b = np.zeros((time.shape[0]/12,2))
+
+        for i in range(len(time)/12):
+            b[i][0] = time[i*12]
+            b[i][1] = time[(i*12)+11]
+        new_name = 'monthtoyear_noleap_timebnds({})'.format(p_time.name)
 
         return PhysArray(b, name = new_name, dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
 
@@ -731,6 +840,45 @@ class cice_regionsFunction(Function):
 
 
 #=========================================================================
+# burntFractionFunction
+#=========================================================================
+class burntFractionFunction(Function):
+    key = 'burntFraction'
+
+    def __init__(self, data):
+        super(burntFractionFunction, self).__init__(data)
+
+    def __getitem__(self, index):
+        p_data = self.arguments[0][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0)), dimensions=[p_data.dimensions[0], p_data.dimensions[1], p_data.dimensions[2]])
+
+        data = p_data.data
+
+        ml = [31.0, 28.0, 31.0, 30.0, 31.0,
+                   30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0] 
+
+        a = np.ma.zeros((data.shape[0], data.shape[1], data.shape[2]))
+
+        i = 0
+        for t in range(0,data.shape[0]):
+            for x in range(0,data.shape[1]):
+                for y in range(0,data.shape[2]):
+                    if data[t,x,y]<1e+16:
+                        a[t,x,y] = data[t,x,y]*ml[i]*86400*100
+                    else:
+                        a[t,x,y] = 1e+20
+            i+=1
+            if i==12:
+                i=1
+        a[a >= 1e+16] = 1e+20
+        new_name = 'burntFraction({})'.format(p_data.name)
+
+        return PhysArray(a, name=new_name, units=p_data.units)
+
+
+#=========================================================================
 # reduce_luFunction
 #=========================================================================
 class reduce_luFunction(Function):
@@ -809,16 +957,18 @@ class get_soilpoolsFunction(Function):
 class get_nonwoodyvegFunction(Function):
     key = 'get_nonwoodyveg'
 
-    def __init__(self, p_pct_nat_pft, p_landfrac, p_landUse):
+    def __init__(self, p_pct_nat_pft, p_pct_crop, p_landfrac, p_landUse):
         super(get_nonwoodyvegFunction, self).__init__(
-            p_pct_nat_pft,p_landfrac,p_landUse)
+            p_pct_nat_pft, p_pct_crop, p_landfrac,p_landUse)
 
     def __getitem__(self, index):
         p_pct_nat_pft = self.arguments[0][index]
-        p_landfrac = self.arguments[1][index]
-        p_landUse = self.arguments[2][index]
+        p_pct_crop = self.arguments[1][index]
+        p_landfrac = self.arguments[2][index]
+        p_landUse = self.arguments[3][index]
 
         pct_nat_pft = p_pct_nat_pft.data
+        pct_crop = p_pct_crop.data
         landfrac = p_landfrac.data
         landUse = p_landUse.data
 
@@ -827,16 +977,20 @@ class get_nonwoodyvegFunction(Function):
             return data
 
         data[:, 0, :, :] = pct_nat_pft[:,12,:,:]+pct_nat_pft[:,13,:,:]+pct_nat_pft[:,14,:,:]
-        for i in range(p_pct_nat_pft.shape[2]):
-            for j in range(p_pct_nat_pft.shape[3]):
-                if landfrac[i,j] <= 1.0:
-                    data[:, 1, i, j] = 1.0 
-                    data[:, 2, i, j] = 0.0
-                    data[:, 3, i, j] = 0.0
-                else:
-                    data[:, 1, i, j] = 1e+20
-                    data[:, 2, i, j] = 1e+20
-                    data[:, 3, i, j] = 1e+20
+        for t in range(p_pct_nat_pft.shape[0]):
+            for i in range(p_pct_nat_pft.shape[2]):
+                for j in range(p_pct_nat_pft.shape[3]):
+                    if landfrac[i,j] <= 1.0:
+                        data[t, 1, i, j] = 0.0
+                        if pct_crop[t,1,i,j] > 0.0: 
+                            data[t, 2, i, j] = 100.0
+                        else:
+                            data[t, 2, i, j] = 0.0
+                        data[t, 3, i, j] = 0.0
+                    else:
+                        data[t, 1, i, j] = 1e+20
+                        data[t, 2, i, j] = 1e+20
+                        data[t, 3, i, j] = 1e+20
 
         data[data >= 1e+16] = 1e+20
         data = np.ma.masked_values(data, 1e+20)
