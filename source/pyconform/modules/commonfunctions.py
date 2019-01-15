@@ -176,11 +176,11 @@ class monthtoyear_noleapFunction(Function):
         a = np.ma.masked_values(a, 1e+20)
 
         if dim_count == 3:
-            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]])
+            a1 = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]])
         elif dim_count == 4:
-            a = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
-
-        return a
+            a1 = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
+      
+        return a1
 
 
 #=========================================================================
@@ -233,6 +233,7 @@ class monthtoyear_noleap_timebndsFunction(Function):
 
         if index is None:
             return PhysArray(np.zeros((12,2)), dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+            print '1 - finishing monthtoyear_noleap_timebnds'
 
         time = p_time.data
         b = np.zeros((time.shape[0]/12,2))
@@ -647,6 +648,42 @@ class POP_bottom_layer_multaddFunction(Function):
         new_units = p_data1.units * p_data2.units
         return PhysArray(a2, name=new_name, dimensions=[p_data2.dimensions[0]], units=new_units)
 
+#=========================================================================
+# POP_layer_sum_multFunction
+#=========================================================================
+class POP_layer_sum_multFunction(Function):
+    key = 'POP_layer_sum_mult'
+
+    def __init__(self, KMT, data1, data2):
+        super(POP_layer_sum_multFunction,
+              self).__init__(KMT, data1, data2)
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_data1 = self.arguments[1][index]
+        p_data2 = self.arguments[2][index]
+
+        data1 = p_data1.data
+        data2 = p_data2.data
+        KMT = p_KMT.data
+
+        a1 = np.zeros((p_data2.shape[0], p_data2.shape[2], p_data2.shape[3]))
+
+        for t in range(p_data2.shape[0]):
+            for j in range(KMT.shape[0]):
+                for i in range(KMT.shape[1]):
+                    if KMT[j, i] > 0:
+                        a1[t, j, i] = 0.0
+                        for k in range(min(KMT[j, i], p_data2.shape[1])):
+                            if data2[t, k, j, i] < 1e+16:
+                                a1[t, j, i] += data1[k] * data2[t, k, j, i]
+                    else:
+                        a1[t, j, i] = 1.0e20
+
+        new_name = 'POP_layer_sum_mult({}{}{})'.format(
+            p_KMT.name, p_data1.name, p_data2.name)
+        new_units = p_data1.units * p_data2.units
+        return PhysArray(a1, name=new_name, dimensions=[p_data2.dimensions[0], p_data2.dimensions[2], p_data2.dimensions[3]], units=new_units)
 
 #=========================================================================
 # masked_invalidFunction
