@@ -233,7 +233,6 @@ class monthtoyear_noleap_timebndsFunction(Function):
 
         if index is None:
             return PhysArray(np.zeros((12,2)), dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
-            print '1 - finishing monthtoyear_noleap_timebnds'
 
         time = p_time.data
         b = np.zeros((time.shape[0]/12,2))
@@ -554,8 +553,8 @@ class POP_bottom_layerFunction(Function):
 class diff_axis1_ind0bczero_4dFunction(Function):
     key = 'diff_axis1_ind0bczero_4d'
 
-    def __init__(self, data):
-        super(diff_axis1_ind0bczero_4dFunction, self).__init__(data)
+    def __init__(self, KMT, data):
+        super(diff_axis1_ind0bczero_4dFunction, self).__init__(KMT, data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('diff_axis1_ind0bczero_4d: data must be a PhysArray')
@@ -563,22 +562,76 @@ class diff_axis1_ind0bczero_4dFunction(Function):
             raise DimensionsError('diff_axis1_ind0bczero_4d: data can only be 4D')
 
     def __getitem__(self, index):
-        p_data = self.arguments[0][index]
+        p_KMT = self.arguments[0][index]
+        p_data = self.arguments[1][index]
 
         if index is None:
             a = np.zeros((0, 0, 0, 0))
+            fv = 1.0e20
         else:
+            KMT = p_KMT.data
             data = p_data.data
 
             a = np.empty((p_data.shape))
             a[:, 0, :, :] = data[:, 0, :, :]
             a[:, 1:, :, :] = np.diff(data, axis=1)
 
-        new_name = '{}({})'.format(self.key, p_data.name)
+            fv = data.fill_value
+            for t in range(p_data.shape[0]):
+                for k in range(p_data.shape[1]):
+                    a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
+
+        ma_a = np.ma.masked_values(a, fv)
+        new_name = '{}({}{})'.format(self.key, p_KMT.name, p_data.name)
         new_units = p_data.units
         new_dims = p_data.dimensions
-        return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
+        return PhysArray(ma_a, name=new_name, units=new_units, dimensions=new_dims)
 
+
+#=========================================================================
+# rsdoabsorbFunction
+#=========================================================================
+class rsdoabsorbFunction(Function):
+    key = 'rsdoabsorb'
+
+    def __init__(self, KMT, QSW_3D):
+        super(rsdoabsorbFunction, self).__init__(KMT, QSW_3D)
+        QSW_3D_info = QSW_3D if is_constant(QSW_3D) else QSW_3D[None]
+        if not isinstance(QSW_3D_info, PhysArray):
+            raise TypeError('rsdoabsorb: QSW_3D must be a PhysArray')
+        if len(QSW_3D_info.dimensions) != 4:
+            raise DimensionsError('rsdoabsorb: QSW_3D can only be 4D')
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_QSW_3D = self.arguments[1][index]
+
+        if index is None:
+            a = np.zeros((0, 0, 0, 0))
+            fv = 1.0e20
+        else:
+            KMT = p_KMT.data
+            QSW_3D = p_QSW_3D.data
+
+            a = np.empty((p_QSW_3D.shape))
+
+            nlev = p_QSW_3D.shape[1]
+            fv = QSW_3D.fill_value
+            for t in range(p_QSW_3D.shape[0]):
+                for k in range(p_QSW_3D.shape[1]):
+                    if k < nlev-1:
+                        a[t, k, :, :] = np.where(
+                            k < KMT-1, QSW_3D[t, k, :, :] - QSW_3D[t, k+1, :, :],
+                            QSW_3D[t, k, :, :])
+                    else
+                        a[t, k, :, :] = QSW_3D[t, k, :, :]
+                    a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
+
+        ma_a = np.ma.masked_values(a, fv)
+        new_name = '{}({}{})'.format(self.key, p_KMT.name, p_QSW_3D.name)
+        new_units = p_QSW_3D.units
+        new_dims = p_QSW_3D.dimensions
+        return PhysArray(ma_a, name=new_name, units=new_units, dimensions=new_dims)
 
 
 #=========================================================================
@@ -669,21 +722,23 @@ class POP_layer_sum_multFunction(Function):
 
         a1 = np.zeros((p_data2.shape[0], p_data2.shape[2], p_data2.shape[3]))
 
+        fv = data2.fill_value
+
         for t in range(p_data2.shape[0]):
             for j in range(KMT.shape[0]):
                 for i in range(KMT.shape[1]):
                     if KMT[j, i] > 0:
                         a1[t, j, i] = 0.0
                         for k in range(min(KMT[j, i], p_data2.shape[1])):
-                            if data2[t, k, j, i] < 1e+16:
-                                a1[t, j, i] += data1[k] * data2[t, k, j, i]
+                            a1[t, j, i] += data1[k] * data2[t, k, j, i]
                     else:
-                        a1[t, j, i] = 1.0e20
+                        a1[t, j, i] = fv
 
+        ma_a1 = np.ma.masked_values(a1, fv)
         new_name = 'POP_layer_sum_mult({}{}{})'.format(
             p_KMT.name, p_data1.name, p_data2.name)
         new_units = p_data1.units * p_data2.units
-        return PhysArray(a1, name=new_name, dimensions=[p_data2.dimensions[0], p_data2.dimensions[2], p_data2.dimensions[3]], units=new_units)
+        return PhysArray(ma_a1, name=new_name, dimensions=[p_data2.dimensions[0], p_data2.dimensions[2], p_data2.dimensions[3]], units=new_units)
 
 #=========================================================================
 # masked_invalidFunction

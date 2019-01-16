@@ -198,12 +198,18 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             if "branch_time_in_parent" in attr.keys():
               if len(attr["branch_time_in_parent"])>0:
                 attr["branch_time_in_parent"] = float(attr["branch_time_in_parent"].split('D')[0])
-            if "parent_mip_era" in attr.keys():
+            if "parent_mip_era" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_mip_era"] = attr["mip_era"]
-            if "parent_source_id" in attr.keys():
+            else:
+                attr["parent_mip_era"] = ""
+            if "parent_source_id" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_source_id"] = attr["source_id"]
-            if "parent_time_units" in attr.keys():
+            else:
+                attr["parent_source_id"] = ""
+            if "parent_time_units" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_time_units"] = "days since 0001-01-01 00:00:00"
+            else:
+                attr["parent_time_units"] = ""
     else:
         if "branch_time_in_child" in attr.keys():
             attr["branch_time_in_child"] = "none"
