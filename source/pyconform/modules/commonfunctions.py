@@ -553,8 +553,8 @@ class POP_bottom_layerFunction(Function):
 class diff_axis1_ind0bczero_4dFunction(Function):
     key = 'diff_axis1_ind0bczero_4d'
 
-    def __init__(self, KMT, data):
-        super(diff_axis1_ind0bczero_4dFunction, self).__init__(KMT, data)
+    def __init__(self, KMT, new_coord_var, data):
+        super(diff_axis1_ind0bczero_4dFunction, self).__init__(KMT, new_coord_var, data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('diff_axis1_ind0bczero_4d: data must be a PhysArray')
@@ -563,7 +563,8 @@ class diff_axis1_ind0bczero_4dFunction(Function):
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
-        p_data = self.arguments[1][index]
+        p_new_coord_var = self.arguments[1][index]
+        p_data = self.arguments[2][index]
 
         if index is None:
             a = np.zeros((0, 0, 0, 0))
@@ -583,9 +584,10 @@ class diff_axis1_ind0bczero_4dFunction(Function):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
 
         ma_a = np.ma.masked_values(a, fv)
-        new_name = '{}({}{})'.format(self.key, p_KMT.name, p_data.name)
+        new_name = '{}({}{}{})'.format(self.key, p_KMT.name, p_new_coord_var.name, p_data.name)
         new_units = p_data.units
-        new_dims = p_data.dimensions
+        new_dims = [p_data.dimensions[0], p_new_coord_var.dimensions[0],
+                    p_data.dimensions[2], p_data.dimensions[3]]
         return PhysArray(ma_a, name=new_name, units=new_units, dimensions=new_dims)
 
 
@@ -595,8 +597,8 @@ class diff_axis1_ind0bczero_4dFunction(Function):
 class rsdoabsorbFunction(Function):
     key = 'rsdoabsorb'
 
-    def __init__(self, KMT, QSW_3D):
-        super(rsdoabsorbFunction, self).__init__(KMT, QSW_3D)
+    def __init__(self, KMT, z_t, QSW_3D):
+        super(rsdoabsorbFunction, self).__init__(KMT, z_t, QSW_3D)
         QSW_3D_info = QSW_3D if is_constant(QSW_3D) else QSW_3D[None]
         if not isinstance(QSW_3D_info, PhysArray):
             raise TypeError('rsdoabsorb: QSW_3D must be a PhysArray')
@@ -605,7 +607,8 @@ class rsdoabsorbFunction(Function):
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
-        p_QSW_3D = self.arguments[1][index]
+        p_z_t = self.arguments[1][index]
+        p_QSW_3D = self.arguments[2][index]
 
         if index is None:
             a = np.zeros((0, 0, 0, 0))
@@ -630,9 +633,10 @@ class rsdoabsorbFunction(Function):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
 
         ma_a = np.ma.masked_values(a, fv)
-        new_name = '{}({}{})'.format(self.key, p_KMT.name, p_QSW_3D.name)
+        new_name = '{}({}{}{})'.format(self.key, p_KMT.name, p_z_t.name, p_QSW_3D.name)
         new_units = p_QSW_3D.units
-        new_dims = p_QSW_3D.dimensions
+        new_dims = [p_QSW_3D.dimensions[0], p_z_t.dimensions[0],
+                    p_QSW_3D.dimensions[2], p_QSW_3D.dimensions[3]]
         return PhysArray(ma_a, name=new_name, units=new_units, dimensions=new_dims)
 
 
