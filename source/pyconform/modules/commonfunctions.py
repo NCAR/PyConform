@@ -567,7 +567,7 @@ class diff_axis1_ind0bczero_4dFunction(Function):
 
         if index is None:
             a = np.zeros((0, 0, 0, 0))
-            fv = 1.0e20
+            fv = 1e+20
         else:
             KMT = p_KMT.data
             data = p_data.data
@@ -576,7 +576,8 @@ class diff_axis1_ind0bczero_4dFunction(Function):
             a[:, 0, :, :] = data[:, 0, :, :]
             a[:, 1:, :, :] = np.diff(data, axis=1)
 
-            fv = data.fill_value
+            #fv = data.fill_value
+            fv = 1e+20 
             for t in range(p_data.shape[0]):
                 for k in range(p_data.shape[1]):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
@@ -608,7 +609,7 @@ class rsdoabsorbFunction(Function):
 
         if index is None:
             a = np.zeros((0, 0, 0, 0))
-            fv = 1.0e20
+            fv = 1e+20
         else:
             KMT = p_KMT.data
             QSW_3D = p_QSW_3D.data
@@ -616,14 +617,15 @@ class rsdoabsorbFunction(Function):
             a = np.empty((p_QSW_3D.shape))
 
             nlev = p_QSW_3D.shape[1]
-            fv = QSW_3D.fill_value
+            #fv = QSW_3D.fill_value
+            fv = 1e+20
             for t in range(p_QSW_3D.shape[0]):
                 for k in range(p_QSW_3D.shape[1]):
                     if k < nlev-1:
                         a[t, k, :, :] = np.where(
                             k < KMT-1, QSW_3D[t, k, :, :] - QSW_3D[t, k+1, :, :],
                             QSW_3D[t, k, :, :])
-                    else
+                    else:
                         a[t, k, :, :] = QSW_3D[t, k, :, :]
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
 
@@ -632,6 +634,89 @@ class rsdoabsorbFunction(Function):
         new_units = p_QSW_3D.units
         new_dims = p_QSW_3D.dimensions
         return PhysArray(ma_a, name=new_name, units=new_units, dimensions=new_dims)
+
+
+#=========================================================================
+# POP_surf_meanFunction
+#=========================================================================
+class POP_surf_meanFunction(Function):
+    key = 'POP_surf_mean'
+
+    def __init__(self, KMT, TAREA, FIELD):
+        super(POP_surf_meanFunction, self).__init__(KMT, TAREA, FIELD)
+        FIELD_info = FIELD if is_constant(FIELD) else FIELD[None]
+        if not isinstance(FIELD_info, PhysArray):
+            raise TypeError('POP_surf_mean: FIELD must be a PhysArray')
+        if len(FIELD_info.dimensions) != 3:
+            raise DimensionsError('POP_surf_mean: FIELD can only be 3D')
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_TAREA = self.arguments[1][index]
+        p_FIELD = self.arguments[2][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,)), dimensions=[p_FIELD.dimensions[0]])
+
+        KMT = p_KMT.data
+        TAREA = p_TAREA.data
+        FIELD = p_FIELD.data
+
+        a = np.empty((p_FIELD.shape[0],))
+        for t in range(p_FIELD.shape[0]):
+            a[t] = np.sum(np.where(KMT > 0, TAREA * FIELD[t, :, :], 0.0))
+        denom = np.sum(np.where(KMT > 0, TAREA, 0.0))
+        a[:] *= 1.0 / denom
+
+        new_name = '{}({}{}{})'.format(self.key, p_KMT.name, p_TAREA.name, p_FIELD.name)
+        new_units = p_FIELD.units
+        new_dims = [p_FIELD.dimensions[0]]
+        return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
+
+
+#=========================================================================
+# POP_3D_meanFunction
+#=========================================================================
+class POP_3D_meanFunction(Function):
+    key = 'POP_3D_mean'
+
+    def __init__(self, KMT, dz, TAREA, FIELD):
+        super(POP_3D_meanFunction, self).__init__(KMT, dz, TAREA, FIELD)
+        FIELD_info = FIELD if is_constant(FIELD) else FIELD[None]
+        if not isinstance(FIELD_info, PhysArray):
+            raise TypeError('POP_3D_mean: FIELD must be a PhysArray')
+        if len(FIELD_info.dimensions) != 4:
+            raise DimensionsError('POP_3D_mean: FIELD can only be 4D')
+
+    def __getitem__(self, index):
+        p_KMT = self.arguments[0][index]
+        p_dz = self.arguments[1][index]
+        p_TAREA = self.arguments[2][index]
+        p_FIELD = self.arguments[3][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0,)), dimensions=[p_FIELD.dimensions[0]])
+
+        KMT = p_KMT.data
+        dz = p_dz.data
+        TAREA = p_TAREA.data
+        FIELD = p_FIELD.data
+
+        a = np.empty((p_FIELD.shape[0],))
+        for t in range(p_FIELD.shape[0]):
+            a[t] = 0.0
+            for k in range(p_FIELD.shape[1]):
+                a[t] += dz[k] * np.sum(np.where(k < KMT, TAREA * FIELD[t, k, :, :], 0.0))
+        denom = 0.0
+        for k in range(p_FIELD.shape[1]):
+            denom += dz[k] * np.sum(np.where(k < KMT, TAREA, 0.0))
+        a[:] *= 1.0 / denom
+
+        new_name = '{}({}{}{}{})'.format(self.key, p_KMT.name, p_dz.name, p_TAREA.name, p_FIELD.name)
+        new_units = p_FIELD.units
+        new_dims = [p_FIELD.dimensions[0]]
+        return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
+
 
 
 #=========================================================================
@@ -722,7 +807,8 @@ class POP_layer_sum_multFunction(Function):
 
         a1 = np.zeros((p_data2.shape[0], p_data2.shape[2], p_data2.shape[3]))
 
-        fv = data2.fill_value
+        #fv = data2.fill_value
+        fv = 1e+20
 
         for t in range(p_data2.shape[0]):
             for j in range(KMT.shape[0]):
