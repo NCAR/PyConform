@@ -377,11 +377,14 @@ class ParseXML(object):
             print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
             return {} 
         activity_id = dq.inx.uid[e_id[0]].mip
-        e_vars = dq.inx.iref_by_sect[e_id[0]].a
-        if len(e_vars['requestItem']) == 0:
-            e_vars = dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a
+
+        e_vars =[]
+        e_vars.append(dq.inx.iref_by_sect[e_id[0]].a)
+        #if len(e_vars['requestItem']) == 0:
+        e_vars.append(dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a)
         total_request = {}
-        for ri in e_vars['requestItem']:
+        for e_var in e_vars:
+          for ri in e_var['requestItem']:
 
             table_info = {}
             dr = dq.inx.uid[ri]
