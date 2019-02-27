@@ -807,7 +807,7 @@ class OutputDatasetDesc(DatasetDesc):
             # Get the variable descriptors for each variable required to be in the file
             vlist = OrderedDict([(vname, variables[vname]) for vname in fdict['variables']])
 
-            # Get the unique list of dimension names for required by these variables
+            # Get the unique list of dimension names required by these variables
             fdims = set()
             for vname in vlist:
                 vdesc = vlist[vname]
