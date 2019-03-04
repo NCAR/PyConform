@@ -758,8 +758,11 @@ class WriteNode(FlowNode):
                 try:
                     makedirs(fdir)
                 except:
-                    raise IOError(
-                        'Failed to create directory for output file {!r}'.format(fname))
+                    if exists(fdir):
+                        print('Already created directory for output file {!r}'.format(fname))
+                    else:
+                        raise IOError(
+                            'Failed to create directory for output file {!r}'.format(fname))
 
             # Try to open the output file for writing
             try:

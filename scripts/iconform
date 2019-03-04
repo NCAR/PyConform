@@ -191,17 +191,23 @@ def fill_missing_glob_attributes(attr, table, v, grids):
         attr.pop("external_variables")
 
     if "branch_method" in attr.keys():
-        if "none" not in attr["branch_method"]:
+        if "no parent" not in attr["branch_method"]:
             if "branch_time_in_child" in attr.keys():
               if len(attr["branch_time_in_child"])>0:
-                attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0]) 
+                try:
+                    attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0]) 
+                except ValueError as e:
+                    attr["branch_time_in_child"] = attr["branch_time_in_child"].split('D')[0]
             if "branch_time_in_parent" in attr.keys():
               if len(attr["branch_time_in_parent"])>0:
-                attr["branch_time_in_parent"] = float(attr["branch_time_in_parent"].split('D')[0])
+                try:
+                    attr["branch_time_in_parent"] = float(attr["branch_time_in_parent"].split('D')[0])
+                except ValueError as e:
+                    attr["branch_time_in_parent"] = attr["branch_time_in_parent"].split('D')[0]
             if "parent_mip_era" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_mip_era"] = attr["mip_era"]
             else:
-                attr["parent_mip_era"] = ""
+                attr["parent_mip_era"] = "no parent"
             if "parent_source_id" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_source_id"] = attr["source_id"]
             else:
@@ -209,18 +215,30 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             if "parent_time_units" in attr.keys() and len(attr["parent_activity_id"]) > 2:
                 attr["parent_time_units"] = "days since 0001-01-01 00:00:00"
             else:
-                attr["parent_time_units"] = ""
+                attr["parent_time_units"] = "none"
+        else: 
+          if "branch_time_in_child" in attr.keys():
+              attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0])
+          if "branch_time_in_parent" in attr.keys():
+              attr["branch_time_in_parent"] = 0.0
+          if "parent_mip_era" in attr.keys():
+              attr["parent_mip_era"] = "no parent"
+          if "parent_source_id" in attr.keys():
+              attr["parent_source_id"] = "no parent"
+          if "parent_time_units" in attr.keys():
+              attr["parent_time_units"] = "no parent"
+
     else:
         if "branch_time_in_child" in attr.keys():
-            attr["branch_time_in_child"] = "none"
+            attr["branch_time_in_child"] = "no parent"
         if "branch_time_in_parent" in attr.keys():
-            attr["branch_time_in_parent"] = "none"
+            attr["branch_time_in_parent"] = "no parent"
         if "parent_mip_era" in attr.keys():
-            attr["parent_mip_era"] = "none"
+            attr["parent_mip_era"] = "no parent"
         if "parent_source_id" in attr.keys():
-            attr["parent_source_id"] = "none"
+            attr["parent_source_id"] = "no parent"
         if "parent_time_units" in attr.keys():
-            attr["parent_time_units"] = "none"
+            attr["parent_time_units"] = "no parent"
 
     if "variant_label" in attr.keys():
         pre = attr["variant_label"].split('r')[1]

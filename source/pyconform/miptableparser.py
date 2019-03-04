@@ -382,6 +382,7 @@ class ParseXML(object):
         e_vars.append(dq.inx.iref_by_sect[e_id[0]].a)
         #if len(e_vars['requestItem']) == 0:
         e_vars.append(dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a)
+        e_vars.append(dq.inx.iref_by_sect[activity_id].a)
         total_request = {}
         for e_var in e_vars:
           for ri in e_var['requestItem']:
