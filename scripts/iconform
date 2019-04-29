@@ -17,7 +17,8 @@ from dreqPy import dreq
 import uuid
 
 
-version = 'v'+str(datetime.datetime.now().year)+str(datetime.datetime.now().month).zfill(2)+str(datetime.datetime.now().day).zfill(2)
+#version = 'v'+str(datetime.datetime.now().year)+str(datetime.datetime.now().month).zfill(2)+str(datetime.datetime.now().day).zfill(2)
+version = 'v20190309'
 
 # Map netcdf types to python types
 #data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
@@ -373,10 +374,12 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         dst = date_strings[v["frequency"]]
     else:
         dst = ''
+    vid = v['variable_id']
+
     f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
                out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
-               varName, grid, version, 
-               varName, mipTable, source_id, experiment, ripf, grid, dst))
+               vid, grid, version, 
+               vid, mipTable, source_id, experiment, ripf, grid, dst))
     var = {}
 
     # put together the dictionary entry for this variable    
@@ -387,6 +390,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     var["file"] = {}
     var["file"]["attributes"] = attributes
     var["file"]["attributes"]["variant_label"] = ripf
+    var["attributes"]["comment"] = definition
     var["file"]["filename"] = f_name
     var["file"]["format"] = f_format 
     if compression is not None:
@@ -520,21 +524,25 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
             ts_key = None
             mip = d['mipTable']
             if mip in definitions.keys():
-                ig = ""
-                if v in definitions[mip].keys():
-                    if "N/A" in definitions[mip][v].upper():
-                        v_def = ""
-                    else:
-                        v_def = definitions[mip][v]
-                        ig = input_glob[mip][v]
-                else:
-                    v_def = ""
+              ig = ""
+              if v in definitions[mip].keys():
+                v_def = definitions[mip][v]
+                ig = input_glob[mip][v]
+#                if v in definitions[mip].keys():
+#                    if "N/A" in definitions[mip][v].upper():
+#                        v_def = ""
+#                    else:
+#                        v_def = definitions[mip][v]
+#                        ig = input_glob[mip][v]
+#                else:
+#                    v_def = ""
                 var_list[v] = defineVar(d, v, attributes, table_info, v_def, ig, experiment, out_dir)
                 realm = d["realm"].replace(' ','_')
                 ts_key = var_list[v]["file"]["attributes"]["activity_id"]+'_'+var_list[v]["attributes"]["mipTable"]+'_'+realm
                 if ts_key not in TableSpec.keys():
                     TableSpec[ts_key] = {}
-                TableSpec[ts_key][v] = var_list[v]
+                #TableSpec[ts_key][v] = var_list[v]
+                TableSpec[ts_key][var_list[v]["file"]["attributes"]["variable_id"]] = var_list[v]
                 t_realm = "NoRealm"
                 for k1,v1 in definitions.iteritems():
                     if 'Coords' in k1:
@@ -552,6 +560,8 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
                              else:
                                  if 'definition' not in  TableSpec[ts_key][dim].keys():
                                      print "MISSING "+dim+" in "+'Coords_'+t_realm+" (for variable "+v+")"
+              else:
+                  print 'missing:',v
             else:
                 AllMissing[t].append(v)
 
@@ -666,6 +676,7 @@ def main(argv=None):
         for gaFile in args.globalAttrFile.split(","):
             if os.path.isfile(gaFile):
                 if "json" in gaFile:
+                    print 'opening ',gaFile
                     with open(gaFile) as gaF: 
                         ga = json.load(gaF)
                     for k in ga.keys():

@@ -167,10 +167,13 @@ class monthtoyear_noleapFunction(Function):
         time = data.data.shape[0]
         dataD = data.data
 
+        days_in_month = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
+
         for i in range(time/12):
             start = i*12
             end = (i*12)+11
-            a[i,...] = np.ma.mean(dataD[start:end,...],axis=0)
+            #a[i,...] = np.ma.mean(dataD[start:end+1,...],axis=0)
+            a[i,...] = np.ma.average(dataD[start:start+12,...],axis=0,weights=days_in_month)
 
         a[a>=1e+16] = 1e+20
         a = np.ma.masked_values(a, 1e+20)
@@ -207,7 +210,7 @@ class monthtoyear_noleap_timeFunction(Function):
         for i in range(time/12):
             start = i*12
             end = (i*12)+11
-            b[i] = (time_bnds[start][0]+time_bnds[end][1])/2
+            b[i] = ((time_bnds[start][0]+time_bnds[end][1])/2)-365
 
         new_name = 'monthtoyear_noleap_time({})'.format(p_time_bnds.name)
 
@@ -222,27 +225,27 @@ class monthtoyear_noleap_timeFunction(Function):
 class monthtoyear_noleap_timebndsFunction(Function):
     key = 'monthtoyear_noleap_timebnds'
 
-    def __init__(self, time, bdim='bnds'):
-        super(monthtoyear_noleap_timebndsFunction, self).__init__(time, bdim='d2')
+    def __init__(self, time_bound, bdim='bnds'):
+        super(monthtoyear_noleap_timebndsFunction, self).__init__(time_bound, bdim='d2')
 
     def __getitem__(self, index):
-        p_time = self.arguments[0][index]
+        p_time_bound = self.arguments[0][index]
         bdim = self.keywords['bdim']
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
 
         if index is None:
-            return PhysArray(np.zeros((12,2)), dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+            return PhysArray(np.zeros((12,2)), dimensions=[p_time_bound.dimensions[0], bnds.dimensions[0]], units=p_time_bound.units, calendar='noleap')
 
-        time = p_time.data
-        b = np.zeros((time.shape[0]/12,2))
+        time_bound = p_time_bound.data
+        b = np.zeros((time_bound.shape[0]/12,2))
 
-        for i in range(len(time)/12):
-            b[i][0] = time[i*12]
-            b[i][1] = time[(i*12)+11]
-        new_name = 'monthtoyear_noleap_timebnds({})'.format(p_time.name)
+        for i in range(len(time_bound)/12):
+            b[i][0] = time_bound[i*12][0]-365
+            b[i][1] = time_bound[(i*12)+11][1]-365
+        new_name = 'monthtoyear_noleap_timebnds({})'.format(p_time_bound.name)
 
-        return PhysArray(b, name = new_name, dimensions=[p_time.dimensions[0], bnds.dimensions[0]], units=p_time.units, calendar='noleap')
+        return PhysArray(b, name = new_name, dimensions=[p_time_bound.dimensions[0], bnds.dimensions[0]], units=p_time_bound.units, calendar='noleap')
 
 
 #=========================================================================
