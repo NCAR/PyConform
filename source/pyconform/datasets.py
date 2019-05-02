@@ -380,7 +380,8 @@ class FileDesc(object):
     file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
     """
 
-    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=2, variables=(), attributes={}):  # @ReservedAssignment
+    def __init__(self, name, format='NETCDF4_CLASSIC', deflate=2, variables=(), attributes={},
+                 autoparse_time_variable=None):  # @ReservedAssignment
         """
         Initializer
         
@@ -392,6 +393,8 @@ class FileDesc(object):
             deflate (int): Level of lossless compression to use in all variables within the file (0-9)
             variables (tuple):  Tuple of VariableDesc objects describing the file variables            
             attributes (dict):  Dict of global attributes in the file
+            autoparse_time_variable (str):  The name of an output variable that should be used
+                to represent the 'time' when autoparsing the output filename
         """
         self._name = name
 
@@ -430,6 +433,13 @@ class FileDesc(object):
                        'dict').format(name, type(attributes))
             raise TypeError(err_msg)
         self._attributes = deepcopy(attributes)
+
+        if autoparse_time_variable:
+            if autoparse_time_variable not in self._variables:
+                err_msg = ('Variable {!r} does not exist in describe file {!r}, but is required '
+                           'for autoparsing the filename'.format(autoparse_time_variable, name))
+                raise ValueError(err_msg)
+        self.autoparse_time_variable = autoparse_time_variable
 
     @property
     def name(self):
@@ -773,6 +783,9 @@ class OutputDatasetDesc(DatasetDesc):
                 if 'deflate' in fdict:
                     files[fname]['deflate'] = fdict['deflate']
 
+                if 'autoparse_time_variable' in fdict:
+                    files[fname]['autoparse_time_variable'] = fdict['autoparse_time_variable']
+
                 if 'attributes' in fdict:
                     files[fname]['attributes'] = fdict['attributes']
 
@@ -794,7 +807,7 @@ class OutputDatasetDesc(DatasetDesc):
             # Get the variable descriptors for each variable required to be in the file
             vlist = OrderedDict([(vname, variables[vname]) for vname in fdict['variables']])
 
-            # Get the unique list of dimension names for required by these variables
+            # Get the unique list of dimension names required by these variables
             fdims = set()
             for vname in vlist:
                 vdesc = vlist[vname]

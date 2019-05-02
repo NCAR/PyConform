@@ -42,7 +42,8 @@ class DataFlowTests(unittest.TestCase):
                                   ('u1', ('time', 'lat', 'lon')),
                                   ('u2', ('time', 'lat', 'lon')),
                                   ('u3', ('time', 'lat', 'lon')),
-                                  ('tyears', ('time',))])
+                                  ('tyears', ('time',)),
+                                  ('p0', tuple())])
         self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
                                             'standard_name': 'latitude'}),
                                    ('lon', {'units': 'degrees_east',
@@ -61,8 +62,9 @@ class DataFlowTests(unittest.TestCase):
                                            'standard_name': 'u variable 3',
                                            'positive': 'down'}),
                                    ('tyears', {'units': 'years since 1979-01-01',
-                                               'calendar': 'noleap'})])
-        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd', 'tyears': 'd',
+                                               'calendar': 'noleap'}),
+                                   ('p0', {'units': 10})])
+        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd', 'tyears': 'd', 'p0': 'd',
                        'time_bnds': 'd', 'cat': 'c', 'u1': 'f', 'u2': 'f', 'u3': 'f'}
 
         ulen = reduce(lambda x, y: x * y,
@@ -77,7 +79,8 @@ class DataFlowTests(unittest.TestCase):
                      'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(ushape),
                      'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(ushape),
                      'u3': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u3']).reshape(ushape),
-                     'tyears': tdata / 365.0}
+                     'tyears': tdata / 365.0,
+                     'p0': 0.1}
 
         for vname in self.filenames:
             fname = self.filenames[vname]
@@ -115,6 +118,14 @@ class DataFlowTests(unittest.TestCase):
         vattribs['units'] = '1'
         vattribs['axis'] = 'Z'
         vdicts['L']['attributes'] = vattribs
+
+        vdicts['P'] = OrderedDict()
+        vdicts['P']['datatype'] = 'double'
+        vdicts['P']['dimensions'] = tuple()
+        vdicts['P']['definition'] = 'p0'
+        vattribs = OrderedDict()
+        vattribs['units'] = '1'
+        vdicts['P']['attributes'] = vattribs
 
         vdicts['C'] = OrderedDict()
         vdicts['C']['datatype'] = 'char'
@@ -184,12 +195,23 @@ class DataFlowTests(unittest.TestCase):
         vattribs['calendar'] = 'noleap'
         vdicts['T2']['attributes'] = vattribs
 
+        vdicts['_T'] = OrderedDict()
+        vdicts['_T']['datatype'] = 'double'
+        vdicts['_T']['dimensions'] = ('t',)
+        vdicts['_T']['definition'] = 'chunits(rmunits(tyears) * 365 + 10, units="days since 1979-01-01", calendar="noleap")'
+        vattribs = OrderedDict()
+        vattribs['standard_name'] = 'time_hidden'
+        vattribs['units'] = 'days since 1979-01-01 00:00:00'
+        vattribs['calendar'] = 'noleap'
+        vdicts['_T']['attributes'] = vattribs
+
         vdicts['V1'] = OrderedDict()
         vdicts['V1']['datatype'] = 'double'
         vdicts['V1']['dimensions'] = ('t', 'y', 'x')
         vdicts['V1']['definition'] = '0.5*(u1 + u2)'
         fdict = OrderedDict()
         fdict['filename'] = 'var1_{%Y%m%d-%Y%m%d}.nc'
+        fdict['autoparse_time_variable'] = '_T'
         fdict['attributes'] = {'variable': 'V1'}
         fdict['metavars'] = ['L', 'C']
         vdicts['V1']['file'] = fdict
@@ -219,7 +241,7 @@ class DataFlowTests(unittest.TestCase):
         fdict = OrderedDict()
         fdict['filename'] = 'var3_{%Y%m%d-%Y%m%d}.nc'
         fdict['attributes'] = {'variable': 'V3'}
-        fdict['metavars'] = ['L']
+        fdict['metavars'] = ['L', 'P']
         vdicts['V3']['file'] = fdict
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'originally u2'
@@ -310,6 +332,7 @@ class DataFlowTests(unittest.TestCase):
 
         self.outfiles = dict((vname, vdict['file']['filename'].replace('{%Y%m%d-%Y%m%d}', '19790101-19790104'))
                              for vname, vdict in vdicts.iteritems() if 'file' in vdict)
+        self.outfiles['V1'] = 'var1_19790111-19790114.nc'
         self.cleanOutputFiles()
 
     def cleanInputFiles(self):

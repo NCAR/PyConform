@@ -377,11 +377,15 @@ class ParseXML(object):
             print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
             return {} 
         activity_id = dq.inx.uid[e_id[0]].mip
-        e_vars = dq.inx.iref_by_sect[e_id[0]].a
-        if len(e_vars['requestItem']) == 0:
-            e_vars = dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a
+
+        e_vars =[]
+        e_vars.append(dq.inx.iref_by_sect[e_id[0]].a)
+        #if len(e_vars['requestItem']) == 0:
+        e_vars.append(dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a)
+        e_vars.append(dq.inx.iref_by_sect[activity_id].a)
         total_request = {}
-        for ri in e_vars['requestItem']:
+        for e_var in e_vars:
+          for ri in e_var['requestItem']:
 
             table_info = {}
             dr = dq.inx.uid[ri]
@@ -434,10 +438,10 @@ class ParseXML(object):
 	                    if hasattr(c_var,'label'):
                                 var['id']= c_var.label
                                 var['out_name'] = c_var.label
-                                var['variable_id'] = c_var.label
+                                var['variable_id'] = dq.inx.uid[c_var.vid].label
                                 l = dq.inx.var.label[c_var.label]
-                                if len(l)>0:
-                                    var['standard_name'] = dq.inx.var.uid[l[0]].sn
+                                #if len(l)>0:
+                                var['standard_name'] = dq.inx.uid[c_var.vid].sn
 	                    if hasattr(c_var,'modeling_realm'):
                                 var['realm']= c_var.modeling_realm
 	                    #if hasattr(c_var,'ok_min_mean_abs'):
@@ -459,8 +463,8 @@ class ParseXML(object):
 	                    if hasattr(c_var,'title'):
                                 var['title']= c_var.title
                                 var['long_name']= c_var.title
-                            if hasattr(c_var,'description'):
-                                var['comment']= c_var.description
+                            #if hasattr(c_var,'description'):
+                            #    var['comment']= c_var.description
 	                    if hasattr(c_var,'type'):
                                 var['type']= c_var.type
 	                    if hasattr(c_var,'valid_max'):
@@ -537,6 +541,8 @@ class ParseXML(object):
 	                    # Set what we can from the variable section
                             if hasattr(c_var, 'vid'):
                                 v_var = dq.inx.uid[c_var.vid]
+                                if hasattr(v_var,'standard_name'):
+                                    var['standard_name']= v_var.sn
 	                        if hasattr(v_var,'cf_standard_name'):
                                     var['cf_standard_name']= v_var.sn
 	                        if hasattr(v_var,'long_name'):

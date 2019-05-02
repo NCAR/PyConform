@@ -6,3 +6,4 @@ temp
 build
 dist
 PyConform.egg-info
+.idea/
