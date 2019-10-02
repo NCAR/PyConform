@@ -129,7 +129,6 @@ class climIOTests(unittest.TestCase):
         else:
             self.assertEqual(actual, expected, msg)
 
-    @unittest.SkipTest
     def test_open_file(self):
         # Loop over each IO port and test all function calls
         # (all ports have the same functions/arguments)
@@ -211,6 +210,8 @@ class climIOTests(unittest.TestCase):
             p.write_var(all_vars, self.tsvalues[:], self.tsvar, index=1)
             self.assertTrue((all_vars[self.tsvar][1] == self.tsvalues[0]).all(),
                             "{0}: write_var,index 1".format(n))
+
+            f.close()
 
     def test_close(self):
 
