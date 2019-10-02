@@ -19,7 +19,6 @@ import numpy
 #=========================================================================
 # DataFlowTests
 #=========================================================================
-@unittest.skip
 class DataFlowTests(unittest.TestCase):
     """
     Unit tests for the flownodes.FlowNode class
