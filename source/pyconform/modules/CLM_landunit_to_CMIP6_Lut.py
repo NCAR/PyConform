@@ -139,13 +139,15 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 
 		    # Check for valid urban landunit and compute weighted-average
 		    if landunit_indx_urban.size > 0:
-			dum = EFLX_LH_TOT[:,landunit_indx_urban].squeeze()
+			#dum = EFLX_LH_TOT[:,landunit_indx_urban].squeeze()
+                        dum = EFLX_LH_TOT[:,landunit_indx_urban]
 			land1d_wtgcell_pts = (land1d_wtgcell[landunit_indx_urban]).astype(np.float32)
 			weights = land1d_wtgcell_pts / np.sum(land1d_wtgcell_pts)
 			if (np.absolute(1. - np.sum(weights)) > eps):
 			    print ("Weights do not sum to 1, exiting")
 			    sys.exit(-1)
-			varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights)
+			#varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights)
+                        varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights, axis=1)
 		    else:
 			varo_lut[:,urban,jxy,ixy] = 1e+20 
                 else:
