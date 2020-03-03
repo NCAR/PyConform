@@ -5,6 +5,8 @@ from pyconform.functions import Function, is_constant
 from cf_units import Unit
 from numpy import diff, empty, mean
 import numpy as np
+import math
+import time
 
 #=========================================================================
 # ZonalMeanFunction
@@ -1251,3 +1253,278 @@ class ocean_basinFunction(Function):
 
         new_name = 'ocean_basin({}{})'.format(p_data1.name, p_basin.name)
         return PhysArray(data, name=new_name, dimensions=[p_data1.dimensions[0], p_data1.dimensions[4], p_data1.dimensions[3], p_basin.dimensions[0]], units=p_data1.units)
+
+#========================================================================
+# emilnoxFunction
+#=========================================================================
+
+class emilnoxFunction(Function):
+    key = 'emilnox'
+
+    def __init__(self, p_PO, p_PS, p_hyai, p_hybi, p_hyam, p_hybm, p_T, p_LNO_PROD, p_lon, p_lat, p_time):
+        super(emilnoxFunction, self).__init__(p_PO, p_PS, p_hyai, p_hybi, p_hyam, p_hybm, p_T, p_LNO_PROD, p_lon, p_lat, p_time)
+
+    def __getitem__(self, index):
+
+        p_PO = self.arguments[0][index]
+        p_PS = self.arguments[1][index]
+        p_hyai = self.arguments[2][index]
+        p_hybi = self.arguments[3][index]
+        p_hyam = self.arguments[4][index]
+        p_hybm = self.arguments[5][index]
+        p_T = self.arguments[6][index]
+        p_LNO_PROD = self.arguments[7][index]
+        p_lon = self.arguments[8][index]
+        p_lat = self.arguments[9][index]
+        p_time = self.arguments[10][index]
+
+#        print "hyai:",p_hyai.positive,p_hyai.data
+#        print "hybi:",p_hybi.positive,p_hybi.data
+#        print "hyam:",p_hyam.positive,p_hyam.data
+#        print "hybm:",p_hybm.positive,p_hybm.data
+#        print "p_T: ",p_T.positive
+#        print "p_LNO_PROD:",p_LNO_PROD.positive
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_PS.dimensions[0], p_hyam.dimensions[0], p_PS.dimensions[1], p_PS.dimensions[2]])
+
+        p0 = p_PO.data
+        psurf = p_PS.data
+        hyai = np.flip(p_hyai.data)
+        hybi = np.flip(p_hybi.data)
+        hyam = p_hyam.data
+        hybm = p_hybm.data
+        temp = p_T.data
+        lno_prod = p_LNO_PROD.data
+        lon = p_lon.data
+        lat = p_lat.data
+        timex = p_time.data
+
+        Rearth = 6.37e6         #m
+        AEarth = 4.*math.pi* (Rearth)**2   #m^2
+        deg_rad = 360./(2*math.pi)        #deg/radian
+        rad_deg = 2. * math.pi/360.         #radian/deg
+        Navog = 6.022e23              #molecules/mole
+        grav = 9.80616                #m/s2
+        Rgas = 286.9969     #J/K/kg
+        s_per_day = 86400.            #s/day
+        g_per_kg = 1.e3
+        cm2_per_m2 = 1.e4
+        cm3_per_m3 = 1.e6
+        mw_no = 30. #g/mole
+
+        nlon = len(lon)
+        nlat = len(lat)
+        nlev = len(hyam)
+        nmon = len(timex)
+
+        emilnox = np.zeros((nmon,nlev,nlat,nlon))
+
+        dlon = lon[1]-lon[0]
+        dlat = lat[1]-lat[0]
+
+        dx = Rearth * np.cos(lat/deg_rad) * dlon/deg_rad  #m        
+        dy = Rearth * dlat /deg_rad   #m
+
+        pres = np.zeros((nmon,nlev,nlat,nlon))
+        presi = np.zeros((nmon,nlev+1,nlat,nlon))
+        rho = np.zeros((nmon,nlev,nlat,nlon))
+        delp = np.zeros((nmon,nlev,nlat,nlon))
+        area = np.zeros((nmon,nlev,nlat,nlon))
+        
+#        print "Start of main assignment loop:", time.ctime()
+        for imon in range(nmon):
+            for ilon in range(nlon):
+                for ilat in range(nlat):
+                    presi[imon,:,ilat,ilon] = (hyai[:]*p0 + hybi[:]*psurf[imon,ilat,ilon])    #Pa 
+                    pres[imon,:,ilat,ilon] =  (hyam[:]*p0 + hybm[:]*psurf[imon,ilat,ilon])
+                    area[imon,:,ilat,ilon] = dx[ilat] *dy #m2
+#        print "End of main assignment loop:", time.ctime() 
+
+#        print "Start of rho assignment:", time.ctime()
+        rho = pres/(287.04*temp)
+#        print "End of rho assignment:", time.ctime()
+  
+#        print "Start of delp assignment loop:", time.ctime()
+        for i in range(nlev)[::-1]:
+            delp[:,i,:,:] = presi[:,i,:,:]-presi[:,i+1,:,:]
+#        print "End of delp assignment loop:", time.ctime()
+
+#        print "Start of emilnox assignment:", time.ctime()
+        #[molecules/cm3/s] * [moles/molecules]*[Pa]*[s2/m]*[(m2/K/s2)*K/Pa] *[m2] *[cm3/m3]
+        emilnox = lno_prod/Navog * delp/9.81/rho *area * cm3_per_m3  #moles/s
+#        print "End of emilnox assignment:", time.ctime()
+
+#        print 'hyam:',hyam
+#        print 'hybm:',hybm
+#        print 'psurf:',psurf[0,:]
+#        print 'temp:',temp[0,:]
+#        print 'lno_prod:',lno_prod[0,:]
+#        ilat = 86
+#        ilon = 24
+#        print 'Lat: ',lat[ilat]
+#        print 'Lon: ',lon[ilon]
+#        area = dx[ilat] *dy #m2
+#        print 'Area ',area
+#        for ilev in range(nlev):
+#            print pres[0,ilev,ilat,ilon],(emilnox[0,ilev,ilat,ilon])
+
+        new_name = 'emilnox({}{}{}{}{}{}{})'.format(
+            p_PO.name, p_PS.name, p_hyai.name, p_hybi.name, p_hyam.name, p_hybm.name, p_T.name, p_LNO_PROD.name)
+
+        return PhysArray(emilnox, name=new_name, dimensions=[p_T.dimensions[0], p_T.dimensions[1], p_T.dimensions[2], p_T.dimensions[3]], units="mol s-1")
+
+
+#=========================================================================
+# delpFunction
+#=========================================================================
+
+class delpFunction(Function):
+    key = 'delp'
+
+    def __init__(self, p_PO, p_PS, p_hyai, p_hybi):
+        super(delpFunction, self).__init__(p_PO, p_PS, p_hyai, p_hybi)
+
+    def __getitem__(self, index):
+        p_PO = self.arguments[0][index]
+        p_PS = self.arguments[1][index]
+        p_hyai = self.arguments[2][index]
+        p_hybi = self.arguments[3][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0)), dimensions=[p_PS.dimensions[0], p_PS.dimensions[1], p_PS.dimensions[2]])
+
+        PO = p_PO
+        PS = p_PS
+        hyai = p_hyai
+        hybi = p_hybi
+
+        p = (hyai*PO)+(hybi*PS)
+        l = len(hybi)
+
+        delp = PhysArray(np.zeros(hyai.shape+PS.shape),name="delp",units="Pa",dimensions=hyai.dimensions+PS.dimensions)
+        for i in range(0,l-1):
+            delp.data[i,:,:,:] = p.data[i+1,:,:,:]-p.data[i,:,:,:]
+
+#        delp = np.ma.zeros((p_PS.data.shape[0], p_PS.data.shape[1], p_PS.data.shape[2]))
+#        for i in range(0,l-1):
+#            delp[:] = p[i+1,:,:,:]-p[i,:,:,:]
+
+
+        new_name = 'delp({}{}{}{})'.format(
+            p_PO.name, p_PS.name, p_hyai.name, p_hybi.name)
+
+        return PhysArray(delp, name=new_name, units="Pa")
+
+
+#=========================================================================
+# rhoFunction
+#=========================================================================
+
+class rhoFunction(Function):
+    key = 'rho'
+
+    def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T):
+        super(rhoFunction, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T)
+
+    def __getitem__(self, index):
+        p_PO = self.arguments[0][index]
+        p_PS = self.arguments[1][index]
+        p_hyam = self.arguments[2][index]
+        p_hybm = self.arguments[3][index]
+        p_T = self.arguments[4][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_T.dimensions[0], p_T.dimensions[1], p_T.dimensions[2], p_T.dimensions[3]])
+
+        PO = p_PO
+        PS = p_PS
+        hyam = p_hyam
+        hybm = p_hybm
+        t = p_T
+
+        p = (hyam*PO)+(hybm*PS)
+        rho = p/(287.04*t)
+
+        new_name = 'rho({}{}{}{}{})'.format(
+            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
+
+        return PhysArray(rho, name=new_name, units="cm-3")
+
+
+#=========================================================================
+# pm25Function
+#=========================================================================
+
+class pm25Function(Function):
+    key = 'pm25'
+
+    def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o):
+        super(pm25Function, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o)
+
+    def __getitem__(self, index):
+        p_PO = self.arguments[0][index]
+        p_PS = self.arguments[1][index]
+        p_hyam = self.arguments[2][index]
+        p_hybm = self.arguments[3][index]
+        p_T = self.arguments[4][index]
+        p_PM25_o = self.arguments[5][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_T.dimensions[0], p_T.dimensions[1], p_T.dimensions[2], p_T.dimensions[3]])
+
+        PO = p_PO
+        PS = p_PS
+        hyam = p_hyam
+        hybm = p_hybm
+        t = p_T
+        PM25_o = p_PM25_o
+
+        p = (hyam*PO)+(hybm*PS)
+        pm25 = PM25_o * 287. * t / p
+
+        new_name = 'pm25({}{}{}{}{}{})'.format(
+            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name, p_PM25_o.name)
+
+        return PhysArray(pm25, name=new_name, units="kg/kg")
+
+
+#=========================================================================
+# tozFunction
+#=========================================================================
+
+class tozFunction(Function):
+    key = 'toz'
+
+    def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_indat3a):
+        super(tozFunction, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_indat3a)
+
+    def __getitem__(self, index):
+        p_PO = self.arguments[0][index]
+        p_PS = self.arguments[1][index]
+        p_hyam = self.arguments[2][index]
+        p_hybm = self.arguments[3][index]
+        p_indat3a = self.arguments[4][index]
+
+        if index is None:
+            return PhysArray(np.zeros((0, 0, 0)), dimensions=[p_indat3a.dimensions[0], p_indat3a.dimensions[1], p_indat3a.dimensions[2]])
+
+        PO = p_PO
+        PS = p_PS
+        hyam = p_hyam
+        hybm = p_hybm
+        t = p_T
+
+        p = (hyam*PO)+(hybm*PS)
+        delp = np.ma.zeros((p_indat3a.dimensions[0], p_indat3a.dimensions[1], p_indat3a.dimensions[2]))
+        for i in range(0,l-1):
+            delp[:,i,:,:] = p[:,i+1,:,:]-p[:,u,:,:]
+        work3da = indat3a*delp*1.e-02
+        cmordat2d = sum(work3da,dim=3)
+        cmordat2d = cmordat2d * 2.1e+22 / 2.69e16
+
+        new_name = 'toz({}{}{}{}{})'.format(
+            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
+
+        return PhysArray(cmordat2d, name=new_name, units='m')
+

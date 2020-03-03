@@ -411,14 +411,21 @@ class ParseXML(object):
                 if len(v_list) == 0:
                     var_list = vars['requestVar'] 
                 else:
+                    # Make a list of all cmip vars and their id's
+                    all_vars = {}
+                    for v in dq.coll['CMORvar'].items:
+                        all_vars[v.label+':'+v.mipTable] = v.uid 
                     for v in v_list:
-                        uids = dq.inx.requestVar.label[v]
-                        for uid in uids:
-                            if uid in vars['requestVar']:
-                                var_list.append(uid)
+                        if v in all_vars.keys():
+                            var_list.append(all_vars[v])
+                        else:
+                            print('Can not add variable: '+v)
                 for rv in var_list:
                     var = {}
-                    v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
+                    if len(v_list) == 0:
+                        v_id = dq.inx.uid[rv].vid  # Get the CMORvar id
+                    else:
+                        v_id = dq.inx.uid[rv].uid  # Get the CMORvar id
                     c_var = dq.inx.uid[v_id]
 	            # Set what we can from the CMORvar section
                     if hasattr(c_var,'mipTable'):
