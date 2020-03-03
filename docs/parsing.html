@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.parsing &mdash; PyConform 0.2.2 documentation</title>
+  <title>pyconform.parsing &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -17,43 +17,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="index.html"/>
-        <link rel="up" title="The PyConform Package" href="pyconform.html"/>
-        <link rel="next" title="PyConform ChangeLog" href="changelog.html"/>
-        <link rel="prev" title="pyconform.indexing" href="indexing.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="PyConform ChangeLog" href="changelog.html" />
+    <link rel="prev" title="pyconform.indexing" href="indexing.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -94,7 +87,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="pyconform.html">The PyConform Package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="pyconform.html#modules">Modules</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="physarray.html">pyconform.physarray</a></li>
@@ -121,7 +113,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyConform</a>
@@ -129,9 +121,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -177,37 +170,211 @@
             
   <div class="section" id="module-pyconform.parsing">
 <span id="pyconform-parsing"></span><h1>pyconform.parsing<a class="headerlink" href="#module-pyconform.parsing" title="Permalink to this headline">¶</a></h1>
-<p>Parsing Module</p>
+<p>Parsing Module - NEW Based on PLY</p>
 <p>This module defines the necessary elements to parse a string variable definition
 into the recognized elements that are used to construct an Operation Graph.</p>
 <p>Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details</p>
 <dl class="class">
-<dt id="pyconform.parsing.ParsedBinOp">
-<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">ParsedBinOp</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#ParsedBinOp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.ParsedBinOp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyconform.parsing.ParsedFunction" title="pyconform.parsing.ParsedFunction"><code class="xref py py-class docutils literal"><span class="pre">pyconform.parsing.ParsedFunction</span></code></a></p>
-<p>A parsed binary-operator string-type</p>
+<dt id="pyconform.parsing.FuncType">
+<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">FuncType</code><span class="sig-paren">(</span><em>key</em>, <em>args</em>, <em>kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#pyconform.parsing.FuncType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pyconform.parsing.FuncType.args">
+<code class="descname">args</code><a class="headerlink" href="#pyconform.parsing.FuncType.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.parsing.FuncType.key">
+<code class="descname">key</code><a class="headerlink" href="#pyconform.parsing.FuncType.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.parsing.FuncType.kwds">
+<code class="descname">kwds</code><a class="headerlink" href="#pyconform.parsing.FuncType.kwds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
-<dt id="pyconform.parsing.ParsedFunction">
-<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">ParsedFunction</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#ParsedFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.ParsedFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>A parsed function string-type</p>
+<dt id="pyconform.parsing.OpType">
+<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">OpType</code><span class="sig-paren">(</span><em>key</em>, <em>args</em><span class="sig-paren">)</span><a class="headerlink" href="#pyconform.parsing.OpType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pyconform.parsing.OpType.args">
+<code class="descname">args</code><a class="headerlink" href="#pyconform.parsing.OpType.args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pyconform.parsing.OpType.key">
+<code class="descname">key</code><a class="headerlink" href="#pyconform.parsing.OpType.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
-<dt id="pyconform.parsing.ParsedUniOp">
-<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">ParsedUniOp</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#ParsedUniOp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.ParsedUniOp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyconform.parsing.ParsedFunction" title="pyconform.parsing.ParsedFunction"><code class="xref py py-class docutils literal"><span class="pre">pyconform.parsing.ParsedFunction</span></code></a></p>
-<p>A parsed unary-operator string-type</p>
+<dt id="pyconform.parsing.VarType">
+<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">VarType</code><span class="sig-paren">(</span><em>key</em>, <em>ind</em><span class="sig-paren">)</span><a class="headerlink" href="#pyconform.parsing.VarType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pyconform.parsing.VarType.ind">
+<code class="descname">ind</code><a class="headerlink" href="#pyconform.parsing.VarType.ind" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="pyconform.parsing.ParsedVariable">
-<em class="property">class </em><code class="descclassname">pyconform.parsing.</code><code class="descname">ParsedVariable</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#ParsedVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.ParsedVariable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyconform.parsing.ParsedFunction" title="pyconform.parsing.ParsedFunction"><code class="xref py py-class docutils literal"><span class="pre">pyconform.parsing.ParsedFunction</span></code></a></p>
-<p>A parsed variable string-type</p>
+<dl class="attribute">
+<dt id="pyconform.parsing.VarType.key">
+<code class="descname">key</code><a class="headerlink" href="#pyconform.parsing.VarType.key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.ind_str">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">ind_str</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#ind_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.ind_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.op_str">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">op_str</code><span class="sig-paren">(</span><em>self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#op_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.op_str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_argument">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_argument</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>argument : array_like
+argument : STRING</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_argument_list_append">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_argument_list_append</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_argument_list_append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_argument_list_append" title="Permalink to this definition">¶</a></dt>
+<dd><p>argument_list : argument_list ‘,’ argument</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_array_like">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_array_like</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_array_like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_array_like" title="Permalink to this definition">¶</a></dt>
+<dd><p>array_like : UFLOAT
+array_like : UINT
+array_like : function
+array_like : variable</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_array_like_group">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_array_like_group</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_array_like_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_array_like_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>array_like : ‘(‘ array_like ‘)’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_error">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_error</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_expression_binary">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_expression_binary</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_expression_binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_expression_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>array_like : array_like POW array_like
+array_like : array_like ‘-‘ array_like
+array_like : array_like ‘+’ array_like
+array_like : array_like ‘*’ array_like
+array_like : array_like ‘/’ array_like
+array_like : array_like ‘&lt;’ array_like
+array_like : array_like ‘&gt;’ array_like
+array_like : array_like LEQ array_like
+array_like : array_like GEQ array_like
+array_like : array_like EQ array_like</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_expression_unary">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_expression_unary</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_expression_unary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_expression_unary" title="Permalink to this definition">¶</a></dt>
+<dd><p>array_like : ‘-‘ array_like %prec NEG
+array_like : ‘+’ array_like %prec POS</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_function_with_arguments_and_keywords">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_function_with_arguments_and_keywords</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_function_with_arguments_and_keywords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_function_with_arguments_and_keywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>function : NAME ‘(‘ argument_list ‘,’ keyword_dict ‘)’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_function_with_arguments_only">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_function_with_arguments_only</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_function_with_arguments_only"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_function_with_arguments_only" title="Permalink to this definition">¶</a></dt>
+<dd><p>function : NAME ‘(‘ argument_list ‘)’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_function_with_keywords_only">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_function_with_keywords_only</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_function_with_keywords_only"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_function_with_keywords_only" title="Permalink to this definition">¶</a></dt>
+<dd><p>function : NAME ‘(‘ keyword_dict ‘)’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_index">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_index</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>index : slice
+index : array_like</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_index_list_append">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_index_list_append</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_index_list_append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_index_list_append" title="Permalink to this definition">¶</a></dt>
+<dd><p>index_list : index_list ‘,’ index</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_keyword_dict_setitem">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_keyword_dict_setitem</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_keyword_dict_setitem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_keyword_dict_setitem" title="Permalink to this definition">¶</a></dt>
+<dd><p>keyword_dict : keyword_dict ‘,’ NAME ‘=’ argument</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_single_item_argument_list">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_single_item_argument_list</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_single_item_argument_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_single_item_argument_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>argument_list : argument
+argument_list :</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_single_item_index_list">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_single_item_index_list</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_single_item_index_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_single_item_index_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>index_list : index</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_single_item_keyword_dict">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_single_item_keyword_dict</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_single_item_keyword_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_single_item_keyword_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>keyword_dict : NAME ‘=’ argument</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_slice">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_slice</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_slice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_slice" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice : slice_argument ‘:’ slice_argument ‘:’ slice_argument
+slice : slice_argument ‘:’ slice_argument</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_slice_argument">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_slice_argument</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_slice_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_slice_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>slice_argument : array_like
+slice_argument :</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.p_variable">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">p_variable</code><span class="sig-paren">(</span><em>p</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#p_variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.p_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>variable : NAME ‘[‘ index_list ‘]’
+variable : NAME</p>
 </dd></dl>
 
 <dl class="function">
@@ -215,13 +382,34 @@ LICENSE: See the LICENSE.rst file for details</p>
 <code class="descclassname">pyconform.parsing.</code><code class="descname">parse_definition</code><span class="sig-paren">(</span><em>strexpr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#parse_definition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.parse_definition" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="function">
+<dt id="pyconform.parsing.t_STRING">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">t_STRING</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#t_STRING"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.t_STRING" title="Permalink to this definition">¶</a></dt>
+<dd><p>“([^”\]*(.[^”\]*)*)”<a href="#id1"><span class="problematic" id="id2">|</span></a>’([^’\]*(.[^’\]*)*)’</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.t_UFLOAT">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">t_UFLOAT</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#t_UFLOAT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.t_UFLOAT" title="Permalink to this definition">¶</a></dt>
+<dd><p>(([0-9]+.[0-9]*|[0-9]*.[0-9]+)([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.t_UINT">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">t_UINT</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#t_UINT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.t_UINT" title="Permalink to this definition">¶</a></dt>
+<dd><p>[0-9]+</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pyconform.parsing.t_error">
+<code class="descclassname">pyconform.parsing.</code><code class="descname">t_error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/parsing.html#t_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.parsing.t_error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -230,7 +418,7 @@ LICENSE: See the LICENSE.rst file for details</p>
         <a href="changelog.html" class="btn btn-neutral float-right" title="PyConform ChangeLog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="indexing.html" class="btn btn-neutral" title="pyconform.indexing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="indexing.html" class="btn btn-neutral float-left" title="pyconform.indexing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -239,11 +427,11 @@ LICENSE: See the LICENSE.rst file for details</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -256,37 +444,15 @@ LICENSE: See the LICENSE.rst file for details</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

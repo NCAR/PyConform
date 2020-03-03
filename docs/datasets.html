@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.datasets &mdash; PyConform 0.2.2 documentation</title>
+  <title>pyconform.datasets &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -17,43 +17,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="index.html"/>
-        <link rel="up" title="The PyConform Package" href="pyconform.html"/>
-        <link rel="next" title="pyconform.flownodes" href="flownodes.html"/>
-        <link rel="prev" title="pyconform.functions" href="functions.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyconform.flownodes" href="flownodes.html" />
+    <link rel="prev" title="pyconform.functions" href="functions.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -94,7 +87,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="pyconform.html">The PyConform Package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="pyconform.html#modules">Modules</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="physarray.html">pyconform.physarray</a></li>
@@ -121,7 +113,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyConform</a>
@@ -129,9 +121,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -185,7 +178,7 @@ LICENSE: See the LICENSE.rst file for details</p>
 <dl class="class">
 <dt id="pyconform.datasets.DatasetDesc">
 <em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">DatasetDesc</code><span class="sig-paren">(</span><em>name='dataset'</em>, <em>files=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#DatasetDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.DatasetDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class describing a self-consistent set of dimensions and variables in one or more files</p>
 <p>In simplest terms, a single NetCDF file is a dataset.  Hence, the DatasetDesc object can be
 viewed as a simple container for the header information of a NetCDF file.  However, the
@@ -230,14 +223,14 @@ dimensions, and they must refer to the same data.</li>
 <dl class="exception">
 <dt id="pyconform.datasets.DefinitionWarning">
 <em class="property">exception </em><code class="descclassname">pyconform.datasets.</code><code class="descname">DefinitionWarning</code><a class="reference internal" href="_modules/pyconform/datasets.html#DefinitionWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.DefinitionWarning" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.Warning</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.Warning</span></code></p>
 <p>Warning to indicate that a variable definition might be bad</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pyconform.datasets.DimensionDesc">
 <em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">DimensionDesc</code><span class="sig-paren">(</span><em>name</em>, <em>size=None</em>, <em>unlimited=False</em>, <em>stringlen=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#DimensionDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.DimensionDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Descriptor for a dimension in a DatasetDesc</p>
 <p>Contains the name of the dimensions, its size, and whether the dimension is limited or
 unlimited.</p>
@@ -309,8 +302,8 @@ unlimited.</p>
 
 <dl class="class">
 <dt id="pyconform.datasets.FileDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">FileDesc</code><span class="sig-paren">(</span><em>name</em>, <em>format='NETCDF4_CLASSIC'</em>, <em>deflate=2</em>, <em>variables=()</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#FileDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.FileDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">FileDesc</code><span class="sig-paren">(</span><em>name</em>, <em>format='NETCDF4_CLASSIC'</em>, <em>deflate=2</em>, <em>variables=()</em>, <em>attributes={}</em>, <em>autoparse_time_variable=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#FileDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.FileDesc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A class describing the contents of a single dataset file</p>
 <p>In simplest terms, the FileDesc contains the header information for a single NetCDF file.  It
 contains the name of the file, the type of the file, a dictionary of global attributes in the
@@ -375,8 +368,8 @@ file, a dict of DimensionDesc objects, and a dict of VariableDesc objects.</p>
 
 <dl class="class">
 <dt id="pyconform.datasets.InputDatasetDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">InputDatasetDesc</code><span class="sig-paren">(</span><em>name='input'</em>, <em>filenames=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#InputDatasetDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.InputDatasetDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyconform.datasets.DatasetDesc" title="pyconform.datasets.DatasetDesc"><code class="xref py py-class docutils literal"><span class="pre">pyconform.datasets.DatasetDesc</span></code></a></p>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">InputDatasetDesc</code><span class="sig-paren">(</span><em>name='input'</em>, <em>filenames=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#InputDatasetDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.InputDatasetDesc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyconform.datasets.DatasetDesc" title="pyconform.datasets.DatasetDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyconform.datasets.DatasetDesc</span></code></a></p>
 <p>DatasetDesc that can be used as input (i.e., can be read from file)</p>
 <p>The InputDatasetDesc is a kind of DatasetDesc where all of the DatasetDesc information is read from
 the headers of existing NetCDF files.  The files must be self-consistent according to the
@@ -387,8 +380,8 @@ parameter will contain the names of files from which the variable data can be re
 
 <dl class="class">
 <dt id="pyconform.datasets.OutputDatasetDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">OutputDatasetDesc</code><span class="sig-paren">(</span><em>name='output'</em>, <em>dsdict=OrderedDict()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#OutputDatasetDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.OutputDatasetDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pyconform.datasets.DatasetDesc" title="pyconform.datasets.DatasetDesc"><code class="xref py py-class docutils literal"><span class="pre">pyconform.datasets.DatasetDesc</span></code></a></p>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">OutputDatasetDesc</code><span class="sig-paren">(</span><em>name='output'</em>, <em>dsdict={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#OutputDatasetDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.OutputDatasetDesc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pyconform.datasets.DatasetDesc" title="pyconform.datasets.DatasetDesc"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyconform.datasets.DatasetDesc</span></code></a></p>
 <p>DatasetDesc that can be used for output (i.e., to be written to files)</p>
 <p>The OutputDatasetDesc contains all of the header information needed to write a DatasetDesc to
 files.  Unlike the InputDatasetDesc, it is not assumed that all of the variable and dimension
@@ -425,8 +418,8 @@ metadata variables and the variable containing the ‘file’ section.</dd>
 
 <dl class="class">
 <dt id="pyconform.datasets.VariableDesc">
-<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">VariableDesc</code><span class="sig-paren">(</span><em>name</em>, <em>datatype='float'</em>, <em>dimensions=()</em>, <em>definition=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="descclassname">pyconform.datasets.</code><code class="descname">VariableDesc</code><span class="sig-paren">(</span><em>name</em>, <em>datatype=None</em>, <em>dimensions=()</em>, <em>definition=None</em>, <em>attributes={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Descriptor for a variable in a dataset</p>
 <p>Contains the variable name, string datatype, dimensions tuple, attributes dictionary,
 and a string definition (how to construct the data for the variable) or data array (if
@@ -456,6 +449,11 @@ the data is contained in the variable declaration).</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pyconform.datasets.VariableDesc.definition">
+<code class="descname">definition</code><a class="headerlink" href="#pyconform.datasets.VariableDesc.definition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pyconform.datasets.VariableDesc.dimensions">
 <code class="descname">dimensions</code><a class="headerlink" href="#pyconform.datasets.VariableDesc.dimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of dimension descriptors for dimensions on which the variable depends</p>
@@ -479,6 +477,12 @@ the data is contained in the variable declaration).</p>
 <dd><p>Name of the variable</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pyconform.datasets.VariableDesc.refdatetime">
+<code class="descname">refdatetime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc.refdatetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc.refdatetime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the reference datetime string, otherwise None</p>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="pyconform.datasets.VariableDesc.unique">
 <em class="property">static </em><code class="descname">unique</code><span class="sig-paren">(</span><em>descs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc.unique"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc.unique" title="Permalink to this definition">¶</a></dt>
@@ -496,8 +500,13 @@ the data is contained in the variable declaration).</p>
 <dl class="method">
 <dt id="pyconform.datasets.VariableDesc.units">
 <code class="descname">units</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc.units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc.units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve the units attribute, if it exists, otherwise 1</p>
+<dd><p>Retrieve the units string otherwise None</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="pyconform.datasets.VariableDesc.units_attr">
+<code class="descname">units_attr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/datasets.html#VariableDesc.units_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.datasets.VariableDesc.units_attr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -505,9 +514,7 @@ the data is contained in the variable declaration).</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -516,7 +523,7 @@ the data is contained in the variable declaration).</p>
         <a href="flownodes.html" class="btn btn-neutral float-right" title="pyconform.flownodes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="functions.html" class="btn btn-neutral" title="pyconform.functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="functions.html" class="btn btn-neutral float-left" title="pyconform.functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -525,11 +532,11 @@ the data is contained in the variable declaration).</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -542,37 +549,15 @@ the data is contained in the variable declaration).</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

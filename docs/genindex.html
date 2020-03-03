@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; PyConform 0.2.2 documentation</title>
+  <title>Index &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -18,40 +18,34 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="#"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="index.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -92,7 +86,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pyconform.html">The PyConform Package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">PyConform ChangeLog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">Product License</a></li>
@@ -107,7 +100,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyConform</a>
@@ -115,9 +108,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -192,6 +186,12 @@
 </li>
       <li><a href="indexing.html#pyconform.indexing.align_index">align_index() (in module pyconform.indexing)</a>
 </li>
+      <li><a href="parsing.html#pyconform.parsing.FuncType.args">args (pyconform.parsing.FuncType attribute)</a>
+
+      <ul>
+        <li><a href="parsing.html#pyconform.parsing.OpType.args">(pyconform.parsing.OpType attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="datasets.html#pyconform.datasets.FileDesc.attributes">attributes (pyconform.datasets.FileDesc attribute)</a>
@@ -238,6 +238,10 @@
 </li>
       <li><a href="datasets.html#pyconform.datasets.VariableDesc.datatype">datatype (pyconform.datasets.VariableDesc attribute)</a>
 </li>
+      <li><a href="flownodes.html#pyconform.flownodes.DateTimeAutoParseWarning">DateTimeAutoParseWarning</a>
+</li>
+      <li><a href="datasets.html#pyconform.datasets.VariableDesc.definition">definition (pyconform.datasets.VariableDesc attribute)</a>
+</li>
       <li><a href="datasets.html#pyconform.datasets.DefinitionWarning">DefinitionWarning</a>
 </li>
       <li><a href="datasets.html#pyconform.datasets.FileDesc.deflate">deflate (pyconform.datasets.FileDesc attribute)</a>
@@ -246,6 +250,8 @@
 </li>
       <li><a href="datasets.html#pyconform.datasets.DimensionDesc">DimensionDesc (class in pyconform.datasets)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="datasets.html#pyconform.datasets.DatasetDesc.dimensions">dimensions (pyconform.datasets.DatasetDesc attribute)</a>
 
       <ul>
@@ -258,8 +264,6 @@
         <li><a href="physarray.html#pyconform.physarray.PhysArray.dimensions">(pyconform.physarray.PhysArray attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="physarray.html#pyconform.physarray.DimensionsError">DimensionsError</a>
 </li>
       <li><a href="flownodes.html#pyconform.flownodes.WriteNode.disable_history">disable_history() (pyconform.flownodes.WriteNode method)</a>
@@ -308,10 +312,10 @@
 </li>
       <li><a href="functions.html#pyconform.functions.find_function">find_function() (in module pyconform.functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="functions.html#pyconform.functions.find_operator">find_operator() (in module pyconform.functions)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="physarray.html#pyconform.physarray.PhysArray.flip">flip() (pyconform.physarray.PhysArray method)</a>
 </li>
       <li><a href="flownodes.html#pyconform.flownodes.FlowNode">FlowNode (class in pyconform.flownodes)</a>
@@ -321,6 +325,8 @@
       <li><a href="functions.html#pyconform.functions.Function">Function (class in pyconform.functions)</a>
 </li>
       <li><a href="functions.html#pyconform.functions.FunctionBase">FunctionBase (class in pyconform.functions)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.FuncType">FuncType (class in pyconform.parsing)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -352,6 +358,10 @@
 <h2 id="I">I</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.VarType.ind">ind (pyconform.parsing.VarType attribute)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.ind_str">ind_str() (in module pyconform.parsing)</a>
+</li>
       <li><a href="indexing.html#pyconform.indexing.index_str">index_str() (in module pyconform.indexing)</a>
 </li>
       <li><a href="indexing.html#pyconform.indexing.index_tuple">index_tuple() (in module pyconform.indexing)</a>
@@ -360,14 +370,14 @@
 </li>
       <li><a href="flownodes.html#pyconform.flownodes.FlowNode.inputs">inputs (pyconform.flownodes.FlowNode attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="physarray.html#pyconform.physarray.CharArray.invert">invert() (pyconform.physarray.CharArray method)</a>
 
       <ul>
         <li><a href="physarray.html#pyconform.physarray.PhysArray.invert">(pyconform.physarray.PhysArray method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="functions.html#pyconform.functions.is_constant">is_constant() (in module pyconform.functions)</a>
 </li>
       <li><a href="datasets.html#pyconform.datasets.DimensionDesc.is_set">is_set() (pyconform.datasets.DimensionDesc method)</a>
@@ -405,7 +415,11 @@
 </li>
         <li><a href="functions.html#pyconform.functions.LimitFunction.key">(pyconform.functions.LimitFunction attribute)</a>
 </li>
+        <li><a href="functions.html#pyconform.functions.MaxFunction.key">(pyconform.functions.MaxFunction attribute)</a>
+</li>
         <li><a href="functions.html#pyconform.functions.MeanFunction.key">(pyconform.functions.MeanFunction attribute)</a>
+</li>
+        <li><a href="functions.html#pyconform.functions.MinFunction.key">(pyconform.functions.MinFunction attribute)</a>
 </li>
         <li><a href="functions.html#pyconform.functions.MultiplicationOperator.key">(pyconform.functions.MultiplicationOperator attribute)</a>
 </li>
@@ -419,11 +433,27 @@
 </li>
         <li><a href="functions.html#pyconform.functions.PowerOperator.key">(pyconform.functions.PowerOperator attribute)</a>
 </li>
+        <li><a href="functions.html#pyconform.functions.RemoveUnitsFunction.key">(pyconform.functions.RemoveUnitsFunction attribute)</a>
+</li>
+        <li><a href="functions.html#pyconform.functions.RenameDimensionsFunction.key">(pyconform.functions.RenameDimensionsFunction attribute)</a>
+</li>
         <li><a href="functions.html#pyconform.functions.SquareRootFunction.key">(pyconform.functions.SquareRootFunction attribute)</a>
 </li>
         <li><a href="functions.html#pyconform.functions.SubtractionOperator.key">(pyconform.functions.SubtractionOperator attribute)</a>
 </li>
+        <li><a href="functions.html#pyconform.functions.SumFunction.key">(pyconform.functions.SumFunction attribute)</a>
+</li>
+        <li><a href="parsing.html#pyconform.parsing.FuncType.key">(pyconform.parsing.FuncType attribute)</a>
+</li>
+        <li><a href="parsing.html#pyconform.parsing.OpType.key">(pyconform.parsing.OpType attribute)</a>
+</li>
+        <li><a href="parsing.html#pyconform.parsing.VarType.key">(pyconform.parsing.VarType attribute)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.FuncType.kwds">kwds (pyconform.parsing.FuncType attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -448,11 +478,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="flownodes.html#pyconform.flownodes.MapNode">MapNode (class in pyconform.flownodes)</a>
 </li>
+      <li><a href="functions.html#pyconform.functions.MaxFunction">MaxFunction (class in pyconform.functions)</a>
+</li>
       <li><a href="physarray.html#pyconform.physarray.PhysArray.mean">mean() (pyconform.physarray.PhysArray method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="functions.html#pyconform.functions.MeanFunction">MeanFunction (class in pyconform.functions)</a>
+</li>
+      <li><a href="functions.html#pyconform.functions.MinFunction">MinFunction (class in pyconform.functions)</a>
 </li>
       <li><a href="functions.html#pyconform.functions.MultiplicationOperator">MultiplicationOperator (class in pyconform.functions)</a>
 </li>
@@ -500,10 +534,14 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.op_str">op_str() (in module pyconform.parsing)</a>
+</li>
       <li><a href="functions.html#pyconform.functions.Operator">Operator (class in pyconform.functions)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.OpType">OpType (class in pyconform.parsing)</a>
+</li>
       <li><a href="datasets.html#pyconform.datasets.OutputDatasetDesc">OutputDatasetDesc (class in pyconform.datasets)</a>
 </li>
   </ul></td>
@@ -512,15 +550,47 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.p_argument">p_argument() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_argument_list_append">p_argument_list_append() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_array_like">p_array_like() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_array_like_group">p_array_like_group() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_error">p_error() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_expression_binary">p_expression_binary() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_expression_unary">p_expression_unary() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_function_with_arguments_and_keywords">p_function_with_arguments_and_keywords() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_function_with_arguments_only">p_function_with_arguments_only() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_function_with_keywords_only">p_function_with_keywords_only() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_index">p_index() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_index_list_append">p_index_list_append() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_keyword_dict_setitem">p_keyword_dict_setitem() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_single_item_argument_list">p_single_item_argument_list() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_single_item_index_list">p_single_item_index_list() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_single_item_keyword_dict">p_single_item_keyword_dict() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_slice">p_slice() (in module pyconform.parsing)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.p_slice_argument">p_slice_argument() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.p_variable">p_variable() (in module pyconform.parsing)</a>
+</li>
       <li><a href="parsing.html#pyconform.parsing.parse_definition">parse_definition() (in module pyconform.parsing)</a>
-</li>
-      <li><a href="parsing.html#pyconform.parsing.ParsedBinOp">ParsedBinOp (class in pyconform.parsing)</a>
-</li>
-      <li><a href="parsing.html#pyconform.parsing.ParsedFunction">ParsedFunction (class in pyconform.parsing)</a>
-</li>
-      <li><a href="parsing.html#pyconform.parsing.ParsedUniOp">ParsedUniOp (class in pyconform.parsing)</a>
-</li>
-      <li><a href="parsing.html#pyconform.parsing.ParsedVariable">ParsedVariable (class in pyconform.parsing)</a>
 </li>
       <li><a href="physarray.html#pyconform.physarray.PhysArray">PhysArray (class in pyconform.physarray)</a>
 </li>
@@ -532,8 +602,6 @@
       </ul></li>
       <li><a href="functions.html#pyconform.functions.PositiveDownFunction">PositiveDownFunction (class in pyconform.functions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="functions.html#pyconform.functions.PositiveUpFunction">PositiveUpFunction (class in pyconform.functions)</a>
 </li>
       <li><a href="functions.html#pyconform.functions.PowerOperator">PowerOperator (class in pyconform.functions)</a>
@@ -562,6 +630,14 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="flownodes.html#pyconform.flownodes.ReadNode">ReadNode (class in pyconform.flownodes)</a>
 </li>
+      <li><a href="datasets.html#pyconform.datasets.VariableDesc.refdatetime">refdatetime() (pyconform.datasets.VariableDesc method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="functions.html#pyconform.functions.RemoveUnitsFunction">RemoveUnitsFunction (class in pyconform.functions)</a>
+</li>
+      <li><a href="functions.html#pyconform.functions.RenameDimensionsFunction">RenameDimensionsFunction (class in pyconform.functions)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -576,13 +652,15 @@
 </li>
       <li><a href="physarray.html#pyconform.physarray.CharArray.stretch">stretch() (pyconform.physarray.CharArray method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="datasets.html#pyconform.datasets.DimensionDesc.stringlen">stringlen (pyconform.datasets.DimensionDesc attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="functions.html#pyconform.functions.SubtractionOperator">SubtractionOperator (class in pyconform.functions)</a>
 </li>
       <li><a href="physarray.html#pyconform.physarray.PhysArray.sum">sum() (pyconform.physarray.PhysArray method)</a>
+</li>
+      <li><a href="functions.html#pyconform.functions.SumFunction">SumFunction (class in pyconform.functions)</a>
 </li>
       <li><a href="flownodes.html#pyconform.flownodes.EvalNode.sumlike_dimensions">sumlike_dimensions (pyconform.flownodes.EvalNode attribute)</a>
 
@@ -596,6 +674,16 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.t_error">t_error() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.t_STRING">t_STRING() (in module pyconform.parsing)</a>
+</li>
+      <li><a href="parsing.html#pyconform.parsing.t_UFLOAT">t_UFLOAT() (in module pyconform.parsing)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="parsing.html#pyconform.parsing.t_UINT">t_UINT() (in module pyconform.parsing)</a>
+</li>
       <li><a href="physarray.html#pyconform.physarray.CharArray.transpose">transpose() (pyconform.physarray.CharArray method)</a>
 
       <ul>
@@ -622,9 +710,11 @@
         <li><a href="physarray.html#pyconform.physarray.PhysArray.units">(pyconform.physarray.PhysArray attribute)</a>
 </li>
       </ul></li>
+      <li><a href="datasets.html#pyconform.datasets.VariableDesc.units">units() (pyconform.datasets.VariableDesc method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="datasets.html#pyconform.datasets.VariableDesc.units">units() (pyconform.datasets.VariableDesc method)</a>
+      <li><a href="datasets.html#pyconform.datasets.VariableDesc.units_attr">units_attr() (pyconform.datasets.VariableDesc method)</a>
 </li>
       <li><a href="physarray.html#pyconform.physarray.UnitsError">UnitsError</a>
 </li>
@@ -658,6 +748,8 @@
         <li><a href="datasets.html#pyconform.datasets.FileDesc.variables">(pyconform.datasets.FileDesc attribute)</a>
 </li>
       </ul></li>
+      <li><a href="parsing.html#pyconform.parsing.VarType">VarType (class in pyconform.parsing)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -672,9 +764,7 @@
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -683,11 +773,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -700,37 +790,15 @@
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>
