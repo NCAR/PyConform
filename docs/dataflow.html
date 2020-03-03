@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.dataflow &mdash; PyConform 0.2.2 documentation</title>
+  <title>pyconform.dataflow &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -17,43 +17,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="index.html"/>
-        <link rel="up" title="The PyConform Package" href="pyconform.html"/>
-        <link rel="next" title="pyconform.indexing" href="indexing.html"/>
-        <link rel="prev" title="pyconform.flownodes" href="flownodes.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyconform.indexing" href="indexing.html" />
+    <link rel="prev" title="pyconform.flownodes" href="flownodes.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -94,7 +87,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="pyconform.html">The PyConform Package</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="pyconform.html#modules">Modules</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="physarray.html">pyconform.physarray</a></li>
@@ -121,7 +113,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyConform</a>
@@ -129,9 +121,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -191,7 +184,7 @@ LICENSE: See the LICENSE.rst file for details</p>
 <dl class="class">
 <dt id="pyconform.dataflow.DataFlow">
 <em class="property">class </em><code class="descclassname">pyconform.dataflow.</code><code class="descname">DataFlow</code><span class="sig-paren">(</span><em>inpds</em>, <em>outds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/dataflow.html#DataFlow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.dataflow.DataFlow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>An object describing the flow of data from input to output</p>
 <dl class="attribute">
 <dt id="pyconform.dataflow.DataFlow.dimension_map">
@@ -201,7 +194,7 @@ LICENSE: See the LICENSE.rst file for details</p>
 
 <dl class="method">
 <dt id="pyconform.dataflow.DataFlow.execute">
-<code class="descname">execute</code><span class="sig-paren">(</span><em>chunks={}</em>, <em>serial=False</em>, <em>history=False</em>, <em>scomm=None</em>, <em>deflate=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/dataflow.html#DataFlow.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.dataflow.DataFlow.execute" title="Permalink to this definition">¶</a></dt>
+<code class="descname">execute</code><span class="sig-paren">(</span><em>chunks={}</em>, <em>serial=False</em>, <em>history=False</em>, <em>scomm=None</em>, <em>deflate=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/dataflow.html#DataFlow.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.dataflow.DataFlow.execute" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the Data Flow</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -219,6 +212,7 @@ for each variable in the file</li>
 <li><strong>scomm</strong> (<em>SimpleComm</em>) – An externally created SimpleComm object to use for managing
 parallel operation</li>
 <li><strong>deflate</strong> (<em>int</em>) – Override all output file deflate levels with given value</li>
+<li><strong>debug</strong> (<em>bool</em>) – Whether to enable some rudimentary debugging features</li>
 </ul>
 </td>
 </tr>
@@ -231,7 +225,7 @@ parallel operation</li>
 <dl class="exception">
 <dt id="pyconform.dataflow.VariableNotFoundError">
 <em class="property">exception </em><code class="descclassname">pyconform.dataflow.</code><code class="descname">VariableNotFoundError</code><a class="reference internal" href="_modules/pyconform/dataflow.html#VariableNotFoundError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.dataflow.VariableNotFoundError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.ValueError</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
 <p>Indicate if an input variable could not be found during construction</p>
 </dd></dl>
 
@@ -239,9 +233,7 @@ parallel operation</li>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -250,7 +242,7 @@ parallel operation</li>
         <a href="indexing.html" class="btn btn-neutral float-right" title="pyconform.indexing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="flownodes.html" class="btn btn-neutral" title="pyconform.flownodes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="flownodes.html" class="btn btn-neutral float-left" title="pyconform.flownodes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -259,11 +251,11 @@ parallel operation</li>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -276,37 +268,15 @@ parallel operation</li>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

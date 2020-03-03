@@ -1,7 +1,7 @@
 PyConform
 =========
 
-A package for transforming a NetCDF dataset into a defined format 
+A package for transforming a NetCDF dataset into a defined format
 suitable for publication according to a defined publication standard.
 
 :AUTHORS: Sheri Mickelson, Kevin Paul
@@ -15,24 +15,79 @@ Sheri Mickelson (mickelso@ucar.edu).
 Overview
 --------
 
-The PyConform package is a Python-based package for ...
+The PyConform package is a Python-based package for converting model time-series
+data into MIP-conforming (i.e., *standardized*) time-series data.  It was designed
+for CMIP6 *specifically for NCAR's CESM CMIP6 workflow*, but we attempted to
+design the code in a way that is general purpose.  PyConform attempts to divide
+the standardization problem specification step into two separate pieces:
 
+1. a specification of the *standard*, and
+2. a specification of the *conversion process*.
+
+This separate was created to allow the *standard* to be defined by (for example)
+the MIP designers and the *conversion process* to be defined by the model
+developers (i.e., scientists).  For CMIP6, we used the ``dreqpy`` utility to
+define the *standard*, and the scientists then just needed to provide one-line
+*definitions* for how to convert the raw CESM data into the requested
+standardized output.
+
+Currently, the main considerations that need to be made when creating
+*definitions* are the following:
+
+1. physical units will be converted *automatically*, if possible according to
+   the ``cf_units`` package,
+2. the *dimensions* of the resulting data variable produced by the *definition*
+   operation must be *mappable* to requested dimensions specified in the
+   standard, and
+3. special operations/computations that are not supplied with PyConform in
+   the ``functions`` module may need to be written by hand and called explicitly
+   in the output variable *definition*.
+
+.. warning::
+    PyConform should only be used with caution!  As mentioned, it was created
+    specifically for NCAR's contributions to CMIP6.  PyConform is not designed
+    to fix *problems* with your input data, and as such is completely incapable
+    of detecting many problems with your data!  (That is, "garbage in, garbage
+    out!")
+
+    The *core* part of PyConform was designed and implemented
+    before a full understanding of the requirements could be obtained.  Full
+    testing of PyConform could not be done without knowing what all of the
+    input (i.e., model output) data would look like!  And, to make matters
+    more difficult, the *specification* utility that PyConform depends upon
+    (``dreqpy``) took quite a while to stabilize.  As a result, much of
+    PyConform's testing had to be done *on-the-fly*.
+
+.. warning::
+    **Deprecation:**
+    With the completion of CMIP6, this project is essentially deprecated.  Much
+    of the operations and core functionality of this tool can be reproduced in
+    a much more robust way with Xarray_.  The parallelism provided via MPI
+    in PyConform can be handled in a much better way with Dask_, which already
+    works with Xarray_.  It is our belief that this utility should be replaced
+    in the future by a framework built on Xarray_ and Dask_, but due to
+    resource limitations, we cannot build that tool.  We would certainly
+    welcome any others to take on that challenge!
+
+.. _Xarray: http://xarray.pydata.org/
+.. _Dask: http://dask.org
 
 Dependencies
 ------------
 
-The PyConform package directly depends upon ...
-
-The major dependencies are known to be:
+The PyConform package directly depends upon 4 main external packages:
 
 * ASAPTools (>=0.6)
 * netCDF4-python
+* cf-units
+* dreqpy
 
 These dependencies imply the dependencies:
 
 * numpy (>=1.5)
 * netCDF4
 * MPI
+* UDUNITS2
 
 Additionally, the entire package is designed to work with Python v2.7 and up
 to (but not including) Python v3.0.
@@ -85,20 +140,9 @@ to install.  To do this, type (on unix machines)::
 This can be handy since the site-packages directory will be common for all
 user installs, and therefore only needs to be added to the PYTHONPATH once.
 
-To install the documentation, you must have Sphinx installed on your system.
-Sphinx can be easily installed with pip, via::
+The documentation_ for PyConform is hosted on GitHub Pages.
 
-    $  pip install Sphinx
-
-Once Sphinx is installed, you can build the PyReshaper HTML documentation
-with::
-
-    $  cd docs
-    $  make html
-
-The resulting HTML documentation will be placed in the docs/build/html
-directory, and the main page can be loaded with any browser pointing to
-'docs/build/html/index.html'.
+.. _documentation:  https://ncar.github.io/pyconform
 
 
 Before Using the PyConform Package
@@ -123,12 +167,3 @@ installation, this path will be::
 Once the script binary directory has been added to your PATH and the
 site-packages directory has been added to your PYTHONPATH, you may use the
 PyConform package without issue.
-
-
-Instructions & Use
-------------------
-
-Please see the more detailed instructions found in the docs/ directory for
-usage and examples.  See the 'Building & Installing from Source' section
-for how to build the documentation with Sphinx.
-

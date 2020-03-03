@@ -11,7 +11,6 @@ Welcome to the PyConform documentation!
    :caption: Contents:
 
    readme
-   manual
    pyconform
    changelog
    license
