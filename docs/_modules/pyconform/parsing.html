@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.parsing &mdash; PyConform 0.2.2 documentation</title>
+  <title>pyconform.parsing &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -17,41 +17,34 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../genindex.html"/>
-        <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="../../index.html"/>
-        <link rel="up" title="Module code" href="../index.html"/> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -92,7 +85,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pyconform.html">The PyConform Package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">PyConform ChangeLog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license.html">Product License</a></li>
@@ -107,7 +99,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">PyConform</a>
@@ -115,9 +107,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -147,8 +140,6 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
-        
       </li>
     
   </ul>
@@ -161,7 +152,7 @@
             
   <h1>Source code for pyconform.parsing</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Parsing Module</span>
+<span class="sd">Parsing Module - NEW Based on PLY</span>
 
 <span class="sd">This module defines the necessary elements to parse a string variable definition</span>
 <span class="sd">into the recognized elements that are used to construct an Operation Graph.</span>
@@ -170,188 +161,276 @@
 <span class="sd">LICENSE: See the LICENSE.rst file for details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">index_exp</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">nums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">oneOf</span><span class="p">,</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">opAssoc</span><span class="p">,</span> <span class="n">operatorPrecedence</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">Word</span><span class="p">,</span> <span class="n">Combine</span><span class="p">,</span> <span class="n">Forward</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">ParserElement</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">CaselessLiteral</span><span class="p">,</span> <span class="n">QuotedString</span>
+<span class="kn">from</span> <span class="nn">ply</span> <span class="kn">import</span> <span class="n">lex</span><span class="p">,</span> <span class="n">yacc</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 
-<span class="c1"># To improve performance</span>
-<span class="n">ParserElement</span><span class="o">.</span><span class="n">enablePackrat</span><span class="p">()</span>
+<span class="n">tokens</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;UINT&#39;</span><span class="p">,</span> <span class="s1">&#39;UFLOAT&#39;</span><span class="p">,</span> <span class="s1">&#39;STRING&#39;</span><span class="p">,</span> <span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="s1">&#39;POW&#39;</span><span class="p">,</span> <span class="s1">&#39;EQ&#39;</span><span class="p">,</span> <span class="s1">&#39;LEQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GEQ&#39;</span><span class="p">)</span>
+<span class="n">literals</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39;(&#39;</span><span class="p">,</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="s1">&#39;[&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">)</span>
+<span class="n">t_ignore</span> <span class="o">=</span> <span class="s1">&#39; </span><span class="se">\t</span><span class="s1">&#39;</span>
 
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># ParsedFunction</span>
-<span class="c1">#===================================================================================================</span>
-<div class="viewcode-block" id="ParsedFunction"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.ParsedFunction">[docs]</a><span class="k">class</span> <span class="nc">ParsedFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A parsed function string-type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">token</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">token</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">clsname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="n">argstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-        <span class="n">kwdstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">paramstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">argstr</span><span class="p">,</span> <span class="n">kwdstr</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">argstr</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">paramstr</span> <span class="o">=</span> <span class="n">kwdstr</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;&lt;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">(</span><span class="si">{}</span><span class="s2">) (&#39;</span><span class="si">{}</span><span class="s2">&#39;) at </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">clsname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">paramstr</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">argstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{!s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-        <span class="n">kwdstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{!s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">paramstr</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">argstr</span><span class="p">,</span> <span class="n">kwdstr</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">argstr</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">paramstr</span> <span class="o">=</span> <span class="n">kwdstr</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">(</span><span class="si">{!s}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">paramstr</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">((</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">key</span><span class="p">)</span> <span class="ow">and</span>
-                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwds</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">kwds</span><span class="p">))</span></div>
-        
-        
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># ParsedUniOp</span>
-<span class="c1">#===================================================================================================</span>
-<div class="viewcode-block" id="ParsedUniOp"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.ParsedUniOp">[docs]</a><span class="k">class</span> <span class="nc">ParsedUniOp</span><span class="p">(</span><span class="n">ParsedFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A parsed unary-operator string-type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{}{!s}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+<span class="n">t_NAME</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;[a-zA-Z_][a-zA-Z0-9_]*&#39;</span>
+<span class="n">t_POW</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\*\*&#39;</span>
+<span class="n">t_LEQ</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;&lt;=&#39;</span>
+<span class="n">t_GEQ</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;&gt;=&#39;</span>
+<span class="n">t_EQ</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;==&#39;</span>
 
 
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># ParsedBinOp</span>
-<span class="c1">#===================================================================================================</span>
-<div class="viewcode-block" id="ParsedBinOp"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.ParsedBinOp">[docs]</a><span class="k">class</span> <span class="nc">ParsedBinOp</span><span class="p">(</span><span class="n">ParsedFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A parsed binary-operator string-type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;(</span><span class="si">{!s}{}{!s}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
+<div class="viewcode-block" id="t_UFLOAT"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.t_UFLOAT">[docs]</a><span class="k">def</span> <span class="nf">t_UFLOAT</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sa">r</span><span class="s1">&#39;(([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)&#39;</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># ParsedVariable</span>
-<span class="c1">#===================================================================================================</span>
-<div class="viewcode-block" id="ParsedVariable"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.ParsedVariable">[docs]</a><span class="k">class</span> <span class="nc">ParsedVariable</span><span class="p">(</span><span class="n">ParsedFunction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A parsed variable string-type</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ParsedVariable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">index_exp</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">()</span>
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">{}</span><span class="s2"> &#39;</span><span class="si">{}</span><span class="s2">&#39; at </span><span class="si">{}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">hex</span><span class="p">(</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">strargs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">strargs</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">strargs</span><span class="p">)</span></div>
+<div class="viewcode-block" id="t_UINT"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.t_UINT">[docs]</a><span class="k">def</span> <span class="nf">t_UINT</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sa">r</span><span class="s1">&#39;[0-9]+&#39;</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">t</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># Operator Parser Functions</span>
-<span class="c1">#===================================================================================================</span>
+<div class="viewcode-block" id="t_STRING"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.t_STRING">[docs]</a><span class="k">def</span> <span class="nf">t_STRING</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sa">r</span><span class="s1">&#39;&quot;([^&quot;</span><span class="se">\\</span><span class="s1">]*(</span><span class="se">\\</span><span class="s1">.[^&quot;</span><span class="se">\\</span><span class="s1">]*)*)&quot;|</span><span class="se">\&#39;</span><span class="s1">([^</span><span class="se">\&#39;\\</span><span class="s1">]*(</span><span class="se">\\</span><span class="s1">.[^</span><span class="se">\&#39;\\</span><span class="s1">]*)*)</span><span class="se">\&#39;</span><span class="s1">&#39;</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">t</span></div>
 
-<span class="c1"># Negation operator</span>
-<span class="k">def</span> <span class="nf">_negop_</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
-    <span class="n">op</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">op</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">val</span>
+
+<div class="viewcode-block" id="t_error"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.t_error">[docs]</a><span class="k">def</span> <span class="nf">t_error</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Unexpected string: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<span class="n">lex</span><span class="o">.</span><span class="n">lex</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ind_str"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.ind_str">[docs]</a><span class="k">def</span> <span class="nf">ind_str</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+        <span class="n">ind_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">index</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">stop</span><span class="p">,</span> <span class="n">index</span><span class="o">.</span><span class="n">step</span><span class="p">]</span>
+        <span class="n">_str</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ind_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s1">&#39;:&#39;</span> <span class="k">if</span> <span class="n">_str</span> <span class="o">==</span> <span class="s1">&#39;::&#39;</span> <span class="k">else</span> <span class="n">_str</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">ParsedUniOp</span><span class="p">([[</span><span class="n">op</span><span class="p">,</span> <span class="n">val</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span></div>
 
-<span class="c1"># Binary Operators</span>
-<span class="k">def</span> <span class="nf">_binop_</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
-    <span class="n">left</span><span class="p">,</span> <span class="n">op</span><span class="p">,</span> <span class="n">right</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">ParsedBinOp</span><span class="p">([[</span><span class="n">op</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">]])</span>
 
-<span class="c1">#===================================================================================================</span>
-<span class="c1"># MAIN PARSER (DEFINED AT MODULE LEVEL TO MAKE A SINGLETON)</span>
-<span class="c1">#===================================================================================================</span>
+<div class="viewcode-block" id="op_str"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.op_str">[docs]</a><span class="k">def</span> <span class="nf">op_str</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{}{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{}{}{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span></div>
 
-<span class="c1"># INTEGERS: Just any word consisting only of numbers</span>
-<span class="n">_INT_</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
-<span class="n">_INT_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
 
-<span class="c1"># FLOATS: More complicated... can be decimal format or exponential</span>
-<span class="c1">#         format or a combination of the two</span>
-<span class="n">_DEC_FLT_</span> <span class="o">=</span> <span class="p">(</span><span class="n">Combine</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span> <span class="o">|</span>
-             <span class="n">Combine</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="o">|</span>
-             <span class="n">Combine</span><span class="p">(</span><span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)))</span>
-<span class="n">_EXP_FLT_</span> <span class="o">=</span> <span class="p">(</span><span class="n">Combine</span><span class="p">(</span><span class="n">CaselessLiteral</span><span class="p">(</span><span class="s1">&#39;e&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">oneOf</span><span class="p">(</span><span class="s1">&#39;+ -&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)))</span>
-<span class="n">_FLOAT_</span> <span class="o">=</span> <span class="p">(</span><span class="n">Combine</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span> <span class="o">+</span> <span class="n">_EXP_FLT_</span><span class="p">)</span> <span class="o">|</span> <span class="n">Combine</span><span class="p">(</span><span class="n">_DEC_FLT_</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">_EXP_FLT_</span><span class="p">)))</span>
-<span class="n">_FLOAT_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="n">OpType</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;OpType&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="s1">&#39;args&#39;</span><span class="p">])</span>
+<span class="n">OpType</span><span class="o">.</span><span class="fm">__new__</span><span class="o">.</span><span class="vm">__defaults__</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[])</span>
+<span class="n">OpType</span><span class="o">.</span><span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="n">op_str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<span class="c1"># QUOTED STRINGS: Any words between quotations</span>
-<span class="n">_QSTR_</span> <span class="o">=</span> <span class="n">QuotedString</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="n">escChar</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">FuncType</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;FuncType&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="s1">&#39;args&#39;</span><span class="p">,</span> <span class="s1">&#39;kwds&#39;</span><span class="p">])</span>
+<span class="n">FuncType</span><span class="o">.</span><span class="fm">__new__</span><span class="o">.</span><span class="vm">__defaults__</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[],</span> <span class="p">{})</span>
+<span class="n">FuncType</span><span class="o">.</span><span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]</span> <span class="o">+</span>
+                       <span class="p">[</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwds</span><span class="p">]))</span>
 
-<span class="c1"># String _NAME_s ...identifiers for function or variable _NAME_s</span>
-<span class="n">_NAME_</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="n">alphanums</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+<span class="n">VarType</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;VarType&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;key&#39;</span><span class="p">,</span> <span class="s1">&#39;ind&#39;</span><span class="p">])</span>
+<span class="n">VarType</span><span class="o">.</span><span class="fm">__new__</span><span class="o">.</span><span class="vm">__defaults__</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[])</span>
+<span class="n">VarType</span><span class="o">.</span><span class="fm">__str__</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ind_str</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ind</span><span class="p">])))</span>
 
-<span class="c1"># FUNCTIONS: Function arguments can be empty or any combination of</span>
-<span class="c1">#            ints, _FLOAT_, variables, and even other functions.  Hence,</span>
-<span class="c1">#            we need a Forward place-holder to start...</span>
-<span class="n">_EXPR_PARSER_</span> <span class="o">=</span> <span class="n">Forward</span><span class="p">()</span>
 
-<span class="c1"># Named Arguments</span>
-<span class="n">_KWDS_</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span> <span class="n">_NAME_</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">_QSTR_</span> <span class="o">|</span> <span class="n">_EXPR_PARSER_</span><span class="p">)</span> <span class="p">)</span>
-<span class="n">_KWDS_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="p">))</span>
+<span class="n">precedence</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;EQ&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;LEQ&#39;</span><span class="p">,</span> <span class="s1">&#39;GEQ&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;+&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;NEG&#39;</span><span class="p">,</span> <span class="s1">&#39;POS&#39;</span><span class="p">),</span>
+              <span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;POW&#39;</span><span class="p">))</span>
 
-<span class="c1"># Functions</span>
-<span class="n">_FUNC_</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">_NAME_</span> <span class="o">+</span> <span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">delimitedList</span><span class="p">(</span><span class="n">_QSTR_</span> <span class="o">|</span> <span class="n">_KWDS_</span> <span class="o">|</span> <span class="n">_EXPR_PARSER_</span><span class="p">))</span> <span class="o">+</span>
-                         <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)))</span>
-<span class="n">_FUNC_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">ParsedFunction</span><span class="p">)</span>
 
-<span class="c1"># VARIABLE NAMES: Can be just string _NAME_s or _NAME_s with blocks</span>
-<span class="c1">#                 of indices (e.g., [1,2,-4])</span>
-<span class="n">_INDEX_</span> <span class="o">=</span> <span class="n">Combine</span><span class="p">(</span><span class="n">Optional</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">))</span>
-<span class="n">_INDEX_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<div class="viewcode-block" id="p_array_like"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_array_like">[docs]</a><span class="k">def</span> <span class="nf">p_array_like</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    array_like : UFLOAT</span>
+<span class="sd">    array_like : UINT</span>
+<span class="sd">    array_like : function</span>
+<span class="sd">    array_like : variable</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
 
-<span class="n">_IDX_OR_NONE_</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">(</span><span class="n">_INDEX_</span><span class="p">)</span>
-<span class="n">_IDX_OR_NONE_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">])</span>
 
-<span class="c1"># _ISLICE_ = _IDX_OR_NONE_ + Optional(Suppress(&#39;:&#39;) + _IDX_OR_NONE_ + Optional(Suppress(&#39;:&#39;) + _IDX_OR_NONE_))</span>
-<span class="c1"># _ISLICE_.setParseAction(lambda t: slice(*t) if len(t) &gt; 1 else t[0])</span>
-<span class="n">_ISLICE_</span> <span class="o">=</span> <span class="n">delimitedList</span><span class="p">(</span><span class="n">_IDX_OR_NONE_</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
-<span class="n">_ISLICE_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">t</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<div class="viewcode-block" id="p_array_like_group"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_array_like_group">[docs]</a><span class="k">def</span> <span class="nf">p_array_like_group</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    array_like : &#39;(&#39; array_like &#39;)&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
 
-<span class="n">_VARIABLE_</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">_NAME_</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">delimitedList</span><span class="p">(</span><span class="n">_ISLICE_</span> <span class="o">|</span> <span class="n">_INDEX_</span><span class="p">)</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)))</span>
-<span class="n">_VARIABLE_</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">ParsedVariable</span><span class="p">)</span>
 
-<span class="c1"># Expression parser</span>
-<span class="n">_EXPR_PARSER_</span> <span class="o">&lt;&lt;</span> <span class="n">operatorPrecedence</span><span class="p">(</span><span class="n">_FLOAT_</span> <span class="o">|</span> <span class="n">_INT_</span> <span class="o">|</span> <span class="n">_FUNC_</span> <span class="o">|</span> <span class="n">_VARIABLE_</span><span class="p">,</span>
-                                    <span class="p">[(</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;**&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_binop_</span><span class="p">),</span>
-                                     <span class="p">(</span><span class="n">oneOf</span><span class="p">(</span><span class="s1">&#39;+ -&#39;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_negop_</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_binop_</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_binop_</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_binop_</span><span class="p">),</span>
-                                    <span class="p">(</span><span class="n">Literal</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">),</span> <span class="mi">2</span><span class="p">,</span> <span class="n">opAssoc</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">_binop_</span><span class="p">)])</span>
+<div class="viewcode-block" id="p_function_with_arguments_and_keywords"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_function_with_arguments_and_keywords">[docs]</a><span class="k">def</span> <span class="nf">p_function_with_arguments_and_keywords</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    function : NAME &#39;(&#39; argument_list &#39;,&#39; keyword_dict &#39;)&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">FuncType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span></div>
 
-<span class="c1">#===================================================================================================</span>
+
+<div class="viewcode-block" id="p_function_with_arguments_only"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_function_with_arguments_only">[docs]</a><span class="k">def</span> <span class="nf">p_function_with_arguments_only</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    function : NAME &#39;(&#39; argument_list &#39;)&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">FuncType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">{})</span></div>
+
+
+<div class="viewcode-block" id="p_function_with_keywords_only"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_function_with_keywords_only">[docs]</a><span class="k">def</span> <span class="nf">p_function_with_keywords_only</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    function : NAME &#39;(&#39; keyword_dict &#39;)&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">FuncType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="p_argument_list_append"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_argument_list_append">[docs]</a><span class="k">def</span> <span class="nf">p_argument_list_append</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    argument_list : argument_list &#39;,&#39; argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="p_single_item_argument_list"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_single_item_argument_list">[docs]</a><span class="k">def</span> <span class="nf">p_single_item_argument_list</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    argument_list : argument</span>
+<span class="sd">    argument_list : </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="p_argument"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_argument">[docs]</a><span class="k">def</span> <span class="nf">p_argument</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    argument : array_like</span>
+<span class="sd">    argument : STRING</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_keyword_dict_setitem"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_keyword_dict_setitem">[docs]</a><span class="k">def</span> <span class="nf">p_keyword_dict_setitem</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    keyword_dict : keyword_dict &#39;,&#39; NAME &#39;=&#39; argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_single_item_keyword_dict"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_single_item_keyword_dict">[docs]</a><span class="k">def</span> <span class="nf">p_single_item_keyword_dict</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    keyword_dict : NAME &#39;=&#39; argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]}</span></div>
+
+
+<div class="viewcode-block" id="p_variable"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_variable">[docs]</a><span class="k">def</span> <span class="nf">p_variable</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    variable : NAME &#39;[&#39; index_list &#39;]&#39;</span>
+<span class="sd">    variable : NAME</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="p">[]</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">VarType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">indices</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="p_index_list_append"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_index_list_append">[docs]</a><span class="k">def</span> <span class="nf">p_index_list_append</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    index_list : index_list &#39;,&#39; index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="p_single_item_index_list"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_single_item_index_list">[docs]</a><span class="k">def</span> <span class="nf">p_single_item_index_list</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    index_list : index</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span></div>
+
+
+<div class="viewcode-block" id="p_index"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_index">[docs]</a><span class="k">def</span> <span class="nf">p_index</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    index : slice</span>
+<span class="sd">    index : array_like</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_slice"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_slice">[docs]</a><span class="k">def</span> <span class="nf">p_slice</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    slice : slice_argument &#39;:&#39; slice_argument &#39;:&#39; slice_argument</span>
+<span class="sd">    slice : slice_argument &#39;:&#39; slice_argument</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="o">*</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="p_slice_argument"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_slice_argument">[docs]</a><span class="k">def</span> <span class="nf">p_slice_argument</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    slice_argument : array_like</span>
+<span class="sd">    slice_argument : </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="p_expression_unary"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_expression_unary">[docs]</a><span class="k">def</span> <span class="nf">p_expression_unary</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    array_like : &#39;-&#39; array_like %prec NEG</span>
+<span class="sd">    array_like : &#39;+&#39; array_like %prec POS</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">(</span><span class="n">OpType</span><span class="p">,</span> <span class="n">FuncType</span><span class="p">,</span> <span class="n">VarType</span><span class="p">)):</span>
+            <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">OpType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_expression_binary"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_expression_binary">[docs]</a><span class="k">def</span> <span class="nf">p_expression_binary</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    array_like : array_like POW array_like</span>
+<span class="sd">    array_like : array_like &#39;-&#39; array_like</span>
+<span class="sd">    array_like : array_like &#39;+&#39; array_like</span>
+<span class="sd">    array_like : array_like &#39;*&#39; array_like</span>
+<span class="sd">    array_like : array_like &#39;/&#39; array_like</span>
+<span class="sd">    array_like : array_like &#39;&lt;&#39; array_like</span>
+<span class="sd">    array_like : array_like &#39;&gt;&#39; array_like</span>
+<span class="sd">    array_like : array_like LEQ array_like</span>
+<span class="sd">    array_like : array_like GEQ array_like</span>
+<span class="sd">    array_like : array_like EQ array_like</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="n">OpType</span><span class="p">,</span> <span class="n">FuncType</span><span class="p">,</span> <span class="n">VarType</span><span class="p">))</span> <span class="ow">or</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="p">(</span><span class="n">OpType</span><span class="p">,</span> <span class="n">FuncType</span><span class="p">,</span> <span class="n">VarType</span><span class="p">))):</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">OpType</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;**&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">**</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;+&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&lt;=&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&gt;=&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;==&#39;</span><span class="p">:</span>
+        <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">p</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="p_error"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.p_error">[docs]</a><span class="k">def</span> <span class="nf">p_error</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Parsing error at </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">value</span><span class="p">))</span></div>
+
+
+<span class="n">yacc</span><span class="o">.</span><span class="n">yacc</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="c1">#=========================================================================</span>
 <span class="c1"># Function to parse a string definition</span>
-<span class="c1">#===================================================================================================</span>
-
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="parse_definition"><a class="viewcode-back" href="../../parsing.html#pyconform.parsing.parse_definition">[docs]</a><span class="k">def</span> <span class="nf">parse_definition</span><span class="p">(</span><span class="n">strexpr</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">_EXPR_PARSER_</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">strexpr</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="n">yacc</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">strexpr</span><span class="p">)</span>  <span class="c1"># @UndefinedVariable</span></div>
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -360,11 +439,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -377,37 +456,15 @@
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.flownodes &mdash; PyConform 0.2.2 documentation</title>
+  <title>pyconform.flownodes &mdash; PyConform 0.2.8 documentation</title>
   
 
   
@@ -17,41 +17,34 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="../../genindex.html"/>
-        <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="PyConform 0.2.2 documentation" href="../../index.html"/>
-        <link rel="up" title="Module code" href="../index.html"/> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -92,7 +85,6 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">PyConform</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../manual.html">The PyConform User’s Manual</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../pyconform.html">The PyConform Package</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changelog.html">PyConform ChangeLog</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../license.html">Product License</a></li>
@@ -107,7 +99,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">PyConform</a>
@@ -115,9 +107,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -147,8 +140,6 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
-        
       </li>
     
   </ul>
@@ -169,48 +160,55 @@
 <span class="sd">LICENSE: See the LICENSE.rst file for details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pyconform.indexing</span> <span class="k">import</span> <span class="n">index_str</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">align_index</span><span class="p">,</span> <span class="n">index_tuple</span>
-<span class="kn">from</span> <span class="nn">pyconform.physarray</span> <span class="k">import</span> <span class="n">PhysArray</span><span class="p">,</span> <span class="n">CharArray</span>
-<span class="kn">from</span> <span class="nn">pyconform.datasets</span> <span class="k">import</span> <span class="n">VariableDesc</span><span class="p">,</span> <span class="n">FileDesc</span>
-<span class="kn">from</span> <span class="nn">pyconform.functions</span> <span class="k">import</span> <span class="n">Function</span>
-<span class="kn">from</span> <span class="nn">cf_units</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">num2date</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">makedirs</span>
-<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="k">import</span> <span class="n">Dataset</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">pyconform.indexing</span> <span class="kn">import</span> <span class="n">index_str</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">align_index</span><span class="p">,</span> <span class="n">index_tuple</span>
+<span class="kn">from</span> <span class="nn">pyconform.physarray</span> <span class="kn">import</span> <span class="n">PhysArray</span><span class="p">,</span> <span class="n">CharArray</span>
+<span class="kn">from</span> <span class="nn">pyconform.datasets</span> <span class="kn">import</span> <span class="n">VariableDesc</span><span class="p">,</span> <span class="n">FileDesc</span>
+<span class="kn">from</span> <span class="nn">pyconform.functions</span> <span class="kn">import</span> <span class="n">Function</span>
+<span class="kn">from</span> <span class="nn">cf_units</span> <span class="kn">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">num2date</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">makedirs</span><span class="p">,</span> <span class="n">rename</span>
+<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="kn">import</span> <span class="n">warn</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># ValidationWarning</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="ValidationWarning"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.ValidationWarning">[docs]</a><span class="k">class</span> <span class="nc">ValidationWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Warning for validation errors&quot;&quot;&quot;</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># UnitsWarning</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="UnitsWarning"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.UnitsWarning">[docs]</a><span class="k">class</span> <span class="nc">UnitsWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Warning for units errors&quot;&quot;&quot;</span></div>
 
 
-<span class="c1">#=======================================================================================================================</span>
+<span class="c1">#=========================================================================</span>
+<span class="c1"># DateTimeAutoParseWarning</span>
+<span class="c1">#=========================================================================</span>
+<div class="viewcode-block" id="DateTimeAutoParseWarning"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.DateTimeAutoParseWarning">[docs]</a><span class="k">class</span> <span class="nc">DateTimeAutoParseWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Warning for not being able to autoparse new filename based on date-time in the file&quot;&quot;&quot;</span></div>
+
+
+<span class="c1">#=========================================================================</span>
 <span class="c1"># iter_dfs - Depth-First Search Iterator</span>
-<span class="c1">#=======================================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="iter_dfs"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.iter_dfs">[docs]</a><span class="k">def</span> <span class="nf">iter_dfs</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Iterate through graph of FlowNodes from a starting node using a Depth-First Search</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters:</span>
 <span class="sd">        node (FlowNode): the starting node from where to begin iterating</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">FlowNode</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Can only iterate over FlowNodes&#39;</span><span class="p">)</span>
-    
+
     <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">tosearch</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="p">]</span>
     <span class="k">while</span> <span class="n">tosearch</span><span class="p">:</span>
@@ -221,19 +219,19 @@
         <span class="k">yield</span> <span class="n">nd</span></div>
 
 
-<span class="c1">#=======================================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># iter_bfs - Breadth-First Search Iterator</span>
-<span class="c1">#=======================================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="iter_bfs"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.iter_bfs">[docs]</a><span class="k">def</span> <span class="nf">iter_bfs</span><span class="p">(</span><span class="n">node</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Iterate through graph of FlowNodes from a starting node using a Breadth-First Search</span>
-<span class="sd">    </span>
+
 <span class="sd">    Parameters:</span>
 <span class="sd">        node (FlowNode): the starting node from where to begin iterating</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">FlowNode</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Can only iterate over FlowNodes&#39;</span><span class="p">)</span>
-    
+
     <span class="n">visited</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">tosearch</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="p">]</span>
     <span class="k">while</span> <span class="n">tosearch</span><span class="p">:</span>
@@ -244,13 +242,13 @@
         <span class="k">yield</span> <span class="n">nd</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># FlowNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="FlowNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.FlowNode">[docs]</a><span class="k">class</span> <span class="nc">FlowNode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The base class for objects that can appear in a data flow</span>
-<span class="sd">    </span>
+
 <span class="sd">    The FlowNode object represents a point in the directed acyclic graph where multiple</span>
 <span class="sd">    edges meet.  It represents a functional operation on the DataArrays coming into it from</span>
 <span class="sd">    its adjacent DataNodes.  The FlowNode itself outputs the result of this operation</span>
@@ -258,10 +256,10 @@
 <span class="sd">    PhysArray.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="o">*</span><span class="n">inputs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="o">*</span><span class="n">inputs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            label: A label to give the FlowNode</span>
 <span class="sd">            inputs (list): DataNodes that provide input into this FlowNode</span>
@@ -280,20 +278,20 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inputs</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># DataNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="DataNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.DataNode">[docs]</a><span class="k">class</span> <span class="nc">DataNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode class to create data in memory</span>
-<span class="sd">    </span>
+
 <span class="sd">    This is a &quot;source&quot; FlowNode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            data (PhysArray): Data to store in this FlowNode</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -308,27 +306,27 @@
         <span class="c1"># Call base class initializer</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DataNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and retrieve the data associated with this FlowNode operation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># ReadNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="ReadNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.ReadNode">[docs]</a><span class="k">class</span> <span class="nc">ReadNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode class for reading data from a NetCDF file</span>
-<span class="sd">    </span>
+
 <span class="sd">    This is a &quot;source&quot; FlowNode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">)):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            variable (VariableDesc): A variable descriptor object</span>
 <span class="sd">            index (tuple, slice, int, dict): A tuple of slices or ints, or a slice or int,</span>
@@ -342,19 +340,22 @@
 
         <span class="c1"># Check for associated file</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Variable descriptor </span><span class="si">{}</span><span class="s1"> has no associated files&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;Variable descriptor </span><span class="si">{}</span><span class="s1"> has no associated files&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">fdesc</span> <span class="ow">in</span> <span class="n">variable</span><span class="o">.</span><span class="n">files</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">fdesc</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span> <span class="o">=</span> <span class="n">fdesc</span><span class="o">.</span><span class="n">name</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;File path not found for input variable: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span>
+                <span class="s1">&#39;File path not found for input variable: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
 
         <span class="c1"># Check that the variable exists in the file</span>
         <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ncfile</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Variable </span><span class="si">{!r}</span><span class="s1"> not found in NetCDF file: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s1">&#39;Variable </span><span class="si">{!r}</span><span class="s1"> not found in NetCDF file: </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filepath</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">name</span>
 
         <span class="c1"># Check if the index means &quot;all&quot;</span>
@@ -376,7 +377,7 @@
             <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">[</span><span class="si">{}</span><span class="s1">]&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">index_str</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ReadNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read PhysArray from file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -386,15 +387,16 @@
             <span class="n">ncvar</span> <span class="o">=</span> <span class="n">ncfile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_variable</span><span class="p">]</span>
 
             <span class="c1"># Get the attributes into a dictionary, for convenience</span>
-            <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span><span class="n">ncvar</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ncvar</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()}</span>
-            
+            <span class="n">attrs</span> <span class="o">=</span> <span class="p">{</span><span class="n">a</span><span class="p">:</span> <span class="n">ncvar</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ncvar</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()}</span>
+
             <span class="c1"># Read the variable units</span>
             <span class="n">units_attr</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">calendar_attr</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calendar&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">units</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units_attr</span><span class="p">,</span> <span class="n">calendar</span><span class="o">=</span><span class="n">calendar_attr</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Units </span><span class="si">{!r}</span><span class="s1"> unrecognized in UDUNITS.  Assuming unitless.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">units_attr</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Units </span><span class="si">{!r}</span><span class="s1"> unrecognized in UDUNITS.  Assuming unitless.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">units_attr</span><span class="p">)</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">UnitsWarning</span><span class="p">)</span>
                 <span class="n">units</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
@@ -410,42 +412,38 @@
             <span class="n">index1</span> <span class="o">=</span> <span class="n">align_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">,</span> <span class="n">dimensions0</span><span class="p">)</span>
 
             <span class="c1"># Get the dimensions after application of the first index</span>
-            <span class="n">dimensions1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dimensions0</span><span class="p">,</span> <span class="n">index1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">slice</span><span class="p">))</span>
+            <span class="n">dimensions1</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">dimensions0</span><span class="p">,</span> <span class="n">index1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">slice</span><span class="p">))</span>
 
             <span class="c1"># Align the second index on the intermediate dimensions</span>
             <span class="n">index2</span> <span class="o">=</span> <span class="n">align_index</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">dimensions1</span><span class="p">)</span>
 
             <span class="c1"># Get the dimensions after application of the second index</span>
-            <span class="n">dimensions2</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dimensions1</span><span class="p">,</span> <span class="n">index2</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">slice</span><span class="p">))</span>
+            <span class="n">dimensions2</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">dimensions1</span><span class="p">,</span> <span class="n">index2</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">slice</span><span class="p">))</span>
 
             <span class="c1"># Compute the joined index object</span>
             <span class="n">index12</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">shape0</span><span class="p">,</span> <span class="n">index1</span><span class="p">,</span> <span class="n">index2</span><span class="p">)</span>
 
-            <span class="c1"># Retrieve the data from file, unpacking if necessary</span>
-            <span class="k">if</span> <span class="s1">&#39;scale_factor&#39;</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">or</span> <span class="s1">&#39;add_offset&#39;</span> <span class="ow">in</span> <span class="n">attrs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ncvar</span><span class="o">.</span><span class="n">scale</span><span class="p">:</span>
-                <span class="n">scale_factor</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale_factor&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">add_offset</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;add_offset&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">scale_factor</span> <span class="o">*</span> <span class="n">ncvar</span><span class="p">[</span><span class="n">index12</span><span class="p">]</span> <span class="o">+</span> <span class="n">add_offset</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">data</span> <span class="o">=</span> <span class="n">ncvar</span><span class="p">[</span><span class="n">index12</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ncvar</span><span class="p">[</span><span class="n">index12</span><span class="p">]</span>
 
             <span class="c1"># Upconvert, if possible</span>
             <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">ncvar</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ncvar</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">itemsize</span> <span class="o">&lt;</span> <span class="mi">8</span><span class="p">:</span>
                 <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-            
+
             <span class="c1"># Read the positive attribute, if available</span>
             <span class="n">pos</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;positive&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions2</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="n">pos</span><span class="p">)</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># EvalNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="EvalNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.EvalNode">[docs]</a><span class="k">class</span> <span class="nc">EvalNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode class for evaluating a function on input from neighboring DataNodes</span>
-<span class="sd">    </span>
+
 <span class="sd">    The EvalNode is constructed with a function reference and any number of arguments to</span>
 <span class="sd">    that function.  The number of arguments supplied must match the number of arguments accepted</span>
 <span class="sd">    by the function.  The arguments can be any type, and the order of the arguments will be</span>
@@ -456,10 +454,10 @@
 <span class="sd">    This is a &quot;non-source&quot;/&quot;non-sink&quot; FlowNode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            label: A label to give the FlowNode</span>
 <span class="sd">            func (class): A Function class</span>
@@ -468,13 +466,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Initialize the function object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_function</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
-        
+
         <span class="c1"># Include all references as input</span>
         <span class="n">allargs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kwds</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwds</span><span class="p">)</span>
-        
+
         <span class="c1"># Call the base class initialization</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">EvalNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="o">*</span><span class="n">allargs</span><span class="p">)</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sumlike_dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -485,32 +483,32 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">set</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and retrieve the data associated with this FlowNode operation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># MapNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="MapNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.MapNode">[docs]</a><span class="k">class</span> <span class="nc">MapNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode class to map input data from a neighboring FlowNode to new dimension names and units</span>
-<span class="sd">    </span>
+
 <span class="sd">    The MapNode can rename the dimensions of a FlowNode&#39;s output data.  It does not change the</span>
 <span class="sd">    data itself, however.  The input dimension names will be changed according to the dimension</span>
 <span class="sd">    map given.  If an input dimension name is not referenced by the map, then the input dimension</span>
 <span class="sd">    name does not change.</span>
-<span class="sd">    </span>
+
 <span class="sd">    This is a &quot;non-source&quot;/&quot;non-sink&quot; FlowNode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">dnode</span><span class="p">,</span> <span class="n">dmap</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">dnode</span><span class="p">,</span> <span class="n">dmap</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            label: The label given to the FlowNode</span>
 <span class="sd">            dnode (FlowNode): FlowNode that provides input into this FlowNode</span>
@@ -519,7 +517,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Check FlowNode type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dnode</span><span class="p">,</span> <span class="n">FlowNode</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;MapNode can only act on output from another FlowNode&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;MapNode can only act on output from another FlowNode&#39;</span><span class="p">)</span>
 
         <span class="c1"># Check dimension map type</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dmap</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -534,7 +533,7 @@
         <span class="c1"># Call base class initializer</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MapNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">dnode</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and retrieve the data associated with this FlowNode operation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -554,11 +553,13 @@
             <span class="n">inp_index</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">inp_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_o2imap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
+            <span class="n">inp_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_o2imap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span>
+                             <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">out_index</span> <span class="o">=</span> <span class="n">index_tuple</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">inp_dims</span><span class="p">))</span>
-            <span class="n">inp_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_o2imap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out_dims</span><span class="p">,</span> <span class="n">out_index</span><span class="p">))</span>
+            <span class="n">inp_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_o2imap</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">d</span><span class="p">),</span> <span class="n">i</span><span class="p">)</span>
+                             <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out_dims</span><span class="p">,</span> <span class="n">out_index</span><span class="p">))</span>
 
         <span class="c1"># Return the mapped data</span>
         <span class="n">idims_str</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inp_dims</span><span class="p">)</span>
@@ -566,28 +567,29 @@
         <span class="k">if</span> <span class="n">inp_dims</span> <span class="o">==</span> <span class="n">out_dims</span><span class="p">:</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">inp_info</span><span class="o">.</span><span class="n">name</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;map(</span><span class="si">{}</span><span class="s1">, from=[</span><span class="si">{}</span><span class="s1">], to=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp_info</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idims_str</span><span class="p">,</span> <span class="n">odims_str</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;map(</span><span class="si">{}</span><span class="s1">, from=[</span><span class="si">{}</span><span class="s1">], to=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">inp_info</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idims_str</span><span class="p">,</span> <span class="n">odims_str</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">inp_index</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">out_dims</span><span class="p">)</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># ValidateNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="ValidateNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.ValidateNode">[docs]</a><span class="k">class</span> <span class="nc">ValidateNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode class to validate input data from a neighboring FlowNode</span>
-<span class="sd">    </span>
+
 <span class="sd">    The ValidateNode takes additional attributes in its initializer that can effect the </span>
 <span class="sd">    behavior of its __getitem__ method.  The special attributes are:</span>
-<span class="sd">    </span>
+
 <span class="sd">        &#39;valid_min&#39;: The minimum value the data should have, if valid</span>
 <span class="sd">        &#39;valid_max&#39;: The maximum value the data should have, if valid</span>
 <span class="sd">        &#39;min_mean_abs&#39;: The minimum acceptable value of the mean of the absolute value of the data</span>
 <span class="sd">        &#39;max_mean_abs&#39;: The maximum acceptable value of the mean of the absolute value of the data</span>
-<span class="sd">    </span>
+
 <span class="sd">    If these attributes are supplied to the ValidateNode at construction time, then the</span>
 <span class="sd">    associated validation checks will be made on the data when __getitem__ is called.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Additional attributes may be added to the ValidateNode that do not affect functionality.</span>
 <span class="sd">    These attributes may be named however the user wishes and can be retrieved from the FlowNode</span>
 <span class="sd">    as a dictionary with the &#39;attributes&#39; property.</span>
@@ -595,58 +597,69 @@
 <span class="sd">    This is a &quot;non-source&quot;/&quot;non-sink&quot; FlowNode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">dnode</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attributes</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vdesc</span><span class="p">,</span> <span class="n">dnode</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
-<span class="sd">            label: The label associated with this FlowNode</span>
+<span class="sd">            vdesc (VariableDesc): A variable descriptor object for the output variable</span>
 <span class="sd">            dnode (FlowNode): FlowNode that provides input into this FlowNode</span>
-<span class="sd">            dimensions (tuple): The output dimensions to validate against</span>
-<span class="sd">            dtype (dtype): The NumPy dtype of the data to return</span>
-<span class="sd">            attributes (dict): Attributes to associate with the new variable</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Check FlowNode type</span>
+        <span class="c1"># Check Types</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vdesc</span><span class="p">,</span> <span class="n">VariableDesc</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;ValidateNode requires a VariableDesc object as input&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dnode</span><span class="p">,</span> <span class="n">FlowNode</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;ValidateNode can only act on output from another FlowNode&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;ValidateNode can only act on output from another FlowNode&#39;</span><span class="p">)</span>
 
         <span class="c1"># Call base class initializer</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ValidateNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">dnode</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ValidateNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dnode</span><span class="p">)</span>
 
-        <span class="c1"># Save the data type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+        <span class="c1"># Save the variable descriptor object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span> <span class="o">=</span> <span class="n">vdesc</span>
 
-        <span class="c1"># Check for dimensions</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be a list or tuple&#39;</span><span class="p">)</span>
-
-        <span class="c1"># Store the attributes given to the FlowNode</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">attributes</span><span class="o">.</span><span class="n">iteritems</span><span class="p">())</span>
-        
-        <span class="c1"># Initialize the history attribute</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="c1"># Initialize the history attribute, if necessary</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">dnode</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="c1"># Else inherit the units and calendar of the input data stream, if</span>
+        <span class="c1"># necessary</span>
+        <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">info</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">():</span>
+                <span class="n">ustr</span><span class="p">,</span> <span class="n">rstr</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                              <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;since&#39;</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">units</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ustr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">units</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">refdatetime</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">rstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">refdatetime</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> since </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ustr</span><span class="p">,</span> <span class="n">rstr</span><span class="p">)</span>
+
+                <span class="c1"># Calendars must match as convertion between different</span>
+                <span class="c1"># calendars will fail</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">calendar</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">info</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;calendar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">units</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Attributes dictionary of the variable returned by the ValidateNode</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">attributes</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Dimensions tuple of the variable returned by the ValidateNode</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and retrieve the data associated with this FlowNode operation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -655,22 +668,20 @@
         <span class="n">indata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
 
         <span class="c1"># Check datatype, and cast as necessary</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">odtype</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">dtype</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">odtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span>
+            <span class="n">odtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vdesc</span><span class="o">.</span><span class="n">dtype</span>
         <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">can_cast</span><span class="p">(</span><span class="n">indata</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">odtype</span><span class="p">,</span> <span class="n">casting</span><span class="o">=</span><span class="s1">&#39;same_kind&#39;</span><span class="p">):</span>
             <span class="n">indata</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">odtype</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cannot cast datatype </span><span class="si">{!s}</span><span class="s1"> to </span><span class="si">{!s}</span><span class="s1"> in ValidateNode &#39;</span>
-                            <span class="s1">&#39;</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indata</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">odtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">((</span><span class="s1">&#39;Cannot cast datatype </span><span class="si">{!s}</span><span class="s1"> to </span><span class="si">{!s}</span><span class="s1"> in ValidateNode &#39;</span>
+                             <span class="s1">&#39;</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">indata</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">odtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
 
-        <span class="c1"># Check that units match as expected</span>
+        <span class="c1"># Check that units match as expected, otherwise convert</span>
         <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">indata</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">():</span>
-                <span class="k">if</span> <span class="s1">&#39;calendar&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;calendar&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span>
-            <span class="n">ounits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">],</span> <span class="n">calendar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calendar&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="n">ounits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">],</span> <span class="n">calendar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calendar&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">ounits</span> <span class="o">!=</span> <span class="n">indata</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">indata</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">ounits</span>
@@ -678,13 +689,14 @@
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">indata</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">ounits</span><span class="p">)</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
-                        <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;When validating output variable </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+                        <span class="n">err_msg</span> <span class="o">=</span> <span class="s1">&#39;When validating output variable </span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
                         <span class="k">raise</span> <span class="n">err</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">err_msg</span><span class="p">)</span>
 
         <span class="c1"># Check that the dimensions match as expected</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">!=</span> <span class="n">indata</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">!=</span> <span class="n">indata</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
             <span class="n">indata</span> <span class="o">=</span> <span class="n">indata</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
-        
+
         <span class="c1"># Check the positive attribute, if specified</span>
         <span class="n">positive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;positive&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">positive</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">indata</span><span class="o">.</span><span class="n">positive</span> <span class="o">!=</span> <span class="n">positive</span><span class="p">:</span>
@@ -704,7 +716,8 @@
         <span class="k">if</span> <span class="n">valid_min</span><span class="p">:</span>
             <span class="n">dmin</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">dmin</span> <span class="o">&lt;</span> <span class="n">valid_min</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;valid_min: </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dmin</span><span class="p">,</span> <span class="n">valid_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;valid_min: </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">dmin</span><span class="p">,</span> <span class="n">valid_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">ValidationWarning</span><span class="p">)</span>
                 <span class="n">indata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">indata</span> <span class="o">&lt;=</span> <span class="n">valid_min</span><span class="p">,</span> <span class="n">indata</span><span class="p">)</span>
 
@@ -712,7 +725,8 @@
         <span class="k">if</span> <span class="n">valid_max</span><span class="p">:</span>
             <span class="n">dmax</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">dmax</span> <span class="o">&gt;</span> <span class="n">valid_max</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;valid_max: </span><span class="si">{}</span><span class="s1"> &gt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dmax</span><span class="p">,</span> <span class="n">valid_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;valid_max: </span><span class="si">{}</span><span class="s1"> &gt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">dmax</span><span class="p">,</span> <span class="n">valid_max</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">ValidationWarning</span><span class="p">)</span>
                 <span class="n">indata</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_where</span><span class="p">(</span><span class="n">indata</span> <span class="o">&gt;=</span> <span class="n">valid_max</span><span class="p">,</span> <span class="n">indata</span><span class="p">)</span>
 
@@ -723,38 +737,40 @@
         <span class="c1"># Validate minimum mean abs</span>
         <span class="k">if</span> <span class="n">ok_min_mean_abs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mean_abs</span> <span class="o">&lt;</span> <span class="n">ok_min_mean_abs</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ok_min_mean_abs: </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean_abs</span><span class="p">,</span> <span class="n">ok_min_mean_abs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ok_min_mean_abs: </span><span class="si">{}</span><span class="s1"> &lt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">mean_abs</span><span class="p">,</span> <span class="n">ok_min_mean_abs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">ValidationWarning</span><span class="p">)</span>
 
         <span class="c1"># Validate maximum mean abs</span>
         <span class="k">if</span> <span class="n">ok_max_mean_abs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">mean_abs</span> <span class="o">&gt;</span> <span class="n">ok_max_mean_abs</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ok_max_mean_abs: </span><span class="si">{}</span><span class="s1"> &gt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mean_abs</span><span class="p">,</span> <span class="n">ok_max_mean_abs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ok_max_mean_abs: </span><span class="si">{}</span><span class="s1"> &gt; </span><span class="si">{}</span><span class="s1"> (</span><span class="si">{!r}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">mean_abs</span><span class="p">,</span> <span class="n">ok_max_mean_abs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
                 <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">ValidationWarning</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">indata</span></div>
 
 
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <span class="c1"># WriteNode</span>
-<span class="c1">#===================================================================================================</span>
+<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="WriteNode"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.WriteNode">[docs]</a><span class="k">class</span> <span class="nc">WriteNode</span><span class="p">(</span><span class="n">FlowNode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    FlowNode that writes validated data to a file.</span>
-<span class="sd">    </span>
+
 <span class="sd">    This is a &quot;sink&quot; node, meaning that the __getitem__ (i.e., [index]) interface does not return</span>
 <span class="sd">    anything.  Rather, the data &quot;retrieved&quot; through the __getitem__ interface is sent directly to</span>
 <span class="sd">    file.</span>
-<span class="sd">    </span>
+
 <span class="sd">    For this reason, it is possible to &quot;retrieve&quot; data multiple times, resulting in writing and</span>
 <span class="sd">    overwriting of data.  To eliminate this inefficiency, it is advised that you use the &#39;execute&#39;</span>
 <span class="sd">    method to write data efficiently once (and only once).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filedesc</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">()):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filedesc</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            filedesc (FileDesc): File descriptor for the file to write</span>
 <span class="sd">            inputs (tuple): A tuple of ValidateNodes providing input into the file</span>
@@ -774,6 +790,11 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">((</span><span class="s1">&#39;WriteNode </span><span class="si">{!r}</span><span class="s1"> cannot accept input from type </span><span class="si">{}</span><span class="s1">, must be a &#39;</span>
                                  <span class="s1">&#39;ValidateNode&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filedesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">inp</span><span class="p">)))</span>
 
+        <span class="c1"># Extract hidden variables (names starting with &#39;_&#39;) from list of input nodes</span>
+        <span class="n">hidden_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;_&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hidden_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span> <span class="ow">in</span> <span class="n">hidden_labels</span><span class="p">]</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span> <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span> <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">hidden_labels</span><span class="p">]</span>
+
         <span class="c1"># Call base class (label is filename)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">WriteNode</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filedesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">inputs</span><span class="p">)</span>
 
@@ -784,48 +805,62 @@
         <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;WriteNode </span><span class="si">{!r}</span><span class="s1"> takes input from variable </span><span class="si">{!r}</span><span class="s1"> that is not &#39;</span>
-                                  <span class="s1">&#39;contained in the descibed file&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filedesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+                                  <span class="s1">&#39;contained in the described file&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">filedesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">inp</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
 
         <span class="c1"># Construct the proper filename</span>
         <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autoparse_filename_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_label</span> <span class="o">=</span> <span class="n">fname</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">fname</span>
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tmp_ext</span> <span class="o">=</span> <span class="s1">&#39;.tmp.nc&#39;</span>
+
         <span class="c1"># Set the filehandle</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># Initialize set of inverted dimensions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        
+
         <span class="c1"># Initialize set of unwritten attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unwritten_attributes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">,</span> <span class="s1">&#39;direction&#39;</span><span class="p">,</span> <span class="s1">&#39;history&#39;</span><span class="p">}</span>
-    
+
     <span class="k">def</span> <span class="nf">_autoparse_filename_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Determine if autoparsing the filename needs to be done</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            fname (str): The original name of the file</span>
-<span class="sd">            </span>
+
 <span class="sd">        Returns:</span>
 <span class="sd">            str: The new name for the file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
-        <span class="k">if</span> <span class="s1">&#39;{&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
-            
-            <span class="n">possible_tvars</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
-                <span class="n">vobj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">vobj</span><span class="o">.</span><span class="n">cfunits</span><span class="p">()</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vobj</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_tvars</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not find time variable in file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
-            <span class="n">tvar</span> <span class="o">=</span> <span class="s1">&#39;time&#39;</span> <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">possible_tvars</span> <span class="k">else</span> <span class="n">possible_tvars</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-            <span class="n">tnodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">vnode</span> <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="k">if</span> <span class="n">vnode</span><span class="o">.</span><span class="n">label</span> <span class="o">==</span> <span class="n">tvar</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tnodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Time variable input missing in file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
-            <span class="n">tnode</span> <span class="o">=</span> <span class="n">tnodes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;{&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+
+            <span class="n">possible_tvars</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">possible_inputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">autoparse_time_variable</span><span class="p">:</span>
+                <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">autoparse_time_variable</span><span class="p">)</span>
+                <span class="n">possible_inputs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hidden_inputs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+                    <span class="n">vdesc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">var</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;time1&#39;</span><span class="p">,</span> <span class="s1">&#39;time2&#39;</span><span class="p">,</span> <span class="s1">&#39;time3&#39;</span><span class="p">):</span>
+                        <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">cfunits</span><span class="p">()</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="s1">&#39;standard_name&#39;</span> <span class="ow">in</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">attributes</span> <span class="ow">and</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;standard_name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;time&#39;</span><span class="p">:</span>
+                        <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="s1">&#39;axis&#39;</span> <span class="ow">in</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">attributes</span> <span class="ow">and</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span>
+                        <span class="n">possible_tvars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_tvars</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Could not identify a time variable to autoparse filename </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+                <span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">DateTimeAutoParseWarning</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">fname</span>
+            <span class="n">possible_tnodes</span> <span class="o">=</span> <span class="p">{</span><span class="n">vnode</span><span class="o">.</span><span class="n">label</span><span class="p">:</span><span class="n">vnode</span> <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="n">possible_inputs</span>
+                               <span class="k">if</span> <span class="n">vnode</span><span class="o">.</span><span class="n">label</span> <span class="ow">in</span> <span class="n">possible_tvars</span><span class="p">}</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_tnodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Time variable input missing for file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+            <span class="n">tnode</span> <span class="o">=</span> <span class="n">possible_tnodes</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;time&#39;</span> <span class="ow">in</span> <span class="n">possible_tnodes</span> <span class="k">else</span> <span class="n">possible_tnodes</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
             <span class="n">t1</span> <span class="o">=</span> <span class="n">tnode</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">t2</span> <span class="o">=</span> <span class="n">tnode</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
 
@@ -833,18 +868,21 @@
                 <span class="n">beg</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;{&#39;</span><span class="p">)</span>
                 <span class="n">end</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;}&#39;</span><span class="p">,</span> <span class="n">beg</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">end</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Filename </span><span class="si">{!r}</span><span class="s1"> has unbalanced special characters&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s1">&#39;Filename </span><span class="si">{!r}</span><span class="s1"> has unbalanced special characters&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
                 <span class="n">prefix</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[:</span><span class="n">beg</span><span class="p">]</span>
-                <span class="n">fmtstr1</span><span class="p">,</span> <span class="n">fmtstr2</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="n">beg</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
-                <span class="n">suffix</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="n">end</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+                <span class="n">fmtstr1</span><span class="p">,</span> <span class="n">fmtstr2</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="n">beg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">)</span>
+                <span class="n">suffix</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
 
-                <span class="n">datestr1</span> <span class="o">=</span> <span class="n">num2date</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">units</span><span class="p">),</span> <span class="n">t1</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">fmtstr1</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
-                <span class="n">datestr2</span> <span class="o">=</span> <span class="n">num2date</span><span class="p">(</span><span class="n">t2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">t2</span><span class="o">.</span><span class="n">units</span><span class="p">),</span> <span class="n">t2</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">fmtstr2</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
-                
+                <span class="n">datestr1</span> <span class="o">=</span> <span class="n">num2date</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">units</span><span class="p">),</span> <span class="n">t1</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                    <span class="n">fmtstr1</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
+                <span class="n">datestr2</span> <span class="o">=</span> <span class="n">num2date</span><span class="p">(</span><span class="n">t2</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">t2</span><span class="o">.</span><span class="n">units</span><span class="p">),</span> <span class="n">t2</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                    <span class="n">fmtstr2</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;0&#39;</span><span class="p">)</span>
+
                 <span class="n">fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">-</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">datestr1</span><span class="p">,</span> <span class="n">datestr2</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
-            
-        <span class="k">return</span> <span class="n">fname</span>  
-              
+
+        <span class="k">return</span> <span class="n">fname</span>
+
 <div class="viewcode-block" id="WriteNode.enable_history"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.WriteNode.enable_history">[docs]</a>    <span class="k">def</span> <span class="nf">enable_history</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Enable writing of the history attribute to the file</span>
@@ -863,24 +901,31 @@
 <span class="sd">        Open the file for writing, if not open already</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            
+
             <span class="c1"># Make the necessary subdirectories to open the file</span>
             <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span>
+            <span class="n">tmp_fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tmp_ext</span><span class="p">)</span>
             <span class="n">fdir</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">fmt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">format</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fdir</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">fdir</span><span class="p">):</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">makedirs</span><span class="p">(</span><span class="n">fdir</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Failed to create directory for output file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
-                
+                    <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">fdir</span><span class="p">):</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Already created directory for output file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+                            <span class="s1">&#39;Failed to create directory for output file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
+
             <span class="c1"># Try to open the output file for writing</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">tmp_fname</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">fmt</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Failed to open output file </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
 
             <span class="c1"># Write the global attributes</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;creation_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%SZ&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;creation_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">T%H:%M:%SZ&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">setncatts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span>
 
             <span class="c1"># Scan over variables for coordinates and dimension information</span>
@@ -898,7 +943,7 @@
 
                 <span class="c1"># Determine coordinates and dimensions to invert</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;axis&#39;</span> <span class="ow">in</span> <span class="n">vnode</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="s1">&#39;direction&#39;</span> <span class="ow">in</span> <span class="n">vnode</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>                    
+                    <span class="k">if</span> <span class="s1">&#39;direction&#39;</span> <span class="ow">in</span> <span class="n">vnode</span><span class="o">.</span><span class="n">attributes</span><span class="p">:</span>
                         <span class="n">vdir_out</span> <span class="o">=</span> <span class="n">vnode</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;direction&#39;</span><span class="p">]</span>
                         <span class="k">if</span> <span class="n">vdir_out</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;increasing&#39;</span><span class="p">,</span> <span class="s1">&#39;decreasing&#39;</span><span class="p">]:</span>
                             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;Unrecognized direction in output coordinate variable &#39;</span>
@@ -909,7 +954,7 @@
                                               <span class="s1">&#39;direction&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vname</span><span class="p">))</span>
                         <span class="k">if</span> <span class="n">vdir_inp</span> <span class="o">!=</span> <span class="n">vdir_out</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_idims</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
-            
+
             <span class="c1"># Create the required dimensions in the file</span>
             <span class="k">for</span> <span class="n">dname</span> <span class="ow">in</span> <span class="n">req_dims</span><span class="p">:</span>
                 <span class="n">ddesc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dname</span><span class="p">]</span>
@@ -935,20 +980,25 @@
                     <span class="n">clev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">deflate</span> <span class="k">if</span> <span class="n">zlib</span> <span class="k">else</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">deflate</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
-                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Override deflate value must be an integer&#39;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                            <span class="s1">&#39;Override deflate value must be an integer&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">deflate</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">deflate</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Override deflate value range from 0 to 9&#39;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                            <span class="s1">&#39;Override deflate value range from 0 to 9&#39;</span><span class="p">)</span>
                     <span class="n">zlib</span> <span class="o">=</span> <span class="n">deflate</span> <span class="o">&gt;</span> <span class="mi">0</span>
                     <span class="n">clev</span> <span class="o">=</span> <span class="n">deflate</span> <span class="k">if</span> <span class="n">zlib</span> <span class="k">else</span> <span class="mi">1</span>
-                <span class="n">ncvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">vdtype</span><span class="p">,</span> <span class="n">vdims</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fillval</span><span class="p">,</span> <span class="n">zlib</span><span class="o">=</span><span class="n">zlib</span><span class="p">,</span> <span class="n">complevel</span><span class="o">=</span><span class="n">clev</span><span class="p">)</span>
+                <span class="n">ncvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">vdtype</span><span class="p">,</span> <span class="n">vdims</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="n">fillval</span><span class="p">,</span>
+                                                  <span class="n">zlib</span><span class="o">=</span><span class="n">zlib</span><span class="p">,</span> <span class="n">complevel</span><span class="o">=</span><span class="n">clev</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">aname</span> <span class="ow">in</span> <span class="n">vattrs</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">aname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unwritten_attributes</span><span class="p">:</span>
                         <span class="n">avalue</span> <span class="o">=</span> <span class="n">vattrs</span><span class="p">[</span><span class="n">aname</span><span class="p">]</span>
                         <span class="k">if</span> <span class="n">aname</span> <span class="o">==</span> <span class="s1">&#39;history&#39;</span><span class="p">:</span>
-                            <span class="n">idimstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idims</span><span class="p">)</span>
+                            <span class="n">idimstr</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                <span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idims</span><span class="p">)</span>
                             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">idimstr</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                                <span class="n">avalue</span> <span class="o">=</span> <span class="s1">&#39;invdims(</span><span class="si">{}</span><span class="s1">, dims=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avalue</span><span class="p">,</span> <span class="n">idimstr</span><span class="p">)</span>                            
+                                <span class="n">avalue</span> <span class="o">=</span> <span class="s1">&#39;invdims(</span><span class="si">{}</span><span class="s1">, dims=[</span><span class="si">{}</span><span class="s1">])&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                    <span class="n">avalue</span><span class="p">,</span> <span class="n">idimstr</span><span class="p">)</span>
                         <span class="n">ncvar</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="n">aname</span><span class="p">,</span> <span class="n">avalue</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_close_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -959,19 +1009,24 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_idims</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">tmp_fname</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tmp_ext</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">tmp_fname</span><span class="p">):</span>
+                <span class="n">rename</span><span class="p">(</span><span class="n">tmp_fname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_chunk_iter_</span><span class="p">(</span><span class="n">dsizes</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">{}):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dsizes</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be an ordered dictionary of names and sizes&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Dimensions must be an ordered dictionary of names and sizes&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunks</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimension chunks must be a dictionary&#39;</span><span class="p">)</span>
 
-        <span class="n">chunks_</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span><span class="n">chunks</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">chunks</span> <span class="k">else</span> <span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
-        <span class="n">nchunks</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">//</span><span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">%</span><span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
+        <span class="n">chunks_</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="n">chunks</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">chunks</span> <span class="k">else</span> <span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
+        <span class="n">nchunks</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">//</span> <span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="o">+</span>
+                   <span class="nb">int</span><span class="p">(</span><span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">%</span> <span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
         <span class="n">ntotal</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">nchunks</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nchunks</span><span class="p">]))</span>
-        
-        <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span><span class="mi">0</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">ntotal</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">nchunks</span><span class="p">:</span>
                 <span class="n">n</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">nchunks</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
@@ -979,29 +1034,32 @@
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">:</span>
                 <span class="n">lb</span> <span class="o">=</span> <span class="n">idx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">*</span> <span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
                 <span class="n">ub</span> <span class="o">=</span> <span class="p">(</span><span class="n">idx</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">chunks_</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
-                <span class="n">chunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="k">if</span> <span class="n">ub</span> <span class="o">&lt;</span> <span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>    
+                <span class="n">chunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="k">if</span> <span class="n">ub</span> <span class="o">&lt;</span> <span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">yield</span> <span class="n">chunk</span>
-    
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_invert_dims_</span><span class="p">(</span><span class="n">dsizes</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">idims</span><span class="o">=</span><span class="nb">set</span><span class="p">()):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dsizes</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions must be an ordered dictionary of names and sizes&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Dimensions must be an ordered dictionary of names and sizes&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">OrderedDict</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Chunk must be an ordered dictionary of names and slices&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Chunk must be an ordered dictionary of names and slices&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">idims</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Dimensions to invert must be a set&#39;</span><span class="p">)</span>
-        
+
         <span class="n">ichunk</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dsizes</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">dsizes</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
             <span class="n">c</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">idims</span><span class="p">:</span>
                 <span class="n">ub</span> <span class="o">=</span> <span class="n">s</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">stop</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">c</span><span class="o">.</span><span class="n">stop</span>
-                <span class="n">ichunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">s</span> <span class="o">-</span> <span class="n">ub</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">ub</span> <span class="o">&lt;</span> <span class="n">s</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">ichunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">c</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">s</span> <span class="o">-</span> <span class="n">ub</span> <span class="o">-</span>
+                                  <span class="mi">1</span> <span class="k">if</span> <span class="n">ub</span> <span class="o">&lt;</span> <span class="n">s</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">ichunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span>
         <span class="k">return</span> <span class="n">ichunk</span>
-           
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_direction_</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
         <span class="n">diff</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -1015,10 +1073,10 @@
 <div class="viewcode-block" id="WriteNode.execute"><a class="viewcode-back" href="../../flownodes.html#pyconform.flownodes.WriteNode.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="p">{},</span> <span class="n">deflate</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Execute the writing of the WriteNode file at once</span>
-<span class="sd">        </span>
+
 <span class="sd">        This method efficiently writes all of the data for each file only once, chunking</span>
 <span class="sd">        the data according to the &#39;chunks&#39; parameter, as needed.</span>
-<span class="sd">        </span>
+
 <span class="sd">        Parameters:</span>
 <span class="sd">            chunks (dict): A dictionary of output dimension names and chunk sizes for each</span>
 <span class="sd">                dimension given.  Output dimensions not included in the dictionary will not be</span>
@@ -1032,8 +1090,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_open_</span><span class="p">(</span><span class="n">deflate</span><span class="o">=</span><span class="n">deflate</span><span class="p">)</span>
 
         <span class="c1"># Create data structure to keep track of which variable chunks we have written</span>
-        <span class="n">vchunks</span> <span class="o">=</span> <span class="p">{</span><span class="n">vnode</span><span class="o">.</span><span class="n">label</span><span class="p">:</span><span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">}</span>
-        
+        <span class="n">vchunks</span> <span class="o">=</span> <span class="p">{</span><span class="n">vnode</span><span class="o">.</span><span class="n">label</span><span class="p">:</span> <span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">}</span>
+
         <span class="c1"># Compute the Global Dimension Sizes dictionary from the input variable nodes</span>
         <span class="n">inputdims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
@@ -1041,23 +1099,24 @@
                 <span class="k">if</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">inputdims</span><span class="p">:</span>
                     <span class="n">inputdims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
         <span class="n">gdims</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">d</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">inputdims</span><span class="p">)</span>
-        
+
         <span class="c1"># Iterate over the global dimension space</span>
         <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">WriteNode</span><span class="o">.</span><span class="n">_chunk_iter_</span><span class="p">(</span><span class="n">gdims</span><span class="p">,</span> <span class="n">chunks</span><span class="o">=</span><span class="n">chunks</span><span class="p">):</span>
-            
+
             <span class="c1"># Invert the necessary dimensions to get the read-chunk</span>
             <span class="n">rchunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invert_dims_</span><span class="p">(</span><span class="n">gdims</span><span class="p">,</span> <span class="n">chunk</span><span class="p">,</span> <span class="n">idims</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_idims</span><span class="p">)</span>
-            
+
             <span class="c1"># Loop over all variables and write the data, if necessary</span>
             <span class="k">for</span> <span class="n">vnode</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
                 <span class="n">vname</span> <span class="o">=</span> <span class="n">vnode</span><span class="o">.</span><span class="n">label</span>
                 <span class="n">vdesc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filedesc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span>
                 <span class="n">ncvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span>
-                
+
                 <span class="c1"># Compute the write-chunk for the given variable</span>
                 <span class="n">wchunk</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
-                
-                <span class="c1"># Write the data to the variable, if it hasn&#39;t already been written</span>
+
+                <span class="c1"># Write the data to the variable, if it hasn&#39;t already been</span>
+                <span class="c1"># written</span>
                 <span class="k">if</span> <span class="nb">repr</span><span class="p">(</span><span class="n">wchunk</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vchunks</span><span class="p">[</span><span class="n">vname</span><span class="p">]:</span>
                     <span class="n">vdata</span> <span class="o">=</span> <span class="n">vnode</span><span class="p">[</span><span class="n">rchunk</span><span class="p">]</span>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vdata</span><span class="p">,</span> <span class="n">CharArray</span><span class="p">):</span>
@@ -1070,9 +1129,7 @@
 </pre></div>
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -1081,11 +1138,11 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017-2018, University Corporation for Atmospheric Research.
+        &copy; Copyright 2017, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1098,37 +1155,15 @@
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'0.2.2',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>
