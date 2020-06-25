@@ -141,13 +141,13 @@ def fill_missing_glob_attributes(attr, table, v, grids):
     for a,d in attr.iteritems():
       if d is not None:
         if "__FILL__" in d:
-            if "activity_id" in a:
+            if "activity_id" in a and "activity_id" in table:
                 attr["activity_id"] = table["activity_id"] 
             elif "creation_date" in a:
                 attr["creation_date"]=""
-            elif "data_specs_version" in a:
+            elif "data_specs_version" in a and "data_specs_version" in table:
                 attr["data_specs_version"] = table["data_specs_version"]
-            elif "experiment" in a:
+            elif "experiment" in a and "experiment" in table:
                 attr["experiment"] = table["experiment"]
             elif "external_variables" in a:
                 if "cell_measures" in v.keys():
@@ -252,23 +252,28 @@ def fill_missing_glob_attributes(attr, table, v, grids):
         attr["forcing_index"] = int(pre)
 
     if "further_info_url" in attr.keys():
+        url_ok = True
         if "__FILL__" in attr["further_info_url"]:       
             if 'mip_era' in attr.keys():
                 mip_era = attr['mip_era']
             else:
                 mip_era = ''
+                url_ok = False
             if 'institution_id' in attr.keys():
                 institution_id = attr['institution_id']
             else:
                 institution_id = ''
+                url_ok = False
             if 'source_id' in attr.keys():
                 source_id = attr['source_id']
             else:
                 source_id = ''
+                url_ok = False
             if 'experiment_id' in attr.keys():
                 experiment_id = attr['experiment_id']
             else:
                 experiment_id = ''
+                url_ok = False
             if 'sub_experiment_id' in attr.keys():
                 sub_experiment_id = attr['sub_experiment_id']
             else:
@@ -277,8 +282,10 @@ def fill_missing_glob_attributes(attr, table, v, grids):
                 ripf = attr["variant_label"]
             else:
                 ripf = ''
-            info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment_id, sub_experiment_id, ripf)
-            attr['further_info_url'] = "https://furtherinfo.es-doc.org/" + info_url
+                url_ok = False
+            if url_ok:
+                info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment_id, sub_experiment_id, ripf)
+                attr['further_info_url'] = "https://furtherinfo.es-doc.org/" + info_url
     if "grid" in attr.keys():
         if len(attr["realm"])>0:
             attr["grid"] = grids[attr["realm"].split()[0]]
@@ -319,7 +326,8 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
                                                      str(attributes['forcing_index'])))
     else:
         ripf = ''
-
+    if len(ripf) < 1:
+        ripf = "None"
     if 'mip_era' in attributes.keys():
         mip_era = attributes['mip_era']
     else:
@@ -328,6 +336,8 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         activity_id = attributes['activity_id']
     else:
         activity_id = ''
+    if '__FILL__' in activity_id:
+        activity_id = 'None' 
     if 'institution_id' in attributes.keys():
         institution_id = attributes['institution_id']
     else:
@@ -344,6 +354,8 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         sub_experiment_id = attributes['sub_experiment_id']
     else:
         sub_experiment_id = ''
+    if '--ALL--' in experiment:
+        experiment = 'None'
 
     f_format = attributes["netcdf_type"]
     valid_formats = ['NETCDF4','NETCDF4_CLASSIC','NETCDF3_CLASSIC','NETCDF3_64BIT_OFFSET','NETCDF3_64BIT_DATA']
@@ -381,6 +393,12 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
                vid, grid, version, 
                vid, mipTable, source_id, experiment, ripf, grid, dst))
     var = {}
+
+    # Remove any __FILL__ values in attributes
+    for a in attributes.keys():
+        if isinstance(attributes[a],str):
+            if '__FILL__' in attributes[a]:
+                attributes[a] = '' 
 
     # put together the dictionary entry for this variable    
     var["attributes"] = v2
@@ -705,8 +723,8 @@ def main(argv=None):
         tables = ['--ALL--']
    
     dq = dreq.loadDreq()
-    if '--ALL--' in exps:
-        exps = dq.inx.experiment.label.keys()
+#S    if '--ALL--' in exps:
+#S        exps = dq.inx.experiment.label.keys()
 
     # Go through a user supplied list if specified
     variables = []
