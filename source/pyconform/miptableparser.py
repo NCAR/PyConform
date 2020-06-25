@@ -371,16 +371,23 @@ class ParseXML(object):
         # Get a list of mips for the experiment
 #        print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
         e_mip = []
-        e_id = dq.inx.experiment.label[exp]
+        if '--ALL--' in exp:
+            e_id = dq.inx.experiment.label['historical']
+        else:
+            e_id = dq.inx.experiment.label[exp]
         if len(e_id)==0:
-            print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m' 
+#            print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m' 
+#            print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
+#            return {} 
+            print '\033[91m','This experiment name is not registered within the data request.','\033[0m'
+            print '\033[91m','Using a generic exp name instead.  If you think this name should be registered, verify the name is correct from the list below.','\033[0m'
             print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
-            return {} 
+            e_id = dq.inx.experiment.label['historical']
         activity_id = dq.inx.uid[e_id[0]].mip
 
         e_vars =[]
+        activity_id = dq.inx.uid[e_id[0]].mip
         e_vars.append(dq.inx.iref_by_sect[e_id[0]].a)
-        #if len(e_vars['requestItem']) == 0:
         e_vars.append(dq.inx.iref_by_sect[dq.inx.uid[e_id[0]].egid].a)
         e_vars.append(dq.inx.iref_by_sect[activity_id].a)
         total_request = {}
@@ -389,18 +396,20 @@ class ParseXML(object):
 
             table_info = {}
             dr = dq.inx.uid[ri]
-            if dr.mip in mips or '--ALL--' in mips:
+
+            if dr.mip in mips or '--ALL--' in mips or '--ALL--' in exp:
 
                 table_dict = {}
                 variables = {}
                 axes = {}
                 table_info = {}
                 data = {}
-
-                table_info['experiment'] = dq.inx.uid[e_id[0]].title
-                table_info['experiment_id'] = exp
+                
                 table_info['data_specs_version'] = dreq.version
-                table_info['activity_id'] = activity_id
+                if '--ALL--' not in exp:
+                    table_info['experiment'] = dq.inx.uid[e_id[0]].title
+                    table_info['experiment_id'] = exp
+                    table_info['activity_id'] = activity_id
 
 
                 rl = dq.inx.requestLink.uid[dr.rlid]
@@ -409,7 +418,7 @@ class ParseXML(object):
                 axes_list = []
                 var_list = []
                 if len(v_list) == 0:
-                    var_list = vars['requestVar'] 
+                    var_list = vars['requestVar']
                 else:
                     # Make a list of all cmip vars and their id's
                     all_vars = {}
@@ -633,6 +642,5 @@ class ParseXML(object):
         #for k in sorted(total_request.keys()):
         #    v = total_request[k]
         #    print k, len(v['variables'])
-
         return total_request
 
