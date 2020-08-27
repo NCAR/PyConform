@@ -145,7 +145,7 @@ def _get_key(key, table, user_table):
         k (str): The key to use that matches the standardization.  Program will exit if no matching 
                  key is found. 
     """
-    for k,v in table.iteritems():
+    for k,v in table.items():
         if key in v: # Search for field name in standard dictionary.
 	    return k
 	elif k in user_table.keys(): # Search for field name in user created dictionary.
@@ -231,7 +231,7 @@ class ParseExcel(object):
 	    for k in row.keys():
 	       if k in output_var_keys:
 		   key = row[k]
-	    for k,v in row.iteritems():
+	    for k,v in row.items():
 		if v != '':
 		    var_key = _get_key(k, table_var_fields, user_vars)
 		    fields[var_key] = v

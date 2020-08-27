@@ -53,7 +53,7 @@ class DataMaker(object):
         for filenum, filename in enumerate(self.filenames):
             self.vardata[filename] = {}
             filevars = self.vardata[filename]
-            for coordname, dimsize in self.dimensions.iteritems():
+            for coordname, dimsize in self.dimensions.items():
                 if coordname in vardata:
                     vdat = vardata[coordname][filenum]
                 elif isinstance(dimsize, (list, tuple)):
@@ -66,7 +66,7 @@ class DataMaker(object):
                     vdat = np.arange(dimsize, dtype=dt)
                 filevars[coordname] = vdat
 
-            for varname, vardims in self.vardims.iteritems():
+            for varname, vardims in self.vardims.items():
                 if varname in vardata:
                     vdat = vardata[varname][filenum]
                 else:
@@ -85,10 +85,10 @@ class DataMaker(object):
         for filenum, filename in enumerate(self.filenames):
             ncfile = netCDF4.Dataset(filename, 'w', format=ncformat)
             
-            for attrname, attrval in self.fileattribs[filenum].iteritems():
+            for attrname, attrval in self.fileattribs[filenum].items():
                 setattr(ncfile, attrname, attrval)
                 
-            for dimname, dimsize in self.dimensions.iteritems():
+            for dimname, dimsize in self.dimensions.items():
                 if isinstance(dimsize, (list, tuple)):
                     ncfile.createDimension(dimname)
                 else:
@@ -101,22 +101,22 @@ class DataMaker(object):
                     dtype = 'd'
                 ncfile.createVariable(coordname, dtype, (coordname,))
                 
-            for varname, vardims in self.vardims.iteritems():
+            for varname, vardims in self.vardims.items():
                 if varname in self.vartypes:
                     dtype = self.vartypes[varname]
                 else:
                     dtype = 'd'
                 ncfile.createVariable(varname, dtype, vardims)
             
-            for coordname, dimsize in self.dimensions.iteritems():
+            for coordname, dimsize in self.dimensions.items():
                 coordvar = ncfile.variables[coordname]
-                for attrname, attrval in self.varattribs[coordname].iteritems():
+                for attrname, attrval in self.varattribs[coordname].items():
                     setattr(coordvar, attrname, attrval)
                 coordvar[:] = self.vardata[filename][coordname]
 
-            for varname, vardims in self.vardims.iteritems():
+            for varname, vardims in self.vardims.items():
                 var = ncfile.variables[varname]
-                for attrname, attrval in self.varattribs[varname].iteritems():
+                for attrname, attrval in self.varattribs[varname].items():
                     setattr(var, attrname, attrval)
                 var[:] = self.vardata[filename][varname]
             

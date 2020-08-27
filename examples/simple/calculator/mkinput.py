@@ -24,7 +24,7 @@ datatypes = {"HORZ": np.float32,
 
 # Data
 data = {}
-for name, datatype in datatypes.iteritems():
+for name, datatype in datatypes.items():
     if name in dimsizes:
         data[name] = np.arange(dimsizes[name], dtype=datatype)
     elif name in vardims:
@@ -50,7 +50,7 @@ varfiles = {"U": "{}/uvariable.nc".format(input_dir),
             "V": "{}/vvariable.nc".format(input_dir)}
 
 # Write the data files
-for vname, fname in varfiles.iteritems():
+for vname, fname in varfiles.items():
     with nc.Dataset(fname, 'w') as ncf:
 
         ncf.setncatts({'attrib1': 'Attribute 1',
@@ -64,11 +64,11 @@ for vname, fname in varfiles.iteritems():
 
         for dname in vardims[vname]:
             var = ncf.createVariable(dname, datatypes[dname], (dname,))
-            for aname, aval in attribs[dname].iteritems():
+            for aname, aval in attribs[dname].items():
                 var.setncattr(aname, aval)
             var[:] = data[dname]
 
         var = ncf.createVariable(vname, datatypes[vname], vardims[vname])
-        for aname, aval in attribs[vname].iteritems():
+        for aname, aval in attribs[vname].items():
             var.setncattr(aname, aval)
         var[:] = data[vname]

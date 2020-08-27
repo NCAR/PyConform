@@ -148,10 +148,10 @@ class ReadNodeTests(BaseTests):
                                                     dtype='d').reshape(self.shape['x'], self.shape['y']),
                                        units='K', dimensions=self.dimensions, name='v')}
 
-        dimdescs = {d: DimensionDesc(d, s) for d, s in self.shape.iteritems()}
+        dimdescs = {d: DimensionDesc(d, s) for d, s in self.shape.items()}
         vardescs = {vn: VariableDesc(vn, datatype=vd.dtype, attributes={'units': str(vd.units)},
                                      dimensions=[dimdescs[dd] for dd in vd.dimensions])
-                    for vn, vd in self.vardata.iteritems()}
+                    for vn, vd in self.vardata.items()}
         self.filedesc = FileDesc(self.filename, variables=vardescs.values())
         self.vardesc = self.filedesc.variables[self.varname]
 

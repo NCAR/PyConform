@@ -375,7 +375,7 @@ class MapNode(FlowNode):
         self._i2omap = dmap
 
         # Construct the reverse mapping
-        self._o2imap = dict((v, k) for k, v in dmap.iteritems())
+        self._o2imap = dict((v, k) for k, v in dmap.items())
 
         # Call base class initializer
         super(MapNode, self).__init__(label, dnode)
@@ -401,7 +401,7 @@ class MapNode(FlowNode):
 
         elif isinstance(index, dict):
             inp_index = dict((self._o2imap.get(d, d), i)
-                             for d, i in index.iteritems())
+                             for d, i in index.items())
 
         else:
             out_index = index_tuple(index, len(inp_dims))
@@ -426,7 +426,7 @@ class ValidateNode(FlowNode):
     """
     FlowNode class to validate input data from a neighboring FlowNode
 
-    The ValidateNode takes additional attributes in its initializer that can effect the 
+    The ValidateNode takes additional attributes in its initializer that can effect the
     behavior of its __getitem__ method.  The special attributes are:
 
         'valid_min': The minimum value the data should have, if valid
@@ -817,7 +817,7 @@ class WriteNode(FlowNode):
             for vnode in self.inputs:
                 vname = vnode.label
                 vdesc = self._filedesc.variables[vname]
-                vattrs = OrderedDict((k, v) for k, v in vnode.attributes.iteritems())
+                vattrs = OrderedDict((k, v) for k, v in vnode.attributes.items())
 
                 vdtype = vdesc.dtype
                 fillval = vattrs.get('_FillValue', None)

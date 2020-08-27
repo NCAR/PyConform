@@ -47,7 +47,7 @@ class climIOTests(unittest.TestCase):
         fobj = Nio.open_file(self.slice, 'w')
 
         # Write attributes to file
-        for name, value in self.fattrs.iteritems():
+        for name, value in self.fattrs.items():
             setattr(fobj, name, value)
 
         # Create the dimensions in the file

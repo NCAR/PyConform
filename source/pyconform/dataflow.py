@@ -211,7 +211,7 @@ class DataFlow(object):
 
         # Now that we know how dimensions are mapped, compute the output
         # dimension sizes
-        for dname, ddesc in self._ods.dimensions.iteritems():
+        for dname, ddesc in self._ods.dimensions.items():
             if dname in o2imap and o2imap[dname] in self._ids.dimensions:
                 idd = self._ids.dimensions[o2imap[dname]]
                 if (ddesc.is_set() and ddesc.stringlen and ddesc.size < idd.size) or not ddesc.is_set():
@@ -290,7 +290,7 @@ class DataFlow(object):
 
     def _compute_file_sizes(self, varsizes):
         filesizes = {}
-        for fname, wnode in self._writenodes.iteritems():
+        for fname, wnode in self._writenodes.items():
             filesizes[fname] = sum(varsizes[vnode.label]
                                    for vnode in wnode.inputs)
         return filesizes
@@ -318,7 +318,7 @@ class DataFlow(object):
             raise TypeError('Chunks must be specified with a dictionary')
 
         # Make sure that the specified chunking dimensions are valid
-        for odname, odsize in chunks.iteritems():
+        for odname, odsize in chunks.items():
             if odname not in self._o2imap:
                 raise ValueError(
                     'Cannot chunk over unknown output dimension {!r}'.format(odname))

@@ -332,7 +332,7 @@ class DataFlowTests(unittest.TestCase):
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
 
         self.outfiles = dict((vname, vdict['file']['filename'].replace('{%Y%m%d-%Y%m%d}', '19790101-19790104'))
-                             for vname, vdict in vdicts.iteritems() if 'file' in vdict)
+                             for vname, vdict in vdicts.items() if 'file' in vdict)
         self.outfiles['V1'] = 'var1_19790111-19790114.nc'
         self.cleanOutputFiles()
 

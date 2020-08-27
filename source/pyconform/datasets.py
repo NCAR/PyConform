@@ -171,7 +171,7 @@ class DimensionDesc(object):
             err_msg = 'All arguments to unique must be DimensionDesc objects: {}'.format(descs)
             raise TypeError(err_msg)
         grp = _group_by_name_(*descs)
-        for name, ndescs in grp.iteritems():
+        for name, ndescs in grp.items():
             setdescs = [d for d in ndescs if d.is_set()]
             if len(setdescs) == 0:
                 ugrp[name] = ndescs[0]
@@ -305,7 +305,7 @@ class VariableDesc(object):
             strvals += ['   definition: {!r}'.format(self.definition)]
         if len(self.attributes) > 0:
             strvals += ['   attributes:']
-            for aname, avalue in self.attributes.iteritems():
+            for aname, avalue in self.attributes.items():
                 strvals += ['      {}: {!r}'.format(aname, avalue)]
         if len(self.files) > 0:
             strvals += ['   files:']
@@ -353,7 +353,7 @@ class VariableDesc(object):
             err_msg = 'All arguments to unique must be VariableDesc objects: {}'.format(descs)
             raise TypeError(err_msg)
         ugrp = OrderedDict()
-        for name, ndescs in _group_by_name_(*descs).iteritems():
+        for name, ndescs in _group_by_name_(*descs).items():
             if len(ndescs) == 0:
                 err_msg = 'No VariableDesc objects found with given name {}'.format(name)
                 raise ValueError(err_msg)
@@ -504,7 +504,7 @@ class FileDesc(object):
             err_msg = 'All arguments to unique must be FileDesc objects: {}'.format(descs)
             raise TypeError(err_msg)
         ugrp = OrderedDict()
-        for name, ndescs in _group_by_name_(*descs).iteritems():
+        for name, ndescs in _group_by_name_(*descs).items():
             if len(ndescs) == 0:
                 err_msg = 'No FileDesc objects found with given name {}'.format(name)
                 raise ValueError(err_msg)
@@ -577,7 +577,7 @@ class DatasetDesc(object):
 
         self._files = FileDesc.unique(files)
 
-        for fname, fdesc in self._files.iteritems():
+        for fname, fdesc in self._files.items():
             for vdesc in fdesc.variables.itervalues():
                 vdesc.files[fname] = fdesc     
 
@@ -642,7 +642,7 @@ class InputDatasetDesc(DatasetDesc):
                 # Parse variables and their dimensions
                 fvars = []
                 fdims = OrderedDict()
-                for vname, vobj in ncfile.variables.iteritems():
+                for vname, vobj in ncfile.variables.items():
 
                     vattrs = OrderedDict()
                     for vattr in vobj.ncattrs():
@@ -715,7 +715,7 @@ class OutputDatasetDesc(DatasetDesc):
         # Look over all variables in the dataset dictionary
         variables = OrderedDict()
         metavars = []
-        for vname, vdict in dsdict.iteritems():
+        for vname, vdict in dsdict.items():
             vkwds = {}
 
             # Get the variable attributes, if they are defined
@@ -802,7 +802,7 @@ class OutputDatasetDesc(DatasetDesc):
         # Loop through all character type variables and get the 
         # Loop through all found files and create the file descriptors
         filedescs = []
-        for fname, fdict in files.iteritems():
+        for fname, fdict in files.items():
 
             # Get the variable descriptors for each variable required to be in the file
             vlist = OrderedDict([(vname, variables[vname]) for vname in fdict['variables']])

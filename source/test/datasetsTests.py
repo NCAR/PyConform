@@ -642,17 +642,17 @@ class DatasetDescTests(unittest.TestCase):
         self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
                      'u1': u1dat, 'u2': u2dat}
 
-        for vname, fname in self.filenames.iteritems():
+        for vname, fname in self.filenames.items():
             ncf = NCDataset(fname, 'w')
             ncf.setncatts(self.fattribs)
             ncvars = {}
-            for dname, dvalue in self.dims.iteritems():
+            for dname, dvalue in self.dims.items():
                 dsize = dvalue if dname != 'time' else None
                 ncf.createDimension(dname, dsize)
                 ncvars[dname] = ncf.createVariable(dname, 'd', (dname,))
             ncvars[vname] = ncf.createVariable(vname, 'd', self.vdims[vname])
-            for vnam, vobj in ncvars.iteritems():
-                for aname, avalue in self.vattrs[vnam].iteritems():
+            for vnam, vobj in ncvars.items():
+                for aname, avalue in self.vattrs[vnam].items():
                     setattr(vobj, aname, avalue)
                 vobj[:] = self.vdat[vnam]
             ncf.close()
