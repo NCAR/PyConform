@@ -15,9 +15,9 @@ import sys
 def  mip_table_parser(exp,mip,table,variables,type=None,user_vars={},user_axes={},user_tableInfo={}):
     """
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
-    After the table has been parsed, the information is standardized into the three dictionaries 
-    and combined into one final dictionary.  The three dictionaries are keyed with 'variables',  
-    'axes', and 'table_info'.  The standardization methods found in the three dictionaries 
+    After the table has been parsed, the information is standardized into the three dictionaries
+    and combined into one final dictionary.  The three dictionaries are keyed with 'variables',
+    'axes', and 'table_info'.  The standardization methods found in the three dictionaries
     resemble the identifiers used in the CMOR code.  Variables are indexed by their string
     id/label/variable_entry name.
     Usage examples - table_dict = mip_table_parser('6hrLev','xml')
@@ -30,100 +30,100 @@ def  mip_table_parser(exp,mip,table,variables,type=None,user_vars={},user_axes={
         type (str): One of 3 keys that identify table type: 'excel', 'cmor', or 'xml'.
         user_var (dict): Allows users to add another synonym for one of the standard variable field keys.
         user_axes (dict): Allows users to add another synonym for one of the standard axes field keys.
-        user_tableInfo (dict): Allows users to add another synonym for one of the standard table field keys. 
+        user_tableInfo (dict): Allows users to add another synonym for one of the standard table field keys.
 
     Returns:
         table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
         'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-        each variable has a value of a dictionary keyed with the standard field names.        
+        each variable has a value of a dictionary keyed with the standard field names.
     """
     # Standardized identifiers for variable fields
     # Format: standardName: [synonym list]
     table_var_fields = {
-			'cell_measures': ['cell_measures'],
-			'cell_methods': ['cell_methods'],
-			'cf_standard_name': ['CF Standard Name','CF_Standard_Name','cf_standard_name','standard_name'],
-			'comment': ['comment'],
-			'deflate': ['deflate'],
-			'deflate_level': ['deflate_level'],
-			'description': ['description'],
-			'dimensions': ['dimensions'],
-			'ext_cell_measures': ['ext_cell_measures'],
-			'flag_meanings': ['flag_meanings'],
-			'flag_values': ['flag_values'],
-			'frequency': ['frequency'],
-			'id': ['id','label','variable_entry'],
-			'long_name': ['long_name'],
-			'modeling_realm': ['modeling_realm'],
-			'ok_min_mean_abs': ['ok_min_mean_abs'],
-			'ok_max_mean_abs': ['ok_max_mean_abs'],
-			'out_name': ['out_name'],
-			'positive': ['positive'],
-			'prov': ['prov'],
-			'provNote': ['provNote'],
-			'required': ['required'],
-			'shuffle': ['shuffle'],
-			'title': ['title'],
-			'type': ['type'],
-			'units': ['units'],
-			'valid_max': ['valid_max'],
-			'valid_min': ['valid_min']
+                        'cell_measures': ['cell_measures'],
+                        'cell_methods': ['cell_methods'],
+                        'cf_standard_name': ['CF Standard Name','CF_Standard_Name','cf_standard_name','standard_name'],
+                        'comment': ['comment'],
+                        'deflate': ['deflate'],
+                        'deflate_level': ['deflate_level'],
+                        'description': ['description'],
+                        'dimensions': ['dimensions'],
+                        'ext_cell_measures': ['ext_cell_measures'],
+                        'flag_meanings': ['flag_meanings'],
+                        'flag_values': ['flag_values'],
+                        'frequency': ['frequency'],
+                        'id': ['id','label','variable_entry'],
+                        'long_name': ['long_name'],
+                        'modeling_realm': ['modeling_realm'],
+                        'ok_min_mean_abs': ['ok_min_mean_abs'],
+                        'ok_max_mean_abs': ['ok_max_mean_abs'],
+                        'out_name': ['out_name'],
+                        'positive': ['positive'],
+                        'prov': ['prov'],
+                        'provNote': ['provNote'],
+                        'required': ['required'],
+                        'shuffle': ['shuffle'],
+                        'title': ['title'],
+                        'type': ['type'],
+                        'units': ['units'],
+                        'valid_max': ['valid_max'],
+                        'valid_min': ['valid_min']
     }
 
     # Standardized identifiers for axes fields
     # Format: standardName: [synonym list]
     table_axes_fields = {
-			 'axis': ['axis'],
-			 'bounds_values': ['bounds_values'],
-			 'climatology': ['climatology'],
-			 'convert_to': ['convert_to'],
-			 'coords_attrib': ['coords_attrib'],
-			 'formula': ['formula'],
-			 'id': ['id'],
-			 'index_only': ['index_only'],
-			 'long_name': ['long_name'],
-			 'must_call_cmor_grid': ['must_call_cmor_grid'],
-			 'must_have_bounds': ['must_have_bounds'],
-			 'out_name': ['out_name'],
-			 'positive': ['positive'],
-			 'requested': ['requested'],
-			 'requested_bounds': ['bounds_requested','requested_bounds'],
-			 'required': ['required'],
-			 'standard_name': ['standard_name'],
-			 'stored_direction': ['stored_direction'],
-			 'tolerance': ['tolerance'],
-			 'tol_on_requests': ['tol_on_requests'],
-			 'type': ['type'],
-			 'units': ['units'],
-			 'valid_max': ['valid_max'],
-			 'valid_min': ['valid_min'],
-			 'value': ['value'],
-			 'z_bounds_factors': ['z_bounds_factors'],
-			 'z_factors': ['z_factors']
+                         'axis': ['axis'],
+                         'bounds_values': ['bounds_values'],
+                         'climatology': ['climatology'],
+                         'convert_to': ['convert_to'],
+                         'coords_attrib': ['coords_attrib'],
+                         'formula': ['formula'],
+                         'id': ['id'],
+                         'index_only': ['index_only'],
+                         'long_name': ['long_name'],
+                         'must_call_cmor_grid': ['must_call_cmor_grid'],
+                         'must_have_bounds': ['must_have_bounds'],
+                         'out_name': ['out_name'],
+                         'positive': ['positive'],
+                         'requested': ['requested'],
+                         'requested_bounds': ['bounds_requested','requested_bounds'],
+                         'required': ['required'],
+                         'standard_name': ['standard_name'],
+                         'stored_direction': ['stored_direction'],
+                         'tolerance': ['tolerance'],
+                         'tol_on_requests': ['tol_on_requests'],
+                         'type': ['type'],
+                         'units': ['units'],
+                         'valid_max': ['valid_max'],
+                         'valid_min': ['valid_min'],
+                         'value': ['value'],
+                         'z_bounds_factors': ['z_bounds_factors'],
+                         'z_factors': ['z_factors']
     }
 
     # Standardized identifiers for table information fields
     # Format: standardName: [synonym list]
     table_fields = {
-			'approx_interval': ['approx_interval'],
-			'approx_interval_error': ['approx_interval_error'],
-			'approx_interval_warning': ['approx_interval_warning'],
-			'baseURL': ['baseURL'],
-			'cf_version': ['cf_version'],
-			'cmor_version': ['cmor_version'],
-			'expt_id_ok': ['expt_id_ok'],
-			'forcings': ['forcings'],
-			'frequency': ['frequency'],
-			'generic_levels': ['generic_levels'],
-			'magic_number': ['magic_number'],
-			'missing_value': ['missing_value'],
-			'modeling_realm': ['modeling_realm'],
-			'product': ['product'],
-			'project_id': ['project_id'],
-			'required_global_attributes': ['required_global_attributes'],
-			'table_date': ['table_date'],
-			'table_id': ['table_id'],
-			'tracking_prefix': ['tracking_prefix']
+                        'approx_interval': ['approx_interval'],
+                        'approx_interval_error': ['approx_interval_error'],
+                        'approx_interval_warning': ['approx_interval_warning'],
+                        'baseURL': ['baseURL'],
+                        'cf_version': ['cf_version'],
+                        'cmor_version': ['cmor_version'],
+                        'expt_id_ok': ['expt_id_ok'],
+                        'forcings': ['forcings'],
+                        'frequency': ['frequency'],
+                        'generic_levels': ['generic_levels'],
+                        'magic_number': ['magic_number'],
+                        'missing_value': ['missing_value'],
+                        'modeling_realm': ['modeling_realm'],
+                        'product': ['product'],
+                        'project_id': ['project_id'],
+                        'required_global_attributes': ['required_global_attributes'],
+                        'table_date': ['table_date'],
+                        'table_id': ['table_id'],
+                        'tracking_prefix': ['tracking_prefix']
     }
 
     # Set the type of table and return a dictionary that contains the read information.
@@ -135,30 +135,30 @@ def  mip_table_parser(exp,mip,table,variables,type=None,user_vars={},user_axes={
         p = ParseXML()
     return p.parse_table(exp,mip,table,variables,table_var_fields,table_axes_fields,table_fields,
                         user_vars,user_axes,user_tableInfo)
- 
+
 #=============================================
 #  Find the standardization key to use
 #=============================================
 def _get_key(key, table, user_table):
     """
     Find the standardization key to use.
-    
+
     Parameters:
         key (str): Supplied field name to match to a standard key
         table (dict):  One of the three standardized field dictionaries.
-        user_table (dict):  A user created dictionary.  Keys should match a key already in 
+        user_table (dict):  A user created dictionary.  Keys should match a key already in
                             the table argument, values are the new field names used in the table.
- 
+
     Returns:
-        k (str): The key to use that matches the standardization.  Program will exit if no matching 
-                 key is found. 
+        k (str): The key to use that matches the standardization.  Program will exit if no matching
+                 key is found.
     """
     for k,v in table.iteritems():
         if key in v: # Search for field name in standard dictionary.
-	    return k
-	elif k in user_table.keys(): # Search for field name in user created dictionary.
-	    if key in user_table[k]:
-	        return k
+            return k
+        elif k in user_table.keys(): # Search for field name in user created dictionary.
+            if key in user_table[k]:
+                return k
     # field name is not recognized.  Exit the program with an error.
     print('Error: ',key,' is not a valid field name at this time.  Please define and resubmit.')
     sys.exit(1)
@@ -166,7 +166,7 @@ def _get_key(key, table, user_table):
 
 #=============================================
 #  Parse Excel Spreadsheets that have been
-#  reformatted to tab deliminated fields. 
+#  reformatted to tab deliminated fields.
 #=============================================
 class ParseExcel(object):
 
@@ -185,33 +185,33 @@ class ParseExcel(object):
         Parameter:
             exp (str):  The name of the experiment.
             table_name (str): The full path to the table to be parsed.
-            table_var_fields (dict):  Dictionary containing standardized field var names 
+            table_var_fields (dict):  Dictionary containing standardized field var names
                                       as keys and acceptable synonyms as values.
-            table_axes_fields (dict): Dictionary containing standardized field axes names 
+            table_axes_fields (dict): Dictionary containing standardized field axes names
                                       as keys and acceptable synonyms as values.
-            table_fields (dict): Dictionary containing standardized table field names 
+            table_fields (dict): Dictionary containing standardized table field names
                                  as keys and acceptable synonyms as values.
-            user_vars (dict): User defined dictionary.  Keys should match standard name. 
+            user_vars (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_axes (dict): User defined dictionary.  Keys should match standard name. 
+            user_axes (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_tableInfo (dict): User defined dictionary.  Keys should match standard name. 
-                                   Values should be a list of acceptable field names.  
+            user_tableInfo (dict): User defined dictionary.  Keys should match standard name.
+                                   Values should be a list of acceptable field names.
 
         Returns:
             table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
             'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-            each variable has a value of a dictionary keyed with the standard field names.           
+            each variable has a value of a dictionary keyed with the standard field names.
         """
         from openpyxl import load_workbook
 
-	table_dict = {}
+        table_dict = {}
 
         for t in table:
            wb = load_workbook(t)
            for sheet in wb.get_sheet_names():
-               if sheet != 'Notes': 
-                   s = wb.get_sheet_by_name(sheet)          
+               if sheet != 'Notes':
+                   s = wb.get_sheet_by_name(sheet)
                    variables = {}
                    axes = {}
                    cols = []
@@ -238,7 +238,7 @@ class ParseExcel(object):
                    table_dict[sheet]['table_info'] = table_info
 
 
-	return table_dict
+        return table_dict
 
 
 #=============================================
@@ -261,29 +261,29 @@ class ParseCmorTable(object):
         Parameter:
             exp (str):  The name of the experiment.
             table_name (str): The full path to the table to be parsed.
-            table_var_fields (dict):  Dictionary containing standardized field var names 
+            table_var_fields (dict):  Dictionary containing standardized field var names
                                       as keys and acceptable synonyms as values.
-            table_axes_fields (dict): Dictionary containing standardized field axes names 
+            table_axes_fields (dict): Dictionary containing standardized field axes names
                                       as keys and acceptable synonyms as values.
-            table_fields (dict): Dictionary containing standardized table field names 
+            table_fields (dict): Dictionary containing standardized table field names
                                  as keys and acceptable synonyms as values.
-            user_vars (dict): User defined dictionary.  Keys should match standard name. 
+            user_vars (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_axes (dict): User defined dictionary.  Keys should match standard name. 
+            user_axes (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_tableInfo (dict): User defined dictionary.  Keys should match standard name. 
-                                   Values should be a list of acceptable field names.  
+            user_tableInfo (dict): User defined dictionary.  Keys should match standard name.
+                                   Values should be a list of acceptable field names.
 
         Returns:
             table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
             'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-            each variable has a value of a dictionary keyed with the standard field names.           
+            each variable has a value of a dictionary keyed with the standard field names.
         """
         import json
 
         # Open and load the CMOR/CMIP json file
         total_request = {}
-        print table
+        print("{}".format(table))
         for t in table:
             table_dict = {}
             with open(t) as f:
@@ -308,12 +308,12 @@ class ParseCmorTable(object):
                         axes[dim] = mt['axis_entry'][dim]
 
             # Combine three separate dictionaries into the table summary dictionary
-	    table_dict['variables'] = variables
-	    table_dict['table_info'] = mt['Header']
+            table_dict['variables'] = variables
+            table_dict['table_info'] = mt['Header']
             table_dict['axes'] = axes
             table_id = mt['Header']['table_id'].replace('Table ','')
             total_request[table_id] = table_dict
-	return total_request
+        return total_request
 
 #=============================================
 #  Parse the XML format
@@ -335,23 +335,23 @@ class ParseXML(object):
         Parameter:
             exp (str):  The name of the experiment.
             miptable (str): The name of the miptable.
-            table_var_fields (dict):  Dictionary containing standardized field var names 
+            table_var_fields (dict):  Dictionary containing standardized field var names
                                       as keys and acceptable synonyms as values.
-            table_axes_fields (dict): Dictionary containing standardized field axes names 
+            table_axes_fields (dict): Dictionary containing standardized field axes names
                                       as keys and acceptable synonyms as values.
-            table_fields (dict): Dictionary containing standardized table field names 
+            table_fields (dict): Dictionary containing standardized table field names
                                  as keys and acceptable synonyms as values.
-            user_vars (dict): User defined dictionary.  Keys should match standard name. 
+            user_vars (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_axes (dict): User defined dictionary.  Keys should match standard name. 
+            user_axes (dict): User defined dictionary.  Keys should match standard name.
                               Values should be a list of acceptable field names.
-            user_tableInfo (dict): User defined dictionary.  Keys should match standard name. 
-                                   Values should be a list of acceptable field names.  
+            user_tableInfo (dict): User defined dictionary.  Keys should match standard name.
+                                   Values should be a list of acceptable field names.
 
         Returns:
             table_dict (dict): A dictionary that holds all of the parsed table information.  Contains the keys:
             'variables', 'axes', and 'table_info'.  Each of these are dictionaries, keyed with variable names and
-            each variable has a value of a dictionary keyed with the standard field names.           
+            each variable has a value of a dictionary keyed with the standard field names.
         """
         from dreqPy import dreq
 
@@ -359,12 +359,12 @@ class ParseXML(object):
 
         # Get table id
 #        if len(g_id) == 0:
-#            print 'ERROR: Variable group/table ',table_name, ' not supported.'  
+#            print 'ERROR: Variable group/table ',table_name, ' not supported.'
 #            print 'Please select from the following: '
 #            print dq.inx.requestVarGroup.label.keys()
 #            print '\nIf your selected table is listed, it may not be supported in this verison of dreqpy.'
 #            print '\nEXITING. \n'
-#            sys.exit(1) 
+#            sys.exit(1)
 #        # Get the id's of the variables in this table
 #        g_vars = dq.inx.iref_by_sect[g_id[0]].a
 
@@ -376,13 +376,11 @@ class ParseXML(object):
         else:
             e_id = dq.inx.experiment.label[exp]
         if len(e_id)==0:
-#            print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m' 
-#            print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
-#            return {} 
-            print '\033[91m','This experiment name is not registered within the data request.','\033[0m'
-            print '\033[91m','Using a generic exp name instead.  If you think this name should be registered, verify the name is correct from the list below.','\033[0m'
-            print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
+            print( '\033[91m This experiment name is not registered within the data request. \033[0m')
+            print( '\033[91m Using a generic exp name instead.  If you think this name should be registered, verify the name is correct from the list below. \033[0m')
+            print( sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys()))
             e_id = dq.inx.experiment.label['historical']
+
         activity_id = dq.inx.uid[e_id[0]].mip
 
         e_vars =[]
@@ -404,7 +402,7 @@ class ParseXML(object):
                 axes = {}
                 table_info = {}
                 data = {}
-                
+
                 table_info['data_specs_version'] = dreq.version
                 if '--ALL--' not in exp:
                     table_info['experiment'] = dq.inx.uid[e_id[0]].title
@@ -423,7 +421,7 @@ class ParseXML(object):
                     # Make a list of all cmip vars and their id's
                     all_vars = {}
                     for v in dq.coll['CMORvar'].items:
-                        all_vars[v.label+':'+v.mipTable] = v.uid 
+                        all_vars[v.label+':'+v.mipTable] = v.uid
                     for v in v_list:
                         if v in all_vars.keys():
                             var_list.append(all_vars[v])
@@ -436,10 +434,10 @@ class ParseXML(object):
                     else:
                         v_id = dq.inx.uid[rv].uid  # Get the CMORvar id
                     c_var = dq.inx.uid[v_id]
-	            # Set what we can from the CMORvar section
+                    # Set what we can from the CMORvar section
                     if hasattr(c_var,'mipTable'):
                         var['mipTable']=c_var.mipTable
-                        if c_var.mipTable in tables or '--ALL--' in tables: 
+                        if c_var.mipTable in tables or '--ALL--' in tables:
                             var["_FillValue"] = "1.0E20"
                             var["missing_value"] = 1.0E20
                             if hasattr(c_var,'deflate'):
@@ -448,54 +446,54 @@ class ParseXML(object):
                                 var['deflate_level']= c_var.deflate_level
                             if hasattr(c_var,'description'):
                                 var['description']= c_var.description
-	                    if hasattr(c_var,'frequency'):
+                            if hasattr(c_var,'frequency'):
                                 var['frequency']= c_var.frequency
                                 table_info['frequency']= c_var.frequency
-	                    if hasattr(c_var,'label'):
+                            if hasattr(c_var,'label'):
                                 var['id']= c_var.label
                                 var['out_name'] = c_var.label
                                 var['variable_id'] = dq.inx.uid[c_var.vid].label
                                 l = dq.inx.var.label[c_var.label]
                                 #if len(l)>0:
                                 var['standard_name'] = dq.inx.uid[c_var.vid].sn
-	                    if hasattr(c_var,'modeling_realm'):
+                            if hasattr(c_var,'modeling_realm'):
                                 var['realm']= c_var.modeling_realm
-	                    #if hasattr(c_var,'ok_min_mean_abs'):
+                            #if hasattr(c_var,'ok_min_mean_abs'):
                             #    var['ok_min_mean_abs']= c_var.ok_min_mean_abs
-	                    #if hasattr(c_var,'ok_max_mean_abs'):
+                            #if hasattr(c_var,'ok_max_mean_abs'):
                             #    var['ok_max_mean_abs']= c_var.ok_max_mean_abs
-	                    if hasattr(c_var,'out_name'):
+                            if hasattr(c_var,'out_name'):
                                 var['out_name']= c_var.label #?
-	                    if hasattr(c_var,'positive'):
+                            if hasattr(c_var,'positive'):
                                 var['positive']= c_var.positive
                             if hasattr(c_var,'direction'):
                                 var['direction']= c_var.direction
-	                    if hasattr(c_var,'prov'):
+                            if hasattr(c_var,'prov'):
                                 var['prov']= c_var.prov
-	                    if hasattr(c_var,'procNote'):
+                            if hasattr(c_var,'procNote'):
                                 var['provcNote']= c_var.procNote
-	                    if hasattr(c_var,'shuffle'):
+                            if hasattr(c_var,'shuffle'):
                                 var['shuffle']= c_var.shuffle
-	                    if hasattr(c_var,'title'):
+                            if hasattr(c_var,'title'):
                                 var['title']= c_var.title
                                 var['long_name']= c_var.title
                             #if hasattr(c_var,'description'):
                             #    var['comment']= c_var.description
-	                    if hasattr(c_var,'type'):
+                            if hasattr(c_var,'type'):
                                 var['type']= c_var.type
-	                    if hasattr(c_var,'valid_max'):
+                            if hasattr(c_var,'valid_max'):
                                 if isinstance(c_var.valid_max, (int, long, float, complex)):
                                     var['valid_max']= c_var.valid_max
-	                    if hasattr(c_var,'valid_min'):
-                                if isinstance(c_var.valid_min, (int, long, float, complex)): 
+                            if hasattr(c_var,'valid_min'):
+                                if isinstance(c_var.valid_min, (int, long, float, complex)):
                                     var['valid_min']= c_var.valid_min
 
- 	                    # Set what we can from the standard section
+                            # Set what we can from the standard section
                             if hasattr(c_var,'stid'):
-	                        s_var = dq.inx.uid[c_var.stid]
-	                        if hasattr(s_var,'cell_measures'):
+                                s_var = dq.inx.uid[c_var.stid]
+                                if hasattr(s_var,'cell_measures'):
                                     var['cell_measures']= s_var.cell_measures
-	                        if hasattr(s_var,'cell_methods'):
+                                if hasattr(s_var,'cell_methods'):
                                     var['cell_methods']= s_var.cell_methods
                                 if hasattr(s_var,'coords'):
                                     #if len(s_var.coords)>0:
@@ -518,21 +516,21 @@ class ParseXML(object):
                                 if hasattr(t_var,'title'):
                                     var['time_title'] = t_var.title
 
-                            # Is there did? 
+                            # Is there did?
                             if hasattr(s_var, 'dids'):
-                                if isinstance(s_var.dids, tuple): 
+                                if isinstance(s_var.dids, tuple):
                                     extra_dim = dq.inx.uid[s_var.dids[0]].label
                                     if 'coordinates' not in var.keys():
                                         var['coordinates'] = extra_dim
                                     else:
                                         var['coordinates'] = extra_dim + "|"+ var['coordinates']
                                     if extra_dim not in axes_list:
-                                        axes_list.append(extra_dim) 
+                                        axes_list.append(extra_dim)
 
                             # Set what we can from the spatial section
                             if hasattr(s_var, 'spid'):
-	                        sp_var = dq.inx.uid[s_var.spid]
-	                        if hasattr(sp_var,'dimensions'):
+                                sp_var = dq.inx.uid[s_var.spid]
+                                if hasattr(sp_var,'dimensions'):
                                     if len(sp_var.dimensions) > 1:
                                         if 'coordinates' in var.keys():
                                             sp_var_d = sp_var.dimensions
@@ -549,24 +547,24 @@ class ParseXML(object):
                                             if d not in axes_list and d != '' and d != 'None':
                                                 if 'copy' not in var['id'] and '?' not in d:
                                                     axes_list.append(d)
-                            if 'coordinates' in var.keys(): 
+                            if 'coordinates' in var.keys():
                                 if len(var['coordinates']) > 1:
                                     if var['coordinates'][-1] == '|':
-                                        var['coordinates'] = var['coordinates'][:-1] 
+                                        var['coordinates'] = var['coordinates'][:-1]
 
-	                    # Set what we can from the variable section
+                            # Set what we can from the variable section
                             if hasattr(c_var, 'vid'):
                                 v_var = dq.inx.uid[c_var.vid]
                                 if hasattr(v_var,'standard_name'):
                                     var['standard_name']= v_var.sn
-	                        if hasattr(v_var,'cf_standard_name'):
+                                if hasattr(v_var,'cf_standard_name'):
                                     var['cf_standard_name']= v_var.sn
-	                        if hasattr(v_var,'long_name'):
+                                if hasattr(v_var,'long_name'):
                                     var['long_name']= v_var.sn
-	                        if hasattr(v_var,'units'):
+                                if hasattr(v_var,'units'):
                                     if v_var.units == "":
                                         var['units']= 'None'
-                                        print c_var.label, " does not have units" 
+                                        print("{} does not have units".format(c_var.label))
                                     else:
                                         var['units']= v_var.units
 
@@ -583,14 +581,14 @@ class ParseXML(object):
                         if hasattr(v,'units'):
                             if v.units == "":
                                 ax['units'] = '1'
-                            else: 
+                            else:
                                 ax['units'] = v.units
                         if hasattr(v,'value'):
                             ax['value'] = v.value
                         if hasattr(v,'axis'):
                             ax['axis'] = v.axis
                         if hasattr(v,'valid_max'):
-                            if isinstance(v.valid_max, (int, long, float, complex)):        
+                            if isinstance(v.valid_max, (int, long, float, complex)):
                                 ax['valid_max'] = v.valid_max
                         if hasattr(v,'valid_min'):
                             if isinstance(v.valid_min, (int, long, float, complex)):
@@ -627,13 +625,13 @@ class ParseXML(object):
                         axes[a] = ax
                     else:
                         v = a
-                        print "Cannot find link for dimension: ",v
-   
+                        print("Cannot find link for dimension: {}".format(v))
+
                 try:
                     table_dict['variables'] = variables
                     table_dict['axes'] = axes
                 except UnboundLocalError:
-                    print 'Does not fit criteria: ', exp 
+                    print('Does not fit criteria: {}'.format(exp))
                 table_dict['table_info'] = table_info
                 tab = rvg.label
                 table_info['table_id'] = tab
@@ -643,4 +641,3 @@ class ParseXML(object):
         #    v = total_request[k]
         #    print k, len(v['variables'])
         return total_request
-

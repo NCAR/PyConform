@@ -62,7 +62,7 @@ class rhoFunction(Function):
         t = p_T.data
 
         p = (hyam*PO)+(hybm*PS)
-        rho = p/(287.04*T) 
+        rho = p/(287.04*T)
 
         new_name = 'rho({}{}{}{}{})'.format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
@@ -99,7 +99,7 @@ class pm25Function(Function):
         PM25_o = p_PM25_o.data
 
         p = (hyam*PO)+(hybm*PS)
-        pm25 = PM25_o * 287. * T / p 
+        pm25 = PM25_o * 287. * T / p
 
         new_name = 'pm25({}{}{}{}{}{})'.format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name. p_T.name, p_PM25_o.name)
@@ -137,7 +137,7 @@ class tozFunction(Function):
         p = (hyam*PO)+(hybm*PS)
         delp = np.ma.zeros((p_indat3a.dimensions[0], p_indat3a.dimensions[1], p_indat3a.dimensions[2]))
         for i in range(0,l-1):
-            delp[:,i,:,:] = p[:,i+1,:,:]-p[:,u,:,:]         
+            delp[:,i,:,:] = p[:,i+1,:,:]-p[:,u,:,:]
         work3da = indat3a*delp*1.e-02
         cmordat2d = sum(work3da,dim=3)
         cmordat2d = cmordat2d * 2.1e+22 / 2.69e16
@@ -146,7 +146,3 @@ class tozFunction(Function):
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
 
         return PhysArray(cmordat2d, name=new_name, units='m')
-
-
-
-

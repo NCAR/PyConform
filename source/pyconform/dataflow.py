@@ -10,7 +10,7 @@ unit conversion, addition, subtraction, etc.  The data transmitted along the
 graph edges is assumed to a Numpy.NDArray-like object.
 
 The action associated with each node is not performed until the data is
-"requested" with the __getitem__ interface, via Node[key].  
+"requested" with the __getitem__ interface, via Node[key].
 
 Copyright 2017-2018, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
@@ -121,7 +121,7 @@ class DataFlow(object):
                 try:
                     pdef = parse_definition(vdesc.definition)
                     vnode = self._construct_flow_(pdef, datnodes=datnodes)
-                except VariableNotFoundError, err:
+                except VariableNotFoundError as err:
                     warn('{}. Skipping output variable {}.'.format(
                         str(err), vname), DefinitionWarning)
                 else:
@@ -171,7 +171,7 @@ class DataFlow(object):
             node = nodes[name]
             try:
                 info = node[None]
-            except Exception, err:
+            except Exception as err:
                 ndef = self._ods.variables[name].definition
                 err_msg = 'Failure to generate variable {!r} info with definition {!r}: {}'.format(
                     name, ndef, str(err))
@@ -243,7 +243,7 @@ class DataFlow(object):
 
             try:
                 validnode = ValidateNode(vdesc, vnode)
-            except Exception, err:
+            except Exception as err:
                 vdef = vdesc.definition
                 err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(
                     vname, vdef, str(err))
@@ -342,47 +342,47 @@ class DataFlow(object):
             scomm = create_comm(serial=bool(serial))
         elif isinstance(scomm, SimpleComm):
             if scomm.is_manager():
-                print 'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)'
+                print( 'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)')
         else:
             raise TypeError('Communication object is not a SimpleComm!')
 
         # Start general output
         prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
-            print 'Beginning execution of data flow...'
-            print 'Mapping Input Dimensions to Output Dimensions:'
+            print( 'Beginning execution of data flow...')
+            print( 'Mapping Input Dimensions to Output Dimensions:')
             for d in sorted(self._i2omap):
-                print '   {} --> {}'.format(d, self._i2omap[d])
+                print('   {} --> {}'.format(d, self._i2omap[d]))
             if len(chunks) > 0:
-                print 'Chunking over Output Dimensions:'
+                print('Chunking over Output Dimensions:')
                 for d in chunks:
-                    print '   {}: {}'.format(d, chunks[d])
+                    print( '   {}: {}'.format(d, chunks[d]))
             else:
-                print 'Not chunking output.'
+                print('Not chunking output.')
 
         # Partition the output files/variables over available parallel (MPI)
         # ranks
         fnames = scomm.partition(
             self._filesizes.items(), func=WeightBalanced(), involved=True)
         if scomm.is_manager():
-            print 'Writing {} files across {} MPI processes.'.format(len(self._filesizes), scomm.get_size())
+            print( 'Writing {} files across {} MPI processes.'.format(len(self._filesizes), scomm.get_size()))
         scomm.sync()
 
         # Standard output
-        print '{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames))
+        print('{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames)))
         scomm.sync()
 
         # Loop over output files and write using given chunking
         for fname in fnames:
-            print '{}: Writing file: {}'.format(prefix, fname)
+            print('{}: Writing file: {}'.format(prefix, fname))
             if history:
                 self._writenodes[fname].enable_history()
             else:
                 self._writenodes[fname].disable_history()
             self._writenodes[fname].execute(chunks=chunks, deflate=deflate)
-            print '{}: Finished writing file: {}'.format(prefix, fname)
+            print('{}: Finished writing file: {}'.format(prefix, fname))
 
         scomm.sync()
         if scomm.is_manager():
-            print 'All output variables written.'
-            print
+            print( 'All output variables written.')
+            print()
