@@ -128,7 +128,7 @@ def load(defs,key=None):
                    def_dict[key][split[0].strip()] = '='.join(split[1:]).strip()
         else:
             if len(line)>0 :
-                print('Could not parse this line: {}'.format(line)
+                print('Could not parse this line: {}'.format(line))
 
     if key == 'ga':
         return def_dict
