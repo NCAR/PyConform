@@ -128,7 +128,7 @@ def load(defs,key=None):
                    def_dict[key][split[0].strip()] = '='.join(split[1:]).strip()
         else:
             if len(line)>0 :
-                print 'Could not parse this line: ',line
+                print('Could not parse this line: {}'.format(line)
 
     if key == 'ga':
         return def_dict
@@ -360,7 +360,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     f_format = attributes["netcdf_type"]
     valid_formats = ['NETCDF4','NETCDF4_CLASSIC','NETCDF3_CLASSIC','NETCDF3_64BIT_OFFSET','NETCDF3_64BIT_DATA']
     if f_format not in valid_formats:
-       print 'ERROR: ', f_format, ' is not a valid format.  Please choose from ',valid_formats
+       print('ERROR: {} is not a valid format.  Please choose from {}'.format(f_format,valid_formats))
        sys.exit(-9)
     attributes.pop('netcdf_type',None)
 
@@ -577,9 +577,9 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
                                      TableSpec[ts_key][dim]['definition'] = definitions['Coords_'+t_realm][dim]
                              else:
                                  if 'definition' not in  TableSpec[ts_key][dim].keys():
-                                     print "MISSING "+dim+" in "+'Coords_'+t_realm+" (for variable "+v+")"
+                                     print("MISSING "+dim+" in "+'Coords_'+t_realm+" (for variable "+v+")")
               else:
-                  print 'missing:',v
+                  print('missing: {}'.format(v))
             else:
                 AllMissing[t].append(v)
 
@@ -666,18 +666,18 @@ def main(argv=None):
 
     args = parseArgs(argv)
 
-    print "\n"
-    print "------------------------------------------"
-    print 'Running createOutputSpecs with these args:\n'
-    print 'Variable Definitions: ', args.defFile
-    print 'Global Attributes to be added to each file: ', args.globalAttrFile
-    print 'Experiment Name: ', args.exp
-    print 'MIPs: ', args.mip
-    print 'MIP Tables: ', args.miptables
-    print 'MIP Table Type: ',args.mipTableType
-    print 'User supplied variable list: ',args.userList
-    print 'Will create output spec files within this directory:', args.outputpath
-    print "------------------------------------------"
+    print( )
+    print( "------------------------------------------")
+    print( 'Running createOutputSpecs with these args:')
+    print( 'Variable Definitions: {}'.format( args.defFile))
+    print( 'Global Attributes to be added to each file: {}'.format( args.globalAttrFile))
+    print( 'Experiment Name: {}'.format( args.exp))
+    print( 'MIPs: {}'.format( args.mip))
+    print( 'MIP Tables: {}'.format( args.miptables))
+    print( 'MIP Table Type: {}'.format(args.mipTableType))
+    print( 'User supplied variable list: {}'.format(args.userList))
+    print( 'Will create output spec files within this directory: {}'.format( args.outputpath))
+    print("------------------------------------------")
 
     # Open/Read the definition file
     if os.path.isfile(args.defFile):
@@ -685,7 +685,7 @@ def main(argv=None):
             definitions,input_glob = load(y_definitions)
             #print 'DEFINITIONS: ',definitions
     else:
-        print 'Definition file does not exist: ',args.defFile
+        print('Definition file does not exist: {}'.format(args.defFile))
         os.sys.exit(1)
 
     # Open/Read the global attributes file
@@ -694,7 +694,7 @@ def main(argv=None):
         for gaFile in args.globalAttrFile.split(","):
             if os.path.isfile(gaFile):
                 if "json" in gaFile:
-                    print 'opening ',gaFile
+                    print ('opening {}'.format(gaFile))
                     with open(gaFile) as gaF:
                         ga = json.load(gaF)
                     for k in ga.keys():
@@ -707,7 +707,7 @@ def main(argv=None):
                         #print 'GLOBAL ATTRIBUTES: ',attributes
             else:
                 if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):
-                    print 'Global Attributes file does not exist: ',args.globalAttrFile
+                    print( 'Global Attributes file does not exist: {}'.format(args.globalAttrFile))
                     os.sys.exit(1)
 
     # Open/Read the MIP table
