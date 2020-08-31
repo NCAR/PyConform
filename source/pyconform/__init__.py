@@ -11,5 +11,4 @@ Send questions and comments to Kevin Paul (kpaul@ucar.edu) or
 Sheri Mickelson (mickelso@ucar.edu)
 """
 
-from version import __version__
-
+from .version import __version__
