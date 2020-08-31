@@ -482,10 +482,10 @@ class ParseXML(object):
                             if hasattr(c_var,'type'):
                                 var['type']= c_var.type
                             if hasattr(c_var,'valid_max'):
-                                if isinstance(c_var.valid_max, (int, long, float, complex)):
+                                if isinstance(c_var.valid_max, (int, float, complex)):
                                     var['valid_max']= c_var.valid_max
                             if hasattr(c_var,'valid_min'):
-                                if isinstance(c_var.valid_min, (int, long, float, complex)):
+                                if isinstance(c_var.valid_min, (int, float, complex)):
                                     var['valid_min']= c_var.valid_min
 
                             # Set what we can from the standard section
@@ -588,10 +588,10 @@ class ParseXML(object):
                         if hasattr(v,'axis'):
                             ax['axis'] = v.axis
                         if hasattr(v,'valid_max'):
-                            if isinstance(v.valid_max, (int, long, float, complex)):
+                            if isinstance(v.valid_max, (int, float, complex)):
                                 ax['valid_max'] = v.valid_max
                         if hasattr(v,'valid_min'):
-                            if isinstance(v.valid_min, (int, long, float, complex)):
+                            if isinstance(v.valid_min, (int, float, complex)):
                                 ax['valid_min'] = v.valid_min
                         if hasattr(v,'standardName'):
                             if isinstance(v.standardName, (str)):
