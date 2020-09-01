@@ -13,7 +13,7 @@ LICENSE: See the LICENSE.rst file for details
 from pyconform.indexing import align_index
 from cf_units import Unit
 from os import linesep
-from operator import mul, div
+from operator import mul, truediv, floordiv
 
 import numpy
 
@@ -492,7 +492,7 @@ class PhysArray(numpy.ma.MaskedArray):
         result = PhysArray(self)
         other = result._mul_div_init_(other)
         return PhysArray(super(PhysArray, result).__div__(other), name='({}/{})'.format(result.name, other.name),
-                         units=self._units_op_(other.units, div), positive=result.positive)
+                         units=self._units_op_(other.units, truediv), positive=result.positive)
 
     def __rdiv__(self, other):
         return PhysArray(other).__div__(self)
@@ -502,14 +502,14 @@ class PhysArray(numpy.ma.MaskedArray):
         other = self._mul_div_init_(other)
         super(PhysArray, self).__idiv__(other)
         self.name = '({}/{})'.format(self.name, other.name)
-        self.units = self._units_op_(other.units, div)
+        self.units = self._units_op_(other.units, truediv)
         return self
 
     def __floordiv__(self, other):
         result = PhysArray(self)
         other = result._mul_div_init_(other)
         return PhysArray(super(PhysArray, result).__floordiv__(other), name='({}//{})'.format(result.name, other.name),
-                         units=self._units_op_(other.units, div), positive=result.positive)
+                         units=self._units_op_(other.units, floordiv), positive=result.positive)
 
     def __rfloordiv__(self, other):
         return PhysArray(other).__floordiv__(self)
@@ -519,7 +519,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = self._mul_div_init_(other)
         super(PhysArray, self).__ifloordiv__(other)
         self.name = '({}//{})'.format(self.name, other.name)
-        self.units = self._units_op_(other.units, div)
+        self.units = self._units_op_(other.units, floordiv)
         return self
 
     def __truediv__(self, other):
