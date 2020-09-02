@@ -68,10 +68,10 @@ def print_columnar(x, textwidth=10000000, indent=0, header=''):
     Lmax = max(len(str(i)) for i in x)
     Nc = (textwidth - indent + 3) // (Lmax + 3)
     Nr = len(x) // Nc + int(len(x) % Nc > 0)
-    A = [x[i::Nr] for i in xrange(Nr)]
-    print '{}{}'.format(hrstrp, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in A[0]))
+    A = [x[i::Nr] for i in range(Nr)]
+    print('{}{}'.format(hrstrp, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in A[0])))
     for row in A[1:]:
-        print '{}{}'.format(' ' * indent, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in row))
+        print('{}{}'.format(' ' * indent, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in row)))
 
 
 #=========================================================================
@@ -98,11 +98,11 @@ def main(argv=None):
                 if len(split) == 2:
                     vardefs[split[0].strip()] = split[1].strip()
                 elif len(line) > 0:
-                    print 'Could not parse this line: {!r}'.format(line)
+                    print( 'Could not parse this line: {!r}'.format(line))
     else:
         stddict = load(open(args.filename), object_pairs_hook=OrderedDict)
         for var in stddict:
-            if 'definition' in stddict[var] and isinstance(stddict[var]['definition'], basestring):
+            if 'definition' in stddict[var] and isinstance(stddict[var]['definition'], str):
                 vardefs[var] = stddict[var]['definition']
             if 'attributes' in stddict[var] and 'frequency' in stddict[var]['attributes']:
                 varfreqs[var] = stddict[var]['attributes']['frequency']
@@ -116,7 +116,7 @@ def main(argv=None):
         outvars = sorted(args.variables)
 
     # Use the parser to determine what variables are needed
-    print 'Output Variable Dependencies:'
+    print ('Output Variable Dependencies:')
     alldeps = set()
     for var in outvars:
         if var in vardefs:
@@ -128,12 +128,12 @@ def main(argv=None):
                 vheader = '   {}{}:'.format(var, fheader)
                 print_columnar(sorted(vdeps), header=vheader)
             except:
-                print '   {}: No dependencies.'.format(var)
+                print( '   {}: No dependencies.'.format(var))
         else:
-            print '   {}: Not defined.'.format(var)
+            print( '   {}: Not defined.'.format(var))
 
-    print
-    print 'Complete Specification Requires the Following Input Variables:'
+    print()
+    print( 'Complete Specification Requires the Following Input Variables:')
     print_columnar(sorted(alldeps), indent=3)
 
 
