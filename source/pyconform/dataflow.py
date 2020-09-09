@@ -101,7 +101,7 @@ class DataFlow(object):
         datnodes = {}
         for vname in self._ods.variables:
             vdesc = self._ods.variables[vname]
-            if not isinstance(vdesc.definition, basestring):
+            if not isinstance(vdesc.definition, str):
                 if vdesc.datatype == 'char':
                     vdata = numpy.asarray(vdesc.definition, dtype='S')
                 else:
@@ -117,7 +117,7 @@ class DataFlow(object):
         defnodes = {}
         for vname in self._ods.variables:
             vdesc = self._ods.variables[vname]
-            if isinstance(vdesc.definition, basestring):
+            if isinstance(vdesc.definition, str):
                 try:
                     pdef = parse_definition(vdesc.definition)
                     vnode = self._construct_flow_(pdef, datnodes=datnodes)

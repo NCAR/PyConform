@@ -221,7 +221,7 @@ class VariableDesc(object):
         if datatype is None:
             self._ntype = None
             self._dtype = None
-        elif isinstance(datatype, basestring) and datatype in VariableDesc._NTYPES_:
+        elif isinstance(datatype, str) and datatype in VariableDesc._NTYPES_:
             self._ntype = datatype
             self._dtype = VariableDesc._DTYPES_[VariableDesc._NTYPES_.index(datatype)]
         elif isinstance(datatype, dtype) and datatype in VariableDesc._DTYPES_:
@@ -731,7 +731,7 @@ class OutputDatasetDesc(DatasetDesc):
             def_wrn = ''
             if 'definition' in vdict:
                 vdef = vdict['definition']
-                if isinstance(vdef, basestring):
+                if isinstance(vdef, str):
                     if len(vdef.strip()) > 0:
                         vshape = None
                     else:

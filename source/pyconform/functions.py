@@ -16,7 +16,7 @@ import numpy as np
 # is_constant - Determine if an argument is a constant (number or string)
 #=========================================================================
 def is_constant(arg):
-    return isinstance(arg, (basestring, float, int)) or arg is None
+    return isinstance(arg, (str, float, int)) or arg is None
 
 
 #=========================================================================
@@ -319,7 +319,7 @@ class MeanFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('mean: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('mean: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -341,7 +341,7 @@ class SumFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('sum: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('sum: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -368,7 +368,7 @@ class MinFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('min: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('min: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -400,7 +400,7 @@ class MaxFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('max: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('max: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -478,7 +478,7 @@ class ChangeUnitsFunction(Function):
 
         unit = dunit if units is None else uunit
 
-        if isinstance(refdate, basestring):
+        if isinstance(refdate, str):
             ref = refdate
         elif refdate is None:
             ref = dref if uref is None else uref
@@ -486,7 +486,7 @@ class ChangeUnitsFunction(Function):
             raise ValueError(
                 'chunits: Reference date must be a string, if given')
 
-        if isinstance(calendar, basestring):
+        if isinstance(calendar, str):
             cal = calendar
         elif calendar is None:
             cal = dcal if ucal is None else ucal

@@ -303,7 +303,7 @@ class PhysArray(numpy.ma.MaskedArray):
     @positive.setter
     def positive(self, pos):
         """Positive direction (up or down) for the data"""
-        if isinstance(pos, basestring):
+        if isinstance(pos, str):
             strpos = str(pos).lower()
             if strpos not in ['up', 'down']:
                 raise ValueError('Positive attribute must be up/down or None, not {!r}'.format(pos))
