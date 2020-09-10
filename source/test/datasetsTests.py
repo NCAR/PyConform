@@ -99,7 +99,7 @@ class DimensionDescTests(unittest.TestCase):
         print_test_message('DimensionDesc.set()', actual=str(actual), expected=str(expected))
         self.assertEqual(actual.name, 'y', 'DimensionDesc name not correct after set')
         self.assertEqual(actual.size, expected.size, 'DimensionDesc size not correct after set')
-        
+
     def test_set_bad(self):
         indata = 'z'
         ddesc = DimensionDesc('y')
@@ -633,8 +633,8 @@ class DatasetDescTests(unittest.TestCase):
                            endpoint=False, dtype=self.dtypes['lon'])
         tdat = np.linspace(0, self.dims['time'], num=self.dims['time'],
                            endpoint=False, dtype=self.dtypes['time'])
-        ulen = reduce(lambda x, y: x * y, self.dims.itervalues(), 1)
-        ushape = tuple(d for d in self.dims.itervalues())
+        ulen = reduce(lambda x, y: x * y, self.dims.values(), 1)
+        ushape = tuple(d for d in self.dims.values())
         u1dat = np.linspace(0, ulen, num=ulen, endpoint=False,
                             dtype=self.dtypes['u1']).reshape(ushape)
         u2dat = np.linspace(0, ulen, num=ulen, endpoint=False,
@@ -735,7 +735,7 @@ class DatasetDescTests(unittest.TestCase):
         self._clear_()
 
     def _clear_(self):
-        for fname in self.filenames.itervalues():
+        for fname in self.filenames.values():
             if exists(fname):
                 remove(fname)
 
@@ -769,7 +769,7 @@ class DatasetDescTests(unittest.TestCase):
 
     def test_input_dataset_variable_files(self):
         inds = InputDatasetDesc('myinds', self.filenames.values())
-        actual = {v.name:v.files.keys() for v in inds.variables.itervalues()}
+        actual = {v.name:v.files.keys() for v in inds.variables.values()}
         expected = {'lat': ['u1.nc', 'u2.nc'],
                     'lon': ['u1.nc', 'u2.nc'],
                     'time': ['u1.nc', 'u2.nc'],
@@ -808,7 +808,7 @@ class DatasetDescTests(unittest.TestCase):
 
     def test_output_dataset_variable_files(self):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
-        actual = {v.name:v.files.keys() for v in outds.variables.itervalues()}
+        actual = {v.name:v.files.keys() for v in outds.variables.values()}
         expected = {'X': ['var1.nc', 'var2.nc'],
                     'Y': ['var1.nc', 'var2.nc'],
                     'T': ['var1.nc', 'var2.nc'],
@@ -824,7 +824,7 @@ class DatasetDescTests(unittest.TestCase):
         expected = sorted(['t', 'x', 'y', 'w'])
         print_test_message('OutputDatasetDesc.dimensions', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong dimensions')
-    
+
     def test_output_dataset_validate_type_str(self):
         nc3_type_strs = OutputDatasetDesc._NC_TYPES_[3]
         nc4_type_strs = [t for t in OutputDatasetDesc._NC_TYPES_[4] if t not in nc3_type_strs]
@@ -840,7 +840,7 @@ class DatasetDescTests(unittest.TestCase):
                 print '{}: Good'.format(msghdr)
 
             for t in nc4_type_strs:
-                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)                
+                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)
                 self.assertRaises(ValueError, OutputDatasetDesc._validate_netcdf_type_, t, f)
                 print '{}: Failed properly'.format(msghdr)
 
@@ -853,7 +853,7 @@ class DatasetDescTests(unittest.TestCase):
                     self.fail('{}: Failed'.format(msghdr))
                 print '{}: Good'.format(msghdr)
 
-        
+
 #===============================================================================
 # Command-Line Execution
 #===============================================================================

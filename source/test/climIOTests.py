@@ -215,7 +215,7 @@ class climIOTests(unittest.TestCase):
 
     def test_close(self):
 
-        for p in self.io_ports.itervalues():
+        for p in self.io_ports.values():
             f = p.open_file(self.slice)
             f = p.close_file(f)
 

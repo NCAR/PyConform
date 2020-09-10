@@ -337,12 +337,12 @@ class DataFlowTests(unittest.TestCase):
         self.cleanOutputFiles()
 
     def cleanInputFiles(self):
-        for fname in self.filenames.itervalues():
+        for fname in self.filenames.values():
             if exists(fname):
                 remove(fname)
 
     def cleanOutputFiles(self):
-        for fname in self.outfiles.itervalues():
+        for fname in self.outfiles.values():
             if exists(fname):
                 remove(fname)
 
@@ -371,7 +371,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(history=True)
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -390,7 +390,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(chunks={'y': 3})
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -410,7 +410,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(chunks=OrderedDict([('t', 2), ('y', 3)]))
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))

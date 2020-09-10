@@ -190,7 +190,7 @@ class ReadNode(FlowNode):
             raise ValueError(
                 'Variable descriptor {} has no associated files'.format(variable.name))
         self._filepath = None
-        for fdesc in variable.files.itervalues():
+        for fdesc in variable.files.values():
             if fdesc.exists():
                 self._filepath = fdesc.name
                 break
@@ -211,7 +211,7 @@ class ReadNode(FlowNode):
             is_all = True
         elif isinstance(index, (list, tuple)) and all(i == slice(None) for i in index):
             is_all = True
-        elif isinstance(index, dict) and all(v == slice(None) for v in index.itervalues()):
+        elif isinstance(index, dict) and all(v == slice(None) for v in index.values()):
             is_all = True
 
         # Store the reading index

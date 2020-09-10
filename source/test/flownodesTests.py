@@ -645,7 +645,7 @@ class WriteNodeTests(BaseTests):
                            'calendar': t2data.units.calendar},
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2', 'units': str(vdata.units)}}
 
-        dimdescs = {n: DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
+        dimdescs = {n: DimensionDesc(n, s) for x in self.data.values() for n, s in zip(x.dimensions, x.shape)}
         vardescs = {n: VariableDesc(n, datatype=self.data[n].dtype, attributes=self.atts[n],
                                     dimensions=tuple(dimdescs[d] for d in self.data[n].dimensions)) for n in self.data}
         self.vardescs = vardescs
