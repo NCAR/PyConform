@@ -47,7 +47,7 @@ def index_str(index):
         return ':'
     elif isinstance(index, int):
         return str(index)
-    elif isinstance(index, EllipsisType):
+    elif isinstance(index, type(Ellipsis)):
         return '...'
     elif isinstance(index, slice):
         strrep = ''
@@ -81,7 +81,7 @@ def index_tuple(index, ndims):
     idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
-    elocs = [loc for loc, i in enumerate(idx) if isinstance(i, EllipsisType)]
+    elocs = [loc for loc, i in enumerate(idx) if isinstance(i, type(Ellipsis))]
     if len(elocs) == 0:
         nfill = ndims - len(idx)
         if nfill < 0:
