@@ -11,20 +11,20 @@ COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os.path import exists
-from glob import glob
-from json import load as json_load
-from collections import OrderedDict
 from argparse import ArgumentParser, ArgumentTypeError
-from warnings import simplefilter
+from collections import OrderedDict
 from datetime import datetime
+from glob import glob
 from imp import load_source
+from json import load as json_load
+from os.path import exists
+from warnings import simplefilter
 
-from asaptools.simplecomm import create_comm
 from asaptools.partition import Duplicate
+from asaptools.simplecomm import create_comm
 
-from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.dataflow import DataFlow
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.flownodes import ValidationWarning
 
 

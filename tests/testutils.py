@@ -5,10 +5,12 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from re import sub
 from os import linesep
-from numpy import dtype
+from re import sub
+
 from netCDF4 import Dataset
+from numpy import dtype
+
 
 #=======================================================================================================================
 # print_test_message
@@ -51,4 +53,3 @@ def print_ncfile(filename):
             print '{}{}'.format(header, datastr)
             for vattr in vobj.ncattrs():
                 print '         {}: {}'.format(vattr, vobj.getncattr(vattr))
-

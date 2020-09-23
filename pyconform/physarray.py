@@ -10,11 +10,11 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from operator import div, mul
 from os import linesep
-from operator import mul, div
 
-from cf_units import Unit
 import numpy
+from cf_units import Unit
 
 from pyconform.indexing import align_index
 

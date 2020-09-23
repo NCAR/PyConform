@@ -5,14 +5,15 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import operator as op
+import unittest
+
+import numpy as np
+from cf_units import Unit
+
 from pyconform import functions
 from pyconform.physarray import PhysArray
-from cf_units import Unit
 from testutils import print_test_message
-
-import unittest
-import numpy as np
-import operator as op
 
 
 #=========================================================================

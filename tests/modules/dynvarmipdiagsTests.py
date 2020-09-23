@@ -6,7 +6,9 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
+
 import numpy as np
+
 import pyconform.modules.dynvarmipdiags as dvmd
 
 

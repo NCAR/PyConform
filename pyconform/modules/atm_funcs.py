@@ -146,7 +146,3 @@ class tozFunction(Function):
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
 
         return PhysArray(cmordat2d, name=new_name, units='m')
-
-
-
-

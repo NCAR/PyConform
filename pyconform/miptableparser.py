@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import sys
 
+
 #=============================================
 # Parse and Standardize the MIP table.
 # Return a dcitionary that contains the parsed
@@ -643,4 +644,3 @@ class ParseXML(object):
         #    v = total_request[k]
         #    print k, len(v['variables'])
         return total_request
-

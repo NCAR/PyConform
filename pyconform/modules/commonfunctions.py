@@ -3,12 +3,12 @@
 import math
 import time
 
+import numpy as np
 from cf_units import Unit
 from numpy import diff, empty, mean
-import numpy as np
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
+from pyconform.physarray import DimensionsError, PhysArray, UnitsError
 
 #=========================================================================
 # ZonalMeanFunction
@@ -1529,4 +1529,3 @@ class tozFunction(Function):
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
 
         return PhysArray(cmordat2d, name=new_name, units='m')
-

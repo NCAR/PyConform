@@ -5,11 +5,13 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import numpy as np
+import unittest
 from cStringIO import StringIO
+
+import numpy as np
+
 from makeTestData import DataMaker
 from pyconform import mapdates
-import unittest
 
 files = ['test1.nc', 'test2.nc', 'test3.nc']
 

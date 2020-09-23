@@ -8,7 +8,9 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import os,sys
+import os
+import sys
+
 try:
     import Nio
     import netCDF4
@@ -604,6 +606,3 @@ class NetCDF4PyPort(object):
                     all_vars[var_name][0,:] = values[:].astype(t)
                 else:
                     all_vars[var_name][index,:] = values[:].astype(t)
-
-
-

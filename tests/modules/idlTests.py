@@ -6,9 +6,10 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
+
 import numpy as np
 
-from pyconform.modules.idl import deriv, spl_init, spl_interp, int_tabulated
+from pyconform.modules.idl import deriv, int_tabulated, spl_init, spl_interp
 
 
 class Tests(unittest.TestCase):

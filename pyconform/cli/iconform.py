@@ -20,7 +20,6 @@ from dreqPy import dreq
 
 from pyconform import miptableparser
 
-
 #version = 'v'+str(datetime.datetime.now().year)+str(datetime.datetime.now().month).zfill(2)+str(datetime.datetime.now().day).zfill(2)
 version = 'v20190309'
 

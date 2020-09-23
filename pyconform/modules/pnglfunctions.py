@@ -4,8 +4,8 @@ from cf_units import Unit
 from Ngl import vinth2p
 from numpy import diff, empty
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
+from pyconform.physarray import DimensionsError, PhysArray, UnitsError
 
 
 #=======================================================================================================================

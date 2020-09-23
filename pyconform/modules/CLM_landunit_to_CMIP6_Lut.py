@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 
 
-import time, sys
+import sys
+import time
+
 import numpy as np
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
+from pyconform.physarray import DimensionsError, PhysArray, UnitsError
 
 
 class CLM_landunit_to_CMIP6_Lut_Function(Function):

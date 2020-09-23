@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 
-import time, sys
+import sys
+import time
+
 import numpy as np
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
+from pyconform.physarray import DimensionsError, PhysArray, UnitsError
 
 
 class CLM_pft_to_CMIP6_vegtype_Function(Function):
@@ -251,4 +253,3 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
-

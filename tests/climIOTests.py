@@ -6,14 +6,12 @@ See the LICENSE.rst file for details
 """
 
 import unittest
-
-from glob import glob
 from cStringIO import StringIO
-from os import linesep as eol
-from os import remove
+from glob import glob
+from os import linesep as eol, remove
 
-import Nio
 import netCDF4
+import Nio
 import numpy as np
 
 from pyconform import climIO

@@ -5,10 +5,10 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import unittest
+
 from pyconform import parsing
 from testutils import print_test_message
-
-import unittest
 
 
 #=========================================================================

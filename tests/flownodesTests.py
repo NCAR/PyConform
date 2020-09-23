@@ -5,20 +5,29 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.flownodes import FlowNode, DataNode, ReadNode, EvalNode, MapNode, ValidateNode, WriteNode
-from pyconform.physarray import PhysArray, DimensionsError, UnitsError
-from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
-from pyconform.functions import Function, find_operator
-from testutils import print_test_message, print_ncfile
-from cf_units import Unit
-from os.path import exists
-from os import remove
-from glob import glob
-from collections import OrderedDict
-
 import unittest
-import numpy
+from collections import OrderedDict
+from glob import glob
+from os import remove
+from os.path import exists
+
 import netCDF4
+import numpy
+from cf_units import Unit
+
+from pyconform.datasets import DimensionDesc, FileDesc, VariableDesc
+from pyconform.flownodes import (
+    DataNode,
+    EvalNode,
+    FlowNode,
+    MapNode,
+    ReadNode,
+    ValidateNode,
+    WriteNode,
+)
+from pyconform.functions import Function, find_operator
+from pyconform.physarray import DimensionsError, PhysArray, UnitsError
+from testutils import print_ncfile, print_test_message
 
 
 #=======================================================================================================================

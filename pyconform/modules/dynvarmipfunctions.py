@@ -7,9 +7,9 @@ LICENSE: See the LICENSE.rst file for details
 
 import numpy as np
 
-from pyconform.physarray import PhysArray
-from pyconform.functions import Function
 import pyconform.modules.dynvarmipdiags as dvmd
+from pyconform.functions import Function
+from pyconform.physarray import PhysArray
 
 
 #=========================================================================

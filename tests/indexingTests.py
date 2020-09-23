@@ -5,11 +5,12 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.indexing import index_str, index_tuple, join, align_index
-from testutils import print_test_message
-
 import unittest
+
 import numpy
+
+from pyconform.indexing import align_index, index_str, index_tuple, join
+from testutils import print_test_message
 
 
 #===================================================================================================

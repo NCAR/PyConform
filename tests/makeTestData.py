@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 from collections import OrderedDict
 from os import remove
 from os.path import exists
+
 import netCDF4
 import numpy as np
 

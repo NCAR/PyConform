@@ -5,17 +5,24 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import unittest
+from collections import OrderedDict
 from os import remove
 from os.path import exists
-from pyconform.datasets import DimensionDesc, VariableDesc, FileDesc
-from pyconform.datasets import DatasetDesc, InputDatasetDesc, OutputDatasetDesc
-from collections import OrderedDict
-from netCDF4 import Dataset as NCDataset
-from cf_units import Unit
-from testutils import print_test_message
 
 import numpy as np
-import unittest
+from cf_units import Unit
+from netCDF4 import Dataset as NCDataset
+
+from pyconform.datasets import (
+    DatasetDesc,
+    DimensionDesc,
+    FileDesc,
+    InputDatasetDesc,
+    OutputDatasetDesc,
+    VariableDesc,
+)
+from testutils import print_test_message
 
 
 #===============================================================================
