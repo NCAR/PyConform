@@ -1,6 +1,7 @@
 *.spec
 *.pyc
 *.nc
+.cache
 .DS_Store
 temp
 build
