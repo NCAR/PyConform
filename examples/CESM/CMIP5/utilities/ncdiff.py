@@ -4,7 +4,7 @@ ncdiff
 
 Command-Line Utility to show the differences between two NetCDF files
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -94,7 +94,7 @@ def _str(a):
     else:
         return str(a)
 
-        
+
 #=======================================================================================================================
 # diff_dicts
 #=======================================================================================================================
@@ -156,7 +156,7 @@ def _sample_indices(shape, nspot=0):
         samples.append(_rand_interior_indices(shape))
     return samples
 
-    
+
 #=======================================================================================================================
 # main - Main Program
 #=======================================================================================================================
@@ -178,29 +178,29 @@ def main(argv=None):
 
     rtol = args.rtol
     atol = args.atol
-    
+
     ncf1 = Dataset(FILE1)
     ncf2 = Dataset(FILE2)
-    
+
     print
     print 'Displaying differences between the contents of files:'
     print '   {}   <===>   {}'.format(shortf1, shortf2)
-    
+
     # Global file attributes
     f1atts = {a:ncf1.getncattr(a) for a in ncf1.ncattrs()}
     f2atts = {a:ncf2.getncattr(a) for a in ncf2.ncattrs()}
     diff_dicts(f1atts, f2atts, name='Global File Attributes')
-    
+
     # Dimensions
     f1dims = {d:ncf1.dimensions[d] for d in ncf1.dimensions}
     f2dims = {d:ncf2.dimensions[d] for d in ncf2.dimensions}
     diff_dicts(f1dims, f2dims, name='File Dimensions')
-    
+
     # Variable Header Info
     f1vars = {v:ncf1.variables[v] for v in ncf1.variables}
     f2vars = {v:ncf2.variables[v] for v in ncf2.variables}
     diff_dicts(f1vars, f2vars, name='Variable Headers')
-    
+
     f12vars = [v for v in ncf1.variables if v in ncf2.variables]
     vars = [v for v in f12vars if ncf1.variables[v].shape == ncf2.variables[v].shape]
 
@@ -211,7 +211,7 @@ def main(argv=None):
         v1atts = {attr:v1.getncattr(attr) for attr in v1.ncattrs()}
         v2atts = {attr:v1.getncattr(attr) for attr in v1.ncattrs()}
         diff_dicts(v1atts, v2atts, name='Variable {!s} Attributes'.format(v))
-    
+
     # Variable Data
     if not args.header:
         for v in vars:

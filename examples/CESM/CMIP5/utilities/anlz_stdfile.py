@@ -4,7 +4,7 @@ anlz_stdfile
 
 Command-Line Utility to show attributes/definitions/etc in a standardization file
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -43,10 +43,10 @@ def main(argv=None):
     SPECFILE = args.specfile
     if not isfile(SPECFILE):
         raise ValueError('Specfile {} not found'.format(SPECFILE))
-    
+
     with open(SPECFILE) as f:
         spec = json.load(f)
-    
+
     if args.variable is None:
         vars = [v for v in spec]
     else:
@@ -54,7 +54,7 @@ def main(argv=None):
             vars = [args.variable]
         else:
             raise ValueError('Variable {} not found in specfile'.format(args.variable))
-    
+
     undefined = []
     missingdfns = []
     defined = []
@@ -78,7 +78,7 @@ def main(argv=None):
             print '{}:'.format(v)
             for a in vatts:
                 print '   {}: {}'.format(a, vatts[a])
-    
+
     if args.definition:
         for v, vdef in defined:
             print '{} = {}'.format(v, vdef)
@@ -87,7 +87,7 @@ def main(argv=None):
         if len(missingdfns) > 0:
             print
             print 'NO DEFINITIONS: {}'.format(', '.join(missingdfns))
-    
+
 
 #===================================================================================================
 # Command-line Operation

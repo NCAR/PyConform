@@ -4,7 +4,7 @@ anlz_varmeta
 
 Command-Line Utility to analyze variable metadata in CMIP5 data
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -67,19 +67,19 @@ def main(argv=None):
 
     # Attributes with expected differences (to be skipped)
     xkeys = ['table_id', 'history', 'processed_by', 'tracking_id', 'creation_date',
-             'cesm_casename', 'cesm_compset', 'cesm_repotag', 'comment', 'NCO', 
+             'cesm_casename', 'cesm_compset', 'cesm_repotag', 'comment', 'NCO',
              'processing_code_information', 'initialization_method', 'parent_experiment_id',
-             'forcing', 'title', 'parent_experiment', 'physics_version', 'cmor_version', 
+             'forcing', 'title', 'parent_experiment', 'physics_version', 'cmor_version',
              'acknowledgements', 'experiment', 'experiment_id', 'realization',
              'branch_time', 'resolution', 'parent_experiment_rip',
              'modeling_realm', 'source', 'frequency', 'forcing_note']
-    
+
     # Print out skipped attributes
     print 'Attributes to be skipped:'
     for key in sorted(xkeys):
         print '   "{}"'.format(key)
     print
-    
+
     # Find variable attribute differences
     print 'Finding differences in attributes...'
     print

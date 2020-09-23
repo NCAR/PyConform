@@ -5,65 +5,65 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <title>pyconform.datasets &mdash; PyConform 0.2.8 documentation</title>
-  
 
-  
-  
-  
-  
 
-  
+
+
+
+
+
+
   <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
+
+
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
         <script type="text/javascript" src="../../_static/language_data.js"></script>
-    
+
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-    
 
-  
+
+
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
 </head>
 
 <body class="wy-body-for-nav">
 
-   
+
   <div class="wy-grid-for-nav">
-    
+
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
 
-          
+
+
             <a href="../../index.html" class="icon icon-home"> PyConform
-          
 
-          
+
+
           </a>
 
-          
-            
-            
+
+
+
               <div class="version">
                 0.2
               </div>
-            
-          
 
-          
+
+
+
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -72,16 +72,16 @@
   </form>
 </div>
 
-          
+
         </div>
 
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+
+
+
+
+
+
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../readme.html">PyConform</a></li>
@@ -90,28 +90,28 @@
 <li class="toctree-l1"><a class="reference internal" href="../../license.html">Product License</a></li>
 </ul>
 
-            
-          
+
+
         </div>
       </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
-      
+
       <nav class="wy-nav-top" aria-label="top navigation">
-        
+
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">PyConform</a>
-        
+
       </nav>
 
 
       <div class="wy-nav-content">
-        
+
         <div class="rst-content">
-        
-          
+
+
 
 
 
@@ -130,26 +130,26 @@
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
-    
+
       <li><a href="../../index.html">Docs</a> &raquo;</li>
-        
+
           <li><a href="../index.html">Module code</a> &raquo;</li>
-        
+
       <li>pyconform.datasets</li>
-    
-    
+
+
       <li class="wy-breadcrumbs-aside">
-        
+
       </li>
-    
+
   </ul>
 
-  
+
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+
   <h1>Source code for pyconform.datasets</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">DatasetDesc Interface Class</span>
@@ -157,7 +157,7 @@
 <span class="sd">This file contains the interface classes to the input and output multi-file</span>
 <span class="sd">datasets.</span>
 
-<span class="sd">Copyright 2017-2018, University Corporation for Atmospheric Research</span>
+<span class="sd">Copyright 2017-2020, University Corporation for Atmospheric Research</span>
 <span class="sd">LICENSE: See the LICENSE.rst file for details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -215,7 +215,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">typ</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">])</span>
-        
+
 
 <span class="c1">#===================================================================================================</span>
 <span class="c1"># DimensionDesc</span>
@@ -369,7 +369,7 @@
 <span class="sd">            attributes (dict): Dictionary of variable attributes</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
-        
+
         <span class="c1"># Datatype is inheritable, in which case the datatype is set to None</span>
         <span class="k">if</span> <span class="n">datatype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ntype</span> <span class="o">=</span> <span class="kc">None</span>
@@ -410,16 +410,16 @@
     <span class="k">def</span> <span class="nf">datatype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String datatype of the variable&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ntype</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;NumPy dtype of the variable data&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">definition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_definition</span>
-    
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Variable attributes dictionary&quot;&quot;&quot;</span>
@@ -465,7 +465,7 @@
             <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
                 <span class="n">strvals</span> <span class="o">+=</span> <span class="p">[</span><span class="s1">&#39;      </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)]</span>
         <span class="k">return</span> <span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">strvals</span><span class="p">)</span>
-    
+
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dtyp_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">datatype</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;, datatype=</span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datatype</span><span class="p">)</span>
         <span class="n">dimn_str</span> <span class="o">=</span> <span class="s1">&#39;, dimensions=</span><span class="si">{!s}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
@@ -476,7 +476,7 @@
         <span class="sd">&quot;&quot;&quot;Retrieve the units string otherwise None&quot;&quot;&quot;</span>
         <span class="n">ustr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;?&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;since&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">ustr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;?&#39;</span><span class="p">,</span> <span class="s1">&#39;unknown&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">ustr</span></div>
-    
+
 <div class="viewcode-block" id="VariableDesc.refdatetime"><a class="viewcode-back" href="../../datasets.html#pyconform.datasets.VariableDesc.refdatetime">[docs]</a>    <span class="k">def</span> <span class="nf">refdatetime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the reference datetime string, otherwise None&quot;&quot;&quot;</span>
         <span class="n">lstr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="s1">&#39;?&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;since&#39;</span><span class="p">)</span>
@@ -486,7 +486,7 @@
 <div class="viewcode-block" id="VariableDesc.calendar"><a class="viewcode-back" href="../../datasets.html#pyconform.datasets.VariableDesc.calendar">[docs]</a>    <span class="k">def</span> <span class="nf">calendar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Retrieve the calendar attribute, if it exists, otherwise None&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;calendar&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
-    
+
 <div class="viewcode-block" id="VariableDesc.units_attr"><a class="viewcode-back" href="../../datasets.html#pyconform.datasets.VariableDesc.units_attr">[docs]</a>    <span class="k">def</span> <span class="nf">units_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;units&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
@@ -562,7 +562,7 @@
         <span class="k">if</span> <span class="n">deflate</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">deflate</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Deflate value must be in the range 0-9, not </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">deflate</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_deflate</span> <span class="o">=</span> <span class="n">deflate</span>
-        
+
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_list_of_type_</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">VariableDesc</span><span class="p">):</span>
             <span class="n">err_msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Variables in file </span><span class="si">{!r}</span><span class="s1"> must be a list or tuple of type &#39;</span>
                        <span class="s1">&#39;VariableDesc&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
@@ -570,7 +570,7 @@
 
         <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">vdesc</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
-            <span class="n">dimensions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> 
+            <span class="n">dimensions</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dimensions</span> <span class="o">=</span> <span class="n">DimensionDesc</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">dimensions</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">vdesc</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">:</span>
@@ -732,7 +732,7 @@
 
         <span class="k">for</span> <span class="n">fname</span><span class="p">,</span> <span class="n">fdesc</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">vdesc</span> <span class="ow">in</span> <span class="n">fdesc</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">itervalues</span><span class="p">():</span>
-                <span class="n">vdesc</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdesc</span>     
+                <span class="n">vdesc</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdesc</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -894,7 +894,7 @@
                 <span class="n">vkwds</span><span class="p">[</span><span class="s1">&#39;definition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vdef</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">def_wrn</span> <span class="o">=</span> <span class="s1">&#39;No definition given for output variable </span><span class="si">{!r}</span><span class="s1"> in dataset </span><span class="si">{!r}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vname</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-            
+
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">def_wrn</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> Skipping output variable </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">def_wrn</span><span class="p">,</span> <span class="n">vname</span><span class="p">),</span> <span class="n">DefinitionWarning</span><span class="p">)</span>
                 <span class="k">continue</span>
@@ -932,7 +932,7 @@
 
                 <span class="k">if</span> <span class="s1">&#39;format&#39;</span> <span class="ow">in</span> <span class="n">fdict</span><span class="p">:</span>
                     <span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">][</span><span class="s1">&#39;format&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdict</span><span class="p">[</span><span class="s1">&#39;format&#39;</span><span class="p">]</span>
-                
+
                 <span class="k">if</span> <span class="s1">&#39;deflate&#39;</span> <span class="ow">in</span> <span class="n">fdict</span><span class="p">:</span>
                     <span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">][</span><span class="s1">&#39;deflate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fdict</span><span class="p">[</span><span class="s1">&#39;deflate&#39;</span><span class="p">]</span>
 
@@ -948,7 +948,7 @@
                     <span class="k">for</span> <span class="n">mvname</span> <span class="ow">in</span> <span class="n">fdict</span><span class="p">[</span><span class="s1">&#39;metavars&#39;</span><span class="p">]:</span>
                         <span class="k">if</span> <span class="n">mvname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">][</span><span class="s1">&#39;variables&#39;</span><span class="p">]:</span>
                             <span class="n">files</span><span class="p">[</span><span class="n">fname</span><span class="p">][</span><span class="s1">&#39;variables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mvname</span><span class="p">)</span>
-                
+
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">metavars</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vname</span><span class="p">)</span>
 
@@ -976,7 +976,7 @@
                     <span class="c1"># (Scalar variables are excluded and must be included as metadata explicitly)</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">fdims</span><span class="p">):</span>
                         <span class="n">vlist</span><span class="p">[</span><span class="n">mvname</span><span class="p">]</span> <span class="o">=</span> <span class="n">vdesc</span>
-            
+
             <span class="c1"># Loop through the current list of variables and check for any &quot;bounds&quot; or &quot;coordinates&quot; attributes</span>
             <span class="n">mvnames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">vlist</span><span class="p">:</span>
@@ -993,7 +993,7 @@
                             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;Variable </span><span class="si">{}</span><span class="s1"> references a coordinates variable </span><span class="si">{}</span><span class="s1"> that is not &#39;</span>
                                               <span class="s1">&#39;found&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">vdesc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">mvname</span><span class="p">))</span>
                         <span class="n">mvnames</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">mvname</span><span class="p">)</span>
-            
+
             <span class="c1"># Add the bounds and coordinates to the list of variables</span>
             <span class="k">for</span> <span class="n">mvname</span> <span class="ow">in</span> <span class="n">mvnames</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">mvname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vlist</span><span class="p">:</span>
@@ -1002,7 +1002,7 @@
             <span class="c1"># Create the file descriptor</span>
             <span class="n">fdict</span><span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">vlist</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span> <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">vlist</span><span class="p">]</span>
             <span class="n">fdesc</span> <span class="o">=</span> <span class="n">FileDesc</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="o">**</span><span class="n">fdict</span><span class="p">)</span>
-            
+
             <span class="c1"># Validate the variable types for the file descriptor</span>
             <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">vlist</span><span class="p">:</span>
                 <span class="n">vdesc</span> <span class="o">=</span> <span class="n">vlist</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span>
@@ -1014,10 +1014,10 @@
                     <span class="n">vname</span> <span class="o">=</span> <span class="n">vdesc</span><span class="o">.</span><span class="n">name</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s1">&#39;File </span><span class="si">{!r}</span><span class="s1"> of format </span><span class="si">{!r}</span><span class="s1"> cannot write variable </span><span class="si">{!r}</span><span class="s1"> with &#39;</span>
                                       <span class="s1">&#39;datatype </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fformat</span><span class="p">,</span> <span class="n">vname</span><span class="p">,</span> <span class="n">vdtype</span><span class="p">))</span>
-                
+
             <span class="c1"># Append the validated file descriptor to the list</span>
             <span class="n">filedescs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fdesc</span><span class="p">)</span>
-                             
+
         <span class="c1"># Call the base class to run self-consistency checks</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">OutputDatasetDesc</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">files</span><span class="o">=</span><span class="n">filedescs</span><span class="p">)</span>
 
@@ -1039,20 +1039,20 @@
 </pre></div>
 
            </div>
-           
+
           </div>
           <footer>
-  
+
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, University Corporation for Atmospheric Research
+        &copy; Copyright 2017-2020, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
 
 </footer>
 
@@ -1062,7 +1062,7 @@
     </section>
 
   </div>
-  
+
 
 
   <script type="text/javascript">
@@ -1071,10 +1071,10 @@
       });
   </script>
 
-  
-  
-    
-   
+
+
+
+
 
 </body>
 </html>

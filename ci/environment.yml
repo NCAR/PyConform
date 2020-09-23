@@ -1,0 +1,21 @@
+name: pyconform
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - bumpversion
+  - coverage
+  - mpi4py
+  - netcdf4
+  - numpy
+  - pip
+  - ply
+  - pynio
+  - pyngl
+  - pytest
+  - pytest-cov
+  - python-dateutil
+  - pip:
+    - asaptools
+    - cf_units
+    - dreqPy
