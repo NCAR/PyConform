@@ -1,16 +1,16 @@
 #! /usr/bin/env python
 """
-PyConform - Command-Line Interface 
+PyConform - Command-Line Interface
 
-This command-line tool creates the 
+This command-line tool creates the
 
-COPYRIGHT: 2017, University Corporation for Atmospheric Research
+COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
 import argparse, os, sys
 import json
-from pyconform import miptableparser 
+from pyconform import miptableparser
 from dateutil.parser import parse
 import datetime
 from dreqPy import dreq
@@ -22,15 +22,15 @@ version = 'v20190309'
 
 # Map netcdf types to python types
 #data_types = {'char': 'char', 'byte': 'int8', 'short': 'int16', 'int': 'int32',
-#              'float': 'float32', 'real': 'float32', 'double': 'float64', 
+#              'float': 'float32', 'real': 'float32', 'double': 'float64',
 #              'character':'char', 'integer':'int32'}
 data_types = {'char': 'char', 'byte': 'byte', 'short': 'short', 'int': 'int',
               'float': 'float', 'real': 'real', 'double': 'double',
               'character':'char', 'integer':'int'}
 
 # The way the date should be formatted in the filenames
-#date_strings = {'yr': '{%Y-%Y}', 'mon': '{%Y%m-%Y%m}', 'monClim': '{%Y%m-%Y%m-clim}', 
-#                'day': '{%Y%m%d-%Y%m%d}', '6hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', 
+#date_strings = {'yr': '{%Y-%Y}', 'mon': '{%Y%m-%Y%m}', 'monClim': '{%Y%m-%Y%m-clim}',
+#                'day': '{%Y%m%d-%Y%m%d}', '6hr': '{%Y%m%d%H%M-%Y%m%d%H%M}',
 #                '3hr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hr': '{%Y%m%d%H%M-%Y%m%d%H%M}',
 #                'subhr': '{%Y%m%d%H%M-%Y%m%d%H%M}', '1hrClimMon': '{%Y%m%d%H%M-%Y%m%d%H%M-clim}'}
 date_strings = {"1hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
@@ -38,8 +38,8 @@ date_strings = {"1hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
                 "1hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
                 "3hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
                 "3hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
-                "6hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}', 
-                "6hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}', 
+                "6hr":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
+                "6hrPt":'_{%Y%m%d%H%M-%Y%m%d%H%M}',
                 "day":'_{%Y%m%d-%Y%m%d}',
                 "dec":'_{%Y-%Y}',
                 "fx":'',
@@ -65,7 +65,7 @@ def parseArgs(argv = None):
     parser.add_argument('-d', '--defFile', default=None, type=str,
                         help='A file listing the variable definitions.', required=True)
     parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
-                        help='A file listing the global attributes that ' 
+                        help='A file listing the global attributes that '
                              'are common to all files.')
     parser.add_argument('-e', '--exp', default='None', type=str,
                         help='The name of the experiment.')
@@ -88,7 +88,7 @@ def parseArgs(argv = None):
 
 
 #===================================================================================================
-# load - Load the definition file - translations from  model variables to requested variables 
+# load - Load the definition file - translations from  model variables to requested variables
 #===================================================================================================
 def load(defs,key=None):
 
@@ -142,7 +142,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
       if d is not None:
         if "__FILL__" in d:
             if "activity_id" in a and "activity_id" in table:
-                attr["activity_id"] = table["activity_id"] 
+                attr["activity_id"] = table["activity_id"]
             elif "creation_date" in a:
                 attr["creation_date"]=""
             elif "data_specs_version" in a and "data_specs_version" in table:
@@ -180,7 +180,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             elif "frequency" in a:
                 attr["frequency"] = v["frequency"]
             elif "realm" in a and "realm" in v.keys():
-                attr["realm"] = v["realm"]            
+                attr["realm"] = v["realm"]
             elif "table_id" in a:
                 attr["table_id"] = v['mipTable']
             elif "tracking_id" in a:
@@ -196,7 +196,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             if "branch_time_in_child" in attr.keys():
               if len(attr["branch_time_in_child"])>0:
                 try:
-                    attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0]) 
+                    attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0])
                 except ValueError as e:
                     attr["branch_time_in_child"] = attr["branch_time_in_child"].split('D')[0]
             if "branch_time_in_parent" in attr.keys():
@@ -217,7 +217,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
                 attr["parent_time_units"] = "days since 0001-01-01 00:00:00"
             else:
                 attr["parent_time_units"] = "none"
-        else: 
+        else:
           if "branch_time_in_child" in attr.keys():
               attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0])
           if "branch_time_in_parent" in attr.keys():
@@ -253,7 +253,7 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 
     if "further_info_url" in attr.keys():
         url_ok = True
-        if "__FILL__" in attr["further_info_url"]:       
+        if "__FILL__" in attr["further_info_url"]:
             if 'mip_era' in attr.keys():
                 mip_era = attr['mip_era']
             else:
@@ -337,7 +337,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     else:
         activity_id = ''
     if '__FILL__' in activity_id:
-        activity_id = 'None' 
+        activity_id = 'None'
     if 'institution_id' in attributes.keys():
         institution_id = attributes['institution_id']
     else:
@@ -361,12 +361,12 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     valid_formats = ['NETCDF4','NETCDF4_CLASSIC','NETCDF3_CLASSIC','NETCDF3_64BIT_OFFSET','NETCDF3_64BIT_DATA']
     if f_format not in valid_formats:
        print 'ERROR: ', f_format, ' is not a valid format.  Please choose from ',valid_formats
-       sys.exit(-9) 
+       sys.exit(-9)
     attributes.pop('netcdf_type',None)
-   
-    if 'NETCDF4' in f_format: 
+
+    if 'NETCDF4' in f_format:
         if 'compression' in attributes.keys():
-            compression = attributes['compression'] 
+            compression = attributes['compression']
             attributes.pop('compression',None)
         else:
             compression = None
@@ -375,9 +375,9 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
             shuffle = attributes['shuffle']
             attributes.pop('shuffle',None)
         else:
-            shuffle = None 
+            shuffle = None
     else:
-        compression = None   
+        compression = None
         shuffle = None
 
     # Put together the filename
@@ -390,7 +390,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
 
     f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
                out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
-               vid, grid, version, 
+               vid, grid, version,
                vid, mipTable, source_id, experiment, ripf, grid, dst))
     var = {}
 
@@ -398,9 +398,9 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     for a in attributes.keys():
         if isinstance(attributes[a],str):
             if '__FILL__' in attributes[a]:
-                attributes[a] = '' 
+                attributes[a] = ''
 
-    # put together the dictionary entry for this variable    
+    # put together the dictionary entry for this variable
     var["attributes"] = v2
     var["definition"] = definition
     if ig:
@@ -410,7 +410,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     var["file"]["attributes"]["variant_label"] = ripf
     var["attributes"]["comment"] = definition
     var["file"]["filename"] = f_name
-    var["file"]["format"] = f_format 
+    var["file"]["format"] = f_format
     if compression is not None:
         var["file"]["compression"] = compression
     if shuffle is not None:
@@ -438,7 +438,7 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
         var["dimensions"] = list(reversed(v['coordinates'].split('|')))
         var["attributes"]['coordinates'] = ' '.join(list(reversed(v['coordinates'].split('|'))))
         #var["attributes"].pop('coordinates')
-    else: 
+    else:
         var["dimensions"] = []
 
     # return the variable dictionary with all pieces added
@@ -455,7 +455,7 @@ def defineAxes(v, name):
     var = {}
     v2 = dict(v)
 
-    # remove all of the attributes that have no values    
+    # remove all of the attributes that have no values
     for key,value in v.iteritems():
         if value == '':
             v2.pop(key,None)
@@ -477,7 +477,7 @@ def defineAxes(v, name):
                 req = v['requested']
             if len(req) > 0:
                 var['definition'] = req
-            #var['definition'] =  v['requested'] 
+            #var['definition'] =  v['requested']
     var['dimensions'] = [name]
 
     # return the variable dictionary with all pieces added
@@ -496,9 +496,9 @@ def getUserVars(fn):
         for vr in f:
             vr = vr.strip()
             if vr != "":
-                variables.append(vr) 
+                variables.append(vr)
 
-    return variables 
+    return variables
 
 
 #===================================================================================================
@@ -585,7 +585,7 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
 
         ReqSpec["variables"] = var_list
 
-        
+
     # create json files per MIP+table
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -638,13 +638,13 @@ def create_non_mip_output(variables, definitions, outputpath):
             vs[vn]['definition'] = definitions[vn]
             if len(var) > 1:
                 vs[vn]['dimensions'] = var[1].split('.')
-            vs[vn]['filename'] = output_path+'/'+vn+'_'+fn_prefix+'.nc' 
+            vs[vn]['filename'] = output_path+'/'+vn+'_'+fn_prefix+'.nc'
             # get the dimensions
             for d in vs[vn]['dimensions']:
                 if d not in vs.keys():
                     vs[d] = {}
-                    vs[d]['definition'] = definitions[d] 
-                    vs[d]['dimensions'] = d    
+                    vs[d]['definition'] = definitions[d]
+                    vs[d]['dimensions'] = d
         else:
             missing.append(vn)
     spec["variables"] = vs
@@ -652,9 +652,9 @@ def create_non_mip_output(variables, definitions, outputpath):
 
     # Write output json file
     if not os.path.exists(outputpath):
-        os.makedirs(outputpath)           
- 
-    f = outputpath + '/user_defined.json' 
+        os.makedirs(outputpath)
+
+    f = outputpath + '/user_defined.json'
     with open(f, 'w') as outfile:
         json.dump(spec, outfile, sort_keys=True, indent=4)
 
@@ -663,10 +663,10 @@ def create_non_mip_output(variables, definitions, outputpath):
 # main
 #===================================================================================================
 def main(argv=None):
-   
+
     args = parseArgs(argv)
-    
-    print "\n" 
+
+    print "\n"
     print "------------------------------------------"
     print 'Running createOutputSpecs with these args:\n'
     print 'Variable Definitions: ', args.defFile
@@ -695,18 +695,18 @@ def main(argv=None):
             if os.path.isfile(gaFile):
                 if "json" in gaFile:
                     print 'opening ',gaFile
-                    with open(gaFile) as gaF: 
+                    with open(gaFile) as gaF:
                         ga = json.load(gaF)
                     for k in ga.keys():
                         if ga[k] is None:
                             ga[k] = ""
-                    attributes.update(ga)             
+                    attributes.update(ga)
                 else:
                     with open(gaFile) as y_attributes:
                         attributes = load(y_attributes,key="ga")["ga"]
                         #print 'GLOBAL ATTRIBUTES: ',attributes
             else:
-                if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):    
+                if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):
                     print 'Global Attributes file does not exist: ',args.globalAttrFile
                     os.sys.exit(1)
 
@@ -721,7 +721,7 @@ def main(argv=None):
     tables = args.miptables.split(',')
     if tables[0] == 'None':
         tables = ['--ALL--']
-   
+
     dq = dreq.loadDreq()
 #S    if '--ALL--' in exps:
 #S        exps = dq.inx.experiment.label.keys()
@@ -737,7 +737,7 @@ def main(argv=None):
     if 'None' in args.mipTableType.capitalize():
         create_non_mip_output(variables, definitions, args.outputpath)
     else:
-        for exp in exps: 
+        for exp in exps:
             exp_dict = miptableparser.mip_table_parser(exp, mips, tables, variables, type=args.mipTableType)
 
             if len(exp_dict.keys())>0:

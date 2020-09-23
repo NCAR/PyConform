@@ -18,8 +18,13 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../source'))
+import configparser
 
+sys.path.insert(0, os.path.abspath('../../pyconform'))
+
+cfg = configparser.ConfigParser()
+cfg.read('../../setup.cfg')
+__version__ = cfg['bumpversion']['current_version']
 
 # -- General configuration ------------------------------------------------
 
@@ -50,15 +55,13 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'PyConform'
-copyright = u'2017, University Corporation for Atmospheric Research'
+copyright = u'2017-2020, University Corporation for Atmospheric Research'
 author = u'Kevin Paul, Sheri Mickelson'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# Read the version info from the source directory
-exec(open('../../source/pyconform/version.py').read())
 # The short X.Y version.
 version = '.'.join(__version__.split('.')[:-1])
 # The full version, including alpha/beta/rc tags.

@@ -6,21 +6,43 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 See the LICENSE.rst file for details
 """
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
-exec(open('source/pyconform/version.py').read())
+__version__ = '0.3.0'
 
-setup(name='PyConform',
-      version=__version__,
-      description='Parallel Python NetCDF Dataset Standardization Tool',
-      author='Kevin Paul',
-      author_email='kpaul@ucar.edu',
-      url='https://github.com/NCAR/PyConform',
-      download_url='https://github.com/NCAR/PyConform/tarball/v' + __version__,
-      license='https://github.com/NCAR/PyConform/blob/master/LICENSE.rst',
-      packages=['pyconform', 'pyconform.modules'],
-      package_dir={'pyconform': 'source/pyconform', 'pyconform.modules': 'source/pyconform/modules'},
-      package_data={'pyconform': ['LICENSE.rst']},
-      scripts=['scripts/iconform', 'scripts/xconform', 'scripts/vardeps'],
-      install_requires=['asaptools', 'netCDF4', 'ply']
-      )
+with open('README.rst', 'r') as fh:
+    long_description = fh.read()
+
+with open('requirements.txt') as f:
+    install_requires = f.read().strip().split('\n')
+
+setup(
+    name='PyConform',
+    version=__version__,
+    author='Kevin Paul',
+    author_email='kpaul@ucar.edu',
+    description='Parallel Python NetCDF Dataset Standardization Tool',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
+    url='https://github.com/NCAR/PyConform',
+    packages=find_packages(exclude=["tests"]),
+    classifiers=[
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'License :: OSI Approved :: Apache Software License',
+        'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering',
+        'Topic :: Scientific/Engineering :: Atmospheric Science',
+        'Topic :: Utilities',
+    ],
+    python_requires='>=2.7',
+    entry_points="""
+        [console_scripts]
+        iconform=pyconform.cli.iconform:main
+        vardeps=pyreshaper.cli.vardeps:main
+        xconform=pyreshaper.cli.xconform:main
+        """,
+    install_requires=install_requires,
+)

@@ -7,7 +7,7 @@ JSON-formatted file specifying the output variables, files and formats, and how 
 the output variables from input variables) and a collection of "input NetCDF files" containing
 the data to be standardized.
 
-COPYRIGHT: 2017, University Corporation for Atmospheric Research
+COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

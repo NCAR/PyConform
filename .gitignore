@@ -8,3 +8,4 @@ dist
 PyConform.egg-info
 .idea/
 .vscode/
+__pycache__

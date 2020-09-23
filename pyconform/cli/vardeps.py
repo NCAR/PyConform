@@ -4,7 +4,7 @@ vardeps - Find variable dependencies
 
 Find output variable dependencies in a definitions file or a standardization JSON file
 
-COPYRIGHT: 2017, University Corporation for Atmospheric Research
+COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
