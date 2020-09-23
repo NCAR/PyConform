@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
-from pyconform.functions import Function, is_constant
+import math
+import time
+
 from cf_units import Unit
 from numpy import diff, empty, mean
 import numpy as np
-import math
-import time
+
+from pyconform.physarray import PhysArray, UnitsError, DimensionsError
+from pyconform.functions import Function, is_constant
 
 #=========================================================================
 # ZonalMeanFunction
@@ -42,7 +44,7 @@ class OclimFunction(Function):
             raise TypeError('oclim: Data must be a PhysArray')
 
     def __getitem__(self, index):
- 
+
         data = self.arguments[0][index]
         new_name = 'oclim({})'.format(data.name)
 
@@ -51,7 +53,7 @@ class OclimFunction(Function):
                 return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]], units=data.units)
             elif len(data.dimensions) == 4:
                 return PhysArray(np.zeros((0, 0, 0, 0)), units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
-       
+
         if len(data.dimensions) == 3:
             a = np.ma.zeros((12,data.data.shape[1],data.data.shape[2]))
         elif len(data.dimensions) == 4:
@@ -62,7 +64,7 @@ class OclimFunction(Function):
         dataD = data.data
 
         for i in range(12):
-            a[i,...] = np.ma.mean(dataD[i::12,...],axis=0)  
+            a[i,...] = np.ma.mean(dataD[i::12,...],axis=0)
 
         a[a>=1e+16] = 1e+20
         a = np.ma.masked_values(a, 1e+20)
@@ -96,7 +98,7 @@ class oclim_timeFunction(Function):
 
         b = np.zeros((12))
         for i in range(12):
-            b[i] = (time_bnds[i][0]+time_bnds[i][1])/2        
+            b[i] = (time_bnds[i][0]+time_bnds[i][1])/2
 
         new_name = 'oclim_time({})'.format(p_time_bnds.name)
 
@@ -184,7 +186,7 @@ class monthtoyear_noleapFunction(Function):
             a1 = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2]])
         elif dim_count == 4:
             a1 = PhysArray(a, name = new_name,  units=data.units, dimensions=[data.dimensions[0], data.dimensions[1], data.dimensions[2], data.dimensions[3]])
-      
+
         return a1
 
 
@@ -418,7 +420,7 @@ class YeartoMonth_dataFunction(Function):
         time = p_time.data
         lat = p_lat.data
         lon = p_lon.data
-       
+
         if time[0] == 0:
             a = np.ma.zeros(((len(time)-1)*12,len(lat),len(lon)))
         else:
@@ -435,7 +437,7 @@ class YeartoMonth_dataFunction(Function):
         a = np.ma.masked_values(a, 1e+20)
         new_name = 'yeartomonth_data({}{}{}{})'.format(p_data.name, p_time.name, p_lat.name, p_lon.name)
 
-        return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data.units)                 
+        return PhysArray(a, name = new_name, dimensions=[p_time.dimensions[0],p_lat.dimensions[0],p_lon.dimensions[0]], units=p_data.units)
 
 
 #===================================================================================================
@@ -583,7 +585,7 @@ class diff_axis1_ind0bczero_4dFunction(Function):
             a[:, 1:, :, :] = np.diff(data, axis=1)
 
             #fv = data.fill_value
-            fv = 1e+20 
+            fv = 1e+20
             for t in range(p_data.shape[0]):
                 for k in range(p_data.shape[1]):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
@@ -963,8 +965,8 @@ class cice_regionsFunction(Function):
         a = np.ma.zeros((aice.shape[0], siline.shape[0]))
 
         uvel[uvel >= 1e+16] = 0.0
-        vvel[vvel >= 1e+16] = 0.0  
- 
+        vvel[vvel >= 1e+16] = 0.0
+
         for t in range(aice.shape[0]):
             # 1
             i = 92
@@ -981,7 +983,7 @@ class cice_regionsFunction(Function):
             for j in range(375, 377):
                 if aice[t, j, i] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
-                elif aice[t, j, i + 1] >= 1e+16: 
+                elif aice[t, j, i + 1] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
                 elif aice[t, j + 1, i] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j + 1, i
@@ -992,7 +994,7 @@ class cice_regionsFunction(Function):
             for i in range(240, 244):
                 if aice[t, j, i] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j, i
-                elif aice[t, j, i + 1] >= 1e+16: 
+                elif aice[t, j, i + 1] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j, i + 1
                 elif aice[t, j + 1, i] >= 1e+16:
                     print "CICE aice WARNING: this point should not contain a missing value ",t, j + 1, i
@@ -1044,7 +1046,7 @@ class burntFractionFunction(Function):
         data = p_data.data
 
         ml = [31.0, 28.0, 31.0, 30.0, 31.0,
-                   30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0] 
+                   30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0]
 
         a = np.ma.zeros((data.shape[0], data.shape[1], data.shape[2]))
 
@@ -1169,7 +1171,7 @@ class get_nonwoodyvegFunction(Function):
                 for j in range(p_pct_nat_pft.shape[3]):
                     if landfrac[i,j] <= 1.0:
                         data[t, 1, i, j] = 0.0
-                        if pct_crop[t,1,i,j] > 0.0: 
+                        if pct_crop[t,1,i,j] > 0.0:
                             data[t, 2, i, j] = 100.0
                         else:
                             data[t, 2, i, j] = 0.0
@@ -1323,7 +1325,7 @@ class emilnoxFunction(Function):
         dlon = lon[1]-lon[0]
         dlat = lat[1]-lat[0]
 
-        dx = Rearth * np.cos(lat/deg_rad) * dlon/deg_rad  #m        
+        dx = Rearth * np.cos(lat/deg_rad) * dlon/deg_rad  #m
         dy = Rearth * dlat /deg_rad   #m
 
         pres = np.zeros((nmon,nlev,nlat,nlon))
@@ -1331,20 +1333,20 @@ class emilnoxFunction(Function):
         rho = np.zeros((nmon,nlev,nlat,nlon))
         delp = np.zeros((nmon,nlev,nlat,nlon))
         area = np.zeros((nmon,nlev,nlat,nlon))
-        
+
 #        print "Start of main assignment loop:", time.ctime()
         for imon in range(nmon):
             for ilon in range(nlon):
                 for ilat in range(nlat):
-                    presi[imon,:,ilat,ilon] = (hyai[:]*p0 + hybi[:]*psurf[imon,ilat,ilon])    #Pa 
+                    presi[imon,:,ilat,ilon] = (hyai[:]*p0 + hybi[:]*psurf[imon,ilat,ilon])    #Pa
                     pres[imon,:,ilat,ilon] =  (hyam[:]*p0 + hybm[:]*psurf[imon,ilat,ilon])
                     area[imon,:,ilat,ilon] = dx[ilat] *dy #m2
-#        print "End of main assignment loop:", time.ctime() 
+#        print "End of main assignment loop:", time.ctime()
 
 #        print "Start of rho assignment:", time.ctime()
         rho = pres/(287.04*temp)
 #        print "End of rho assignment:", time.ctime()
-  
+
 #        print "Start of delp assignment loop:", time.ctime()
         for i in range(nlev)[::-1]:
             delp[:,i,:,:] = presi[:,i,:,:]-presi[:,i+1,:,:]

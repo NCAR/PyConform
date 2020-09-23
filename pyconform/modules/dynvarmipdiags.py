@@ -8,6 +8,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import numpy
+
 from pyconform.modules.idl import deriv, int_tabulated
 
 # Constants

@@ -19,9 +19,6 @@ import numpy as np
 from pyconform import climIO
 
 
-#===============================================================================
-# climIOTests
-#===============================================================================
 class climIOTests(unittest.TestCase):
 
     def setUp(self):

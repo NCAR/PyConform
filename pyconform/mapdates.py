@@ -8,10 +8,12 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import climIO
-from dateutil import parser
 import os
+
 import cf_units
+from dateutil import parser
+
+import climIO
 
 
 #=============================================

@@ -6,10 +6,12 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from abc import ABCMeta, abstractmethod
-from pyconform.physarray import PhysArray, UnitsError, getname
-from numpy.ma import sqrt, where
+
 from cf_units import Unit
 import numpy as np
+from numpy.ma import sqrt, where
+
+from pyconform.physarray import PhysArray, UnitsError, getname
 
 
 #=========================================================================

@@ -7,19 +7,20 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from datetime import datetime
+from os.path import exists, dirname
+from os import makedirs, rename
+from collections import OrderedDict
+from warnings import warn
+
+from cf_units import Unit, num2date
+from netCDF4 import Dataset
+import numpy
+
 from pyconform.indexing import index_str, join, align_index, index_tuple
 from pyconform.physarray import PhysArray, CharArray
 from pyconform.datasets import VariableDesc, FileDesc
 from pyconform.functions import Function
-from cf_units import Unit, num2date
-from datetime import datetime
-from os.path import exists, dirname
-from os import makedirs, rename
-from netCDF4 import Dataset
-from collections import OrderedDict
-from warnings import warn
-
-import numpy
 
 
 #=========================================================================

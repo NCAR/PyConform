@@ -8,11 +8,12 @@ COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform import parsing
-from json import load
-from collections import OrderedDict
 from argparse import ArgumentParser
+from collections import OrderedDict
+from json import load
 from os.path import exists
+
+from pyconform import parsing
 
 
 #=========================================================================

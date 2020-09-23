@@ -8,13 +8,17 @@ COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import argparse, os, sys
-import json
-from pyconform import miptableparser
-from dateutil.parser import parse
+import argparse
 import datetime
-from dreqPy import dreq
+import json
+import os
+import sys
 import uuid
+
+from dateutil.parser import parse
+from dreqPy import dreq
+
+from pyconform import miptableparser
 
 
 #version = 'v'+str(datetime.datetime.now().year)+str(datetime.datetime.now().month).zfill(2)+str(datetime.datetime.now().day).zfill(2)

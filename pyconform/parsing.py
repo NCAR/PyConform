@@ -8,8 +8,9 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from ply import lex, yacc
 from collections import namedtuple
+
+from ply import lex, yacc
 
 tokens = ('UINT', 'UFLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
 literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')

@@ -34,6 +34,7 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 from types import EllipsisType
+
 from numpy import index_exp
 
 

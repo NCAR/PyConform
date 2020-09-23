@@ -12,10 +12,12 @@ from os import linesep
 from os.path import exists
 from copy import deepcopy
 from collections import OrderedDict
+from warnings import warn
+
 from numpy import dtype
 from netCDF4 import Dataset as NC4Dataset
 from cf_units import Unit
-from warnings import warn
+
 from pyconform.physarray import PhysArray
 
 

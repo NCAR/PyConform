@@ -3,6 +3,7 @@
 
 import time, sys
 import numpy as np
+
 from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
 
@@ -17,7 +18,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
         super(CLM_landunit_to_CMIP6_Lut_Function, self).__init__(EFLX_LH_TOT, vegType, ntim, nlat, nlon, grid1d_ixy, grid1d_jxy, grid1d_lon,
                               grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
                               land1d_active, land1d_wtgcell, landUse)
-  
+
 
     def __getitem__(self, index):
 
@@ -43,7 +44,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
             else:
                 return PhysArray(np.zeros((0,0,0)), dimensions=[pntim.dimensions[0],pnlat.dimensions[0],pnlon.dimensions[0]])
 
-        EFLX_LH_TOT = pEFLX_LH_TOT.data 
+        EFLX_LH_TOT = pEFLX_LH_TOT.data
         ntim = pntim.data
         nlat = pnlat.data
         nlon = pnlon.data
@@ -74,7 +75,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
         #varo_lut = np.ma.masked_values(varo_lut_temp, missing)
         varo_lut = np.zeros([len(ntim),4,len(nlat),len(nlon)])
 	# Set pasture to fill value
-	varo_lut[:,pasture,:,:] = 1e+20 
+	varo_lut[:,pasture,:,:] = 1e+20
 
 	# If 1, landunit is active
 	active_lunit = 1
@@ -96,7 +97,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 	for ixy in range(len(nlon)):
 	    for jxy in range(len(nlat)):
 
-		grid_indx = -99 
+		grid_indx = -99
 		# 1d grid index
 		ind_comp = (ixy+1,jxy+1)
 		gi = np.where(np.all(ind==ind_comp, axis=1))[0]
@@ -108,15 +109,15 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 		landunit_indx_urban = 0.0
 		# Check for valid land gridcell
 		if grid_indx != -99:
-     
+
 		    # Gridcell lat/lons
 		    grid1d_lon_pt = grid1d_lon[grid_indx]
 		    grid1d_lat_pt = grid1d_lat[grid_indx]
 
 		    # veg landunit index for this gridcell
-		    t_var = (grid1d_lon_pt, grid1d_lat_pt, active_lunit, veg_lunit) 
+		    t_var = (grid1d_lon_pt, grid1d_lat_pt, active_lunit, veg_lunit)
 		    landunit_indx_veg = np.where(np.all(t_var == t, axis=1) * (land1d_wtgcell>0))[0]
-		    
+
 		    # crop landunit index for this gridcell
 		    t_var = (grid1d_lon_pt, grid1d_lat_pt, active_lunit, crop_lunit)
 		    landunit_indx_crop = np.where(np.all(t_var == t, axis=1) * (land1d_wtgcell>0))[0]
@@ -125,17 +126,17 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 		    t_var = (grid1d_lon_pt, grid1d_lat_pt, active_lunit)
 		    landunit_indx_urban = np.where( np.all(t_var == tu, axis=1) * (land1d_ityplunit>=beg_urban_lunit) * (land1d_ityplunit<=end_urban_lunit) * (land1d_wtgcell>0))[0]
 
-		    # Check for valid veg landunit 
+		    # Check for valid veg landunit
 		    if landunit_indx_veg.size > 0:
 			varo_lut[:,veg,jxy,ixy] = EFLX_LH_TOT[:,landunit_indx_veg].squeeze()
 		    else:
-			varo_lut[:,veg,jxy,ixy] = 1e+20 
+			varo_lut[:,veg,jxy,ixy] = 1e+20
 
 		    # Check for valid crop landunit
 		    if landunit_indx_crop.size > 0:
 			varo_lut[:,crop,jxy,ixy] = EFLX_LH_TOT[:,landunit_indx_crop].squeeze()
 		    else:
-			varo_lut[:,crop,jxy,ixy] = 1e+20 
+			varo_lut[:,crop,jxy,ixy] = 1e+20
 
 		    # Check for valid urban landunit and compute weighted-average
 		    if landunit_indx_urban.size > 0:
@@ -149,27 +150,27 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
 			#varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights)
                         varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights, axis=1)
 		    else:
-			varo_lut[:,urban,jxy,ixy] = 1e+20 
+			varo_lut[:,urban,jxy,ixy] = 1e+20
                 else:
-                    varo_lut[:,:,jxy,ixy] = 1e+20 
+                    varo_lut[:,:,jxy,ixy] = 1e+20
 
-        new_name = 'CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})'.format(pEFLX_LH_TOT.name, 
+        new_name = 'CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})'.format(pEFLX_LH_TOT.name,
                               pntim.name, pnlat.name, pnlon.name, pgrid1d_ixy.name, pgrid1d_jxy.name, pgrid1d_lon.name,
                               pgrid1d_lat.name, pland1d_lon.name, pland1d_lat.name, pland1d_ityplunit.name,
-                              pland1d_active.name, pland1d_wtgcell.name) 
+                              pland1d_active.name, pland1d_wtgcell.name)
 
         varo_lut[varo_lut>=1e+15] = 1e+20
-        mvaro_lut = np.ma.masked_values(varo_lut, 1e+20) 
+        mvaro_lut = np.ma.masked_values(varo_lut, 1e+20)
 
-        if 'crop' in vegType:  
+        if 'crop' in vegType:
 	    return PhysArray(mvaro_lut[:,crop,:,:],  name=new_name, units=pEFLX_LH_TOT.units)
-        elif 'veg' in vegType:         
+        elif 'veg' in vegType:
             return PhysArray(mvaro_lut[:,veg,:,:],  name=new_name, units=pEFLX_LH_TOT.units)
-        elif 'urban' in vegType:         
+        elif 'urban' in vegType:
             return PhysArray(mvaro_lut[:,urban,:,:],  name=new_name, units=pEFLX_LH_TOT.units)
-        elif 'pasture' in vegType:         
+        elif 'pasture' in vegType:
             return PhysArray(mvaro_lut[:,pasture,:,:],  name=new_name, units=pEFLX_LH_TOT.units)
-        elif 'nlut' in vegType:         
+        elif 'nlut' in vegType:
             return PhysArray(mvaro_lut[:,nlut,:,:],  name=new_name, units=pEFLX_LH_TOT.units)
         elif 'all' in vegType:
             return PhysArray(mvaro_lut,  name=new_name, units=pEFLX_LH_TOT.units)

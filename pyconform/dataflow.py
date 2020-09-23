@@ -16,17 +16,18 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+from warnings import warn
+
+from asaptools.simplecomm import create_comm, SimpleComm
+from asaptools.partition import WeightBalanced
+import numpy
+
 from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
 from pyconform.parsing import parse_definition, VarType, FuncType, OpType
 from pyconform.functions import find_operator, find_function
 from pyconform.physarray import PhysArray
 from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
 from pyconform.flownodes import MapNode, ValidateNode, WriteNode
-from asaptools.simplecomm import create_comm, SimpleComm
-from asaptools.partition import WeightBalanced
-from warnings import warn
-
-import numpy
 
 
 #=========================================================================

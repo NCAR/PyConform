@@ -10,12 +10,13 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.indexing import align_index
-from cf_units import Unit
 from os import linesep
 from operator import mul, div
 
+from cf_units import Unit
 import numpy
+
+from pyconform.indexing import align_index
 
 _ALPHAS_ = 'abcdefghijklmnopqrstuvwxyz'
 

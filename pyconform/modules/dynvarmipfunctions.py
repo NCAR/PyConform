@@ -5,11 +5,11 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import numpy as np
+
 from pyconform.physarray import PhysArray
 from pyconform.functions import Function
-
 import pyconform.modules.dynvarmipdiags as dvmd
-import numpy as np
 
 
 #=========================================================================
