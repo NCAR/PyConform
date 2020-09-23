@@ -17,4 +17,5 @@ dependencies:
   - python-dateutil
   - pip:
     - asaptools
+    - cf_units
     - dreqPy
