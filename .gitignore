@@ -10,3 +10,5 @@ PyConform.egg-info
 .idea/
 .vscode/
 __pycache__
+.coverage*
+coverage.xml
