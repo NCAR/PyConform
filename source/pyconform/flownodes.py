@@ -3,7 +3,7 @@ Data Flow Node Classes and Functions
 
 This module contains the classes and functions needed to define nodes in Data Flows.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -426,7 +426,7 @@ class ValidateNode(FlowNode):
     """
     FlowNode class to validate input data from a neighboring FlowNode
 
-    The ValidateNode takes additional attributes in its initializer that can effect the 
+    The ValidateNode takes additional attributes in its initializer that can effect the
     behavior of its __getitem__ method.  The special attributes are:
 
         'valid_min': The minimum value the data should have, if valid

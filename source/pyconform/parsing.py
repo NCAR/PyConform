@@ -4,7 +4,7 @@ Parsing Module - NEW Based on PLY
 This module defines the necessary elements to parse a string variable definition
 into the recognized elements that are used to construct an Operation Graph.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -135,7 +135,7 @@ def p_argument_list_append(p):
 def p_single_item_argument_list(p):
     """
     argument_list : argument
-    argument_list : 
+    argument_list :
     """
     p[0] = [p[1]] if len(p) > 1 else []
 
@@ -205,7 +205,7 @@ def p_slice(p):
 def p_slice_argument(p):
     """
     slice_argument : array_like
-    slice_argument : 
+    slice_argument :
     """
     p[0] = p[1] if len(p) > 1 else None
 

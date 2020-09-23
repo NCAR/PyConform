@@ -4,7 +4,7 @@ Date Evaluator
 This evaluates the time slices in the file(s) to define the time period
 between steps and verifies consistancy and sequential steps between files.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -20,18 +20,18 @@ import cf_units
 def __get_time_info__(f, io):
     """
     Evaluates the time slices in the input files to verify
-    that there are the correct number of slices in the file 
+    that there are the correct number of slices in the file
     and that the slices are contiguous.  It also pulls off
     other information, such as start/en times, time period/spacing,
-    slice count, and the average of the slices (for ordering purposes). 
+    slice count, and the average of the slices (for ordering purposes).
 
     Parameters:
         f (climIO file): A pointer to an open netCDF file.
         io (climIO): An object that contains a setof io commands to use.
 
     Returns:
-        date_info (dict): Contains file information, such as time period(t_per), time step(t_step), 
-            first/last step(t0 and tn), slice counts(cnt). 
+        date_info (dict): Contains file information, such as time period(t_per), time step(t_step),
+            first/last step(t0 and tn), slice counts(cnt).
         average (int): The average of all time slices.
     """
     date_info = {}
@@ -79,9 +79,9 @@ def __get_time_info__(f, io):
     date_info['t_per'] = t_per
     date_info['t_step'] = t_step
     # Get first and last dates
-    t0 = (parser.parse(str(cf_units.num2date(d0, att['units'], 
+    t0 = (parser.parse(str(cf_units.num2date(d0, att['units'],
                                              calendar=att['calendar']))).timetuple())
-    tn = (parser.parse(str(cf_units.num2date(dn, att['units'], 
+    tn = (parser.parse(str(cf_units.num2date(dn, att['units'],
                                              calendar=att['calendar']))).timetuple())
     date_info['t0'] = cal_unit.convert(d0, stand_cal)
     date_info['tn'] = cal_unit.convert(dn, stand_cal)
@@ -116,7 +116,7 @@ def __check_date_alignment__(keys, date_info):
 
     Parameters:
         keys (list): A list of time slice references that are in correct time order.
-        date_info (dict): Contains file information, such as time period(t_per), time step(t_step), 
+        date_info (dict): Contains file information, such as time period(t_per), time step(t_step),
             first/last step(t0 and tn), slice counts(cnt).
     """
     prev_last = date_info[keys[0]]['tn']
@@ -170,7 +170,7 @@ def __check_date_alignment_in_file__(date):
     no gaps are found in the time dimension.
 
     Parameters:
-        date (dict): Contains file information, such as time period(t_per), time step(t_step), 
+        date (dict): Contains file information, such as time period(t_per), time step(t_step),
                           first/last step(t0 and tn), slice counts(cnt).
 
     """
@@ -222,7 +222,7 @@ def __check_date_alignment_in_file__(date):
 #=============================================
 def get_files_in_order(files, alignment=True):
     """
-    Examine the file list and put the files in 
+    Examine the file list and put the files in
     sequential order.
 
     Parameters:
@@ -231,7 +231,7 @@ def get_files_in_order(files, alignment=True):
     Returns:
         file_list (list): A list that contains the file names in sequential
             order.
-        counts (list): A list containing the time slice counts for each of the 
+        counts (list): A list containing the time slice counts for each of the
             files.  The order should match the order in which the
             file_list lists the files.
     """

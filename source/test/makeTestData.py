@@ -1,7 +1,7 @@
 """
 Make Testing Data
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -19,7 +19,7 @@ class DataMaker(object):
     """
     Simple tool to write a "fake" dataset for testing purposes
     """
-    
+
     def __init__(self,
                  filenames=['test1.nc', 'test2.nc', 'test3.nc'],
                  fileattribs=[OrderedDict([('a1', 'file 1 attrib 1'),
@@ -39,16 +39,16 @@ class DataMaker(object):
                                          ('T1', {'units': 'K'}),
                                          ('T2', {'units': 'C'})]),
                  vardata=OrderedDict()):
-        
+
         self.filenames = filenames
         self.clear()
-        
+
         self.fileattribs = fileattribs
         self.dimensions = dimensions
         self.vardims = vardims
         self.vartypes = vartypes
         self.varattribs = varattribs
-        
+
         self.vardata = {}
         for filenum, filename in enumerate(self.filenames):
             self.vardata[filename] = {}
@@ -79,35 +79,35 @@ class DataMaker(object):
                     dt = vartypes.get(varname, 'float64')
                     vdat = np.ones(tuple(vshape), dtype=dt)
                 filevars[varname] = vdat
-        
+
     def write(self, ncformat='NETCDF4'):
-        
+
         for filenum, filename in enumerate(self.filenames):
             ncfile = netCDF4.Dataset(filename, 'w', format=ncformat)
-            
+
             for attrname, attrval in self.fileattribs[filenum].iteritems():
                 setattr(ncfile, attrname, attrval)
-                
+
             for dimname, dimsize in self.dimensions.iteritems():
                 if isinstance(dimsize, (list, tuple)):
                     ncfile.createDimension(dimname)
                 else:
                     ncfile.createDimension(dimname, dimsize)
-            
+
             for coordname in self.dimensions.iterkeys():
                 if coordname in self.vartypes:
                     dtype = self.vartypes[coordname]
                 else:
                     dtype = 'd'
                 ncfile.createVariable(coordname, dtype, (coordname,))
-                
+
             for varname, vardims in self.vardims.iteritems():
                 if varname in self.vartypes:
                     dtype = self.vartypes[varname]
                 else:
                     dtype = 'd'
                 ncfile.createVariable(varname, dtype, vardims)
-            
+
             for coordname, dimsize in self.dimensions.iteritems():
                 coordvar = ncfile.variables[coordname]
                 for attrname, attrval in self.varattribs[coordname].iteritems():
@@ -119,15 +119,15 @@ class DataMaker(object):
                 for attrname, attrval in self.varattribs[varname].iteritems():
                     setattr(var, attrname, attrval)
                 var[:] = self.vardata[filename][varname]
-            
+
             ncfile.close()
-            
+
     def clear(self):
         for filename in self.filenames:
             if exists(filename):
                 remove(filename)
-        
-        
+
+
 #===============================================================================
 # Command-Line Operation
 #===============================================================================

@@ -8,11 +8,11 @@ to compute the DynVarMIP diagnostics.
 IDL code for these functions can be found in the GDL, open-source version
 of IDL, available at https://github.com/gnudatalanguage/gdl.  Obviously,
 the code was not copied, but the Python code was based on the original IDL
-code to determine operation order and bit-for-bit correctness. 
+code to determine operation order and bit-for-bit correctness.
 
-NOTE: All of these functions return numpy arrays! 
+NOTE: All of these functions return numpy arrays!
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

@@ -3,7 +3,7 @@ Basic functions for the DynVarMIP Diagnostics
 
 NOTE:  All of these functions return numpy arrays!
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 

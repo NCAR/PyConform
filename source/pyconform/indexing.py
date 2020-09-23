@@ -16,7 +16,7 @@ consecutive slices are reduced to a single slice:
 
     A[slice1][slice2] = A[slice12]
 
-Most Python programmers that work with Numpy have been told that slicing an array results in a 
+Most Python programmers that work with Numpy have been told that slicing an array results in a
 'view' of the array.  Namely, they have been told that slicing the array costs nothing, so multiple
 consecutive slices need no reduction.
 
@@ -29,7 +29,7 @@ a large read.
 
 ----------------------------------------------------------------------------------------------------
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -106,7 +106,7 @@ def index_tuple(index, ndims):
 def align_index(index, dimensions):
     """
     Compute an index tuple or dictionary with indices aligned according to dimension name
-    
+
     Parameters:
         index: An index or a dictionary of indices keyed by dimension name
         dimensions (tuple): A tuple of named dimensions for each axis of the data
@@ -125,7 +125,7 @@ def align_index(index, dimensions):
 def join(shape0, index1, index2):
     """
     Join two index expressions into a single index expression
-    
+
     Parameters:
         shape0: The shape of the original array
         index1: The first index expression to apply to the array

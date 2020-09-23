@@ -1,7 +1,7 @@
 """
 DatasetDesc Unit Tests
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -99,7 +99,7 @@ class DimensionDescTests(unittest.TestCase):
         print_test_message('DimensionDesc.set()', actual=str(actual), expected=str(expected))
         self.assertEqual(actual.name, 'y', 'DimensionDesc name not correct after set')
         self.assertEqual(actual.size, expected.size, 'DimensionDesc size not correct after set')
-        
+
     def test_set_bad(self):
         indata = 'z'
         ddesc = DimensionDesc('y')
@@ -824,7 +824,7 @@ class DatasetDescTests(unittest.TestCase):
         expected = sorted(['t', 'x', 'y', 'w'])
         print_test_message('OutputDatasetDesc.dimensions', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong dimensions')
-    
+
     def test_output_dataset_validate_type_str(self):
         nc3_type_strs = OutputDatasetDesc._NC_TYPES_[3]
         nc4_type_strs = [t for t in OutputDatasetDesc._NC_TYPES_[4] if t not in nc3_type_strs]
@@ -840,7 +840,7 @@ class DatasetDescTests(unittest.TestCase):
                 print '{}: Good'.format(msghdr)
 
             for t in nc4_type_strs:
-                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)                
+                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)
                 self.assertRaises(ValueError, OutputDatasetDesc._validate_netcdf_type_, t, f)
                 print '{}: Failed properly'.format(msghdr)
 
@@ -853,7 +853,7 @@ class DatasetDescTests(unittest.TestCase):
                     self.fail('{}: Failed'.format(msghdr))
                 print '{}: Good'.format(msghdr)
 
-        
+
 #===============================================================================
 # Command-Line Execution
 #===============================================================================

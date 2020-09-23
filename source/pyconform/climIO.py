@@ -4,7 +4,7 @@ Climate I/O Facade
 This defines the facade for netCDF I/O operations, either with netCDF4 or
 PyNIO.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -13,7 +13,7 @@ try:
     import Nio
     import netCDF4
 except ImportError:
-    check = False    
+    check = False
 
 
 #=============================================
@@ -24,10 +24,10 @@ def init_climIO(override=None):
     Function will first test if PyNIO is available.  If it is,
     it will initialize the Nio port.  If PyNIO is not available,
     it will see if netCDF4 is available.  If it is, it will
-    initialize the netCDF4 port.  If not, the code will exit. 
+    initialize the netCDF4 port.  If not, the code will exit.
 
     Returns:
-        io_ver (climIO port object): A pointer to a climIO port object. 
+        io_ver (climIO port object): A pointer to a climIO port object.
     """
     if override is None:
         try:
@@ -38,7 +38,7 @@ def init_climIO(override=None):
             try:
                 import netCDF4
                 use = 'netCDF4'
-                io_ver = NetCDF4PyPort() 
+                io_ver = NetCDF4PyPort()
             except ImportError:
                 print 'ERROR: Could not find PyNio or netCDF4 in PYTHONPATH'
                 sys.exit(10)
@@ -94,21 +94,21 @@ class PyNioPort(object):
 
     def open_file(self, file_name):
         """
-        Open a NetCDF file for reading. 
+        Open a NetCDF file for reading.
 
         Parameters:
             file_name (str): Name, including full path, of existing NetCDF file
                              to open for reading.
 
         Returns:
-            open_file (NioFile): A pointer to a NioFile object. 
+            open_file (NioFile): A pointer to a NioFile object.
         """
         open_file = Nio.open_file(file_name,"r")
         return open_file
 
     def read_slice(self, open_file, var, index, all_values=False):
         """
-        Retreives a chunk of data. 
+        Retreives a chunk of data.
 
         Parameters:
             open_file (NioFile): A pointer to an open NioFile object.
@@ -117,7 +117,7 @@ class PyNioPort(object):
             all_values (bool): Optional argument to retreive all dimensions.
 
         Returns:
-            var_val (numPy array): The retreived values. 
+            var_val (numPy array): The retreived values.
         """
         var_hndl = open_file.variables[var]
         if all_values:
@@ -130,12 +130,12 @@ class PyNioPort(object):
     # PyNIO: Close an open NetCDF file
     #=============================================
     def close_file(self, open_file):
-        """                     
-        Close an open NetCDF file. 
+        """
+        Close an open NetCDF file.
 
         Parameters:
             open_file (NioFile): A pointer to an open NioFile object.
-        """ 
+        """
         Nio.close(open_file)
 
     #=============================================
@@ -143,12 +143,12 @@ class PyNioPort(object):
     #=============================================
     def create_file(self, new_file_name,ncformat,hist_string=None):
         """
-        Create a NetCDF file for writing. 
+        Create a NetCDF file for writing.
 
         Parameters:
             new_file_name (str): Name, including full path, of the new
                                  NetCDF file to create.
-            ncformat (str): Type of NetCDF file to create.  
+            ncformat (str): Type of NetCDF file to create.
                             Options:
                             'netcdf4c': NetCDF4 with Level 1 compression
                             'NetCDF4Classic': NetCDF4 Classic
@@ -157,7 +157,7 @@ class PyNioPort(object):
             hist_string (str): Optional.  A string to append to the histroy attribute.
 
         Returns:
-            new_file (NioFile): A pointer to a NioFile object. 
+            new_file (NioFile): A pointer to a NioFile object.
         """
         # Set pyNIO netcdf file options
         opt = Nio.options()
@@ -194,21 +194,21 @@ class PyNioPort(object):
         Parameters:
             new_file (NioFile): A pointer to a NioFile object.
             var_name (str): The name of the variable to create.
-            typeCode (str): Type of variable.  
+            typeCode (str): Type of variable.
                             Valid values:
-                            'd': 64 bit float 
-                            'f': 32 bit float 
-                            'l': long 
-                            'i': 32 bit integer 
-                            'h': 16 bit integer 
-                            'b': 8 bit integer 
+                            'd': 64 bit float
+                            'f': 32 bit float
+                            'l': long
+                            'i': 32 bit integer
+                            'h': 16 bit integer
+                            'b': 8 bit integer
                             'S1': character
-            dims (tuple): A tuple that contains the names of the dimensions 
+            dims (tuple): A tuple that contains the names of the dimensions
                           for the variable.
-            attrib (list): A list of strings to add as attributes for the variable. 
+            attrib (list): A list of strings to add as attributes for the variable.
 
         Returns:
-            var (NioVariable): Returns a NioVariable object.    
+            var (NioVariable): Returns a NioVariable object.
         """
         var = new_file.create_variable(var_name,typeCode,tuple(dims))
         for k,v in attrib.items():
@@ -227,9 +227,9 @@ class PyNioPort(object):
             var_name (str): The name of the variable to read from.
 
         Returns:
-            typeCode (str): Type of variable. 
+            typeCode (str): Type of variable.
             dimnames (tuple): A tuple that contains the names of the dimensions.
-            var_hndl.attributes (list): A list of attributes for the variable.    
+            var_hndl.attributes (list): A list of attributes for the variable.
         """
         var_hndl = template_file.variables[var_name]
         typeCode = var_hndl.typecode()
@@ -243,7 +243,7 @@ class PyNioPort(object):
     #=============================================
     # PyNIO: Define a NetCDF file from an existing NetCDF file
     #=============================================
-    def define_file(self, new_file,var_name,meta_list,template_file,template_var):   
+    def define_file(self, new_file,var_name,meta_list,template_file,template_var):
         """
         Define a NetCDF file from an existing NetCDF file.  Will also write meta vars.
 
@@ -252,13 +252,13 @@ class PyNioPort(object):
             var_name (str): The name of the variable to read from.
             meta_list (list): A list of meta variable names as strings.
             template_file (str): The full path and file name of a template file to copy.
-            template_var (str): Name to copy variable from the template file. 
+            template_var (str): Name to copy variable from the template file.
 
         Returns:
             all_vars (dict): A dictionary containing variable names as keys and their corresponding
                              NioVariable object as the value.
             new_file (NioFile): A pointer to a NioFile object.
-         
+
         """
         all_vars = {}
         temp_file = self.open_file(template_file)
@@ -275,7 +275,7 @@ class PyNioPort(object):
             else:
                 new_file.create_dimension(var_d,l)
         # define meta vars
-        for meta_name in meta_list: 
+        for meta_name in meta_list:
             typeCode,dims,attribs = self.get_var_info(temp_file,meta_name)
             all_vars[meta_name] = self.create_var(new_file,meta_name,typeCode,dims,attribs)
         # define var
@@ -283,7 +283,7 @@ class PyNioPort(object):
         all_vars[var_name] = self.create_var(new_file,var_name,typeCode,dims,attribs)
         # Write meta vars
         for meta_name in meta_list:
-            self.write_meta_var(all_vars[meta_name],meta_name,temp_file.variables[meta_name])        
+            self.write_meta_var(all_vars[meta_name],meta_name,temp_file.variables[meta_name])
 
         return all_vars,new_file
 
@@ -302,7 +302,7 @@ class PyNioPort(object):
         if in_meta.rank > 0:
             out_meta[:] = in_meta[:]
         else:
-            out_meta.assign_value(in_meta.get_value()) 
+            out_meta.assign_value(in_meta.get_value())
 
     #=============================================
     # PyNIO: Write variable data to the file
@@ -319,7 +319,7 @@ class PyNioPort(object):
             index (int): Optional.  The time index to write.  Default time index is set to 0.
         """
         import numpy as np
-   
+
         if (all_vars[var_name].typecode() == 'i'):
             t = np.long
         else:
@@ -354,14 +354,14 @@ class NetCDF4PyPort(object):
     #=============================================
     def open_file(self, file_name):
         """
-        Open a NetCDF file for reading. 
+        Open a NetCDF file for reading.
 
         Parameters:
             file_name (str): Name, including full path, of existing NetCDF file
                              to open for reading.
 
         Returns:
-            open_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object. 
+            open_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object.
         """
         open_file = netCDF4.Dataset(file_name,"r+")
         return open_file
@@ -371,7 +371,7 @@ class NetCDF4PyPort(object):
     #=============================================
     def read_slice(self, open_file, var, index, all_values=False):
         """
-        Retreives a chunk of data. 
+        Retreives a chunk of data.
 
         Parameters:
             open_file (netCDF4.Dataset): A pointer to an open netCDF4.Dataset object.
@@ -380,7 +380,7 @@ class NetCDF4PyPort(object):
             all_values (bool): Optional argument to retreive all dimensions.
 
         Returns:
-            var_val (numPy array): The retreived values. 
+            var_val (numPy array): The retreived values.
         """
         var_hndl = open_file.variables[var]
         if all_values:
@@ -393,8 +393,8 @@ class NetCDF4PyPort(object):
     # NetCDF4Py: Close an open NetCDF file
     #=============================================
     def close_file(self, open_file):
-        """                     
-        Close an open NetCDF file. 
+        """
+        Close an open NetCDF file.
 
         Parameters:
             open_file (netCDF4.Dataset): A pointer to an open netCDF4.Dataset object.
@@ -406,12 +406,12 @@ class NetCDF4PyPort(object):
     #=============================================
     def create_file(self, new_file_name,ncformat,hist_string=None):
         """
-        Create a NetCDF file for writing. 
+        Create a NetCDF file for writing.
 
         Parameters:
             new_file_name (str): Name, including full path, of the new
                                  NetCDF file to create.
-            ncformat (str): Type of NetCDF file to create.  
+            ncformat (str): Type of NetCDF file to create.
                             Options:
                             'netcdf4c': NetCDF4 with Level 1 compression
                             'NetCDF4Classic': NetCDF4 Classic
@@ -420,7 +420,7 @@ class NetCDF4PyPort(object):
             hist_string (str): Optional.  A string to append to the histroy attribute.
 
         Returns:
-            new_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object. 
+            new_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object.
         """
         # The netcdf output format
         if ('netcdf4c' in ncformat):
@@ -455,21 +455,21 @@ class NetCDF4PyPort(object):
         Parameters:
             new_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object.
             var_name (str): The name of the variable to create.
-            typeCode (str): Type of variable.  
+            typeCode (str): Type of variable.
                             Valid values:
-                            'd': 64 bit float 
-                            'f': 32 bit float 
-                            'l': long 
-                            'i': 32 bit integer 
-                            'h': 16 bit integer 
-                            'b': 8 bit integer 
+                            'd': 64 bit float
+                            'f': 32 bit float
+                            'l': long
+                            'i': 32 bit integer
+                            'h': 16 bit integer
+                            'b': 8 bit integer
                             'S1': character
-            dims (tuple): A tuple that contains the names of the dimensions 
+            dims (tuple): A tuple that contains the names of the dimensions
                           for the variable.
-            attrib (list): A list of strings to add as attributes for the variable. 
+            attrib (list): A list of strings to add as attributes for the variable.
 
         Returns:
-            var (netCDF4.Variable): Returns a netCDF4.Variable object.    
+            var (netCDF4.Variable): Returns a netCDF4.Variable object.
         """
         if self.compressionLevel > 0:
             var = new_file.createVariable(var_name,typeCode,tuple(dims),zlib=True,complevel=int(self.compressionLevel))
@@ -491,9 +491,9 @@ class NetCDF4PyPort(object):
             var_name (str): The name of the variable to read from.
 
         Returns:
-            typeCode (str): Type of variable. 
+            typeCode (str): Type of variable.
             dimnames (tuple): A tuple that contains the names of the dimensions.
-            var_hndl.attributes (list): A list of attributes for the variable.    
+            var_hndl.attributes (list): A list of attributes for the variable.
         """
         var_hndl = template_file.variables[var_name]
         typeCode = var_hndl.datatype
@@ -501,7 +501,7 @@ class NetCDF4PyPort(object):
         dimnames = []
         for dimn in var_hndl.dimensions:
             dimnames.append(dimn)
-        
+
         attribs={}
         for n in var_hndl.ncattrs():
            attribs[n] = var_hndl.__getattribute__(n)
@@ -520,13 +520,13 @@ class NetCDF4PyPort(object):
             var_name (str): The name of the variable to read from.
             meta_list (list): A list of meta variable names as strings.
             template_file (str): The full path and file name of a template file to copy.
-            template_var (str): Name to copy variable from the template file. 
+            template_var (str): Name to copy variable from the template file.
 
         Returns:
             all_vars (dict): A dictionary containing variable names as keys and their corresponding
                              netCDF4.Variable object as the value.
             new_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object.
-         
+
         """
         all_vars = {}
         temp_file = self.open_file(template_file)
@@ -606,4 +606,4 @@ class NetCDF4PyPort(object):
                     all_vars[var_name][index,:] = values[:].astype(t)
 
 
-    
+

@@ -4,7 +4,7 @@ DatasetDesc Interface Class
 This file contains the interface classes to the input and output multi-file
 datasets.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -32,10 +32,10 @@ class DefinitionWarning(Warning):
 def _group_by_name_(*descs):
     """
     Return a dictionary of the objects elements, grouped by name
-    
+
     This is a simple group-by implementation for the Desc objects, used when making the
     objects unique by name.
-    
+
     Parameters:
         descs: A list of Desc objects (with a 'name' attribute)
     """
@@ -54,7 +54,7 @@ def _group_by_name_(*descs):
 def _is_list_of_type_(obj, typ):
     """
     Check that an object is a list/tuple of a given type
-    
+
     Parameters:
         obj:  A list or tuple of objects
         typ:  The type of objects that should be in the list
@@ -62,7 +62,7 @@ def _is_list_of_type_(obj, typ):
     if not isinstance(obj, (list, tuple)):
         return False
     return all([isinstance(o, typ) for o in obj])
-        
+
 
 #===================================================================================================
 # DimensionDesc
@@ -70,7 +70,7 @@ def _is_list_of_type_(obj, typ):
 class DimensionDesc(object):
     """
     Descriptor for a dimension in a DatasetDesc
-    
+
     Contains the name of the dimensions, its size, and whether the dimension is limited or
     unlimited.
     """
@@ -78,7 +78,7 @@ class DimensionDesc(object):
     def __init__(self, name, size=None, unlimited=False, stringlen=False):
         """
         Initializer
-        
+
         Parameters:
             name (str): Dimension name
             size (int): Dimension size
@@ -126,7 +126,7 @@ class DimensionDesc(object):
     def set(self, dd):
         """
         Set the size and unlimited status from another DimensionDesc
-        
+
         Parameters:
             dd (DimensionDesc): The DimensionDesc from which to set the size and unlimited status
         """
@@ -162,7 +162,7 @@ class DimensionDesc(object):
     def unique(descs):
         """
         Return a mapping of names to unique DimensionDescs
-        
+
         Parameters:
             descs: A list of DimensionDesc objects
         """
@@ -192,7 +192,7 @@ class DimensionDesc(object):
 class VariableDesc(object):
     """
     Descriptor for a variable in a dataset
-    
+
     Contains the variable name, string datatype, dimensions tuple, attributes dictionary,
     and a string definition (how to construct the data for the variable) or data array (if
     the data is contained in the variable declaration).
@@ -216,7 +216,7 @@ class VariableDesc(object):
             attributes (dict): Dictionary of variable attributes
         """
         self._name = name
-        
+
         # Datatype is inheritable, in which case the datatype is set to None
         if datatype is None:
             self._ntype = None
@@ -240,7 +240,7 @@ class VariableDesc(object):
         # Definition is required for output variables, but None for input variables
         self._definition = definition
 
-        # Attributes are modifiable after the variable descriptor is constructed 
+        # Attributes are modifiable after the variable descriptor is constructed
         if not isinstance(attributes, dict):
             raise TypeError('Attributes for variable {!r} not dict'.format(name))
         self._attributes = deepcopy(attributes)
@@ -257,16 +257,16 @@ class VariableDesc(object):
     def datatype(self):
         """String datatype of the variable"""
         return self._ntype
-    
+
     @property
     def dtype(self):
         """NumPy dtype of the variable data"""
         return self._dtype
-    
+
     @property
     def definition(self):
         return self._definition
-    
+
     @property
     def attributes(self):
         """Variable attributes dictionary"""
@@ -312,7 +312,7 @@ class VariableDesc(object):
             for fname in self.files:
                 strvals += ['      {}'.format(fname)]
         return linesep.join(strvals)
-    
+
     def __repr__(self):
         dtyp_str = '' if self.datatype is None else ', datatype={!r}'.format(self.datatype)
         dimn_str = ', dimensions={!s}'.format(tuple(self.dimensions.keys()))
@@ -323,7 +323,7 @@ class VariableDesc(object):
         """Retrieve the units string otherwise None"""
         ustr = str(self.attributes.get('units', '?')).split('since')[0].strip()
         return None if ustr in ('', '?', 'unknown') else ustr
-    
+
     def refdatetime(self):
         """Retrieve the reference datetime string, otherwise None"""
         lstr = str(self.attributes.get('units', '?')).split('since')
@@ -333,7 +333,7 @@ class VariableDesc(object):
     def calendar(self):
         """Retrieve the calendar attribute, if it exists, otherwise None"""
         return self.attributes.get('calendar', None)
-    
+
     def units_attr(self):
         return self.attributes.get('units', None)
 
@@ -345,7 +345,7 @@ class VariableDesc(object):
     def unique(descs):
         """
         Return a mapping of names to unique VariableDescs
-        
+
         Parameters:
             descs: A list of VariableDesc objects
         """
@@ -374,24 +374,24 @@ class VariableDesc(object):
 class FileDesc(object):
     """
     A class describing the contents of a single dataset file
-    
+
     In simplest terms, the FileDesc contains the header information for a single NetCDF file.  It
     contains the name of the file, the type of the file, a dictionary of global attributes in the
-    file, a dict of DimensionDesc objects, and a dict of VariableDesc objects. 
+    file, a dict of DimensionDesc objects, and a dict of VariableDesc objects.
     """
 
     def __init__(self, name, format='NETCDF4_CLASSIC', deflate=2, variables=(), attributes={},
                  autoparse_time_variable=None):  # @ReservedAssignment
         """
         Initializer
-        
+
         Parameters:
             name (str): String name of the file (i.e., a path name or file name)
             fmt (str):  String defining the NetCDF file format (one of 'NETCDF4',
-                'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or 
+                'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or
                 'NETCDF3_64BIT_DATA')
             deflate (int): Level of lossless compression to use in all variables within the file (0-9)
-            variables (tuple):  Tuple of VariableDesc objects describing the file variables            
+            variables (tuple):  Tuple of VariableDesc objects describing the file variables
             attributes (dict):  Dict of global attributes in the file
             autoparse_time_variable (str):  The name of an output variable that should be used
                 to represent the 'time' when autoparsing the output filename
@@ -409,7 +409,7 @@ class FileDesc(object):
         if deflate < 0 or deflate > 9:
             raise TypeError('Deflate value must be in the range 0-9, not {}'.format(deflate))
         self._deflate = deflate
-        
+
         if not _is_list_of_type_(variables, VariableDesc):
             err_msg = ('Variables in file {!r} must be a list or tuple of type '
                        'VariableDesc').format(name)
@@ -417,7 +417,7 @@ class FileDesc(object):
 
         dimensions = []
         for vdesc in variables:
-            dimensions.extend(vdesc.dimensions.values()) 
+            dimensions.extend(vdesc.dimensions.values())
         self._dimensions = DimensionDesc.unique(dimensions)
 
         for vdesc in variables:
@@ -496,7 +496,7 @@ class FileDesc(object):
     def unique(descs):
         """
         Return a mapping of names to unique FileDescs
-        
+
         Parameters:
             descs: A list of FileDesc objects
         """
@@ -526,12 +526,12 @@ class FileDesc(object):
 class DatasetDesc(object):
     """
     A class describing a self-consistent set of dimensions and variables in one or more files
-    
+
     In simplest terms, a single NetCDF file is a dataset.  Hence, the DatasetDesc object can be
     viewed as a simple container for the header information of a NetCDF file.  However, the
     DatasetDesc can span multiple files, as long as dimensions and variables are consistent across
     all of the files in the DatasetDesc.
-    
+
     Self-consistency is defined as:
         1. Dimensions with names that appear in multiple files must all have the same size and
            limited/unlimited status, and
@@ -579,7 +579,7 @@ class DatasetDesc(object):
 
         for fname, fdesc in self._files.iteritems():
             for vdesc in fdesc.variables.itervalues():
-                vdesc.files[fname] = fdesc     
+                vdesc.files[fname] = fdesc
 
     @property
     def name(self):
@@ -608,13 +608,13 @@ class DatasetDesc(object):
 class InputDatasetDesc(DatasetDesc):
     """
     DatasetDesc that can be used as input (i.e., can be read from file)
-    
-    The InputDatasetDesc is a kind of DatasetDesc where all of the DatasetDesc information is read from 
+
+    The InputDatasetDesc is a kind of DatasetDesc where all of the DatasetDesc information is read from
     the headers of existing NetCDF files.  The files must be self-consistent according to the
     standard DatasetDesc definition.
-    
+
     Variables in an InputDatasetDesc must have unset "definition" parameters, and the "filenames"
-    parameter will contain the names of files from which the variable data can be read.  
+    parameter will contain the names of files from which the variable data can be read.
     """
 
     def __init__(self, name='input', filenames=()):
@@ -672,7 +672,7 @@ class InputDatasetDesc(DatasetDesc):
 class OutputDatasetDesc(DatasetDesc):
     """
     DatasetDesc that can be used for output (i.e., to be written to files)
-    
+
     The OutputDatasetDesc contains all of the header information needed to write a DatasetDesc to
     files.  Unlike the InputDatasetDesc, it is not assumed that all of the variable and dimension
     information can be found in existing files.  Instead, the OutputDatasetDesc contains a minimal
@@ -682,7 +682,7 @@ class OutputDatasetDesc(DatasetDesc):
     The information to define an OutputDatasetDesc must be specified as a nested dictionary,
     where the first level of the dictionary are unique names of variables in the dataset.  Each
     named variable defines another nested dictionary.
-    
+
     Each 'variable' dictionary is assued to contain the following:
         1. 'attributes': A dictionary of the variable's attributes
         2. 'datatype': A string specifying the type of the variable's data
@@ -691,7 +691,7 @@ class OutputDatasetDesc(DatasetDesc):
             the variable's data from input variables or functions, or an array declaring the actual
             data from which to construct the variable
         5. 'file': A dictionary containing a string 'filename', a string 'format' (which can be
-            one of 'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or 
+            one of 'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET' or
             'NETCDF3_64BIT_DATA'), a dictionary of 'attributes', and a list of 'metavars' specifying
             the names of other variables that should be added to the file, in addition to obvious
             metadata variables and the variable containing the 'file' section.
@@ -741,7 +741,7 @@ class OutputDatasetDesc(DatasetDesc):
                 vkwds['definition'] = vdef
             else:
                 def_wrn = 'No definition given for output variable {!r} in dataset {!r}.'.format(vname, name)
-            
+
             if len(def_wrn) > 0:
                 warn('{} Skipping output variable {}.'.format(def_wrn, vname), DefinitionWarning)
                 continue
@@ -779,7 +779,7 @@ class OutputDatasetDesc(DatasetDesc):
 
                 if 'format' in fdict:
                     files[fname]['format'] = fdict['format']
-                
+
                 if 'deflate' in fdict:
                     files[fname]['deflate'] = fdict['deflate']
 
@@ -795,11 +795,11 @@ class OutputDatasetDesc(DatasetDesc):
                     for mvname in fdict['metavars']:
                         if mvname not in files[fname]['variables']:
                             files[fname]['variables'].append(mvname)
-                
+
             else:
                 metavars.append(vname)
 
-        # Loop through all character type variables and get the 
+        # Loop through all character type variables and get the
         # Loop through all found files and create the file descriptors
         filedescs = []
         for fname, fdict in files.iteritems():
@@ -823,7 +823,7 @@ class OutputDatasetDesc(DatasetDesc):
                     # (Scalar variables are excluded and must be included as metadata explicitly)
                     if len(vdesc.dimensions) > 0 and set(vdesc.dimensions.keys()).issubset(fdims):
                         vlist[mvname] = vdesc
-            
+
             # Loop through the current list of variables and check for any "bounds" or "coordinates" attributes
             mvnames = set()
             for vname in vlist:
@@ -840,7 +840,7 @@ class OutputDatasetDesc(DatasetDesc):
                             raise ValueError(('Variable {} references a coordinates variable {} that is not '
                                               'found').format(vdesc.name, mvname))
                         mvnames.add(mvname)
-            
+
             # Add the bounds and coordinates to the list of variables
             for mvname in mvnames:
                 if mvname not in vlist:
@@ -849,7 +849,7 @@ class OutputDatasetDesc(DatasetDesc):
             # Create the file descriptor
             fdict['variables'] = [vlist[vname] for vname in vlist]
             fdesc = FileDesc(fname, **fdict)
-            
+
             # Validate the variable types for the file descriptor
             for vname in vlist:
                 vdesc = vlist[vname]
@@ -861,10 +861,10 @@ class OutputDatasetDesc(DatasetDesc):
                     vname = vdesc.name
                     raise ValueError(('File {!r} of format {!r} cannot write variable {!r} with '
                                       'datatype {!r}').format(fname, fformat, vname, vdtype))
-                
+
             # Append the validated file descriptor to the list
             filedescs.append(fdesc)
-                             
+
         # Call the base class to run self-consistency checks
         super(OutputDatasetDesc, self).__init__(name, files=filedescs)
 
@@ -872,7 +872,7 @@ class OutputDatasetDesc(DatasetDesc):
     def _validate_netcdf_type_(t, f):
         """
         Check if a given type is valid for the given file format
-        
+
         Parameters:
             t (str): The string-type to check
             f (str): The file format of the file in whi

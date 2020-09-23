@@ -6,7 +6,7 @@ edges of a Data Flow graph.  It is a subclass of the Numpy MaskedArray, and carr
 its data the units associated with the data, the dimensions associated with each axis of
 the data.
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -428,7 +428,7 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def __radd__(self, other):
         return PhysArray(other).__add__(self)
-    
+
     def __iadd__(self, other):
         self._check_inplace_(other)
         other = self._add_sub_init_(other)

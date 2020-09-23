@@ -10,9 +10,9 @@ unit conversion, addition, subtraction, etc.  The data transmitted along the
 graph edges is assumed to a Numpy.NDArray-like object.
 
 The action associated with each node is not performed until the data is
-"requested" with the __getitem__ interface, via Node[key].  
+"requested" with the __getitem__ interface, via Node[key].
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
