@@ -16,9 +16,6 @@ from os.path import exists
 from pyconform import parsing
 
 
-#=========================================================================
-# Command-line Interface
-#=========================================================================
 def cli(argv=None):
     desc = """This tool will analyze a definitions text file or a JSON standardization
               file and print out the variables needed for each defined output variable."""
@@ -38,9 +35,6 @@ def cli(argv=None):
     return parser.parse_args(argv)
 
 
-#=========================================================================
-# variable_search
-#=========================================================================
 def variable_search(obj, vars=None):
     if vars is None:
         vars = set()
@@ -57,9 +51,6 @@ def variable_search(obj, vars=None):
     return vars
 
 
-#=========================================================================
-# print_columnar
-#=========================================================================
 def print_columnar(x, textwidth=10000000, indent=0, header=''):
     hrstrp = '{}  '.format(str(header).rstrip())
     if len(hrstrp) > indent:
@@ -75,9 +66,6 @@ def print_columnar(x, textwidth=10000000, indent=0, header=''):
         print '{}{}'.format(' ' * indent, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in row))
 
 
-#=========================================================================
-# Main Script Function
-#=========================================================================
 def main(argv=None):
     args = cli(argv)
 
@@ -138,8 +126,5 @@ def main(argv=None):
     print_columnar(sorted(alldeps), indent=3)
 
 
-#=========================================================================
-# Command-line Operation
-#=========================================================================
 if __name__ == '__main__':
     main()

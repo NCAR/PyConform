@@ -5,20 +5,18 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import unittest
+from collections import OrderedDict
 from os import remove
 from os.path import exists
-from pyconform import dataflow, datasets
-from testutils import print_test_message, print_ncfile
-from collections import OrderedDict
+
+import numpy
 from netCDF4 import Dataset as NCDataset
 
-import unittest
-import numpy
+from pyconform import dataflow, datasets
+from testutils import print_ncfile, print_test_message
 
 
-#=========================================================================
-# DataFlowTests
-#=========================================================================
 class DataFlowTests(unittest.TestCase):
     """
     Unit tests for the flownodes.FlowNode class
@@ -417,10 +415,3 @@ class DataFlowTests(unittest.TestCase):
         for f in self.outfiles:
             print_ncfile(self.outfiles[f])
             print
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    unittest.main()

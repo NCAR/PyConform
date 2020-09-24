@@ -6,9 +6,10 @@ LICENSE: See the LICENSE.rst file for details
 """
 
 import unittest
+
 import numpy as np
 
-from pyconform.modules.idl import deriv, spl_init, spl_interp, int_tabulated
+from pyconform.modules.idl import deriv, int_tabulated, spl_init, spl_interp
 
 
 class Tests(unittest.TestCase):
@@ -54,7 +55,3 @@ class Tests(unittest.TestCase):
         actual = int_tabulated(x, y)
         expected = 77.627388
         np.testing.assert_array_almost_equal(actual, expected, 5)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -5,14 +5,13 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from re import sub
 from os import linesep
-from numpy import dtype
-from netCDF4 import Dataset
+from re import sub
 
-#=======================================================================================================================
-# print_test_message
-#=======================================================================================================================
+from netCDF4 import Dataset
+from numpy import dtype
+
+
 def print_test_message(testname, **kwds):
     print '{}:'.format(testname)
     if len(kwds) > 0:
@@ -24,9 +23,6 @@ def print_test_message(testname, **kwds):
     print
 
 
-#=======================================================================================================================
-# print_ncfile
-#=======================================================================================================================
 def print_ncfile(filename):
     with Dataset(filename, 'r') as ncf:
         print 'File: {!r}'.format(filename)
@@ -51,4 +47,3 @@ def print_ncfile(filename):
             print '{}{}'.format(header, datastr)
             for vattr in vobj.ncattrs():
                 print '         {}: {}'.format(vattr, vobj.getncattr(vattr))
-

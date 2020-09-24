@@ -5,20 +5,18 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.physarray import PhysArray, CharArray, UnitsError, DimensionsError
-from testutils import print_test_message
-from cf_units import Unit
-
-import unittest
-import numpy
 import operator
-from numpy import testing as npt
+import unittest
 from copy import deepcopy
 
+import numpy
+from cf_units import Unit
+from numpy import testing as npt
 
-#=======================================================================================================================
-# PhysArrayTests
-#=======================================================================================================================
+from pyconform.physarray import CharArray, DimensionsError, PhysArray, UnitsError
+from testutils import print_test_message
+
+
 class PhysArrayTests(unittest.TestCase):
     """
     Unit tests for basic aspects of the PhysArray class
@@ -239,9 +237,6 @@ class PhysArrayTests(unittest.TestCase):
             self.assertPhysArraysEqual(actual, expected, testname=testname)
 
 
-#===============================================================================
-# PhysArrayBinOpTests
-#===============================================================================
 class PhysArrayBinOpTests(unittest.TestCase):
     """
     Unit tests for binary operators of the PhysArray class
@@ -591,11 +586,3 @@ class PhysArrayBinOpTests(unittest.TestCase):
                              name=new_name, dimensions=new_dims)
         print_test_message(testname, actual=actual, expected=expected, X=X)
         self.assertPhysArraysEqual(actual, expected, testname=testname)
-
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

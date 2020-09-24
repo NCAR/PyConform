@@ -18,28 +18,29 @@ LICENSE: See the LICENSE.rst file for details
 
 from warnings import warn
 
-from asaptools.simplecomm import create_comm, SimpleComm
-from asaptools.partition import WeightBalanced
 import numpy
+from asaptools.partition import WeightBalanced
+from asaptools.simplecomm import SimpleComm, create_comm
 
-from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc, DefinitionWarning
-from pyconform.parsing import parse_definition, VarType, FuncType, OpType
-from pyconform.functions import find_operator, find_function
+from pyconform.datasets import DefinitionWarning, InputDatasetDesc, OutputDatasetDesc
+from pyconform.flownodes import (
+    DataNode,
+    EvalNode,
+    MapNode,
+    ReadNode,
+    ValidateNode,
+    WriteNode,
+    iter_dfs,
+)
+from pyconform.functions import find_function, find_operator
+from pyconform.parsing import FuncType, OpType, VarType, parse_definition
 from pyconform.physarray import PhysArray
-from pyconform.flownodes import DataNode, ReadNode, EvalNode, iter_dfs
-from pyconform.flownodes import MapNode, ValidateNode, WriteNode
 
 
-#=========================================================================
-# VariableNotFoundError
-#=========================================================================
 class VariableNotFoundError(ValueError):
     """Indicate if an input variable could not be found during construction"""
 
 
-#=========================================================================
-# DataFlow
-#=========================================================================
 class DataFlow(object):
     """
     An object describing the flow of data from input to output

@@ -5,16 +5,14 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from pyconform.indexing import index_str, index_tuple, join, align_index
-from testutils import print_test_message
-
 import unittest
+
 import numpy
 
+from pyconform.indexing import align_index, index_str, index_tuple, join
+from testutils import print_test_message
 
-#===================================================================================================
-# IndexStrTests
-#===================================================================================================
+
 class IndexStrTests(unittest.TestCase):
     """
     Unit tests for the indexing.index_str function
@@ -53,9 +51,6 @@ class IndexStrTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#===================================================================================================
-# IndexTupleTests
-#===================================================================================================
 class IndexTupleTests(unittest.TestCase):
     """
     Unit tests for the indexing.index_tuple function
@@ -93,9 +88,6 @@ class IndexTupleTests(unittest.TestCase):
         self.assertRaises(expected, index_tuple, *indata)
 
 
-#===================================================================================================
-# AlignIndexTests
-#===================================================================================================
 class AlignIndexTests(unittest.TestCase):
     """
     Unit tests for the indexing.align_index function
@@ -141,9 +133,6 @@ class AlignIndexTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#===================================================================================================
-# JoinTests
-#===================================================================================================
 class JoinTests(unittest.TestCase):
     """
     Unit tests for the indexing.join function
@@ -168,10 +157,3 @@ class JoinTests(unittest.TestCase):
         testname = 'join(({},), slice, slice)'.format(indata)
         print_test_message(testname, num_failures=nfailures, num_success=ntests - nfailures)
         self.assertEqual(nfailures, 0, '{} failures'.format(nfailures))
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

@@ -38,9 +38,6 @@ from types import EllipsisType
 from numpy import index_exp
 
 
-#===================================================================================================
-# index_str
-#===================================================================================================
 def index_str(index):
     """
     Convert an index expression into a compact string
@@ -70,9 +67,6 @@ def index_str(index):
         raise TypeError('Unsupported index type {!r}'.format(type(index)))
 
 
-#===================================================================================================
-# index_tuple
-#===================================================================================================
 def index_tuple(index, ndims):
     """
     Generate an index tuple from a given index expression and number of dimensions
@@ -101,9 +95,6 @@ def index_tuple(index, ndims):
         raise IndexError('Too many ellipsis in index expression {}'.format(idx))
 
 
-#===================================================================================================
-# align_index - Align index tuple/dictionary along dimensions
-#===================================================================================================
 def align_index(index, dimensions):
     """
     Compute an index tuple or dictionary with indices aligned according to dimension name
@@ -120,9 +111,6 @@ def align_index(index, dimensions):
         return index_tuple(index, len(dimensions))
 
 
-#===================================================================================================
-# join
-#===================================================================================================
 def join(shape0, index1, index2):
     """
     Join two index expressions into a single index expression

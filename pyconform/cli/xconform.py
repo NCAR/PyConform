@@ -11,26 +11,22 @@ COPYRIGHT: 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from os.path import exists
-from glob import glob
-from json import load as json_load
-from collections import OrderedDict
 from argparse import ArgumentParser, ArgumentTypeError
-from warnings import simplefilter
-from datetime import datetime
+from collections import OrderedDict
+from glob import glob
 from imp import load_source
+from json import load as json_load
+from os.path import exists
+from warnings import simplefilter
 
-from asaptools.simplecomm import create_comm
 from asaptools.partition import Duplicate
+from asaptools.simplecomm import create_comm
 
-from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.dataflow import DataFlow
+from pyconform.datasets import InputDatasetDesc, OutputDatasetDesc
 from pyconform.flownodes import ValidationWarning
 
 
-#=========================================================================
-# chunk - Chunksize for a named dimension
-#=========================================================================
 def chunk(arg):
     try:
         name, size_str = arg.split(',')
@@ -40,9 +36,6 @@ def chunk(arg):
         raise ArgumentTypeError("Chunks must be formatted as 'name,size'")
 
 
-#=========================================================================
-# Command-line Interface
-#=========================================================================
 def cli(argv=None):
     desc = """This is the PyConform command-line tool.  This scripts takes
               input from the command-line and a predefined output
@@ -84,9 +77,6 @@ def cli(argv=None):
     return parser.parse_args(argv)
 
 
-#=========================================================================
-# Main Script Function
-#=========================================================================
 def main(argv=None):
     args = cli(argv)
 
@@ -165,8 +155,5 @@ def main(argv=None):
                      deflate=args.deflate, debug=args.debug)
 
 
-#=========================================================================
-# Command-line Operation
-#=========================================================================
 if __name__ == '__main__':
     main()

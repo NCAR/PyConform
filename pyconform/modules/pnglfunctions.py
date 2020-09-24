@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 
-from cf_units import Unit
 from Ngl import vinth2p
-from numpy import diff, empty
 
-from pyconform.physarray import PhysArray, UnitsError, DimensionsError
 from pyconform.functions import Function, is_constant
+from pyconform.physarray import DimensionsError, PhysArray
 
 
-#=======================================================================================================================
-# VertInterpFunction
-#=======================================================================================================================
 class VertInterpFunction(Function):
     key = 'vinth2p'
 
@@ -72,8 +67,8 @@ class VertInterpFunction(Function):
         ixtrp = self.keywords['ixtrp']
 
         v = vinth2p(datai.data, hbcofa.data, hbcofb.data, plevo.data,
-                                 psfc.data, intyp, p0.data, 1, bool(ixtrp))
+                    psfc.data, intyp, p0.data, 1, bool(ixtrp))
 
-        v[v==1e+30] = 1e+20
+        v[v == 1e+30] = 1e+20
 
         return PhysArray(v, name=self._new_name, dimensions=self._new_dims, units=datai.units, positive=datai.positive)

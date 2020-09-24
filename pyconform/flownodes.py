@@ -7,46 +7,34 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from datetime import datetime
-from os.path import exists, dirname
-from os import makedirs, rename
 from collections import OrderedDict
+from datetime import datetime
+from os import makedirs, rename
+from os.path import dirname, exists
 from warnings import warn
 
+import numpy
 from cf_units import Unit, num2date
 from netCDF4 import Dataset
-import numpy
 
-from pyconform.indexing import index_str, join, align_index, index_tuple
-from pyconform.physarray import PhysArray, CharArray
-from pyconform.datasets import VariableDesc, FileDesc
+from pyconform.datasets import FileDesc, VariableDesc
 from pyconform.functions import Function
+from pyconform.indexing import align_index, index_str, index_tuple, join
+from pyconform.physarray import CharArray, PhysArray
 
 
-#=========================================================================
-# ValidationWarning
-#=========================================================================
 class ValidationWarning(Warning):
     """Warning for validation errors"""
 
 
-#=========================================================================
-# UnitsWarning
-#=========================================================================
 class UnitsWarning(Warning):
     """Warning for units errors"""
 
 
-#=========================================================================
-# DateTimeAutoParseWarning
-#=========================================================================
 class DateTimeAutoParseWarning(Warning):
     """Warning for not being able to autoparse new filename based on date-time in the file"""
 
 
-#=========================================================================
-# iter_dfs - Depth-First Search Iterator
-#=========================================================================
 def iter_dfs(node):
     """
     Iterate through graph of FlowNodes from a starting node using a Depth-First Search
@@ -67,9 +55,6 @@ def iter_dfs(node):
         yield nd
 
 
-#=========================================================================
-# iter_bfs - Breadth-First Search Iterator
-#=========================================================================
 def iter_bfs(node):
     """
     Iterate through graph of FlowNodes from a starting node using a Breadth-First Search
@@ -90,9 +75,6 @@ def iter_bfs(node):
         yield nd
 
 
-#=========================================================================
-# FlowNode
-#=========================================================================
 class FlowNode(object):
     """
     The base class for objects that can appear in a data flow
@@ -126,9 +108,6 @@ class FlowNode(object):
         return self._inputs
 
 
-#=========================================================================
-# DataNode
-#=========================================================================
 class DataNode(FlowNode):
     """
     FlowNode class to create data in memory
@@ -161,9 +140,6 @@ class DataNode(FlowNode):
         return self._data[index]
 
 
-#=========================================================================
-# ReadNode
-#=========================================================================
 class ReadNode(FlowNode):
     """
     FlowNode class for reading data from a NetCDF file
@@ -285,9 +261,6 @@ class ReadNode(FlowNode):
         return PhysArray(data, name=self.label, units=units, dimensions=dimensions2, positive=pos)
 
 
-#=========================================================================
-# EvalNode
-#=========================================================================
 class EvalNode(FlowNode):
     """
     FlowNode class for evaluating a function on input from neighboring DataNodes
@@ -338,9 +311,6 @@ class EvalNode(FlowNode):
         return self._function[index]
 
 
-#=========================================================================
-# MapNode
-#=========================================================================
 class MapNode(FlowNode):
     """
     FlowNode class to map input data from a neighboring FlowNode to new dimension names and units
@@ -420,9 +390,6 @@ class MapNode(FlowNode):
         return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
 
 
-#=========================================================================
-# ValidateNode
-#=========================================================================
 class ValidateNode(FlowNode):
     """
     FlowNode class to validate input data from a neighboring FlowNode
@@ -599,9 +566,6 @@ class ValidateNode(FlowNode):
         return indata
 
 
-#=========================================================================
-# WriteNode
-#=========================================================================
 class WriteNode(FlowNode):
     """
     FlowNode that writes validated data to a file.
@@ -703,7 +667,7 @@ class WriteNode(FlowNode):
                 msg = 'Could not identify a time variable to autoparse filename {!r}'.format(fname)
                 warn(msg, DateTimeAutoParseWarning)
                 return fname
-            possible_tnodes = {vnode.label:vnode for vnode in possible_inputs
+            possible_tnodes = {vnode.label: vnode for vnode in possible_inputs
                                if vnode.label in possible_tvars}
             if len(possible_tnodes) == 0:
                 raise ValueError('Time variable input missing for file {!r}'.format(fname))
@@ -870,8 +834,8 @@ class WriteNode(FlowNode):
             raise TypeError('Dimension chunks must be a dictionary')
 
         chunks_ = {d: chunks[d] if d in chunks else dsizes[d] for d in dsizes}
-        nchunks = {d: int(dsizes[d] // chunks_[d]) +
-                   int(dsizes[d] % chunks_[d] > 0) for d in dsizes}
+        nchunks = {d: int(dsizes[d] // chunks_[d])
+                   + int(dsizes[d] % chunks_[d] > 0) for d in dsizes}
         ntotal = int(numpy.prod([nchunks[d] for d in nchunks]))
 
         idx = {d: 0 for d in dsizes}
@@ -902,8 +866,7 @@ class WriteNode(FlowNode):
             c = chunk[d]
             if d in idims:
                 ub = s if c.stop is None else c.stop
-                ichunk[d] = slice(s - c.start - 1, s - ub -
-                                  1 if ub < s else None, -1)
+                ichunk[d] = slice(s - c.start - 1, s - ub - 1 if ub < s else None, -1)
             else:
                 ichunk[d] = c
         return ichunk

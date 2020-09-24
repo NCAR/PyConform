@@ -6,14 +6,11 @@ See the LICENSE.rst file for details
 """
 
 import unittest
-
 from glob import glob
-from cStringIO import StringIO
-from os import linesep as eol
-from os import remove
+from os import linesep as eol, remove
 
-import Nio
 import netCDF4
+import Nio
 import numpy as np
 
 from pyconform import climIO
@@ -193,7 +190,7 @@ class climIOTests(unittest.TestCase):
                               "{0}: define_file,varibales,{1}".format(n, k))
 
             # Test create_var
-            new_v = p.create_var(new_f, self.tsvar+'2', typeCode, dimnames, attr)
+            new_v = p.create_var(new_f, self.tsvar + '2', typeCode, dimnames, attr)
             if (n == 'Nio'):
                 self.assertNotEqual(new_v, None, "{0}: create_var".format(n))
             elif (n == 'netCDF4'):
@@ -215,22 +212,3 @@ class climIOTests(unittest.TestCase):
         for p in self.io_ports.itervalues():
             f = p.open_file(self.slice)
             f = p.close_file(f)
-
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == "__main__":
-    hline = '=' * 70
-    print hline
-    print 'STANDARD OUTPUT FROM ALL TESTS:'
-    print hline
-
-    mystream = StringIO()
-    tests = unittest.TestLoader().loadTestsFromTestCase(climIOTests)
-    unittest.TextTestRunner(stream=mystream).run(tests)
-
-    print hline
-    print 'TESTS RESULTS:'
-    print hline
-    print str(mystream.getvalue())

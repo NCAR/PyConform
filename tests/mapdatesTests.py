@@ -5,17 +5,14 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-import numpy as np
-from cStringIO import StringIO
-from makeTestData import DataMaker
-from pyconform import mapdates
 import unittest
 
-files = ['test1.nc', 'test2.nc', 'test3.nc']
+import numpy as np
 
-#=========================================================================
-# dateMapTests
-#=========================================================================
+from makeTestData import DataMaker
+from pyconform import mapdates
+
+files = ['test1.nc', 'test2.nc', 'test3.nc']
 
 
 class dateMapTests(unittest.TestCase):
@@ -33,7 +30,7 @@ class dateMapTests(unittest.TestCase):
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3, 3, 3],
                         "get_files_in_order, counts".format())
-        self.assertTrue(error == 0,  "get_files_in_order, error".format())
+        self.assertTrue(error == 0, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_out_of_order(self):
@@ -53,7 +50,7 @@ class dateMapTests(unittest.TestCase):
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3, 3, 3],
                         "get_files_in_order, counts".format())
-        self.assertTrue(error == 0,  "get_files_in_order, error".format())
+        self.assertTrue(error == 0, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_gap_between_files(self):
@@ -70,7 +67,7 @@ class dateMapTests(unittest.TestCase):
         # Call get_files_in_order and evaluate the return values, return value
         # should fail
         _ordered_files, _counts, error = mapdates.get_files_in_order(files)
-        self.assertTrue(error == 1,  "get_files_in_order, error".format())
+        self.assertTrue(error == 1, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_gap_in_a_file(self):
@@ -87,7 +84,7 @@ class dateMapTests(unittest.TestCase):
         # Call get_files_in_order and evaluate the return values, return value
         # should fail
         _ordered_files, _counts, error = mapdates.get_files_in_order(files)
-        self.assertTrue(error == 1,  "get_files_in_order, error".format())
+        self.assertTrue(error == 1, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_6hr(self):
@@ -109,7 +106,7 @@ class dateMapTests(unittest.TestCase):
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [4, 4, 4],
                         "get_files_in_order, counts".format())
-        self.assertTrue(error == 0,  "get_files_in_order, error".format())
+        self.assertTrue(error == 0, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_monthly(self):
@@ -137,7 +134,7 @@ class dateMapTests(unittest.TestCase):
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [12, 12, 12],
                         "get_files_in_order, counts".format())
-        self.assertTrue(error == 0,  "get_files_in_order, error".format())
+        self.assertTrue(error == 0, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_monthly_gap_between_files(self):
@@ -160,7 +157,7 @@ class dateMapTests(unittest.TestCase):
 
         # Call get_files_in_order and evaluate the return values
         _ordered_files, _counts, error = mapdates.get_files_in_order(files)
-        self.assertTrue(error == 1,  "get_files_in_order, error".format())
+        self.assertTrue(error == 1, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_monthly_gap_in_a_file(self):
@@ -183,7 +180,7 @@ class dateMapTests(unittest.TestCase):
 
         # Call get_files_in_order and evaluate the return values
         _ordered_files, _counts, error = mapdates.get_files_in_order(files)
-        self.assertTrue(error == 1,  "get_files_in_order, error".format())
+        self.assertTrue(error == 1, "get_files_in_order, error".format())
         dm.clear()
 
     def test_get_files_yearly(self):
@@ -203,24 +200,5 @@ class dateMapTests(unittest.TestCase):
                         "get_files_in_order, ordered_list".format())
         self.assertTrue(counts == [3, 3, 3],
                         "get_files_in_order, counts".format())
-        self.assertTrue(error == 0,  "get_files_in_order, error".format())
+        self.assertTrue(error == 0, "get_files_in_order, error".format())
         dm.clear()
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    hline = '=' * 70
-    print hline
-    print 'STANDARD OUTPUT FROM ALL TESTS:'
-    print hline
-
-    mystream = StringIO()
-    tests = unittest.TestLoader().loadTestsFromTestCase(dateMapTests)
-    unittest.TextTestRunner(stream=mystream).run(tests)
-
-    print hline
-    print 'TESTS RESULTS:'
-    print hline
-    print str(mystream.getvalue())

@@ -5,19 +5,17 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
+import operator as op
+import unittest
+
+import numpy as np
+from cf_units import Unit
+
 from pyconform import functions
 from pyconform.physarray import PhysArray
-from cf_units import Unit
 from testutils import print_test_message
 
-import unittest
-import numpy as np
-import operator as op
 
-
-#=========================================================================
-# FindTests
-#=========================================================================
 class FindTests(unittest.TestCase):
     """
     Unit tests for finding functions and operators
@@ -179,9 +177,6 @@ class FindTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=========================================================================
-# EvaluationTests
-#=========================================================================
 class EvaluationTests(unittest.TestCase):
     """
     Unit tests for evaluating functions and operators
@@ -783,11 +778,3 @@ class EvaluationTests(unittest.TestCase):
         expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B', 'C')", dimensions=('A', 'B'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()
