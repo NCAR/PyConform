@@ -10,13 +10,13 @@ from pyconform.physarray import DimensionsError, PhysArray
 
 
 class ZonalMeanFunction(Function):
-    key = 'zonalmean'
+    key = "zonalmean"
 
     def __init__(self, data):
         super(ZonalMeanFunction, self).__init__(data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('mean: Data must be a PhysArray')
+            raise TypeError("mean: Data must be a PhysArray")
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -24,18 +24,18 @@ class ZonalMeanFunction(Function):
 
 
 class OclimFunction(Function):
-    key = 'oclim'
+    key = "oclim"
 
     def __init__(self, data):
         super(OclimFunction, self).__init__(data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('oclim: Data must be a PhysArray')
+            raise TypeError("oclim: Data must be a PhysArray")
 
     def __getitem__(self, index):
 
         data = self.arguments[0][index]
-        new_name = 'oclim({})'.format(data.name)
+        new_name = "oclim({})".format(data.name)
 
         if index is None:
             if len(data.dimensions) == 3:
@@ -100,7 +100,7 @@ class OclimFunction(Function):
 
 
 class oclim_timeFunction(Function):
-    key = 'oclim_time'
+    key = "oclim_time"
 
     def __init__(self, time_bnds):
         super(oclim_timeFunction, self).__init__(time_bnds)
@@ -113,7 +113,7 @@ class oclim_timeFunction(Function):
                 np.zeros((0)),
                 dimensions=[p_time_bnds.dimensions[0]],
                 units=p_time_bnds.units,
-                calendar='noleap',
+                calendar="noleap",
             )
 
         time_bnds = p_time_bnds.data
@@ -122,26 +122,26 @@ class oclim_timeFunction(Function):
         for i in range(12):
             b[i] = (time_bnds[i][0] + time_bnds[i][1]) / 2
 
-        new_name = 'oclim_time({})'.format(p_time_bnds.name)
+        new_name = "oclim_time({})".format(p_time_bnds.name)
 
         return PhysArray(
             b,
             name=new_name,
             dimensions=[p_time_bnds.dimensions[0]],
             units=p_time_bnds.units,
-            calendar='noleap',
+            calendar="noleap",
         )
 
 
 class oclim_timebndsFunction(Function):
-    key = 'oclim_timebnds'
+    key = "oclim_timebnds"
 
-    def __init__(self, time, bdim='bnds'):
-        super(oclim_timebndsFunction, self).__init__(time, bdim='d2')
+    def __init__(self, time, bdim="bnds"):
+        super(oclim_timebndsFunction, self).__init__(time, bdim="d2")
 
     def __getitem__(self, index):
         p_time = self.arguments[0][index]
-        bdim = self.keywords['bdim']
+        bdim = self.keywords["bdim"]
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
 
@@ -150,7 +150,7 @@ class oclim_timebndsFunction(Function):
                 np.zeros((12, 2)),
                 dimensions=[p_time.dimensions[0], bnds.dimensions[0]],
                 units=p_time.units,
-                calendar='noleap',
+                calendar="noleap",
             )
 
         b = np.zeros((12, 2))
@@ -174,30 +174,30 @@ class oclim_timebndsFunction(Function):
         for i in range(11, -1, -1):
             b[i][0] = time[i] - monLens[i]
             b[i][1] = time[-(12 - i)]
-        new_name = 'oclim_timebnds({})'.format(p_time.name)
+        new_name = "oclim_timebnds({})".format(p_time.name)
 
         return PhysArray(
             b,
             name=new_name,
             dimensions=[p_time.dimensions[0], bnds.dimensions[0]],
             units=p_time.units,
-            calendar='noleap',
+            calendar="noleap",
         )
 
 
 class monthtoyear_noleapFunction(Function):
-    key = 'monthtoyear_noleap'
+    key = "monthtoyear_noleap"
 
     def __init__(self, data):
         super(monthtoyear_noleapFunction, self).__init__(data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('monthtoyear_noleap: Data must be a PhysArray')
+            raise TypeError("monthtoyear_noleap: Data must be a PhysArray")
 
     def __getitem__(self, index):
 
         data = self.arguments[0][index]
-        new_name = 'monthtoyear_noleap({})'.format(data.name)
+        new_name = "monthtoyear_noleap({})".format(data.name)
 
         if index is None:
             if len(data.dimensions) == 3:
@@ -275,7 +275,7 @@ class monthtoyear_noleapFunction(Function):
 
 
 class monthtoyear_noleap_timeFunction(Function):
-    key = 'monthtoyear_noleap_time'
+    key = "monthtoyear_noleap_time"
 
     def __init__(self, time_bnds):
         super(monthtoyear_noleap_timeFunction, self).__init__(time_bnds)
@@ -288,7 +288,7 @@ class monthtoyear_noleap_timeFunction(Function):
                 np.zeros((0)),
                 dimensions=[p_time_bnds.dimensions[0]],
                 units=p_time_bnds.units,
-                calendar='noleap',
+                calendar="noleap",
             )
 
         time_bnds = p_time_bnds.data
@@ -300,26 +300,26 @@ class monthtoyear_noleap_timeFunction(Function):
             end = (i * 12) + 11
             b[i] = ((time_bnds[start][0] + time_bnds[end][1]) / 2) - 365
 
-        new_name = 'monthtoyear_noleap_time({})'.format(p_time_bnds.name)
+        new_name = "monthtoyear_noleap_time({})".format(p_time_bnds.name)
 
         return PhysArray(
             b,
             name=new_name,
             dimensions=[p_time_bnds.dimensions[0]],
             units=p_time_bnds.units,
-            calendar='noleap',
+            calendar="noleap",
         )
 
 
 class monthtoyear_noleap_timebndsFunction(Function):
-    key = 'monthtoyear_noleap_timebnds'
+    key = "monthtoyear_noleap_timebnds"
 
-    def __init__(self, time_bound, bdim='bnds'):
-        super(monthtoyear_noleap_timebndsFunction, self).__init__(time_bound, bdim='d2')
+    def __init__(self, time_bound, bdim="bnds"):
+        super(monthtoyear_noleap_timebndsFunction, self).__init__(time_bound, bdim="d2")
 
     def __getitem__(self, index):
         p_time_bound = self.arguments[0][index]
-        bdim = self.keywords['bdim']
+        bdim = self.keywords["bdim"]
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
 
@@ -328,7 +328,7 @@ class monthtoyear_noleap_timebndsFunction(Function):
                 np.zeros((12, 2)),
                 dimensions=[p_time_bound.dimensions[0], bnds.dimensions[0]],
                 units=p_time_bound.units,
-                calendar='noleap',
+                calendar="noleap",
             )
 
         time_bound = p_time_bound.data
@@ -337,33 +337,33 @@ class monthtoyear_noleap_timebndsFunction(Function):
         for i in range(len(time_bound) / 12):
             b[i][0] = time_bound[i * 12][0] - 365
             b[i][1] = time_bound[(i * 12) + 11][1] - 365
-        new_name = 'monthtoyear_noleap_timebnds({})'.format(p_time_bound.name)
+        new_name = "monthtoyear_noleap_timebnds({})".format(p_time_bound.name)
 
         return PhysArray(
             b,
             name=new_name,
             dimensions=[p_time_bound.dimensions[0], bnds.dimensions[0]],
             units=p_time_bound.units,
-            calendar='noleap',
+            calendar="noleap",
         )
 
 
 class BoundsFunction(Function):
-    key = 'bounds'
+    key = "bounds"
 
-    def __init__(self, data, bdim='bnds', location=1, endpoints=1, idata=None):
+    def __init__(self, data, bdim="bnds", location=1, endpoints=1, idata=None):
         super(BoundsFunction, self).__init__(
             data, bdim=bdim, location=location, endpoints=endpoints, idata=idata
         )
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('bounds: data must be a PhysArray')
+            raise TypeError("bounds: data must be a PhysArray")
         if not isinstance(bdim, str):
-            raise TypeError('bounds: bounds dimension name must be a string')
+            raise TypeError("bounds: bounds dimension name must be a string")
         if location not in [0, 1, 2]:
-            raise ValueError('bounds: location must be 0, 1, or 2')
+            raise ValueError("bounds: location must be 0, 1, or 2")
         if len(data_info.dimensions) != 1:
-            raise DimensionsError('bounds: data can only be 1D')
+            raise DimensionsError("bounds: data can only be 1D")
         self._mod_end = bool(endpoints)
         # self.add_sumlike_dimensions(data_info.dimensions[0])
         if idata is None:
@@ -372,19 +372,19 @@ class BoundsFunction(Function):
             self._compute_idata = False
             idata_info = idata if is_constant(idata) else idata[None]
             if not isinstance(idata_info, PhysArray):
-                raise TypeError('bounds: interface-data must be a PhysArray')
+                raise TypeError("bounds: interface-data must be a PhysArray")
             if len(idata_info.dimensions) != 1:
-                raise DimensionsError('bounds: interface-data can only be 1D')
+                raise DimensionsError("bounds: interface-data can only be 1D")
             # self.add_sumlike_dimensions(idata_info.dimensions[0])
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
-        bdim = self.keywords['bdim']
-        location = self.keywords['location']
+        bdim = self.keywords["bdim"]
+        location = self.keywords["location"]
 
         bnds = PhysArray([1, 1], dimensions=(bdim,))
         new_data = PhysArray(
-            data * bnds, name='bounds({})'.format(data.name), units=data.units
+            data * bnds, name="bounds({})".format(data.name), units=data.units
         )
         if index is None:
             return new_data
@@ -412,7 +412,7 @@ class BoundsFunction(Function):
             ddim = data.dimensions[0]
             dslice = index[ddim] if ddim in index else slice(None)
             islice = slice(None, None, dslice.step)
-            idata = self.keywords['idata'][islice]
+            idata = self.keywords["idata"][islice]
 
             ifc_len = len(data) + 1
             ifc_data = empty(ifc_len, dtype=data.dtype)
@@ -431,8 +431,8 @@ class BoundsFunction(Function):
                     ifc_data[-1] = data.data[-1]
             else:
                 raise ValueError(
-                    'bounds: interface-data length is {} but should be {} or '
-                    '{}'.format(len(idata), ifc_len, ifc_len - 2)
+                    "bounds: interface-data length is {} but should be {} or "
+                    "{}".format(len(idata), ifc_len, ifc_len - 2)
                 )
 
             new_data[:, 0] = ifc_data[:-1]
@@ -442,7 +442,7 @@ class BoundsFunction(Function):
 
 
 class AgeofAirFunction(Function):
-    key = 'ageofair'
+    key = "ageofair"
 
     def __init__(self, spc_zm, date, time, lat, lev):
         super(AgeofAirFunction, self).__init__(spc_zm, date, time, lat, lev)
@@ -493,15 +493,15 @@ class AgeofAirFunction(Function):
                 time0 = np.interp(spc_local, spc_ref, timeyr)
                 a[:, iz, iy] = timeyr - time0
 
-        new_name = 'ageofair({}{}{}{}{})'.format(
+        new_name = "ageofair({}{}{}{}{})".format(
             p_spc_zm.name, p_date.name, p_time.name, p_lat.name, p_lev.name
         )
 
-        return PhysArray(a, name=new_name, units='yr')
+        return PhysArray(a, name=new_name, units="yr")
 
 
 class YeartoMonth_dataFunction(Function):
-    key = 'yeartomonth_data'
+    key = "yeartomonth_data"
 
     def __init__(self, data, time, lat, lon):
         super(YeartoMonth_dataFunction, self).__init__(data, time, lat, lon)
@@ -541,7 +541,7 @@ class YeartoMonth_dataFunction(Function):
 
         a[a >= 1e16] = 1e20
         a = np.ma.masked_values(a, 1e20)
-        new_name = 'yeartomonth_data({}{}{}{})'.format(
+        new_name = "yeartomonth_data({}{}{}{})".format(
             p_data.name, p_time.name, p_lat.name, p_lon.name
         )
 
@@ -554,7 +554,7 @@ class YeartoMonth_dataFunction(Function):
 
 
 class YeartoMonth_data3DFunction(Function):
-    key = 'yeartomonth_data3D'
+    key = "yeartomonth_data3D"
 
     def __init__(self, data, time, lat, lon, v):
         super(YeartoMonth_data3DFunction, self).__init__(data, time, lat, lon, v)
@@ -597,7 +597,7 @@ class YeartoMonth_data3DFunction(Function):
 
         a[a >= 1e16] = 1e20
         a = np.ma.masked_values(a, 1e20)
-        new_name = 'yeartomonth_data({}{}{}{}{})'.format(
+        new_name = "yeartomonth_data({}{}{}{}{})".format(
             p_data.name, p_time.name, p_lat.name, p_lon.name, p_v.name
         )
 
@@ -615,7 +615,7 @@ class YeartoMonth_data3DFunction(Function):
 
 
 class YeartoMonth_timeFunction(Function):
-    key = 'yeartomonth_time'
+    key = "yeartomonth_time"
 
     def __init__(self, time):
         super(YeartoMonth_timeFunction, self).__init__(time)
@@ -628,7 +628,7 @@ class YeartoMonth_timeFunction(Function):
                 np.zeros((0)),
                 dimensions=[p_time.dimensions[0]],
                 units=p_time.units,
-                calendar='noleap',
+                calendar="noleap",
             )
 
         time = p_time.data
@@ -664,19 +664,19 @@ class YeartoMonth_timeFunction(Function):
             b = np.resize(a, ((len(time) - 1) * 12))
         else:
             b = a
-        new_name = 'yeartomonth_time({})'.format(p_time.name)
+        new_name = "yeartomonth_time({})".format(p_time.name)
 
         return PhysArray(
             b,
             name=new_name,
             dimensions=[p_time.dimensions[0]],
             units=p_time.units,
-            calendar='noleap',
+            calendar="noleap",
         )
 
 
 class POP_bottom_layerFunction(Function):
-    key = 'POP_bottom_layer'
+    key = "POP_bottom_layer"
 
     def __init__(self, KMT, data):
         super(POP_bottom_layerFunction, self).__init__(KMT, data)
@@ -704,21 +704,21 @@ class POP_bottom_layerFunction(Function):
             for i in range(KMT.shape[1]):
                 a[:, j, i] = data[:, KMT[j, i] - 1, j, i]
 
-        new_name = 'POP_bottom_layer({}{})'.format(p_KMT.name, p_data.name)
+        new_name = "POP_bottom_layer({}{})".format(p_KMT.name, p_data.name)
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
 
 class diff_axis1_ind0bczero_4dFunction(Function):
-    key = 'diff_axis1_ind0bczero_4d'
+    key = "diff_axis1_ind0bczero_4d"
 
     def __init__(self, KMT, new_coord_var, data):
         super(diff_axis1_ind0bczero_4dFunction, self).__init__(KMT, new_coord_var, data)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('diff_axis1_ind0bczero_4d: data must be a PhysArray')
+            raise TypeError("diff_axis1_ind0bczero_4d: data must be a PhysArray")
         if len(data_info.dimensions) != 4:
-            raise DimensionsError('diff_axis1_ind0bczero_4d: data can only be 4D')
+            raise DimensionsError("diff_axis1_ind0bczero_4d: data can only be 4D")
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
@@ -743,7 +743,7 @@ class diff_axis1_ind0bczero_4dFunction(Function):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
 
         ma_a = np.ma.masked_values(a, fv)
-        new_name = '{}({}{}{})'.format(
+        new_name = "{}({}{}{})".format(
             self.key, p_KMT.name, p_new_coord_var.name, p_data.name
         )
         new_units = p_data.units
@@ -757,15 +757,15 @@ class diff_axis1_ind0bczero_4dFunction(Function):
 
 
 class rsdoabsorbFunction(Function):
-    key = 'rsdoabsorb'
+    key = "rsdoabsorb"
 
     def __init__(self, KMT, z_t, QSW_3D):
         super(rsdoabsorbFunction, self).__init__(KMT, z_t, QSW_3D)
         QSW_3D_info = QSW_3D if is_constant(QSW_3D) else QSW_3D[None]
         if not isinstance(QSW_3D_info, PhysArray):
-            raise TypeError('rsdoabsorb: QSW_3D must be a PhysArray')
+            raise TypeError("rsdoabsorb: QSW_3D must be a PhysArray")
         if len(QSW_3D_info.dimensions) != 4:
-            raise DimensionsError('rsdoabsorb: QSW_3D can only be 4D')
+            raise DimensionsError("rsdoabsorb: QSW_3D can only be 4D")
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
@@ -797,7 +797,7 @@ class rsdoabsorbFunction(Function):
                     a[t, k, :, :] = np.where(k < KMT, a[t, k, :, :], fv)
 
         ma_a = np.ma.masked_values(a, fv)
-        new_name = '{}({}{}{})'.format(self.key, p_KMT.name, p_z_t.name, p_QSW_3D.name)
+        new_name = "{}({}{}{})".format(self.key, p_KMT.name, p_z_t.name, p_QSW_3D.name)
         new_units = p_QSW_3D.units
         new_dims = [
             p_QSW_3D.dimensions[0],
@@ -809,15 +809,15 @@ class rsdoabsorbFunction(Function):
 
 
 class POP_surf_meanFunction(Function):
-    key = 'POP_surf_mean'
+    key = "POP_surf_mean"
 
     def __init__(self, KMT, TAREA, FIELD):
         super(POP_surf_meanFunction, self).__init__(KMT, TAREA, FIELD)
         FIELD_info = FIELD if is_constant(FIELD) else FIELD[None]
         if not isinstance(FIELD_info, PhysArray):
-            raise TypeError('POP_surf_mean: FIELD must be a PhysArray')
+            raise TypeError("POP_surf_mean: FIELD must be a PhysArray")
         if len(FIELD_info.dimensions) != 3:
-            raise DimensionsError('POP_surf_mean: FIELD can only be 3D')
+            raise DimensionsError("POP_surf_mean: FIELD can only be 3D")
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
@@ -837,22 +837,22 @@ class POP_surf_meanFunction(Function):
         denom = np.sum(np.where(KMT > 0, TAREA, 0.0))
         a[:] *= 1.0 / denom
 
-        new_name = '{}({}{}{})'.format(self.key, p_KMT.name, p_TAREA.name, p_FIELD.name)
+        new_name = "{}({}{}{})".format(self.key, p_KMT.name, p_TAREA.name, p_FIELD.name)
         new_units = p_FIELD.units
         new_dims = [p_FIELD.dimensions[0]]
         return PhysArray(a, name=new_name, units=new_units, dimensions=new_dims)
 
 
 class POP_3D_meanFunction(Function):
-    key = 'POP_3D_mean'
+    key = "POP_3D_mean"
 
     def __init__(self, KMT, dz, TAREA, FIELD):
         super(POP_3D_meanFunction, self).__init__(KMT, dz, TAREA, FIELD)
         FIELD_info = FIELD if is_constant(FIELD) else FIELD[None]
         if not isinstance(FIELD_info, PhysArray):
-            raise TypeError('POP_3D_mean: FIELD must be a PhysArray')
+            raise TypeError("POP_3D_mean: FIELD must be a PhysArray")
         if len(FIELD_info.dimensions) != 4:
-            raise DimensionsError('POP_3D_mean: FIELD can only be 4D')
+            raise DimensionsError("POP_3D_mean: FIELD can only be 4D")
 
     def __getitem__(self, index):
         p_KMT = self.arguments[0][index]
@@ -880,7 +880,7 @@ class POP_3D_meanFunction(Function):
             denom += dz[k] * np.sum(np.where(k < KMT, TAREA, 0.0))
         a[:] *= 1.0 / denom
 
-        new_name = '{}({}{}{}{})'.format(
+        new_name = "{}({}{}{}{})".format(
             self.key, p_KMT.name, p_dz.name, p_TAREA.name, p_FIELD.name
         )
         new_units = p_FIELD.units
@@ -889,7 +889,7 @@ class POP_3D_meanFunction(Function):
 
 
 class sftofFunction(Function):
-    key = 'sftof'
+    key = "sftof"
 
     def __init__(self, KMT):
         super(sftofFunction, self).__init__(KMT)
@@ -911,7 +911,7 @@ class sftofFunction(Function):
                 if KMT[j, i] > 0:
                     a[j, i] = 1
 
-        new_name = 'sftof({})'.format(p_KMT.name)
+        new_name = "sftof({})".format(p_KMT.name)
 
         return PhysArray(
             a,
@@ -922,7 +922,7 @@ class sftofFunction(Function):
 
 
 class POP_bottom_layer_multaddFunction(Function):
-    key = 'POP_bottom_layer_multadd'
+    key = "POP_bottom_layer_multadd"
 
     def __init__(self, KMT, data1, data2):
         super(POP_bottom_layer_multaddFunction, self).__init__(KMT, data1, data2)
@@ -950,7 +950,7 @@ class POP_bottom_layer_multaddFunction(Function):
             a2[t] = np.ma.sum(a1[t, :, :])
             # print a2[t]
 
-        new_name = 'POP_bottom_layer_multadd({}{}{})'.format(
+        new_name = "POP_bottom_layer_multadd({}{}{})".format(
             p_KMT.name, p_data1.name, p_data2.name
         )
         new_units = p_data1.units * p_data2.units
@@ -960,7 +960,7 @@ class POP_bottom_layer_multaddFunction(Function):
 
 
 class POP_layer_sum_multFunction(Function):
-    key = 'POP_layer_sum_mult'
+    key = "POP_layer_sum_mult"
 
     def __init__(self, KMT, data1, data2):
         super(POP_layer_sum_multFunction, self).__init__(KMT, data1, data2)
@@ -990,7 +990,7 @@ class POP_layer_sum_multFunction(Function):
                         a1[t, j, i] = fv
 
         ma_a1 = np.ma.masked_values(a1, fv)
-        new_name = 'POP_layer_sum_mult({}{}{})'.format(
+        new_name = "POP_layer_sum_mult({}{}{})".format(
             p_KMT.name, p_data1.name, p_data2.name
         )
         new_units = p_data1.units * p_data2.units
@@ -1007,7 +1007,7 @@ class POP_layer_sum_multFunction(Function):
 
 
 class masked_invalidFunction(Function):
-    key = 'masked_invalid'
+    key = "masked_invalid"
 
     def __init__(self, data):
         super(masked_invalidFunction, self).__init__(data)
@@ -1029,46 +1029,46 @@ class masked_invalidFunction(Function):
 
         a = np.ma.masked_invalid(data)
 
-        new_name = 'masked_invalid({})'.format(p_data.name)
+        new_name = "masked_invalid({})".format(p_data.name)
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
 
 class hemisphereFunction(Function):
-    key = 'hemisphere'
+    key = "hemisphere"
 
-    def __init__(self, data, dim='dim', dr='dr'):
+    def __init__(self, data, dim="dim", dr="dr"):
         super(hemisphereFunction, self).__init__(data, dim=dim, dr=dr)
 
     def __getitem__(self, index):
         p_data = self.arguments[0][index]
-        dim = self.keywords['dim']
-        dr = self.keywords['dr']
+        dim = self.keywords["dim"]
+        dr = self.keywords["dr"]
 
         data = p_data.data
 
         # dim0?
         if dim in p_data.dimensions[0]:
-            if '>' in dr:
+            if ">" in dr:
                 return p_data[(data.shape[0] / 2) : data.shape[0], :, :]
-            elif '<' in dr:
+            elif "<" in dr:
                 return p_data[0 : (data.shape[0] / 2), :, :]
         # dim1?
         if dim in p_data.dimensions[1]:
-            if '>' in dr:
+            if ">" in dr:
                 return p_data[:, (data.shape[1] / 2) : data.shape[1], :]
-            elif '<' in dr:
+            elif "<" in dr:
                 return p_data[:, 0 : (data.shape[1] / 2), :]
         # dim2?
         if dim in p_data.dimensions[2]:
-            if '>' in dr:
+            if ">" in dr:
                 return p_data[:, :, (data.shape[2] / 2) : data.shape[2]]
-            elif '<' in dr:
+            elif "<" in dr:
                 return p_data[:, :, 0 : (data.shape[2] / 2)]
 
 
 class cice_whereFunction(Function):
-    key = 'cice_where'
+    key = "cice_where"
 
     def __init__(self, a1, condition, a2, var, value):
         super(cice_whereFunction, self).__init__(a1, condition, a2, var, value)
@@ -1088,18 +1088,18 @@ class cice_whereFunction(Function):
 
         a = np.ma.zeros(a1.shape)
         for t in range(a1.data.shape[0]):
-            if '>=' in condition:
+            if ">=" in condition:
                 a[t, :, :] = np.ma.where(a1[t, :, :] >= a2, var, value)
-            elif '<=' in condition:
+            elif "<=" in condition:
                 a[t, :, :] = np.ma.where(a1[t, :, :] <= a2, var, value)
-            elif '==' in condition:
+            elif "==" in condition:
                 a[t, :, :] = np.ma.where(a1[t, :, :] == a2, var, value)
-            elif '<' in condition:
+            elif "<" in condition:
                 a[t, :, :] = np.ma.where(a1[t, :, :] < a2, var, value)
-            elif '>' in condition:
+            elif ">" in condition:
                 a[t, :, :] = np.ma.where(a1[t, :, :] > a2, var, value)
 
-        new_name = 'cice_where()'.format()
+        new_name = "cice_where()".format()
         return PhysArray(
             a,
             name=new_name,
@@ -1109,7 +1109,7 @@ class cice_whereFunction(Function):
 
 
 class cice_regionsFunction(Function):
-    key = 'cice_regions'
+    key = "cice_regions"
 
     def __init__(self, p_aice, p_uvel, p_vvel, p_HTE, p_HTN, p_siline, multiple):
         super(cice_regionsFunction, self).__init__(
@@ -1142,14 +1142,14 @@ class cice_regionsFunction(Function):
             for j in range(370, 381):
                 if aice[t, j, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i,
                     )
                 elif aice[t, j, i + 1] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i + 1,
@@ -1166,21 +1166,21 @@ class cice_regionsFunction(Function):
             for j in range(375, 377):
                 if aice[t, j, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i,
                     )
                 elif aice[t, j, i + 1] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i + 1,
                     )
                 elif aice[t, j + 1, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j + 1,
                         i,
@@ -1195,21 +1195,21 @@ class cice_regionsFunction(Function):
             for i in range(240, 244):
                 if aice[t, j, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i,
                     )
                 elif aice[t, j, i + 1] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i + 1,
                     )
                 elif aice[t, j + 1, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j + 1,
                         i,
@@ -1225,14 +1225,14 @@ class cice_regionsFunction(Function):
             for j in range(344, 366):
                 if aice[t, j, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i,
                     )
                 elif aice[t, j, i + 1] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i + 1,
@@ -1249,14 +1249,14 @@ class cice_regionsFunction(Function):
             for i in range(198, 201):
                 if aice[t, j, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j,
                         i,
                     )
                 elif aice[t, j + 1, i] >= 1e16:
                     print(
-                        'CICE aice WARNING: this point should not contain a missing value ',
+                        "CICE aice WARNING: this point should not contain a missing value ",
                         t,
                         j + 1,
                         i,
@@ -1271,7 +1271,7 @@ class cice_regionsFunction(Function):
 
         a = a * multiple
 
-        new_name = 'cice_regions()'.format()
+        new_name = "cice_regions()".format()
         return PhysArray(
             a,
             name=new_name,
@@ -1281,7 +1281,7 @@ class cice_regionsFunction(Function):
 
 
 class burntFractionFunction(Function):
-    key = 'burntFraction'
+    key = "burntFraction"
 
     def __init__(self, data):
         super(burntFractionFunction, self).__init__(data)
@@ -1317,13 +1317,13 @@ class burntFractionFunction(Function):
             if i == 12:
                 i = 1
         a[a >= 1e16] = 1e20
-        new_name = 'burntFraction({})'.format(p_data.name)
+        new_name = "burntFraction({})".format(p_data.name)
 
         return PhysArray(a, name=new_name, units=p_data.units)
 
 
 class reduce_luFunction(Function):
-    key = 'reduce_lu'
+    key = "reduce_lu"
 
     def __init__(self, p_data, p_lu):
         super(reduce_luFunction, self).__init__(p_data, p_lu)
@@ -1347,7 +1347,7 @@ class reduce_luFunction(Function):
                     )
         data2[data2 >= 1e16] = 1e20
 
-        new_name = 'reduce_lu({}{})'.format(p_data.name, p_lu.name)
+        new_name = "reduce_lu({}{})".format(p_data.name, p_lu.name)
         return PhysArray(
             data2,
             name=new_name,
@@ -1362,7 +1362,7 @@ class reduce_luFunction(Function):
 
 
 class get_soilpoolsFunction(Function):
-    key = 'get_soilpools'
+    key = "get_soilpools"
 
     def __init__(self, p_data1, p_data2, p_data3, p_soilpool):
         super(get_soilpoolsFunction, self).__init__(
@@ -1388,7 +1388,7 @@ class get_soilpoolsFunction(Function):
         data[data >= 1e16] = 1e20
         data = np.ma.masked_values(data, 1e20)
 
-        new_name = 'soilpools({}{}{}{})'.format(
+        new_name = "soilpools({}{}{}{})".format(
             p_data1.name, p_data2.name, p_data3.name, p_soilpool.name
         )
         return PhysArray(
@@ -1405,7 +1405,7 @@ class get_soilpoolsFunction(Function):
 
 
 class get_nonwoodyvegFunction(Function):
-    key = 'get_nonwoodyveg'
+    key = "get_nonwoodyveg"
 
     def __init__(self, p_pct_nat_pft, p_pct_crop, p_landfrac, p_landUse):
         super(get_nonwoodyvegFunction, self).__init__(
@@ -1451,7 +1451,7 @@ class get_nonwoodyvegFunction(Function):
         data[data >= 1e16] = 1e20
         data = np.ma.masked_values(data, 1e20)
 
-        new_name = 'get_nonwoodyveg({})'.format(p_pct_nat_pft.name)
+        new_name = "get_nonwoodyveg({})".format(p_pct_nat_pft.name)
         return PhysArray(
             data,
             name=new_name,
@@ -1466,7 +1466,7 @@ class get_nonwoodyvegFunction(Function):
 
 
 class expand_latlonFunction(Function):
-    key = 'expand_latlon'
+    key = "expand_latlon"
 
     def __init__(self, p_data1, p_lat, p_lon):
         super(expand_latlonFunction, self).__init__(p_data1, p_lat, p_lon)
@@ -1489,7 +1489,7 @@ class expand_latlonFunction(Function):
         data[data >= 1e16] = 1e20
         data = np.ma.masked_values(data, 1e20)
 
-        new_name = 'expand_latlon({}{}{})'.format(p_data1.name, p_lat.name, p_lon.name)
+        new_name = "expand_latlon({}{}{})".format(p_data1.name, p_lat.name, p_lon.name)
         return PhysArray(
             data,
             name=new_name,
@@ -1503,7 +1503,7 @@ class expand_latlonFunction(Function):
 
 
 class ocean_basinFunction(Function):
-    key = 'ocean_basin'
+    key = "ocean_basin"
 
     def __init__(self, p_data1, p_comp, p_basin):
         super(ocean_basinFunction, self).__init__(p_data1, p_comp, p_basin)
@@ -1531,7 +1531,7 @@ class ocean_basinFunction(Function):
         data[data >= 1e16] = 1e20
         data = np.ma.masked_values(data, 1e20)
 
-        new_name = 'ocean_basin({}{})'.format(p_data1.name, p_basin.name)
+        new_name = "ocean_basin({}{})".format(p_data1.name, p_basin.name)
         return PhysArray(
             data,
             name=new_name,
@@ -1546,7 +1546,7 @@ class ocean_basinFunction(Function):
 
 
 class emilnoxFunction(Function):
-    key = 'emilnox'
+    key = "emilnox"
 
     def __init__(
         self,
@@ -1686,7 +1686,7 @@ class emilnoxFunction(Function):
         # for ilev in range(nlev):
         #     print pres[0,ilev,ilat,ilon],(emilnox[0,ilev,ilat,ilon])
 
-        new_name = 'emilnox({}{}{}{}{}{}{}{}{}{}{})'.format(
+        new_name = "emilnox({}{}{}{}{}{}{}{}{}{}{})".format(
             p_PO.name,
             p_PS.name,
             p_hyai.name,
@@ -1709,12 +1709,12 @@ class emilnoxFunction(Function):
                 p_T.dimensions[2],
                 p_T.dimensions[3],
             ],
-            units='mol s-1',
+            units="mol s-1",
         )
 
 
 class delpFunction(Function):
-    key = 'delp'
+    key = "delp"
 
     def __init__(self, p_PO, p_PS, p_hyai, p_hybi):
         super(delpFunction, self).__init__(p_PO, p_PS, p_hyai, p_hybi)
@@ -1741,22 +1741,22 @@ class delpFunction(Function):
 
         delp = PhysArray(
             np.zeros(hyai.shape + PS.shape),
-            name='delp',
-            units='Pa',
+            name="delp",
+            units="Pa",
             dimensions=hyai.dimensions + PS.dimensions,
         )
         for i in range(0, j - 1):
             delp.data[i, :, :, :] = p.data[i + 1, :, :, :] - p.data[i, :, :, :]
 
-        new_name = 'delp({}{}{}{})'.format(
+        new_name = "delp({}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyai.name, p_hybi.name
         )
 
-        return PhysArray(delp, name=new_name, units='Pa')
+        return PhysArray(delp, name=new_name, units="Pa")
 
 
 class rhoFunction(Function):
-    key = 'rho'
+    key = "rho"
 
     def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T):
         super(rhoFunction, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T)
@@ -1788,15 +1788,15 @@ class rhoFunction(Function):
         p = (hyam * PO) + (hybm * PS)
         rho = p / (287.04 * t)
 
-        new_name = 'rho({}{}{}{}{})'.format(
+        new_name = "rho({}{}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name
         )
 
-        return PhysArray(rho, name=new_name, units='cm-3')
+        return PhysArray(rho, name=new_name, units="cm-3")
 
 
 class pm25Function(Function):
-    key = 'pm25'
+    key = "pm25"
 
     def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o):
         super(pm25Function, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o)
@@ -1830,11 +1830,11 @@ class pm25Function(Function):
         p = (hyam * PO) + (hybm * PS)
         pm25 = PM25_o * 287.0 * t / p
 
-        new_name = 'pm25({}{}{}{}{}{})'.format(
+        new_name = "pm25({}{}{}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name, p_PM25_o.name
         )
 
-        return PhysArray(pm25, name=new_name, units='kg/kg')
+        return PhysArray(pm25, name=new_name, units="kg/kg")
 
 
 # class tozFunction(Function):

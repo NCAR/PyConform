@@ -43,7 +43,7 @@ def iter_dfs(node):
         node (FlowNode): the starting node from where to begin iterating
     """
     if not isinstance(node, FlowNode):
-        raise TypeError('Can only iterate over FlowNodes')
+        raise TypeError("Can only iterate over FlowNodes")
 
     visited = set()
     tosearch = [node]
@@ -63,7 +63,7 @@ def iter_bfs(node):
         node (FlowNode): the starting node from where to begin iterating
     """
     if not isinstance(node, FlowNode):
-        raise TypeError('Can only iterate over FlowNodes')
+        raise TypeError("Can only iterate over FlowNodes")
 
     visited = set()
     tosearch = [node]
@@ -160,14 +160,14 @@ class ReadNode(FlowNode):
         # Check variable descriptor type and existence in the file
         if not isinstance(variable, VariableDesc):
             raise TypeError(
-                'Unrecognized variable descriptor of type '
-                '{!r}: {!r}'.format(type(variable), variable.name)
+                "Unrecognized variable descriptor of type "
+                "{!r}: {!r}".format(type(variable), variable.name)
             )
 
         # Check for associated file
         if len(variable.files) == 0:
             raise ValueError(
-                'Variable descriptor {} has no associated files'.format(variable.name)
+                "Variable descriptor {} has no associated files".format(variable.name)
             )
         self._filepath = None
         for fdesc in variable.files.values():
@@ -176,14 +176,14 @@ class ReadNode(FlowNode):
                 break
         if self._filepath is None:
             raise OSError(
-                'File path not found for input variable: {!r}'.format(variable.name)
+                "File path not found for input variable: {!r}".format(variable.name)
             )
 
         # Check that the variable exists in the file
-        with Dataset(self._filepath, 'r') as ncfile:
+        with Dataset(self._filepath, "r") as ncfile:
             if variable.name not in ncfile.variables:
                 raise OSError(
-                    'Variable {!r} not found in NetCDF file: {!r}'.format(
+                    "Variable {!r} not found in NetCDF file: {!r}".format(
                         variable.name, self._filepath
                     )
                 )
@@ -205,14 +205,14 @@ class ReadNode(FlowNode):
         if is_all:
             label = variable.name
         else:
-            label = '{}[{}]'.format(variable.name, index_str(index))
+            label = "{}[{}]".format(variable.name, index_str(index))
         super(ReadNode, self).__init__(label)
 
     def __getitem__(self, index):
         """
         Read PhysArray from file
         """
-        with Dataset(self._filepath, 'r') as ncfile:
+        with Dataset(self._filepath, "r") as ncfile:
 
             # Get a reference to the variable
             ncvar = ncfile.variables[self._variable]
@@ -221,12 +221,12 @@ class ReadNode(FlowNode):
             attrs = {a: ncvar.getncattr(a) for a in ncvar.ncattrs()}
 
             # Read the variable units
-            units_attr = attrs.get('units', 1)
-            calendar_attr = attrs.get('calendar', None)
+            units_attr = attrs.get("units", 1)
+            calendar_attr = attrs.get("calendar", None)
             try:
                 units = Unit(units_attr, calendar=calendar_attr)
             except ValueError:
-                msg = 'Units {!r} unrecognized in UDUNITS.  Assuming unitless.'.format(
+                msg = "Units {!r} unrecognized in UDUNITS.  Assuming unitless.".format(
                     units_attr
                 )
                 warn(msg, UnitsWarning)
@@ -266,7 +266,7 @@ class ReadNode(FlowNode):
                 data = data.astype(numpy.float64)
 
             # Read the positive attribute, if available
-            pos = attrs.get('positive', None)
+            pos = attrs.get("positive", None)
 
         return PhysArray(
             data, name=self.label, units=units, dimensions=dimensions2, positive=pos
@@ -347,11 +347,11 @@ class MapNode(FlowNode):
         """
         # Check FlowNode type
         if not isinstance(dnode, FlowNode):
-            raise TypeError('MapNode can only act on output from another FlowNode')
+            raise TypeError("MapNode can only act on output from another FlowNode")
 
         # Check dimension map type
         if not isinstance(dmap, dict):
-            raise TypeError('Dimension map must be a dictionary')
+            raise TypeError("Dimension map must be a dictionary")
 
         # Store the dimension input-to-output map
         self._i2omap = dmap
@@ -391,12 +391,12 @@ class MapNode(FlowNode):
             )
 
         # Return the mapped data
-        idims_str = ','.join(inp_dims)
-        odims_str = ','.join(out_dims)
+        idims_str = ",".join(inp_dims)
+        odims_str = ",".join(out_dims)
         if inp_dims == out_dims:
             name = inp_info.name
         else:
-            name = 'map({}, from=[{}], to=[{}])'.format(
+            name = "map({}, from=[{}], to=[{}])".format(
                 inp_info.name, idims_str, odims_str
             )
         return PhysArray(self.inputs[0][inp_index], name=name, dimensions=out_dims)
@@ -434,9 +434,9 @@ class ValidateNode(FlowNode):
         """
         # Check Types
         if not isinstance(vdesc, VariableDesc):
-            raise TypeError('ValidateNode requires a VariableDesc object as input')
+            raise TypeError("ValidateNode requires a VariableDesc object as input")
         if not isinstance(dnode, FlowNode):
-            raise TypeError('ValidateNode can only act on output from another FlowNode')
+            raise TypeError("ValidateNode can only act on output from another FlowNode")
 
         # Call base class initializer
         super(ValidateNode, self).__init__(vdesc.name, dnode)
@@ -446,28 +446,28 @@ class ValidateNode(FlowNode):
 
         # Initialize the history attribute, if necessary
         info = dnode[None]
-        if 'history' not in self.attributes:
-            self.attributes['history'] = info.name
+        if "history" not in self.attributes:
+            self.attributes["history"] = info.name
 
         # Else inherit the units and calendar of the input data stream, if
         # necessary
-        if 'units' in self.attributes:
+        if "units" in self.attributes:
             if info.units.is_time_reference():
-                ustr, rstr = [c.strip() for c in str(info.units).split('since')]
+                ustr, rstr = [c.strip() for c in str(info.units).split("since")]
                 if self._vdesc.units() is not None:
                     ustr = self._vdesc.units()
                 if self._vdesc.refdatetime() is not None:
                     rstr = self._vdesc.refdatetime()
-                self.attributes['units'] = '{} since {}'.format(ustr, rstr)
+                self.attributes["units"] = "{} since {}".format(ustr, rstr)
 
                 # Calendars must match as convertion between different
                 # calendars will fail
                 if self._vdesc.calendar() is None and info.units.calendar is not None:
-                    self.attributes['calendar'] = info.units.calendar
+                    self.attributes["calendar"] = info.units.calendar
 
             else:
                 if self._vdesc.units() is None:
-                    self.attributes['units'] = str(info.units)
+                    self.attributes["units"] = str(info.units)
 
     @property
     def attributes(self):
@@ -496,19 +496,19 @@ class ValidateNode(FlowNode):
             odtype = indata.dtype
         else:
             odtype = self._vdesc.dtype
-        if numpy.can_cast(indata.dtype, odtype, casting='same_kind'):
+        if numpy.can_cast(indata.dtype, odtype, casting="same_kind"):
             indata = indata.astype(odtype)
         else:
             raise TypeError(
-                ('Cannot cast datatype {!s} to {!s} in ValidateNode ' '{!r}').format(
+                ("Cannot cast datatype {!s} to {!s} in ValidateNode " "{!r}").format(
                     indata.dtype, odtype, self.label
                 )
             )
 
         # Check that units match as expected, otherwise convert
-        if 'units' in self.attributes:
+        if "units" in self.attributes:
             ounits = Unit(
-                self.attributes['units'], calendar=self.attributes.get('calendar', None)
+                self.attributes["units"], calendar=self.attributes.get("calendar", None)
             )
             if ounits != indata.units:
                 if index is None:
@@ -517,7 +517,7 @@ class ValidateNode(FlowNode):
                     try:
                         indata = indata.convert(ounits)
                     except Exception as err:
-                        err_msg = 'When validating output variable {}: {}'.format(
+                        err_msg = "When validating output variable {}: {}".format(
                             self.label, err
                         )
                         raise err.__class__(err_msg)
@@ -527,7 +527,7 @@ class ValidateNode(FlowNode):
             indata = indata.transpose(self.dimensions)
 
         # Check the positive attribute, if specified
-        positive = self.attributes.get('positive', None)
+        positive = self.attributes.get("positive", None)
         if positive is not None and indata.positive != positive:
             indata.flip()
 
@@ -536,16 +536,16 @@ class ValidateNode(FlowNode):
             return indata
 
         # Testing parameters
-        valid_min = self.attributes.get('valid_min', None)
-        valid_max = self.attributes.get('valid_max', None)
-        ok_min_mean_abs = self.attributes.get('ok_min_mean_abs', None)
-        ok_max_mean_abs = self.attributes.get('ok_max_mean_abs', None)
+        valid_min = self.attributes.get("valid_min", None)
+        valid_max = self.attributes.get("valid_max", None)
+        ok_min_mean_abs = self.attributes.get("ok_min_mean_abs", None)
+        ok_max_mean_abs = self.attributes.get("ok_max_mean_abs", None)
 
         # Validate minimum
         if valid_min:
             dmin = numpy.min(indata)
             if dmin < valid_min:
-                msg = 'valid_min: {} < {} ({!r})'.format(dmin, valid_min, self.label)
+                msg = "valid_min: {} < {} ({!r})".format(dmin, valid_min, self.label)
                 warn(msg, ValidationWarning)
                 indata = numpy.ma.masked_where(indata <= valid_min, indata)
 
@@ -553,7 +553,7 @@ class ValidateNode(FlowNode):
         if valid_max:
             dmax = numpy.max(indata)
             if dmax > valid_max:
-                msg = 'valid_max: {} > {} ({!r})'.format(dmax, valid_max, self.label)
+                msg = "valid_max: {} > {} ({!r})".format(dmax, valid_max, self.label)
                 warn(msg, ValidationWarning)
                 indata = numpy.ma.masked_where(indata >= valid_max, indata)
 
@@ -564,7 +564,7 @@ class ValidateNode(FlowNode):
         # Validate minimum mean abs
         if ok_min_mean_abs:
             if mean_abs < ok_min_mean_abs:
-                msg = 'ok_min_mean_abs: {} < {} ({!r})'.format(
+                msg = "ok_min_mean_abs: {} < {} ({!r})".format(
                     mean_abs, ok_min_mean_abs, self.label
                 )
                 warn(msg, ValidationWarning)
@@ -572,7 +572,7 @@ class ValidateNode(FlowNode):
         # Validate maximum mean abs
         if ok_max_mean_abs:
             if mean_abs > ok_max_mean_abs:
-                msg = 'ok_max_mean_abs: {} > {} ({!r})'.format(
+                msg = "ok_max_mean_abs: {} > {} ({!r})".format(
                     mean_abs, ok_max_mean_abs, self.label
                 )
                 warn(msg, ValidationWarning)
@@ -605,12 +605,12 @@ class WriteNode(FlowNode):
         """
         # Check filename
         if not isinstance(filedesc, FileDesc):
-            raise TypeError('File descriptor must be of FileDesc type')
+            raise TypeError("File descriptor must be of FileDesc type")
 
         # Check and store input variables nodes
         if not isinstance(inputs, (list, tuple)):
             raise TypeError(
-                ('WriteNode {!r} inputs must be given as a list or ' 'tuple').format(
+                ("WriteNode {!r} inputs must be given as a list or " "tuple").format(
                     filedesc.name
                 )
             )
@@ -618,13 +618,13 @@ class WriteNode(FlowNode):
             if not isinstance(inp, ValidateNode):
                 raise TypeError(
                     (
-                        'WriteNode {!r} cannot accept input from type {}, must be a '
-                        'ValidateNode'
+                        "WriteNode {!r} cannot accept input from type {}, must be a "
+                        "ValidateNode"
                     ).format(filedesc.name, type(inp))
                 )
 
         # Extract hidden variables (names starting with '_') from list of input nodes
-        hidden_labels = [inp.label for inp in inputs if inp.label[0] == '_']
+        hidden_labels = [inp.label for inp in inputs if inp.label[0] == "_"]
         self._hidden_inputs = [inp for inp in inputs if inp.label in hidden_labels]
         inputs = [inp for inp in inputs if inp.label not in hidden_labels]
 
@@ -639,8 +639,8 @@ class WriteNode(FlowNode):
             if inp.label not in self._filedesc.variables:
                 raise ValueError(
                     (
-                        'WriteNode {!r} takes input from variable {!r} that is not '
-                        'contained in the described file'
+                        "WriteNode {!r} takes input from variable {!r} that is not "
+                        "contained in the described file"
                     ).format(filedesc.name, inp.label)
                 )
 
@@ -648,7 +648,7 @@ class WriteNode(FlowNode):
         fname = self._autoparse_filename_(self.label)
         self._label = fname
         self._filedesc._name = fname
-        self._tmp_ext = '.tmp.nc'
+        self._tmp_ext = ".tmp.nc"
 
         # Set the filehandle
         self._file = None
@@ -657,7 +657,7 @@ class WriteNode(FlowNode):
         self._idims = set()
 
         # Initialize set of unwritten attributes
-        self._unwritten_attributes = {'_FillValue', 'direction', 'history'}
+        self._unwritten_attributes = {"_FillValue", "direction", "history"}
 
     def _autoparse_filename_(self, fname):
         """
@@ -670,7 +670,7 @@ class WriteNode(FlowNode):
             str: The new name for the file
         """
 
-        if '{' in fname:
+        if "{" in fname:
 
             possible_tvars = []
             possible_inputs = list(self.inputs)
@@ -680,7 +680,7 @@ class WriteNode(FlowNode):
             else:
                 for var in self._filedesc.variables:
                     vdesc = self._filedesc.variables[var]
-                    if var in ('time', 'time1', 'time2', 'time3'):
+                    if var in ("time", "time1", "time2", "time3"):
                         possible_tvars.append(var)
                     elif (
                         vdesc.cfunits().is_time_reference()
@@ -688,14 +688,14 @@ class WriteNode(FlowNode):
                     ):
                         possible_tvars.append(var)
                     elif (
-                        'standard_name' in vdesc.attributes
-                        and vdesc.attributes['standard_name'] == 'time'
+                        "standard_name" in vdesc.attributes
+                        and vdesc.attributes["standard_name"] == "time"
                     ):
                         possible_tvars.append(var)
-                    elif 'axis' in vdesc.attributes and vdesc.attributes['axis'] == 'T':
+                    elif "axis" in vdesc.attributes and vdesc.attributes["axis"] == "T":
                         possible_tvars.append(var)
             if len(possible_tvars) == 0:
-                msg = 'Could not identify a time variable to autoparse filename {!r}'.format(
+                msg = "Could not identify a time variable to autoparse filename {!r}".format(
                     fname
                 )
                 warn(msg, DateTimeAutoParseWarning)
@@ -707,40 +707,40 @@ class WriteNode(FlowNode):
             }
             if len(possible_tnodes) == 0:
                 raise ValueError(
-                    'Time variable input missing for file {!r}'.format(fname)
+                    "Time variable input missing for file {!r}".format(fname)
                 )
             tnode = (
-                possible_tnodes['time']
-                if 'time' in possible_tnodes
+                possible_tnodes["time"]
+                if "time" in possible_tnodes
                 else tuple(possible_tnodes.values())[0]
             )
 
             t1 = tnode[0:1]
             t2 = tnode[-1:]
 
-            while '{' in fname:
-                beg = fname.find('{')
-                end = fname.find('}', beg)
+            while "{" in fname:
+                beg = fname.find("{")
+                end = fname.find("}", beg)
                 if end == -1:
                     raise ValueError(
-                        'Filename {!r} has unbalanced special characters'.format(fname)
+                        "Filename {!r} has unbalanced special characters".format(fname)
                     )
                 prefix = fname[:beg]
-                fmtstr1, fmtstr2 = fname[beg + 1 : end].split('-')
+                fmtstr1, fmtstr2 = fname[beg + 1 : end].split("-")
                 suffix = fname[end + 1 :]
 
                 datestr1 = (
                     num2date(t1.data[0], str(t1.units), t1.units.calendar)
                     .strftime(fmtstr1)
-                    .replace(' ', '0')
+                    .replace(" ", "0")
                 )
                 datestr2 = (
                     num2date(t2.data[0], str(t2.units), t2.units.calendar)
                     .strftime(fmtstr2)
-                    .replace(' ', '0')
+                    .replace(" ", "0")
                 )
 
-                fname = '{}{}-{}{}'.format(prefix, datestr1, datestr2, suffix)
+                fname = "{}{}-{}{}".format(prefix, datestr1, datestr2, suffix)
 
         return fname
 
@@ -748,14 +748,14 @@ class WriteNode(FlowNode):
         """
         Enable writing of the history attribute to the file
         """
-        if 'history' in self._unwritten_attributes:
-            self._unwritten_attributes.remove('history')
+        if "history" in self._unwritten_attributes:
+            self._unwritten_attributes.remove("history")
 
     def disable_history(self):
         """
         Disable writing of the history attribute to the file
         """
-        self._unwritten_attributes.add('history')
+        self._unwritten_attributes.add("history")
 
     def _open_(self, deflate=None):
         """
@@ -765,7 +765,7 @@ class WriteNode(FlowNode):
 
             # Make the necessary subdirectories to open the file
             fname = self.label
-            tmp_fname = '{}{}'.format(fname, self._tmp_ext)
+            tmp_fname = "{}{}".format(fname, self._tmp_ext)
             fdir = dirname(fname)
             fmt = self._filedesc.format
             if len(fdir) > 0 and not exists(fdir):
@@ -774,26 +774,26 @@ class WriteNode(FlowNode):
                 except:
                     if exists(fdir):
                         print(
-                            'Already created directory for output file {!r}'.format(
+                            "Already created directory for output file {!r}".format(
                                 fname
                             )
                         )
                     else:
                         raise IOError(
-                            'Failed to create directory for output file {!r}'.format(
+                            "Failed to create directory for output file {!r}".format(
                                 fname
                             )
                         )
 
             # Try to open the output file for writing
             try:
-                self._file = Dataset(tmp_fname, 'w', format=fmt)
+                self._file = Dataset(tmp_fname, "w", format=fmt)
             except:
-                raise IOError('Failed to open output file {!r}'.format(fname))
+                raise IOError("Failed to open output file {!r}".format(fname))
 
             # Write the global attributes
-            self._filedesc.attributes['creation_date'] = datetime.utcnow().strftime(
-                '%Y-%m-%dT%H:%M:%SZ'
+            self._filedesc.attributes["creation_date"] = datetime.utcnow().strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
             )
             self._file.setncatts(self._filedesc.attributes)
 
@@ -808,29 +808,29 @@ class WriteNode(FlowNode):
                     if dname not in self._filedesc.dimensions:
                         raise KeyError(
                             (
-                                'Dimension {!r} needed by variable {!r} is not specified '
-                                'in file {!r}'
+                                "Dimension {!r} needed by variable {!r} is not specified "
+                                "in file {!r}"
                             ).format(dname, vname, fname)
                         )
                     req_dims.add(dname)
 
                 # Determine coordinates and dimensions to invert
-                if len(vdesc.dimensions) == 1 and 'axis' in vnode.attributes:
-                    if 'direction' in vnode.attributes:
-                        vdir_out = vnode.attributes['direction']
-                        if vdir_out not in ['increasing', 'decreasing']:
+                if len(vdesc.dimensions) == 1 and "axis" in vnode.attributes:
+                    if "direction" in vnode.attributes:
+                        vdir_out = vnode.attributes["direction"]
+                        if vdir_out not in ["increasing", "decreasing"]:
                             raise ValueError(
                                 (
-                                    'Unrecognized direction in output coordinate variable '
-                                    '{!r} when writing file {!r}'
+                                    "Unrecognized direction in output coordinate variable "
+                                    "{!r} when writing file {!r}"
                                 ).format(vname, fname)
                             )
                         vdir_inp = WriteNode._direction_(vnode[:])
                         if vdir_inp is None:
                             raise ValueError(
                                 (
-                                    'Output coordinate variable {!r} has no calculable '
-                                    'direction'
+                                    "Output coordinate variable {!r} has no calculable "
+                                    "direction"
                                 ).format(vname)
                             )
                         if vdir_inp != vdir_out:
@@ -841,7 +841,7 @@ class WriteNode(FlowNode):
                 ddesc = self._filedesc.dimensions[dname]
                 if not ddesc.is_set():
                     raise RuntimeError(
-                        ('Cannot create unset dimension {!r} in file ' '{!r}').format(
+                        ("Cannot create unset dimension {!r} in file " "{!r}").format(
                             dname, fname
                         )
                     )
@@ -857,16 +857,16 @@ class WriteNode(FlowNode):
                 vattrs = OrderedDict((k, v) for k, v in vnode.attributes.items())
 
                 vdtype = vdesc.dtype
-                fillval = vattrs.get('_FillValue', None)
+                fillval = vattrs.get("_FillValue", None)
                 vdims = tuple(vdesc.dimensions.keys())
                 if deflate is None:
                     zlib = self._filedesc.deflate > 0
                     clev = self._filedesc.deflate if zlib else 1
                 else:
                     if not isinstance(deflate, int):
-                        raise TypeError('Override deflate value must be an integer')
+                        raise TypeError("Override deflate value must be an integer")
                     if deflate < 0 or deflate > 9:
-                        raise TypeError('Override deflate value range from 0 to 9')
+                        raise TypeError("Override deflate value range from 0 to 9")
                     zlib = deflate > 0
                     clev = deflate if zlib else 1
                 ncvar = self._file.createVariable(
@@ -876,12 +876,12 @@ class WriteNode(FlowNode):
                 for aname in vattrs:
                     if aname not in self._unwritten_attributes:
                         avalue = vattrs[aname]
-                        if aname == 'history':
-                            idimstr = ','.join(
+                        if aname == "history":
+                            idimstr = ",".join(
                                 d for d in vdesc.dimensions if d in self._idims
                             )
                             if len(idimstr) > 0:
-                                avalue = 'invdims({}, dims=[{}])'.format(
+                                avalue = "invdims({}, dims=[{}])".format(
                                     avalue, idimstr
                                 )
                         ncvar.setncattr(aname, avalue)
@@ -894,7 +894,7 @@ class WriteNode(FlowNode):
             self._file.close()
             self._idims = set()
             self._file = None
-            tmp_fname = '{}{}'.format(self.label, self._tmp_ext)
+            tmp_fname = "{}{}".format(self.label, self._tmp_ext)
             if exists(tmp_fname):
                 rename(tmp_fname, self.label)
 
@@ -902,10 +902,10 @@ class WriteNode(FlowNode):
     def _chunk_iter_(dsizes, chunks={}):
         if not isinstance(dsizes, OrderedDict):
             raise TypeError(
-                'Dimensions must be an ordered dictionary of names and sizes'
+                "Dimensions must be an ordered dictionary of names and sizes"
             )
         if not isinstance(chunks, dict):
-            raise TypeError('Dimension chunks must be a dictionary')
+            raise TypeError("Dimension chunks must be a dictionary")
 
         chunks_ = {d: chunks[d] if d in chunks else dsizes[d] for d in dsizes}
         nchunks = {
@@ -929,12 +929,12 @@ class WriteNode(FlowNode):
     def _invert_dims_(dsizes, chunk, idims=set()):
         if not isinstance(dsizes, OrderedDict):
             raise TypeError(
-                'Dimensions must be an ordered dictionary of names and sizes'
+                "Dimensions must be an ordered dictionary of names and sizes"
             )
         if not isinstance(chunk, OrderedDict):
-            raise TypeError('Chunk must be an ordered dictionary of names and slices')
+            raise TypeError("Chunk must be an ordered dictionary of names and slices")
         if not isinstance(idims, set):
-            raise TypeError('Dimensions to invert must be a set')
+            raise TypeError("Dimensions to invert must be a set")
 
         ichunk = OrderedDict()
         for d in dsizes:
@@ -951,9 +951,9 @@ class WriteNode(FlowNode):
     def _direction_(data):
         diff = numpy.diff(data)
         if numpy.all(diff > 0):
-            return 'increasing'
+            return "increasing"
         elif numpy.all(diff < 0):
-            return 'decreasing'
+            return "decreasing"
         else:
             return None
 

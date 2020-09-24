@@ -27,19 +27,19 @@ def find(key, numargs=None):
         return fop
 
     if numargs is not None:
-        raise KeyError('No operator {!r} with {} arguments found'.format(key, numargs))
+        raise KeyError("No operator {!r} with {} arguments found".format(key, numargs))
 
     try:
         fop = find_function(key)
     except:
-        raise KeyError('No operator or function {!r} found'.format(key))
+        raise KeyError("No operator or function {!r} found".format(key))
     else:
         return fop
 
 
 class FunctionBase(object):
     __metaclass__ = ABCMeta
-    key = 'function'
+    key = "function"
 
     def __init__(self, *args, **kwds):
         self.arguments = args
@@ -52,22 +52,22 @@ class FunctionBase(object):
 
 def find_operator(key, numargs=None):
     if key not in __OPERATORS__:
-        raise KeyError('Operator {!r} not found'.format(key))
+        raise KeyError("Operator {!r} not found".format(key))
     ops = __OPERATORS__[key]
     if numargs is None:
         if len(ops) == 0:
-            raise KeyError('Operator {!r} found but not defined'.format(key))
+            raise KeyError("Operator {!r} found but not defined".format(key))
         elif len(ops) == 1:
             return ops[tuple(ops.keys())[0]]
         else:
             raise KeyError(
                 (
-                    'Operator {!r} has multiple definitions, '
-                    'number of arguments required'
+                    "Operator {!r} has multiple definitions, "
+                    "number of arguments required"
                 ).format(key)
             )
     elif numargs not in ops:
-        raise KeyError('Operator {!r} with {} arguments not found'.format(key, numargs))
+        raise KeyError("Operator {!r} with {} arguments not found".format(key, numargs))
     else:
         return ops[numargs]
 
@@ -77,7 +77,7 @@ def list_operators():
 
 
 class Operator(FunctionBase):
-    key = '?'
+    key = "?"
     numargs = 2
 
     def __init__(self, *args):
@@ -85,7 +85,7 @@ class Operator(FunctionBase):
 
 
 class NegationOperator(Operator):
-    key = '-'
+    key = "-"
     numargs = 1
 
     def __init__(self, arg):
@@ -101,7 +101,7 @@ class NegationOperator(Operator):
 
 
 class AdditionOperator(Operator):
-    key = '+'
+    key = "+"
     numargs = 2
 
     def __init__(self, left, right):
@@ -122,7 +122,7 @@ class AdditionOperator(Operator):
 
 
 class SubtractionOperator(Operator):
-    key = '-'
+    key = "-"
     numargs = 2
 
     def __init__(self, left, right):
@@ -143,7 +143,7 @@ class SubtractionOperator(Operator):
 
 
 class PowerOperator(Operator):
-    key = '**'
+    key = "**"
     numargs = 2
 
     def __init__(self, left, right):
@@ -164,7 +164,7 @@ class PowerOperator(Operator):
 
 
 class MultiplicationOperator(Operator):
-    key = '*'
+    key = "*"
     numargs = 2
 
     def __init__(self, left, right):
@@ -185,7 +185,7 @@ class MultiplicationOperator(Operator):
 
 
 class DivisionOperator(Operator):
-    key = '/'
+    key = "/"
     numargs = 2
 
     def __init__(self, left, right):
@@ -206,11 +206,11 @@ class DivisionOperator(Operator):
 
 
 __OPERATORS__ = {
-    '-': {1: NegationOperator, 2: SubtractionOperator},
-    '**': {2: PowerOperator},
-    '+': {2: AdditionOperator},
-    '*': {2: MultiplicationOperator},
-    '/': {2: DivisionOperator},
+    "-": {1: NegationOperator, 2: SubtractionOperator},
+    "**": {2: PowerOperator},
+    "+": {2: AdditionOperator},
+    "*": {2: MultiplicationOperator},
+    "/": {2: DivisionOperator},
 }
 
 
@@ -227,9 +227,9 @@ def find_function(key):
             if func is None:
                 func = c
             else:
-                raise RuntimeError('Function {!r} is multiply defined'.format(key))
+                raise RuntimeError("Function {!r} is multiply defined".format(key))
     if func is None:
-        raise KeyError('Function {!r} not found'.format(key))
+        raise KeyError("Function {!r} not found".format(key))
     else:
         return func
 
@@ -239,7 +239,7 @@ def list_functions():
 
 
 class Function(FunctionBase):
-    key = 'func'
+    key = "func"
 
     def __init__(self, *args, **kwds):
         super(Function, self).__init__(*args, **kwds)
@@ -257,7 +257,7 @@ class Function(FunctionBase):
 
 
 class SquareRootFunction(Function):
-    key = 'sqrt'
+    key = "sqrt"
 
     def __init__(self, data):
         super(SquareRootFunction, self).__init__(data)
@@ -267,7 +267,7 @@ class SquareRootFunction(Function):
                 units = data_info.units.root(2)
             except:
                 raise UnitsError(
-                    'sqrt: Cannot take square-root of units {!r}'.format(data.units)
+                    "sqrt: Cannot take square-root of units {!r}".format(data.units)
                 )
             self._units = units
         else:
@@ -280,7 +280,7 @@ class SquareRootFunction(Function):
             return PhysArray(
                 sqrt(data),
                 units=self._units,
-                name='sqrt({})'.format(data.name),
+                name="sqrt({})".format(data.name),
                 dimensions=data.dimensions,
                 positive=data.positive,
             )
@@ -289,16 +289,16 @@ class SquareRootFunction(Function):
 
 
 class MeanFunction(Function):
-    key = 'mean'
+    key = "mean"
 
     def __init__(self, data, *dimensions):
         super(MeanFunction, self).__init__(data, *dimensions)
         self.add_sumlike_dimensions(*dimensions)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('mean: Data must be a PhysArray')
+            raise TypeError("mean: Data must be a PhysArray")
         if not all(isinstance(d, str) for d in dimensions):
-            raise TypeError('mean: Dimensions must be strings')
+            raise TypeError("mean: Dimensions must be strings")
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -308,16 +308,16 @@ class MeanFunction(Function):
 
 
 class SumFunction(Function):
-    key = 'sum'
+    key = "sum"
 
     def __init__(self, data, *dimensions):
         super(SumFunction, self).__init__(data, *dimensions)
         self.add_sumlike_dimensions(*dimensions)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('sum: Data must be a PhysArray')
+            raise TypeError("sum: Data must be a PhysArray")
         if not all(isinstance(d, str) for d in dimensions):
-            raise TypeError('sum: Dimensions must be strings')
+            raise TypeError("sum: Dimensions must be strings")
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -332,16 +332,16 @@ class SumFunction(Function):
 
 
 class MinFunction(Function):
-    key = 'min'
+    key = "min"
 
     def __init__(self, data, *dimensions):
         super(MinFunction, self).__init__(data, *dimensions)
         self.add_sumlike_dimensions(*dimensions)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('min: Data must be a PhysArray')
+            raise TypeError("min: Data must be a PhysArray")
         if not all(isinstance(d, str) for d in dimensions):
-            raise TypeError('min: Dimensions must be strings')
+            raise TypeError("min: Dimensions must be strings")
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -355,7 +355,7 @@ class MinFunction(Function):
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
-        new_name = 'min({},{})'.format(data.name, dimensions)
+        new_name = "min({},{})".format(data.name, dimensions)
         m = np.amin(data, axis=indims[0])
         return PhysArray(
             m,
@@ -367,16 +367,16 @@ class MinFunction(Function):
 
 
 class MaxFunction(Function):
-    key = 'max'
+    key = "max"
 
     def __init__(self, data, *dimensions):
         super(MaxFunction, self).__init__(data, *dimensions)
         self.add_sumlike_dimensions(*dimensions)
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
-            raise TypeError('max: Data must be a PhysArray')
+            raise TypeError("max: Data must be a PhysArray")
         if not all(isinstance(d, str) for d in dimensions):
-            raise TypeError('max: Dimensions must be strings')
+            raise TypeError("max: Dimensions must be strings")
 
     def __getitem__(self, index):
         data = self.arguments[0][index]
@@ -391,7 +391,7 @@ class MaxFunction(Function):
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
-        new_name = 'max({},{})'.format(data.name, dimensions[0])
+        new_name = "max({},{})".format(data.name, dimensions[0])
         m = np.amax(data, axis=indims[0])
         return PhysArray(
             m,
@@ -403,7 +403,7 @@ class MaxFunction(Function):
 
 
 class PositiveUpFunction(Function):
-    key = 'up'
+    key = "up"
 
     def __init__(self, data):
         super(PositiveUpFunction, self).__init__(data)
@@ -415,7 +415,7 @@ class PositiveUpFunction(Function):
 
 
 class PositiveDownFunction(Function):
-    key = 'down'
+    key = "down"
 
     def __init__(self, data):
         super(PositiveDownFunction, self).__init__(data)
@@ -427,7 +427,7 @@ class PositiveDownFunction(Function):
 
 
 class ChangeUnitsFunction(Function):
-    key = 'chunits'
+    key = "chunits"
 
     def __init__(self, data, units=None, refdate=None, calendar=None):
         super(ChangeUnitsFunction, self).__init__(
@@ -437,7 +437,7 @@ class ChangeUnitsFunction(Function):
         dunits = Unit(1) if is_constant(data) else data[None].units
         dcal = dunits.calendar
         if dunits.is_time_reference():
-            dunit, dref = [s.strip() for s in dunits.origin.split('since')]
+            dunit, dref = [s.strip() for s in dunits.origin.split("since")]
         else:
             dunit = dunits.origin
             dref = None
@@ -445,7 +445,7 @@ class ChangeUnitsFunction(Function):
         uobj = Unit(units) if is_constant(units) else units[None].units
         ucal = uobj.calendar
         if uobj.is_time_reference():
-            uunit, uref = [s.strip() for s in uobj.origin.split('since')]
+            uunit, uref = [s.strip() for s in uobj.origin.split("since")]
         else:
             uunit = uobj.origin
             uref = None
@@ -457,19 +457,19 @@ class ChangeUnitsFunction(Function):
         elif refdate is None:
             ref = dref if uref is None else uref
         else:
-            raise ValueError('chunits: Reference date must be a string, if given')
+            raise ValueError("chunits: Reference date must be a string, if given")
 
         if isinstance(calendar, str):
             cal = calendar
         elif calendar is None:
             cal = dcal if ucal is None else ucal
         else:
-            raise ValueError('chunits: Calendar must be a string, if given')
+            raise ValueError("chunits: Calendar must be a string, if given")
 
         if ref is None:
             self._newunits = Unit(unit, calendar=cal)
         else:
-            self._newunits = Unit('{} since {}'.format(unit, ref), calendar=cal)
+            self._newunits = Unit("{} since {}".format(unit, ref), calendar=cal)
 
     def __getitem__(self, index):
         data = (
@@ -478,17 +478,17 @@ class ChangeUnitsFunction(Function):
             else self.arguments[0][index]
         )
         cal_str = (
-            ''
+            ""
             if self._newunits.calendar is None
-            else '|{}'.format(self._newunits.calendar)
+            else "|{}".format(self._newunits.calendar)
         )
-        unit_str = '{}{}'.format(self._newunits, cal_str)
-        new_name = 'chunits({}, units={})'.format(data.name, unit_str)
+        unit_str = "{}{}".format(self._newunits, cal_str)
+        new_name = "chunits({}, units={})".format(data.name, unit_str)
         return PhysArray(data, name=new_name, units=self._newunits)
 
 
 class LimitFunction(Function):
-    key = 'limit'
+    key = "limit"
 
     def __init__(self, data, below=None, above=None):
         super(LimitFunction, self).__init__(data, below=below, above=above)
@@ -500,31 +500,31 @@ class LimitFunction(Function):
             else self.arguments[0][index]
         )
 
-        above_val = self.keywords['above']
-        below_val = self.keywords['below']
+        above_val = self.keywords["above"]
+        below_val = self.keywords["below"]
         if above_val is None and below_val is None:
             return data
 
-        above_str = ''
+        above_str = ""
         if above_val is not None:
             above_ind = where(data > above_val)
             if len(above_ind) > 0:
                 data[above_ind] = above_val
-                above_str = ', above={}'.format(above_val)
+                above_str = ", above={}".format(above_val)
 
-        below_str = ''
+        below_str = ""
         if below_val is not None:
             below_ind = where(data < below_val)
             if len(below_ind) > 0:
                 data[below_ind] = below_val
-                below_str = ', below={}'.format(below_val)
+                below_str = ", below={}".format(below_val)
 
-        new_name = 'limit({}{}{})'.format(data.name, above_str, below_str)
+        new_name = "limit({}{}{})".format(data.name, above_str, below_str)
         return PhysArray(data, name=new_name)
 
 
 class RemoveUnitsFunction(Function):
-    key = 'rmunits'
+    key = "rmunits"
 
     def __init__(self, data):
         super(RemoveUnitsFunction, self).__init__(data)
@@ -535,12 +535,12 @@ class RemoveUnitsFunction(Function):
             if is_constant(self.arguments[0])
             else self.arguments[0][index]
         )
-        new_name = 'rmunits({!s})'.format(getname(data))
+        new_name = "rmunits({!s})".format(getname(data))
         return PhysArray(data, name=new_name, units=1)
 
 
 class RenameDimensionsFunction(Function):
-    key = 'chdims'
+    key = "chdims"
 
     def __init__(self, data, *dims):
         super(RenameDimensionsFunction, self).__init__(data, *dims)
@@ -554,8 +554,8 @@ class RenameDimensionsFunction(Function):
         if len(self.arguments) == 1:
             return data
         dims = self.arguments[1:]
-        dim_names = ', '.join([repr(dim) for dim in dims])
-        new_name = 'chdims({!s}, {!s})'.format(getname(data), dim_names)
+        dim_names = ", ".join([repr(dim) for dim in dims])
+        new_name = "chdims({!s}, {!s})".format(getname(data), dim_names)
         new_dims = list(data.dimensions)
         dlen = min(len(dims), len(new_dims))
         new_dims[:dlen] = dims[:dlen]

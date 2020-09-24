@@ -10,17 +10,16 @@ repos:
       - id: check-docstring-first
       - id: check-json
       - id: check-yaml
-      - id: double-quote-string-fixer
 
-  # - repo: https://github.com/ambv/black
-  #   rev: 20.8b1
-  #   hooks:
-  #     - id: black
+  - repo: https://github.com/ambv/black
+    rev: 20.8b1
+    hooks:
+      - id: black
 
-  # - repo: https://github.com/keewis/blackdoc
-  #   rev: v0.1.2
-  #   hooks:
-  #     - id: blackdoc
+  - repo: https://github.com/keewis/blackdoc
+    rev: v0.1.2
+    hooks:
+      - id: blackdoc
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.8.3

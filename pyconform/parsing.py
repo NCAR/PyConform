@@ -12,25 +12,25 @@ from collections import namedtuple
 
 from ply import lex, yacc
 
-tokens = ('UINT', 'UFLOAT', 'STRING', 'NAME', 'POW', 'EQ', 'LEQ', 'GEQ')
-literals = ('*', '/', '+', '-', '<', '>', '=', ',', ':', '(', ')', '[', ']')
-t_ignore = ' \t'
+tokens = ("UINT", "UFLOAT", "STRING", "NAME", "POW", "EQ", "LEQ", "GEQ")
+literals = ("*", "/", "+", "-", "<", ">", "=", ",", ":", "(", ")", "[", "]")
+t_ignore = " \t"
 
-t_NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
-t_POW = r'\*\*'
-t_LEQ = r'<='
-t_GEQ = r'>='
-t_EQ = r'=='
+t_NAME = r"[a-zA-Z_][a-zA-Z0-9_]*"
+t_POW = r"\*\*"
+t_LEQ = r"<="
+t_GEQ = r">="
+t_EQ = r"=="
 
 
 def t_UFLOAT(t):
-    r'(([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)'
+    r"(([0-9]+\.[0-9]*|[0-9]*\.[0-9]+)([eE][+-]?[0-9]+)?|[0-9]+[eE][+-]?[0-9]+)"
     t.value = float(t.value)
     return t
 
 
 def t_UINT(t):
-    r'[0-9]+'
+    r"[0-9]+"
     t.value = int(t.value)
     return t
 
@@ -42,7 +42,7 @@ def t_STRING(t):
 
 
 def t_error(t):
-    raise TypeError('Unexpected string: {!r}'.format(t.value))
+    raise TypeError("Unexpected string: {!r}".format(t.value))
 
 
 lex.lex(debug=False)
@@ -51,50 +51,50 @@ lex.lex(debug=False)
 def ind_str(index):
     if isinstance(index, slice):
         ind_list = [index.start, index.stop, index.step]
-        _str = ':'.join('' if i is None else str(i) for i in ind_list)
-        return ':' if _str == '::' else _str
+        _str = ":".join("" if i is None else str(i) for i in ind_list)
+        return ":" if _str == "::" else _str
     else:
         return str(index)
 
 
 def op_str(self):
     if len(self.args) == 1:
-        return '({}{})'.format(self.key, self.args[0])
+        return "({}{})".format(self.key, self.args[0])
     elif len(self.args) == 2:
-        return '({}{}{})'.format(self.args[0], self.key, self.args[1])
+        return "({}{}{})".format(self.args[0], self.key, self.args[1])
 
 
-OpType = namedtuple('OpType', ['key', 'args'])
+OpType = namedtuple("OpType", ["key", "args"])
 OpType.__new__.__defaults__ = (None, [])
 OpType.__str__ = lambda self: op_str(self)
 
-FuncType = namedtuple('FuncType', ['key', 'args', 'kwds'])
+FuncType = namedtuple("FuncType", ["key", "args", "kwds"])
 FuncType.__new__.__defaults__ = (None, [], {})
-FuncType.__str__ = lambda self: '{}({})'.format(
+FuncType.__str__ = lambda self: "{}({})".format(
     self.key,
-    ','.join(
+    ",".join(
         [str(a) for a in self.args]
-        + ['{}={}'.format(k, self.kwds[k]) for k in self.kwds]
+        + ["{}={}".format(k, self.kwds[k]) for k in self.kwds]
     ),
 )
 
-VarType = namedtuple('VarType', ['key', 'ind'])
+VarType = namedtuple("VarType", ["key", "ind"])
 VarType.__new__.__defaults__ = (None, [])
-VarType.__str__ = lambda self: '{}{}'.format(
+VarType.__str__ = lambda self: "{}{}".format(
     self.key,
-    ''
+    ""
     if len(self.ind) == 0
-    else '[{}]'.format(','.join([ind_str(a) for a in self.ind])),
+    else "[{}]".format(",".join([ind_str(a) for a in self.ind])),
 )
 
 
 precedence = (
-    ('left', 'EQ'),
-    ('left', '<', '>', 'LEQ', 'GEQ'),
-    ('left', '+', '-'),
-    ('left', '*', '/'),
-    ('right', 'NEG', 'POS'),
-    ('left', 'POW'),
+    ("left", "EQ"),
+    ("left", "<", ">", "LEQ", "GEQ"),
+    ("left", "+", "-"),
+    ("left", "*", "/"),
+    ("right", "NEG", "POS"),
+    ("left", "POW"),
 )
 
 
@@ -226,9 +226,9 @@ def p_expression_unary(p):
     array_like : '-' array_like %prec NEG
     array_like : '+' array_like %prec POS
     """
-    if p[1] == '+':
+    if p[1] == "+":
         p[0] = p[2]
-    elif p[1] == '-':
+    elif p[1] == "-":
         if isinstance(p[2], (OpType, FuncType, VarType)):
             p[0] = OpType(p[1], [p[2]])
         else:
@@ -252,30 +252,30 @@ def p_expression_binary(p):
         p[3], (OpType, FuncType, VarType)
     ):
         p[0] = OpType(p[2], [p[1], p[3]])
-    elif p[2] == '**':
+    elif p[2] == "**":
         p[0] = p[1] ** p[3]
-    elif p[2] == '-':
+    elif p[2] == "-":
         p[0] = p[1] - p[3]
-    elif p[2] == '+':
+    elif p[2] == "+":
         p[0] = p[1] + p[3]
-    elif p[2] == '*':
+    elif p[2] == "*":
         p[0] = p[1] * p[3]
-    elif p[2] == '/':
+    elif p[2] == "/":
         p[0] = p[1] / p[3]
-    elif p[2] == '<':
+    elif p[2] == "<":
         p[0] = p[1] < p[3]
-    elif p[2] == '>':
+    elif p[2] == ">":
         p[0] = p[1] > p[3]
-    elif p[2] == '<=':
+    elif p[2] == "<=":
         p[0] = p[1] <= p[3]
-    elif p[2] == '>=':
+    elif p[2] == ">=":
         p[0] = p[1] >= p[3]
-    elif p[2] == '==':
+    elif p[2] == "==":
         p[0] = p[1] == p[3]
 
 
 def p_error(p):
-    raise TypeError('Parsing error at {!r}'.format(p.value))
+    raise TypeError("Parsing error at {!r}".format(p.value))
 
 
 yacc.yacc(debug=False)

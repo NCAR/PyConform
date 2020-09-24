@@ -10,7 +10,7 @@ from pyconform.physarray import PhysArray
 
 
 class CLM_landunit_to_CMIP6_Lut_Function(Function):
-    key = 'CLM_landunit_to_CMIP6_Lut'
+    key = "CLM_landunit_to_CMIP6_Lut"
 
     def __init__(
         self,
@@ -68,7 +68,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
         landUse = self.arguments[14][index]
 
         if index is None:
-            if 'all' in vegType:
+            if "all" in vegType:
                 return PhysArray(
                     np.zeros((0, 4, 0, 0)),
                     dimensions=[
@@ -204,7 +204,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
                         ).astype(np.float32)
                         weights = land1d_wtgcell_pts / np.sum(land1d_wtgcell_pts)
                         if np.absolute(1.0 - np.sum(weights)) > eps:
-                            print('Weights do not sum to 1, exiting')
+                            print("Weights do not sum to 1, exiting")
                             sys.exit(-1)
                         # varo_lut[:,urban,jxy,ixy] = np.sum(dum * weights)
                         varo_lut[:, urban, jxy, ixy] = np.sum(dum * weights, axis=1)
@@ -213,7 +213,7 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
                 else:
                     varo_lut[:, :, jxy, ixy] = 1e20
 
-        new_name = 'CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})'.format(
+        new_name = "CLM_landunit_to_CMIP6_Lut({}{}{}{}{}{}{}{}{}{}{}{}{})".format(
             pEFLX_LH_TOT.name,
             pntim.name,
             pnlat.name,
@@ -232,25 +232,25 @@ class CLM_landunit_to_CMIP6_Lut_Function(Function):
         varo_lut[varo_lut >= 1e15] = 1e20
         mvaro_lut = np.ma.masked_values(varo_lut, 1e20)
 
-        if 'crop' in vegType:
+        if "crop" in vegType:
             return PhysArray(
                 mvaro_lut[:, crop, :, :], name=new_name, units=pEFLX_LH_TOT.units
             )
-        elif 'veg' in vegType:
+        elif "veg" in vegType:
             return PhysArray(
                 mvaro_lut[:, veg, :, :], name=new_name, units=pEFLX_LH_TOT.units
             )
-        elif 'urban' in vegType:
+        elif "urban" in vegType:
             return PhysArray(
                 mvaro_lut[:, urban, :, :], name=new_name, units=pEFLX_LH_TOT.units
             )
-        elif 'pasture' in vegType:
+        elif "pasture" in vegType:
             return PhysArray(
                 mvaro_lut[:, pasture, :, :], name=new_name, units=pEFLX_LH_TOT.units
             )
-        elif 'nlut' in vegType:
+        elif "nlut" in vegType:
             return PhysArray(
                 mvaro_lut[:, nlut, :, :], name=new_name, units=pEFLX_LH_TOT.units
             )
-        elif 'all' in vegType:
+        elif "all" in vegType:
             return PhysArray(mvaro_lut, name=new_name, units=pEFLX_LH_TOT.units)

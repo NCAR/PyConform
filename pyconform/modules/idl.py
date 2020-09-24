@@ -18,7 +18,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import numpy
 
-_signature_letters = 'ijklmnabcdefgh'
+_signature_letters = "ijklmnabcdefgh"
 
 
 def deriv(x, y=None, axis=0):
@@ -47,7 +47,7 @@ def deriv(x, y=None, axis=0):
 
     xsig = _signature_letters[axis]
     ysig = _signature_letters[: numpy.ndim(y1)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
     d = (
         numpy.einsum(sig, y0, a0)
         + numpy.einsum(sig, y1, a1)
@@ -88,7 +88,7 @@ def spl_init(x1, y1, axis=0):
 
     xsig = _signature_letters[axis]
     ysig = _signature_letters[: numpy.ndim(y1)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
 
     pu_a = numpy.einsum(sig, y2 - y1, 1.0 / ((x2 - x1) * (x2 - x0)))
     pu_b = numpy.einsum(sig, y1 - y0, 1.0 / ((x1 - x0) * (x2 - x0)))
@@ -145,7 +145,7 @@ def spl_interp(xa, ya, y2a, x, axis=0):
 
     xsig = _signature_letters[axis]
     ysig = _signature_letters[: numpy.ndim(ya)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
 
     return (
         numpy.einsum(sig, yalo, a)
@@ -171,8 +171,8 @@ def int_tabulated(x, y, axis=0):
     z_spl = spl_init(x, y, axis=axis)
     z_unif = spl_interp(x, y, z_spl, x_unif, axis=axis)
     coef_l = [7] + [32, 12, 32, 14] * (nint - 1) + [32, 12, 32, 7]
-    coeffs = 2.0 * h * numpy.array(coef_l, dtype='d') / 45.0
+    coeffs = 2.0 * h * numpy.array(coef_l, dtype="d") / 45.0
     xsig = _signature_letters[axis]
     ysig = _signature_letters[: numpy.ndim(y)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
     return numpy.sum(numpy.einsum(sig, z_unif, coeffs), axis=axis)

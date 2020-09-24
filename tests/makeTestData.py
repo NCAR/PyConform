@@ -20,24 +20,24 @@ class DataMaker(object):
 
     def __init__(
         self,
-        filenames=['test1.nc', 'test2.nc', 'test3.nc'],
+        filenames=["test1.nc", "test2.nc", "test3.nc"],
         fileattribs=[
-            OrderedDict([('a1', 'file 1 attrib 1'), ('a2', 'file 1 attrib 2')]),
-            OrderedDict([('a1', 'file 2 attrib 1'), ('a2', 'file 2 attrib 2')]),
-            OrderedDict([('a1', 'file 3 attrib 1'), ('a2', 'file 3 attrib 2')]),
+            OrderedDict([("a1", "file 1 attrib 1"), ("a2", "file 1 attrib 2")]),
+            OrderedDict([("a1", "file 2 attrib 1"), ("a2", "file 2 attrib 2")]),
+            OrderedDict([("a1", "file 3 attrib 1"), ("a2", "file 3 attrib 2")]),
         ],
-        dimensions=OrderedDict([('time', [3, 4, 5]), ('space', 2)]),
-        vardims=OrderedDict([('T1', ('time', 'space')), ('T2', ('space', 'time'))]),
+        dimensions=OrderedDict([("time", [3, 4, 5]), ("space", 2)]),
+        vardims=OrderedDict([("T1", ("time", "space")), ("T2", ("space", "time"))]),
         vartypes=OrderedDict(),
         varattribs=OrderedDict(
             [
-                ('space', {'units': 'm'}),
+                ("space", {"units": "m"}),
                 (
-                    'time',
-                    {'units': 'days since 1979-01-01 00:00:00', 'calendar': 'noleap'},
+                    "time",
+                    {"units": "days since 1979-01-01 00:00:00", "calendar": "noleap"},
                 ),
-                ('T1', {'units': 'K'}),
-                ('T2', {'units': 'C'}),
+                ("T1", {"units": "K"}),
+                ("T2", {"units": "C"}),
             ]
         ),
         vardata=OrderedDict(),
@@ -62,10 +62,10 @@ class DataMaker(object):
                 elif isinstance(dimsize, (list, tuple)):
                     start = filenum * dimsize[filenum]
                     end = (filenum + 1) * dimsize[filenum]
-                    dt = vartypes.get(coordname, 'float64')
+                    dt = vartypes.get(coordname, "float64")
                     vdat = np.arange(start, end, dtype=dt)
                 else:
-                    dt = vartypes.get(coordname, 'float64')
+                    dt = vartypes.get(coordname, "float64")
                     vdat = np.arange(dimsize, dtype=dt)
                 filevars[coordname] = vdat
 
@@ -79,14 +79,14 @@ class DataMaker(object):
                             vshape.append(self.dimensions[dim][filenum])
                         else:
                             vshape.append(self.dimensions[dim])
-                    dt = vartypes.get(varname, 'float64')
+                    dt = vartypes.get(varname, "float64")
                     vdat = np.ones(tuple(vshape), dtype=dt)
                 filevars[varname] = vdat
 
-    def write(self, ncformat='NETCDF4'):
+    def write(self, ncformat="NETCDF4"):
 
         for filenum, filename in enumerate(self.filenames):
-            ncfile = netCDF4.Dataset(filename, 'w', format=ncformat)
+            ncfile = netCDF4.Dataset(filename, "w", format=ncformat)
 
             for attrname, attrval in self.fileattribs[filenum].items():
                 setattr(ncfile, attrname, attrval)
@@ -101,14 +101,14 @@ class DataMaker(object):
                 if coordname in self.vartypes:
                     dtype = self.vartypes[coordname]
                 else:
-                    dtype = 'd'
+                    dtype = "d"
                 ncfile.createVariable(coordname, dtype, (coordname,))
 
             for varname, vardims in self.vardims.items():
                 if varname in self.vartypes:
                     dtype = self.vartypes[varname]
                 else:
-                    dtype = 'd'
+                    dtype = "d"
                 ncfile.createVariable(varname, dtype, vardims)
 
             for coordname, dimsize in self.dimensions.items():

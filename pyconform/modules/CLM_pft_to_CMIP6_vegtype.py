@@ -10,7 +10,7 @@ from pyconform.physarray import PhysArray
 
 
 class CLM_pft_to_CMIP6_vegtype_Function(Function):
-    key = 'CLM_pft_to_CMIP6_vegtype'
+    key = "CLM_pft_to_CMIP6_vegtype"
     numargs = 18
 
     def __init__(
@@ -170,7 +170,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
 
                     # Check for valid veg landunit
                     if landunit_indx.size > 0:
-                        if 'grass' in vegType:
+                        if "grass" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
                             pft_indx = np.where(
                                 np.all(t_var == tu, axis=1)
@@ -178,7 +178,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                                 * (pfts1d_itype_veg >= beg_grass_pfts)
                                 * (pfts1d_itype_veg <= end_grass_pfts)
                             )[0]
-                        elif 'shrub' in vegType:
+                        elif "shrub" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
                             pft_indx = np.where(
                                 np.all(t_var == tu, axis=1)
@@ -186,7 +186,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                                 * (pfts1d_itype_veg >= beg_shrub_pfts)
                                 * (pfts1d_itype_veg <= end_shrub_pfts)
                             )[0]
-                        elif 'tree' in vegType:
+                        elif "tree" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
                             pft_indx = np.where(
                                 np.all(t_var == tu, axis=1)
@@ -198,7 +198,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                         # Check for valid pfts and compute weighted average
                         if pft_indx.size > 0:
                             for t in range(len(time)):
-                                if 'grass' in vegType:
+                                if "grass" in vegType:
                                     pfts1d_wtlunit_grass = (
                                         pfts1d_wtlunit[pft_indx]
                                     ).astype(np.float32)
@@ -207,11 +207,11 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                                         pfts1d_wtlunit_grass
                                     )
                                     if np.absolute(1.0 - np.sum(weights)) > eps:
-                                        print('Weights do not sum to 1, exiting')
+                                        print("Weights do not sum to 1, exiting")
                                         sys.exit(-1)
                                     varo_vegType[t, jxy, ixy] = np.sum(dum * weights)
 
-                                elif 'shrub' in vegType:
+                                elif "shrub" in vegType:
                                     pfts1d_wtlunit_shrub = (
                                         pfts1d_wtlunit[pft_indx]
                                     ).astype(np.float32)
@@ -221,7 +221,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                                     )
                                     varo_vegType[t, jxy, ixy] = np.sum(dum * weights)
 
-                                elif 'tree' in vegType:
+                                elif "tree" in vegType:
                                     pfts1d_wtlunit_tree = (
                                         pfts1d_wtlunit[pft_indx]
                                     ).astype(np.float32)
@@ -239,7 +239,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
                     varo_vegType[:, jxy, ixy] = 1e20
 
         new_name = (
-            'CLM_pft_to_CMIP6_vegtype({}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{})'.format(
+            "CLM_pft_to_CMIP6_vegtype({}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{})".format(
                 pGPP.name,
                 vegType,
                 ptime.name,
@@ -269,55 +269,55 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
 
 def main(argv=None):
 
-    sim = 'clm50_r243_1deg_GSWP3V2_cropopt_nsc_emergeV2F_dailyo_hist'
-    f_in = sim + '.clm2.h1.2005-01.nc'
-    f_out = sim + '.clm2.h1veg.0001-01.nc'
-    f_dir = '/glade2/scratch2/mickelso/CMIP6_LND_SCRIPTS/DATA/'
-    f_outfir = '/glade2/scratch2/mickelso/CMIP6_LND_SCRIPTS/new/OUTDIR/'
+    sim = "clm50_r243_1deg_GSWP3V2_cropopt_nsc_emergeV2F_dailyo_hist"
+    f_in = sim + ".clm2.h1.2005-01.nc"
+    f_out = sim + ".clm2.h1veg.0001-01.nc"
+    f_dir = "/glade2/scratch2/mickelso/CMIP6_LND_SCRIPTS/DATA/"
+    f_outfir = "/glade2/scratch2/mickelso/CMIP6_LND_SCRIPTS/new/OUTDIR/"
 
-    cdf_file = nc.Dataset(f_dir + f_in, 'r')
+    cdf_file = nc.Dataset(f_dir + f_in, "r")
 
-    ntim = cdf_file.variables['time'][:]
-    nlat = cdf_file.variables['lat'][:]
-    nlon = cdf_file.variables['lon'][:]
+    ntim = cdf_file.variables["time"][:]
+    nlat = cdf_file.variables["lat"][:]
+    nlon = cdf_file.variables["lon"][:]
 
-    grid1d_ixy = cdf_file.variables['grid1d_ixy'][:]
-    grid1d_jxy = cdf_file.variables['grid1d_jxy'][:]
-    grid1d_lon = cdf_file.variables['grid1d_lon'][:]
-    grid1d_lat = cdf_file.variables['grid1d_lat'][:]
-    land1d_lon = cdf_file.variables['land1d_lon'][:]
-    land1d_lat = cdf_file.variables['land1d_lat'][:]
-    land1d_ityplunit = cdf_file.variables['land1d_ityplunit'][:]
-    pfts1d_lon = cdf_file.variables['pfts1d_lon'][:]
-    pfts1d_lat = cdf_file.variables['pfts1d_lat'][:]
-    pfts1d_active = cdf_file.variables['pfts1d_active'][:]
-    pfts1d_itype_veg = cdf_file.variables['pfts1d_itype_veg'][:]
-    pfts1d_wtgcell = cdf_file.variables['pfts1d_wtgcell'][:]
-    pfts1d_wtlunit = cdf_file.variables['pfts1d_wtlunit'][:]
+    grid1d_ixy = cdf_file.variables["grid1d_ixy"][:]
+    grid1d_jxy = cdf_file.variables["grid1d_jxy"][:]
+    grid1d_lon = cdf_file.variables["grid1d_lon"][:]
+    grid1d_lat = cdf_file.variables["grid1d_lat"][:]
+    land1d_lon = cdf_file.variables["land1d_lon"][:]
+    land1d_lat = cdf_file.variables["land1d_lat"][:]
+    land1d_ityplunit = cdf_file.variables["land1d_ityplunit"][:]
+    pfts1d_lon = cdf_file.variables["pfts1d_lon"][:]
+    pfts1d_lat = cdf_file.variables["pfts1d_lat"][:]
+    pfts1d_active = cdf_file.variables["pfts1d_active"][:]
+    pfts1d_itype_veg = cdf_file.variables["pfts1d_itype_veg"][:]
+    pfts1d_wtgcell = cdf_file.variables["pfts1d_wtgcell"][:]
+    pfts1d_wtlunit = cdf_file.variables["pfts1d_wtlunit"][:]
 
-    GPP = cdf_file.variables['GPP'][:]
+    GPP = cdf_file.variables["GPP"][:]
 
     cdf_file.close()
 
-    out_file = nc.Dataset(f_outfir + f_out, 'w')
+    out_file = nc.Dataset(f_outfir + f_out, "w")
 
-    out_file.createDimension('time', None)
-    out_file.createDimension('lat', len(nlat))
-    out_file.createDimension('lon', len(nlon))
+    out_file.createDimension("time", None)
+    out_file.createDimension("lat", len(nlat))
+    out_file.createDimension("lon", len(nlon))
     gppGrass = out_file.createVariable(
-        'gppGrass', 'f4', ('time', 'lat', 'lon'), fill_value=1.0e36
+        "gppGrass", "f4", ("time", "lat", "lon"), fill_value=1.0e36
     )
     gppShrub = out_file.createVariable(
-        'gppShrub', 'f4', ('time', 'lat', 'lon'), fill_value=1.0e36
+        "gppShrub", "f4", ("time", "lat", "lon"), fill_value=1.0e36
     )
     gppTree = out_file.createVariable(
-        'gppTree', 'f4', ('time', 'lat', 'lon'), fill_value=1.0e36
+        "gppTree", "f4", ("time", "lat", "lon"), fill_value=1.0e36
     )
 
-    print('Looking for grass')
+    print("Looking for grass")
     gppGrass[:] = CLM_pft_to_CMIP6_vegtype_Function(
         GPP,
-        'grass',
+        "grass",
         ntim,
         nlat,
         nlon,
@@ -335,10 +335,10 @@ def main(argv=None):
         pfts1d_wtgcell,
         pfts1d_wtlunit,
     )
-    print('Looking for shrubs')
+    print("Looking for shrubs")
     gppShrub[:] = CLM_pft_to_CMIP6_vegtype_Function(
         GPP,
-        'shrub',
+        "shrub",
         ntim,
         nlat,
         nlon,
@@ -356,10 +356,10 @@ def main(argv=None):
         pfts1d_wtgcell,
         pfts1d_wtlunit,
     )
-    print('Looking for trees')
+    print("Looking for trees")
     gppTree[:] = CLM_pft_to_CMIP6_vegtype_Function(
         GPP,
-        'tree',
+        "tree",
         ntim,
         nlat,
         nlon,
@@ -381,5 +381,5 @@ def main(argv=None):
     out_file.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

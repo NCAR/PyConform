@@ -18,7 +18,7 @@ from cf_units import Unit
 
 from pyconform.indexing import align_index
 
-_ALPHAS_ = 'abcdefghijklmnopqrstuvwxyz'
+_ALPHAS_ = "abcdefghijklmnopqrstuvwxyz"
 
 
 class UnitsError(ValueError):
@@ -54,7 +54,7 @@ def ischartype(obj):
     """
     Return whether the object is a string/character type
     """
-    return getdtype(obj).char in ('S', 'U')
+    return getdtype(obj).char in ("S", "U")
 
 
 def getshape(obj):
@@ -76,7 +76,7 @@ def getname(obj):
     if isinstance(obj, PhysArray):
         return obj.name
     else:
-        return str(obj).replace(linesep, ' ')
+        return str(obj).replace(linesep, " ")
 
 
 def getunits(obj):
@@ -86,7 +86,7 @@ def getunits(obj):
     if isinstance(obj, PhysArray):
         return obj.units
     elif ischartype(obj):
-        return Unit('no unit')
+        return Unit("no unit")
     else:
         return Unit(1)
 
@@ -120,16 +120,16 @@ class PhysArray(numpy.ma.MaskedArray):
     """
 
     def __new__(
-        cls, indata, name=None, units=None, dimensions=None, positive='', **kwds
+        cls, indata, name=None, units=None, dimensions=None, positive="", **kwds
     ):
-        makwds = {k: kwds[k] for k in ['dtype'] if k in kwds}
+        makwds = {k: kwds[k] for k in ["dtype"] if k in kwds}
         obj = numpy.ma.asarray(indata, **makwds).view(cls)
-        if obj.dtype.char in ('S', 'U'):
+        if obj.dtype.char in ("S", "U"):
             return CharArray(indata, name=name, dimensions=dimensions)
 
         # Add the mask if specified
-        if 'mask' in kwds:
-            obj.mask = kwds['mask']
+        if "mask" in kwds:
+            obj.mask = kwds["mask"]
 
         # Store a name associated with the object
         if name is None:
@@ -150,7 +150,7 @@ class PhysArray(numpy.ma.MaskedArray):
             obj.dimensions = dimensions
 
         # Set the positive direction for the data
-        if positive == '':
+        if positive == "":
             obj.positive = getpositive(indata)
         else:
             obj.positive = positive
@@ -158,13 +158,13 @@ class PhysArray(numpy.ma.MaskedArray):
         return obj
 
     def __repr__(self):
-        datstr = super(PhysArray, self).__str__().replace(linesep, ' ')
+        datstr = super(PhysArray, self).__str__().replace(linesep, " ")
         posstr = (
-            '' if self.positive is None else ', positive={!r}'.format(self.positive)
+            "" if self.positive is None else ", positive={!r}".format(self.positive)
         )
         return (
-            '{!s}(data={!s}, fill_value={!s}, units={!r}, name={!r}, dimensions='
-            '{!s}{})'
+            "{!s}(data={!s}, fill_value={!s}, units={!r}, name={!r}, dimensions="
+            "{!s}{})"
         ).format(
             self.__class__.__name__,
             datstr,
@@ -178,25 +178,25 @@ class PhysArray(numpy.ma.MaskedArray):
     @property
     def name(self):
         """String name for the data"""
-        return self._optinfo['name']
+        return self._optinfo["name"]
 
     @name.setter
     def name(self, nm):
         """String name for the data"""
-        self._optinfo['name'] = nm
+        self._optinfo["name"] = nm
 
     def __str__(self):
-        return '{}'.format(self.name)
+        return "{}".format(self.name)
 
     @property
     def units(self):
         """Units of the data"""
-        return self._optinfo['units']
+        return self._optinfo["units"]
 
     @units.setter
     def units(self, u):
         """Units of the data"""
-        self._optinfo['units'] = u if isinstance(u, Unit) else Unit(u)
+        self._optinfo["units"] = u if isinstance(u, Unit) else Unit(u)
 
     @staticmethod
     def _safe_convert_(obj, units1, units2):
@@ -209,13 +209,13 @@ class PhysArray(numpy.ma.MaskedArray):
             new_array = numpy.ma.MaskedArray(
                 units1.convert(obj.data, units2), mask=obj.mask, dtype=obj.dtype
             )
-            u1_str = '{}'.format(u1) + (
-                '|{}'.format(u1.calendar) if u1.calendar else ''
+            u1_str = "{}".format(u1) + (
+                "|{}".format(u1.calendar) if u1.calendar else ""
             )
-            u2_str = '{}'.format(u2) + (
-                '|{}'.format(u2.calendar) if u2.calendar else ''
+            u2_str = "{}".format(u2) + (
+                "|{}".format(u2.calendar) if u2.calendar else ""
             )
-            new_name = 'convert({}, from={}, to={})'.format(obj.name, u1_str, u2_str)
+            new_name = "convert({}, from={}, to={})".format(obj.name, u1_str, u2_str)
             return PhysArray(
                 new_array, name=new_name, units=u2, dimensions=obj.dimensions
             )
@@ -240,26 +240,26 @@ class PhysArray(numpy.ma.MaskedArray):
             return PhysArray._safe_convert_(self, self.units, uunit)
         else:
             raise UnitsError(
-                'Cannot convert units {!r} to {!r}'.format(self.units, uunit)
+                "Cannot convert units {!r} to {!r}".format(self.units, uunit)
             )
 
     @property
     def dimensions(self):
         """Named dimensions of the data"""
-        return self._optinfo['dimensions']
+        return self._optinfo["dimensions"]
 
     @dimensions.setter
     def dimensions(self, dims):
         """Named dimensions of the data"""
         if not isinstance(dims, (list, tuple)):
-            raise TypeError('Dimensions must be a tuple, not {}'.format(type(dims)))
+            raise TypeError("Dimensions must be a tuple, not {}".format(type(dims)))
         if len(dims) != len(self.shape):
             raise ValueError(
-                'Dimensions {} must have same length as shape {}'.format(
+                "Dimensions {} must have same length as shape {}".format(
                     dims, self.shape
                 )
             )
-        self._optinfo['dimensions'] = tuple(dims)
+        self._optinfo["dimensions"] = tuple(dims)
 
     def transpose(self, *dims):
         """
@@ -280,16 +280,16 @@ class PhysArray(numpy.ma.MaskedArray):
             axes = dims
         else:
             raise DimensionsError(
-                ('Cannot transpose dimensions/axes {} to {}').format(
+                ("Cannot transpose dimensions/axes {} to {}").format(
                     self.dimensions, dims
                 )
             )
         if new_dims == self.dimensions:
             return self
         else:
-            old_dims_str = ','.join([str(d) for d in self.dimensions])
-            new_dims_str = ','.join([str(d) for d in new_dims])
-            new_name = 'transpose({}, from=[{}], to=[{}])'.format(
+            old_dims_str = ",".join([str(d) for d in self.dimensions])
+            new_dims_str = ",".join([str(d) for d in new_dims])
+            new_name = "transpose({}, from=[{}], to=[{}])".format(
                 self.name, old_dims_str, new_dims_str
             )
             return PhysArray(
@@ -301,23 +301,23 @@ class PhysArray(numpy.ma.MaskedArray):
     @property
     def positive(self):
         """Positive direction (up or down) for the data"""
-        return self._optinfo['positive']
+        return self._optinfo["positive"]
 
     @positive.setter
     def positive(self, pos):
         """Positive direction (up or down) for the data"""
         if isinstance(pos, str):
             strpos = str(pos).lower()
-            if strpos not in ['up', 'down']:
+            if strpos not in ["up", "down"]:
                 raise ValueError(
-                    'Positive attribute must be up/down or None, not {!r}'.format(pos)
+                    "Positive attribute must be up/down or None, not {!r}".format(pos)
                 )
             pos = strpos
         elif pos is not None:
             raise ValueError(
-                'Positive attribute must be up/down or None, not {!r}'.format(pos)
+                "Positive attribute must be up/down or None, not {!r}".format(pos)
             )
-        self._optinfo['positive'] = pos
+        self._optinfo["positive"] = pos
 
     def flip(self):
         """
@@ -328,8 +328,8 @@ class PhysArray(numpy.ma.MaskedArray):
         if self.positive is not None:
             nm = self.name
             self *= -1
-            self.positive = 'up' if self.positive == 'down' else 'down'
-            self.name = '{}({})'.format(self.positive, nm)
+            self.positive = "up" if self.positive == "down" else "down"
+            self.name = "{}({})".format(self.positive, nm)
         return self
 
     def up(self):
@@ -339,9 +339,9 @@ class PhysArray(numpy.ma.MaskedArray):
         Only multiplies by -1 if the positive attribute is already set to 'down'.
         """
         if self.positive is None:
-            self.positive = 'up'
-            self.name = 'up({})'.format(self.name)
-        elif self.positive == 'down':
+            self.positive = "up"
+            self.name = "up({})".format(self.name)
+        elif self.positive == "down":
             self.flip()
         return self
 
@@ -352,9 +352,9 @@ class PhysArray(numpy.ma.MaskedArray):
         Only multiplies by -1 if the positive attribute is already set to 'up'.
         """
         if self.positive is None:
-            self.positive = 'down'
-            self.name = 'down({})'.format(self.name)
-        elif self.positive == 'up':
+            self.positive = "down"
+            self.name = "down({})".format(self.name)
+        elif self.positive == "up":
             self.flip()
         return self
 
@@ -386,8 +386,8 @@ class PhysArray(numpy.ma.MaskedArray):
                 != other.shape[other.dimensions.index(d)]
             ):
                 raise DimensionsError(
-                    'Cannot broadcast arrays with dimensions {} and '
-                    '{}'.format(self.dimensions, other.dimensions)
+                    "Cannot broadcast arrays with dimensions {} and "
+                    "{}".format(self.dimensions, other.dimensions)
                 )
         self_dims = self.dimensions + tuple(
             d for d in other.dimensions if d not in self.dimensions
@@ -404,16 +404,16 @@ class PhysArray(numpy.ma.MaskedArray):
             for d in other_dims
         )
         if len(self.dimensions) > 0 and self_dims != self.dimensions:
-            fromdims = ','.join([str(d) for d in self.dimensions])
-            todims = ','.join([str(d) for d in self_dims])
-            self.name = 'broadcast({}, from=[{}], to=[{}])'.format(
+            fromdims = ",".join([str(d) for d in self.dimensions])
+            todims = ",".join([str(d) for d in self_dims])
+            self.name = "broadcast({}, from=[{}], to=[{}])".format(
                 self.name, fromdims, todims
             )
         self.dimensions = self_dims
         if len(other.dimensions) > 0 and other_dims != other.dimensions:
-            fromdims = ','.join([str(d) for d in other.dimensions])
-            todims = ','.join([str(d) for d in other_dims])
-            other.name = 'broadcast({}, from=[{}], to=[{}])'.format(
+            fromdims = ",".join([str(d) for d in other.dimensions])
+            todims = ",".join([str(d) for d in other_dims])
+            other.name = "broadcast({}, from=[{}], to=[{}])".format(
                 other.name, fromdims, todims
             )
         other.dimensions = other_dims
@@ -423,14 +423,14 @@ class PhysArray(numpy.ma.MaskedArray):
         if self.positive == other.positive:
             pass
         elif self.positive is None:
-            if other.positive == 'up':
+            if other.positive == "up":
                 self.up()
-            elif other.positive == 'down':
+            elif other.positive == "down":
                 self.down()
         elif other.positive is None:
-            if self.positive == 'up':
+            if self.positive == "up":
                 other.up()
-            elif self.positive == 'down':
+            elif self.positive == "down":
                 other.down()
         else:
             other.flip()
@@ -444,8 +444,8 @@ class PhysArray(numpy.ma.MaskedArray):
                 if other.shape[other.dimensions.index(d)] > 1:
                     raise DimensionsError(
                         (
-                            'Cannot broadcast dimensions {} to {} in inplace operation'
-                            ''
+                            "Cannot broadcast dimensions {} to {} in inplace operation"
+                            ""
                         ).format(other.dimensions, self.dimensions)
                     )
 
@@ -459,7 +459,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = result._add_sub_init_(other)
         return PhysArray(
             super(PhysArray, result).__add__(other),
-            name='({}+{})'.format(result.name, other.name),
+            name="({}+{})".format(result.name, other.name),
             units=result.units,
             positive=result.positive,
         )
@@ -471,7 +471,7 @@ class PhysArray(numpy.ma.MaskedArray):
         self._check_inplace_(other)
         other = self._add_sub_init_(other)
         super(PhysArray, self).__iadd__(other)
-        self.name = '({}+{})'.format(self.name, other.name)
+        self.name = "({}+{})".format(self.name, other.name)
         return self
 
     def __sub__(self, other):
@@ -479,7 +479,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = result._add_sub_init_(other)
         return PhysArray(
             super(PhysArray, result).__sub__(other),
-            name='({}-{})'.format(result.name, other.name),
+            name="({}-{})".format(result.name, other.name),
             units=result.units,
             positive=result.positive,
         )
@@ -491,7 +491,7 @@ class PhysArray(numpy.ma.MaskedArray):
         self._check_inplace_(other)
         other = self._add_sub_init_(other)
         super(PhysArray, self).__isub__(other)
-        self.name = '({}-{})'.format(self.name, other.name)
+        self.name = "({}-{})".format(self.name, other.name)
         return self
 
     def _units_op_(self, val, op):
@@ -501,7 +501,7 @@ class PhysArray(numpy.ma.MaskedArray):
         except:
             opnm = str(op.__name__)
             raise UnitsError(
-                'Operator {!r} failed with units: {}, {}'.format(opnm, sunits, val)
+                "Operator {!r} failed with units: {}, {}".format(opnm, sunits, val)
             )
         return units
 
@@ -515,7 +515,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = result._mul_div_init_(other)
         return PhysArray(
             super(PhysArray, result).__mul__(other),
-            name='({}*{})'.format(result.name, other.name),
+            name="({}*{})".format(result.name, other.name),
             units=self._units_op_(other.units, mul),
             positive=result.positive,
         )
@@ -527,7 +527,7 @@ class PhysArray(numpy.ma.MaskedArray):
         self._check_inplace_(other)
         other = self._mul_div_init_(other)
         super(PhysArray, self).__imul__(other)
-        self.name = '({}*{})'.format(self.name, other.name)
+        self.name = "({}*{})".format(self.name, other.name)
         self.units = self._units_op_(other.units, mul)
         return self
 
@@ -537,7 +537,7 @@ class PhysArray(numpy.ma.MaskedArray):
             1.0 / self,
             dimensions=self.dimensions,
             units=self.units.invert(),
-            name='(1/{!s})'.format(self),
+            name="(1/{!s})".format(self),
             positive=self.positive,
         )
 
@@ -546,7 +546,7 @@ class PhysArray(numpy.ma.MaskedArray):
         other = result._mul_div_init_(other)
         return PhysArray(
             super(PhysArray, result).__truediv__(other),
-            name='({}/{})'.format(result.name, other.name),
+            name="({}/{})".format(result.name, other.name),
             units=self._units_op_(other.units, truediv),
             positive=result.positive,
         )
@@ -558,7 +558,7 @@ class PhysArray(numpy.ma.MaskedArray):
         self._check_inplace_(other)
         other = self._mul_div_init_(other)
         super(PhysArray, self).__itruediv__(other)
-        self.name = '({}/{})'.format(self.name, other.name)
+        self.name = "({}/{})".format(self.name, other.name)
         self.units = self._units_op_(other.units, truediv)
         return self
 
@@ -568,7 +568,7 @@ class PhysArray(numpy.ma.MaskedArray):
         units = self.units / other.units
         return PhysArray(
             super(PhysArray, result).__floordiv__(other),
-            name='({}//{})'.format(result.name, other.name),
+            name="({}//{})".format(result.name, other.name),
             units=units,
             positive=result.positive,
         )
@@ -580,26 +580,26 @@ class PhysArray(numpy.ma.MaskedArray):
         self._check_inplace_(other)
         other = self._mul_div_init_(other)
         super(PhysArray, self).__ifloordiv__(other)
-        self.name = '({}//{})'.format(self.name, other.name)
+        self.name = "({}//{})".format(self.name, other.name)
         self.units = self.units / other.units
         return self
 
     def __mod__(self, other):
-        raise NotImplementedError('Modulus of a PhysArray is not defined.')
+        raise NotImplementedError("Modulus of a PhysArray is not defined.")
 
     def __rmod__(self, other):
         return PhysArray(other).__mod__(self)
 
     def __imod__(self, other):
-        raise NotImplementedError('Modulus of a PhysArray is not defined.')
+        raise NotImplementedError("Modulus of a PhysArray is not defined.")
 
     def _check_exponent_(self, exp):
         if exp.dimensions != ():
-            raise DimensionsError('Exponents must be scalar: {}'.format(exp))
+            raise DimensionsError("Exponents must be scalar: {}".format(exp))
         if exp.positive is not None:
-            raise ValueError('Exponents cannot have positive attribute: {}'.format(exp))
+            raise ValueError("Exponents cannot have positive attribute: {}".format(exp))
         if not exp.units.is_convertible(Unit(1)):
-            raise UnitsError('Exponents cannot have physical units')
+            raise UnitsError("Exponents cannot have physical units")
         return exp.convert(Unit(1))
 
     def __pow__(self, other):
@@ -608,7 +608,7 @@ class PhysArray(numpy.ma.MaskedArray):
         return PhysArray(
             super(PhysArray, self).__pow__(other),
             units=self.units ** other,
-            name='({!s}**{!s})'.format(self, other),
+            name="({!s}**{!s})".format(self, other),
             positive=positive,
         )
 
@@ -618,20 +618,20 @@ class PhysArray(numpy.ma.MaskedArray):
     def __ipow__(self, other):
         other = self._check_exponent_(PhysArray(other))
         super(PhysArray, self).__ipow__(other)
-        self.name = '({!s}**{!s})'.format(self, other)
+        self.name = "({!s}**{!s})".format(self, other)
         self.units **= other
         self.positive = None if other.data % 2 == 0 else self.positive
         return self
 
     def mean(self, dimensions=None, **kwds):
         if dimensions is None:
-            axis = kwds['axis'] if 'axis' in kwds else None
+            axis = kwds["axis"] if "axis" in kwds else None
         elif isinstance(dimensions, (list, tuple)):
             axis = tuple(
                 i for i in sorted(self.dimensions.index(d) for d in dimensions)
             )
         else:
-            raise TypeError('Dimensions must be given as a list or tuple')
+            raise TypeError("Dimensions must be given as a list or tuple")
         if axis is None:
             dims = self.dimensions
             meanval = self.view(numpy.ma.MaskedArray).mean()
@@ -644,12 +644,12 @@ class PhysArray(numpy.ma.MaskedArray):
             for a in axis:
                 meanval = meanval.mean(axis=a)
         else:
-            raise TypeError('Axis must be given as an integer, list or tuple')
+            raise TypeError("Axis must be given as an integer, list or tuple")
         new_dims = tuple(d for d in self.dimensions if d not in dims)
-        dim_str = ','.join(str(d) for d in dims)
+        dim_str = ",".join(str(d) for d in dims)
         return PhysArray(
             meanval,
-            name='mean({}, dims=[{}])'.format(self.name, dim_str),
+            name="mean({}, dims=[{}])".format(self.name, dim_str),
             dimensions=new_dims,
             positive=self.positive,
             units=self.units,
@@ -657,13 +657,13 @@ class PhysArray(numpy.ma.MaskedArray):
 
     def sum(self, dimensions=None, **kwds):
         if dimensions is None:
-            axis = kwds['axis'] if 'axis' in kwds else None
+            axis = kwds["axis"] if "axis" in kwds else None
         elif isinstance(dimensions, (list, tuple)):
             axis = tuple(
                 i for i in sorted(self.dimensions.index(d) for d in dimensions)
             )
         else:
-            raise TypeError('Dimensions must be given as a list or tuple')
+            raise TypeError("Dimensions must be given as a list or tuple")
         if axis is None:
             dims = self.dimensions
             sumval = self.view(numpy.ma.MaskedArray).sum()
@@ -676,12 +676,12 @@ class PhysArray(numpy.ma.MaskedArray):
             for a in axis:
                 sumval = sumval.mean(axis=a)
         else:
-            raise TypeError('Axis must be given as an integer, list or tuple')
+            raise TypeError("Axis must be given as an integer, list or tuple")
         new_dims = tuple(d for d in self.dimensions if d not in dims)
-        dim_str = ','.join(str(d) for d in dims)
+        dim_str = ",".join(str(d) for d in dims)
         return PhysArray(
             sumval,
-            name='sum({}, dims=[{}])'.format(self.name, dim_str),
+            name="sum({}, dims=[{}])".format(self.name, dim_str),
             dimensions=new_dims,
             positive=self.positive,
             units=self.units,
@@ -694,15 +694,15 @@ class CharArray(PhysArray):
     """
 
     def __new__(cls, indata, name=None, dimensions=None):
-        obj = numpy.ma.asarray(indata, dtype='S')
+        obj = numpy.ma.asarray(indata, dtype="S")
         if len(obj.shape) == 0:
-            obj = obj.reshape(1).view('S1')
+            obj = obj.reshape(1).view("S1")
         else:
             strlen = obj.dtype.itemsize
             shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
-            obj = obj.view('S1').reshape(shape)
-        obj = numpy.ma.masked_where(obj == b'', obj).view(cls)
-        obj.fill_value = b''
+            obj = obj.view("S1").reshape(shape)
+        obj = numpy.ma.masked_where(obj == b"", obj).view(cls)
+        obj.fill_value = b""
 
         # Store a name associated with the object
         if name is None:
@@ -711,7 +711,7 @@ class CharArray(PhysArray):
             obj.name = name
 
         # Store units of the data
-        obj.units = Unit('no unit')
+        obj.units = Unit("no unit")
 
         # Store dimension names associated with each axis
         if dimensions is None:
@@ -728,58 +728,58 @@ class CharArray(PhysArray):
     def _chararray_(indata):
         obj = CharArray._strarray_(indata)
         if len(obj.shape) == 0:
-            obj = obj.reshape(1).view('S1')
+            obj = obj.reshape(1).view("S1")
         else:
             strlen = obj.dtype.itemsize
             shape = obj.shape + ((strlen,) if strlen > 1 else tuple())
-            obj = obj.view('S1').reshape(shape)
+            obj = obj.view("S1").reshape(shape)
         return obj
 
     @staticmethod
     def _strarray_(indata):
-        return numpy.asarray(indata, dtype='S')
+        return numpy.asarray(indata, dtype="S")
 
     def __repr__(self):
         if self.shape[-1] > 0:
-            prndat = self.data.view('S{}'.format(self.shape[-1])).reshape(
+            prndat = self.data.view("S{}".format(self.shape[-1])).reshape(
                 self.shape[:-1]
             )
         else:
             prndat = self.data
-        datstr = str(prndat).replace(linesep, ' ')
-        return ('{!s}(data={!s}, name={!r}, dimensions=' '{!s})').format(
+        datstr = str(prndat).replace(linesep, " ")
+        return ("{!s}(data={!s}, name={!r}, dimensions=" "{!s})").format(
             self.__class__.__name__, datstr, self.name, self.dimensions
         )
 
     @property
     def units(self):
         """Units of the data"""
-        return self._optinfo['units']
+        return self._optinfo["units"]
 
     @units.setter
     def units(self, units):
         new_units = units if isinstance(units, Unit) else Unit(units)
         if not new_units.is_no_unit():
-            raise UnitsError('CharArrays cannot have units.')
-        self._optinfo['units'] = new_units
+            raise UnitsError("CharArrays cannot have units.")
+        self._optinfo["units"] = new_units
 
     @property
     def positive(self):
         """Positive direction (up or down) for the data"""
-        return self._optinfo['positive']
+        return self._optinfo["positive"]
 
     @positive.setter
     def positive(self, pos):
         if pos is not None:
-            raise ValueError('CharArrays cannot be assigned a positive attribute')
-        self._optinfo['positive'] = pos
+            raise ValueError("CharArrays cannot be assigned a positive attribute")
+        self._optinfo["positive"] = pos
 
     def convert(self, units):
         try:
             new_self = PhysArray.convert(self, units)
         except UnitsError:
             raise UnitsError(
-                'CharArrays do not have units and cannot be converted to units {}'.format(
+                "CharArrays do not have units and cannot be converted to units {}".format(
                     units
                 )
             )
@@ -788,18 +788,18 @@ class CharArray(PhysArray):
     def transpose(self, *dims):
         if set(dims) == set(self.dimensions) and dims[-1] != self.dimensions[-1]:
             raise DimensionsError(
-                'The last dimension of a CharArray must always be the string length. '
-                'Cannot transpose.'
+                "The last dimension of a CharArray must always be the string length. "
+                "Cannot transpose."
             )
         return PhysArray.transpose(self, *dims)
 
     def invert(self):
-        raise NotImplementedError('CharArrays cannot be inverted')
+        raise NotImplementedError("CharArrays cannot be inverted")
 
     def stretch(self, newlen):
         if newlen > self.shape[-1]:
-            pad = numpy.zeros((self.shape[:-1] + (newlen - self.shape[-1],)), dtype='S')
-            pad = numpy.ma.masked_where(pad == '', pad)
+            pad = numpy.zeros((self.shape[:-1] + (newlen - self.shape[-1],)), dtype="S")
+            pad = numpy.ma.masked_where(pad == "", pad)
             return CharArray(
                 numpy.ma.concatenate((self, pad), axis=-1),
                 name=self.name,

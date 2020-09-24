@@ -58,12 +58,12 @@ class DataFlow(object):
         """
         # Input dataset
         if not isinstance(inpds, InputDatasetDesc):
-            raise TypeError('Input dataset must be of InputDatasetDesc type')
+            raise TypeError("Input dataset must be of InputDatasetDesc type")
         self._ids = inpds
 
         # Output dataset
         if not isinstance(outds, OutputDatasetDesc):
-            raise TypeError('Output dataset must be of OutputDatasetDesc type')
+            raise TypeError("Output dataset must be of OutputDatasetDesc type")
         self._ods = outds
 
         # Create a dictionary of DataNodes from variables with non-string
@@ -104,8 +104,8 @@ class DataFlow(object):
         for vname in self._ods.variables:
             vdesc = self._ods.variables[vname]
             if not isinstance(vdesc.definition, str):
-                if vdesc.datatype == 'char':
-                    vdata = numpy.asarray(vdesc.definition, dtype='S')
+                if vdesc.datatype == "char":
+                    vdata = numpy.asarray(vdesc.definition, dtype="S")
                 else:
                     vdata = numpy.asarray(vdesc.definition, dtype=vdesc.dtype)
                 vunits = vdesc.cfunits()
@@ -124,7 +124,7 @@ class DataFlow(object):
                     vnode = self._construct_flow_(pdef, datnodes=datnodes)
                 except VariableNotFoundError as err:
                     warn(
-                        '{}. Skipping output variable {}.'.format(str(err), vname),
+                        "{}. Skipping output variable {}.".format(str(err), vname),
                         DefinitionWarning,
                     )
                 else:
@@ -143,7 +143,7 @@ class DataFlow(object):
 
             else:
                 raise VariableNotFoundError(
-                    'Input variable {!r} not found or cannot be used as input'.format(
+                    "Input variable {!r} not found or cannot be used as input".format(
                         vname
                     )
                 )
@@ -178,7 +178,7 @@ class DataFlow(object):
                 info = node[None]
             except Exception as err:
                 ndef = self._ods.variables[name].definition
-                err_msg = 'Failure to generate variable {!r} info with definition {!r}: {}'.format(
+                err_msg = "Failure to generate variable {!r} info with definition {!r}: {}".format(
                     name, ndef, str(err)
                 )
                 raise RuntimeError(err_msg)
@@ -210,10 +210,10 @@ class DataFlow(object):
             unmapped_inp = tuple(d for d in inp_dims if d not in mapped_inp)
 
             if len(unmapped_out) != len(unmapped_inp):
-                map_str = ', '.join('{}-->{}'.format(k, i2omap[k]) for k in i2omap)
+                map_str = ", ".join("{}-->{}".format(k, i2omap[k]) for k in i2omap)
                 err_msg = (
-                    'Cannot map dimensions {} to dimensions {} in output variable {} '
-                    '(MAP: {})'
+                    "Cannot map dimensions {} to dimensions {} in output variable {} "
+                    "(MAP: {})"
                 ).format(inp_dims, out_dims, vname, map_str)
                 raise ValueError(err_msg)
             if len(unmapped_out) == 0:
@@ -245,7 +245,7 @@ class DataFlow(object):
             dnode = defnodes[vname]
             dinfo = definfos[vname]
             map_dims = tuple(self._i2omap[d] for d in dinfo.dimensions)
-            name = 'map({!s}, to={})'.format(vname, map_dims)
+            name = "map({!s}, to={})".format(vname, map_dims)
             mapnodes[vname] = MapNode(name, dnode, self._i2omap)
         return mapnodes
 
@@ -260,7 +260,7 @@ class DataFlow(object):
                 validnode = ValidateNode(vdesc, vnode)
             except Exception as err:
                 vdef = vdesc.definition
-                err_msg = 'Failure in variable {!r} with definition {!r}: {}'.format(
+                err_msg = "Failure in variable {!r} with definition {!r}: {}".format(
                     vname, vdef, str(err)
                 )
                 raise RuntimeError(err_msg)
@@ -290,8 +290,8 @@ class DataFlow(object):
             )
             if vmissing:
                 warn(
-                    'Skipping output file {} due to missing required variables: '
-                    '{}'.format(fname, ', '.join(sorted(vmissing))),
+                    "Skipping output file {} due to missing required variables: "
+                    "{}".format(fname, ", ".join(sorted(vmissing))),
                     DefinitionWarning,
                 )
             else:
@@ -343,17 +343,17 @@ class DataFlow(object):
         """
         # Check chunks type
         if not isinstance(chunks, dict):
-            raise TypeError('Chunks must be specified with a dictionary')
+            raise TypeError("Chunks must be specified with a dictionary")
 
         # Make sure that the specified chunking dimensions are valid
         for odname, odsize in chunks.items():
             if odname not in self._o2imap:
                 raise ValueError(
-                    'Cannot chunk over unknown output dimension {!r}'.format(odname)
+                    "Cannot chunk over unknown output dimension {!r}".format(odname)
                 )
             if not isinstance(odsize, int):
                 raise TypeError(
-                    ('Chunk size invalid for output dimension {!r}: ' '{}').format(
+                    ("Chunk size invalid for output dimension {!r}: " "{}").format(
                         odname, odsize
                     )
                 )
@@ -367,7 +367,7 @@ class DataFlow(object):
             else:
                 raise ValueError(
                     'Cannot chunk over dimensions that are summed over (or "sum-like")'
-                    ': {}'.format(', '.join(sumlike_chunk_dims))
+                    ": {}".format(", ".join(sumlike_chunk_dims))
                 )
 
         # Create the simple communicator, if necessary
@@ -376,24 +376,24 @@ class DataFlow(object):
         elif isinstance(scomm, SimpleComm):
             if scomm.is_manager():
                 print(
-                    'Inheriting SimpleComm object from parent.  (Ignoring serial argument.)'
+                    "Inheriting SimpleComm object from parent.  (Ignoring serial argument.)"
                 )
         else:
-            raise TypeError('Communication object is not a SimpleComm!')
+            raise TypeError("Communication object is not a SimpleComm!")
 
         # Start general output
-        prefix = '[{}/{}]'.format(scomm.get_rank(), scomm.get_size())
+        prefix = "[{}/{}]".format(scomm.get_rank(), scomm.get_size())
         if scomm.is_manager():
-            print('Beginning execution of data flow...')
-            print('Mapping Input Dimensions to Output Dimensions:')
+            print("Beginning execution of data flow...")
+            print("Mapping Input Dimensions to Output Dimensions:")
             for d in sorted(self._i2omap):
-                print('   {} --> {}'.format(d, self._i2omap[d]))
+                print("   {} --> {}".format(d, self._i2omap[d]))
             if len(chunks) > 0:
-                print('Chunking over Output Dimensions:')
+                print("Chunking over Output Dimensions:")
                 for d in chunks:
-                    print('   {}: {}'.format(d, chunks[d]))
+                    print("   {}: {}".format(d, chunks[d]))
             else:
-                print('Not chunking output.')
+                print("Not chunking output.")
 
         # Partition the output files/variables over available parallel (MPI)
         # ranks
@@ -402,27 +402,27 @@ class DataFlow(object):
         )
         if scomm.is_manager():
             print(
-                'Writing {} files across {} MPI processes.'.format(
+                "Writing {} files across {} MPI processes.".format(
                     len(self._filesizes), scomm.get_size()
                 )
             )
         scomm.sync()
 
         # Standard output
-        print('{}: Writing {} files: {}'.format(prefix, len(fnames), ', '.join(fnames)))
+        print("{}: Writing {} files: {}".format(prefix, len(fnames), ", ".join(fnames)))
         scomm.sync()
 
         # Loop over output files and write using given chunking
         for fname in fnames:
-            print('{}: Writing file: {}'.format(prefix, fname))
+            print("{}: Writing file: {}".format(prefix, fname))
             if history:
                 self._writenodes[fname].enable_history()
             else:
                 self._writenodes[fname].disable_history()
             self._writenodes[fname].execute(chunks=chunks, deflate=deflate)
-            print('{}: Finished writing file: {}'.format(prefix, fname))
+            print("{}: Finished writing file: {}".format(prefix, fname))
 
         scomm.sync()
         if scomm.is_manager():
-            print('All output variables written.')
+            print("All output variables written.")
             print()

@@ -10,7 +10,7 @@ from pyconform.physarray import PhysArray
 
 
 class delpFunction(Function):
-    key = 'delp'
+    key = "delp"
 
     def __init__(self, p_PO, p_PS, p_hyai, p_hybi):
         super(delpFunction, self).__init__(p_PO, p_PS, p_hyai, p_hybi)
@@ -50,15 +50,15 @@ class delpFunction(Function):
         for i in range(0, j - 1):
             delp[:, i, :, :] = p[:, i + 1, :, :] - p[:, i, :, :]
 
-        new_name = 'delp({}{}{}{})'.format(
+        new_name = "delp({}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyai.name, p_hybi.name
         )
 
-        return PhysArray(delp, name=new_name, units='Pa')
+        return PhysArray(delp, name=new_name, units="Pa")
 
 
 class rhoFunction(Function):
-    key = 'rho'
+    key = "rho"
 
     def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T):
         super(rhoFunction, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T)
@@ -90,15 +90,15 @@ class rhoFunction(Function):
         p = (hyam * PO) + (hybm * PS)
         rho = p / (287.04 * T)
 
-        new_name = 'rho({}{}{}{}{})'.format(
+        new_name = "rho({}{}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name
         )
 
-        return PhysArray(rho, name=new_name, units='cm-3')
+        return PhysArray(rho, name=new_name, units="cm-3")
 
 
 class pm25Function(Function):
-    key = 'pm25'
+    key = "pm25"
 
     def __init__(self, p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o):
         super(pm25Function, self).__init__(p_PO, p_PS, p_hyam, p_hybm, p_T, p_PM25_o)
@@ -132,11 +132,11 @@ class pm25Function(Function):
         p = (hyam * PO) + (hybm * PS)
         pm25 = PM25_o * 287.0 * T / p
 
-        new_name = 'pm25({}{}{}{}{}{})'.format(
+        new_name = "pm25({}{}{}{}{}{})".format(
             p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name, p_PM25_o.name
         )
 
-        return PhysArray(pm25, name=new_name, units='kg/kg')
+        return PhysArray(pm25, name=new_name, units="kg/kg")
 
 
 # class tozFunction(Function):

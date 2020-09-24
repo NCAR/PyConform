@@ -22,38 +22,38 @@ def cli(argv=None):
 
     parser = ArgumentParser(description=desc)
     parser.add_argument(
-        '-d',
-        '--deffile',
+        "-d",
+        "--deffile",
         default=False,
-        action='store_true',
+        action="store_true",
         help=(
-            'Flag to use if the file to read is a definitions file, '
-            'instead of a JSON-formatted standardization file'
+            "Flag to use if the file to read is a definitions file, "
+            "instead of a JSON-formatted standardization file"
         ),
     )
     parser.add_argument(
-        '-f',
-        '--frequency',
+        "-f",
+        "--frequency",
         default=False,
-        action='store_true',
-        help='Output variable frequency with their dependencies',
+        action="store_true",
+        help="Output variable frequency with their dependencies",
     )
     parser.add_argument(
-        '-n',
-        '--filename',
+        "-n",
+        "--filename",
         default=None,
-        metavar='FILENAME',
+        metavar="FILENAME",
         type=str,
-        help='Name of the file from which variable definitions will be read',
+        help="Name of the file from which variable definitions will be read",
     )
     parser.add_argument(
-        'variables',
-        metavar='VARIABLE',
-        nargs='*',
+        "variables",
+        metavar="VARIABLE",
+        nargs="*",
         type=str,
         help=(
-            'Output variables to search for.  If not specified, then '
-            'search for all output variables.'
+            "Output variables to search for.  If not specified, then "
+            "search for all output variables."
         ),
     )
 
@@ -76,26 +76,26 @@ def variable_search(obj, vars=None):
     return vars
 
 
-def print_columnar(x, textwidth=10000000, indent=0, header=''):
-    hrstrp = '{}  '.format(str(header).rstrip())
+def print_columnar(x, textwidth=10000000, indent=0, header=""):
+    hrstrp = "{}  ".format(str(header).rstrip())
     if len(hrstrp) > indent:
         indent = len(hrstrp)
     else:
-        hrstrp = '{: <{indent}}'.format(header, indent=indent)
+        hrstrp = "{: <{indent}}".format(header, indent=indent)
     Lmax = max(len(str(i)) for i in x)
     Nc = (textwidth - indent + 3) // (Lmax + 3)
     Nr = len(x) // Nc + int(len(x) % Nc > 0)
     A = [x[i::Nr] for i in range(Nr)]
     print(
-        '{}{}'.format(
-            hrstrp, '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in A[0])
+        "{}{}".format(
+            hrstrp, "   ".join("{: <{Lmax}}".format(r, Lmax=Lmax) for r in A[0])
         )
     )
     for row in A[1:]:
         print(
-            '{}{}'.format(
-                ' ' * indent,
-                '   '.join('{: <{Lmax}}'.format(r, Lmax=Lmax) for r in row),
+            "{}{}".format(
+                " " * indent,
+                "   ".join("{: <{Lmax}}".format(r, Lmax=Lmax) for r in row),
             )
         )
 
@@ -105,7 +105,7 @@ def main(argv=None):
 
     # Check that the file exists
     if not exists(args.filename):
-        raise OSError('File {!r} not found'.format(args.filename))
+        raise OSError("File {!r} not found".format(args.filename))
 
     # Read the definitions from the file
     vardefs = {}
@@ -115,27 +115,27 @@ def main(argv=None):
         with open(args.filename) as f:
             for line in f:
                 line = line.strip()
-                if '#' in line:
-                    line = line.split('#')[0].strip()
-                split = line.split('=')
+                if "#" in line:
+                    line = line.split("#")[0].strip()
+                split = line.split("=")
                 if len(split) == 2:
                     vardefs[split[0].strip()] = split[1].strip()
                 elif len(line) > 0:
-                    print('Could not parse this line: {!r}'.format(line))
+                    print("Could not parse this line: {!r}".format(line))
     else:
         stddict = load(open(args.filename), object_pairs_hook=OrderedDict)
         for var in stddict:
-            if 'definition' in stddict[var] and isinstance(
-                stddict[var]['definition'], str
+            if "definition" in stddict[var] and isinstance(
+                stddict[var]["definition"], str
             ):
-                vardefs[var] = stddict[var]['definition']
+                vardefs[var] = stddict[var]["definition"]
             if (
-                'attributes' in stddict[var]
-                and 'frequency' in stddict[var]['attributes']
+                "attributes" in stddict[var]
+                and "frequency" in stddict[var]["attributes"]
             ):
-                varfreqs[var] = stddict[var]['attributes']['frequency']
-            if 'attributes' in stddict[var] and 'realm' in stddict[var]['attributes']:
-                varrealm[var] = stddict[var]['attributes']['realm']
+                varfreqs[var] = stddict[var]["attributes"]["frequency"]
+            if "attributes" in stddict[var] and "realm" in stddict[var]["attributes"]:
+                varrealm[var] = stddict[var]["attributes"]["realm"]
 
     # Determine list of output variables to search for
     if len(args.variables) == 0:
@@ -144,7 +144,7 @@ def main(argv=None):
         outvars = sorted(args.variables)
 
     # Use the parser to determine what variables are needed
-    print('Output Variable Dependencies:')
+    print("Output Variable Dependencies:")
     alldeps = set()
     for var in outvars:
         if var in vardefs:
@@ -152,21 +152,21 @@ def main(argv=None):
                 vdeps = variable_search(parsing.parse_definition(vardefs[var]))
                 alldeps.update(vdeps)
                 fheader = (
-                    ' [{},{}]'.format(varfreqs[var], varrealm[var])
+                    " [{},{}]".format(varfreqs[var], varrealm[var])
                     if var in varfreqs
-                    else ''
+                    else ""
                 )
-                vheader = '   {}{}:'.format(var, fheader)
+                vheader = "   {}{}:".format(var, fheader)
                 print_columnar(sorted(vdeps), header=vheader)
             except:
-                print('   {}: No dependencies.'.format(var))
+                print("   {}: No dependencies.".format(var))
         else:
-            print('   {}: Not defined.'.format(var))
+            print("   {}: Not defined.".format(var))
 
     print()
-    print('Complete Specification Requires the Following Input Variables:')
+    print("Complete Specification Requires the Following Input Variables:")
     print_columnar(sorted(alldeps), indent=3)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

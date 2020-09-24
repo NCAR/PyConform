@@ -7,7 +7,7 @@ from pyconform.physarray import DimensionsError, PhysArray
 
 
 class VertInterpFunction(Function):
-    key = 'vinth2p'
+    key = "vinth2p"
 
     def __init__(self, datai, hbcofa, hbcofb, plevo, psfc, p0, intyp=1, ixtrp=0):
         super(VertInterpFunction, self).__init__(
@@ -31,21 +31,21 @@ class VertInterpFunction(Function):
                 p0_info,
             )
         ):
-            raise TypeError('vinth2p: arrays must be PhysArrays')
+            raise TypeError("vinth2p: arrays must be PhysArrays")
 
         if len(datai_info.dimensions) != 3 and len(datai_info.dimensions) != 4:
-            raise DimensionsError('vinth2p: interpolated data must be 3D or 4D')
+            raise DimensionsError("vinth2p: interpolated data must be 3D or 4D")
         if len(hbcofa_info.dimensions) != 1 or len(hbcofb_info.dimensions) != 1:
-            raise DimensionsError('vinth2p: hybrid a/b coefficients must be 1D')
+            raise DimensionsError("vinth2p: hybrid a/b coefficients must be 1D")
         if len(plevo_info.dimensions) != 1:
-            raise DimensionsError('vinth2p: output pressure levels must be 1D')
+            raise DimensionsError("vinth2p: output pressure levels must be 1D")
         if len(p0_info.dimensions) != 0:
-            raise DimensionsError('vinth2p: reference pressure must be scalar')
+            raise DimensionsError("vinth2p: reference pressure must be scalar")
 
         dlevi = hbcofa_info.dimensions[0]
         if dlevi != hbcofb_info.dimensions[0]:
             raise DimensionsError(
-                'vinth2p: hybrid a/b coefficients do not have same dimensions'
+                "vinth2p: hybrid a/b coefficients do not have same dimensions"
             )
         dlevo = plevo_info.dimensions[0]
         self.add_sumlike_dimensions(dlevi, dlevo)
@@ -54,8 +54,8 @@ class VertInterpFunction(Function):
             if d not in datai_info.dimensions:
                 raise DimensionsError(
                     (
-                        'vinth2p: surface pressure dimension {!r} not found '
-                        'in input data dimensions'
+                        "vinth2p: surface pressure dimension {!r} not found "
+                        "in input data dimensions"
                     ).format(d)
                 )
         dlat, dlon = psfc_info.dimensions[-2:]
@@ -63,9 +63,9 @@ class VertInterpFunction(Function):
         if (dlevi, dlat, dlon) != datai_info.dimensions[-3:]:
             raise DimensionsError(
                 (
-                    'vinth2p: input data dimensions {} inconsistent with the '
-                    'dimensions of surface pressure {} and hybrid coefficients {}'
-                    ''
+                    "vinth2p: input data dimensions {} inconsistent with the "
+                    "dimensions of surface pressure {} and hybrid coefficients {}"
+                    ""
                 ).format(
                     datai_info.dimensions, psfc_info.dimensions, hbcofa_info.dimensions
                 )
@@ -77,7 +77,7 @@ class VertInterpFunction(Function):
         new_dims[ilev] = dlevo
         self._new_dims = tuple(new_dims)
 
-        self._new_name = 'vinth2p({}, plevs={})'.format(
+        self._new_name = "vinth2p({}, plevs={})".format(
             datai_info.name, plevo_info.name
         )
 
@@ -85,11 +85,11 @@ class VertInterpFunction(Function):
         datai = self.arguments[0][index]
         hbcofa = self.arguments[1][index]
         hbcofb = self.arguments[2][index]
-        plevo = self.arguments[3][index].convert('mbar')
-        psfc = self.arguments[4][index].convert('Pa')
-        p0 = self.arguments[5][index].convert('mbar')
-        intyp = self.keywords['intyp']
-        ixtrp = self.keywords['ixtrp']
+        plevo = self.arguments[3][index].convert("mbar")
+        psfc = self.arguments[4][index].convert("Pa")
+        p0 = self.arguments[5][index].convert("mbar")
+        intyp = self.keywords["intyp"]
+        ixtrp = self.keywords["ixtrp"]
 
         v = vinth2p(
             datai.data,
