@@ -17,9 +17,6 @@ from pyconform import dataflow, datasets
 from testutils import print_ncfile, print_test_message
 
 
-#=========================================================================
-# DataFlowTests
-#=========================================================================
 class DataFlowTests(unittest.TestCase):
     """
     Unit tests for the flownodes.FlowNode class
@@ -418,10 +415,3 @@ class DataFlowTests(unittest.TestCase):
         for f in self.outfiles:
             print_ncfile(self.outfiles[f])
             print
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    unittest.main()

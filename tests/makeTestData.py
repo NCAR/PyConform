@@ -13,9 +13,6 @@ import netCDF4
 import numpy as np
 
 
-#===============================================================================
-# DataMaker
-#===============================================================================
 class DataMaker(object):
     """
     Simple tool to write a "fake" dataset for testing purposes
@@ -28,8 +25,8 @@ class DataMaker(object):
                               OrderedDict([('a1', 'file 2 attrib 1'),
                                            ('a2', 'file 2 attrib 2')]),
                               OrderedDict([('a1', 'file 3 attrib 1'),
-                                           ('a2', 'file 3 attrib 2')]),],
-                 dimensions=OrderedDict([('time', [3,4,5]),
+                                           ('a2', 'file 3 attrib 2')])],
+                 dimensions=OrderedDict([('time', [3, 4, 5]),
                                          ('space', 2)]),
                  vardims=OrderedDict([('T1', ('time', 'space')),
                                       ('T2', ('space', 'time'))]),
@@ -127,10 +124,3 @@ class DataMaker(object):
         for filename in self.filenames:
             if exists(filename):
                 remove(filename)
-
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == '__main__':
-    pass

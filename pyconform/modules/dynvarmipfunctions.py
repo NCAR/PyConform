@@ -12,9 +12,6 @@ from pyconform.functions import Function
 from pyconform.physarray import PhysArray
 
 
-#=========================================================================
-# DynVarMIPFunction
-#=========================================================================
 class DynVarMIPFunction(Function):
     key = 'dynvarmipfunc'
 
@@ -33,9 +30,6 @@ class DynVarMIPFunction(Function):
                          units=self._units, positive=self._positive)
 
 
-#=========================================================================
-# wtemDynVarMIPFunction
-#=========================================================================
 class wtemDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_wtem'
 
@@ -47,9 +41,6 @@ class wtemDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# utendwtemDynVarMIPFunction
-#=========================================================================
 class utendwtemDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_utendwtem'
 
@@ -61,9 +52,6 @@ class utendwtemDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# vtemDynVarMIPFunction
-#=========================================================================
 class vtemDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_vtem'
 
@@ -75,9 +63,6 @@ class vtemDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# utendvtemDynVarMIPFunction
-#=========================================================================
 class utendvtemDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_utendvtem'
 
@@ -89,9 +74,6 @@ class utendvtemDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# epfyDynVarMIPFunction
-#=========================================================================
 class epfyDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_epfy'
 
@@ -103,9 +85,6 @@ class epfyDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# epfzDynVarMIPFunction
-#=========================================================================
 class epfzDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_epfz'
 
@@ -117,9 +96,6 @@ class epfzDynVarMIPFunction(DynVarMIPFunction):
         self._positive = 'up'
 
 
-#=========================================================================
-# utendepfdDynVarMIPFunction
-#=========================================================================
 class utendepfdDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_utendepfd'
 
@@ -131,9 +107,6 @@ class utendepfdDynVarMIPFunction(DynVarMIPFunction):
         self._positive = None
 
 
-#=========================================================================
-# psitemDynVarMIPFunction
-#=========================================================================
 class psitemDynVarMIPFunction(DynVarMIPFunction):
     key = 'dynvarmip_psitem'
 

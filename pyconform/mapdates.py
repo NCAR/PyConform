@@ -16,9 +16,6 @@ from dateutil import parser
 import climIO
 
 
-#=============================================
-#  Get time information from the time slices
-#=============================================
 def __get_time_info__(f, io):
     """
     Evaluates the time slices in the input files to verify
@@ -43,20 +40,20 @@ def __get_time_info__(f, io):
     if ('bounds' in att.keys()):
         # print 'Using bounds'
         tb = f.variables[att['bounds']]
-        l = len(tb)
+        j = len(tb)
         d0 = tb[0, 0]
         d1 = tb[1, 0]
         d2 = tb[2, 0]
-        dn = tb[l - 1, 1] - 1
+        dn = tb[j - 1, 1] - 1
         time = tb[:, 0]
     else:
         # print 'Using time'
         tb = f.variables['time']
-        l = len(tb)
+        j = len(tb)
         d0 = tb[0]
         d1 = tb[1]
         d2 = tb[2]
-        dn = tb[l - 1]
+        dn = tb[j - 1]
         time = tb[:]
     date_info['time'] = time
 
@@ -81,36 +78,32 @@ def __get_time_info__(f, io):
     date_info['t_per'] = t_per
     date_info['t_step'] = t_step
     # Get first and last dates
-    t0 = (parser.parse(str(cf_units.num2date(d0, att['units'],
-                                             calendar=att['calendar']))).timetuple())
-    tn = (parser.parse(str(cf_units.num2date(dn, att['units'],
-                                             calendar=att['calendar']))).timetuple())
+    # t0 = (parser.parse(str(cf_units.num2date(d0, att['units'],
+    #                                          calendar=att['calendar']))).timetuple())
+    # tn = (parser.parse(str(cf_units.num2date(dn, att['units'],
+    #                                          calendar=att['calendar']))).timetuple())
     date_info['t0'] = cal_unit.convert(d0, stand_cal)
     date_info['tn'] = cal_unit.convert(dn, stand_cal)
-    date_info['cnt'] = l
+    date_info['cnt'] = j
     average = (date_info['t0'] + date_info['tn']) / 2
     date_info['units'] = att['units']
     date_info['calendar'] = att['calendar']
 
     # Check to see if the number of slices matches how many should be in the
     # date range
-    if t_per == 'year':
-        _ok = (tn[0] - t0[0] == l)
-    elif t_per == 'mon':
-        _ok = (((tn[0] - t0[0]) * 12) + (tn[1] - t0[1] + 1) == l)
-    elif t_per == 'day':
-        _ok = ((dn - d0 + 1) == l)
-    elif 'hour' in t_per:
-        cnt_per_day = 24.0 / h
-        _ok = (((dn - d0) * cnt_per_day + 1) == l)
+    # if t_per == 'year':
+    #     _ok = (tn[0] - t0[0] == j)
+    # elif t_per == 'mon':
+    #     _ok = (((tn[0] - t0[0]) * 12) + (tn[1] - t0[1] + 1) == j)
+    # elif t_per == 'day':
+    #     _ok = ((dn - d0 + 1) == j)
+    # elif 'hour' in t_per:
+    #     cnt_per_day = 24.0 / h
+    #     _ok = (((dn - d0) * cnt_per_day + 1) == j)
 
     return average, date_info
 
 
-#=============================================
-# Verify that there are no gaps in time from
-# one file to the next
-#=============================================
 def __check_date_alignment__(keys, date_info):
     """
     Evaluates the dates between files to verify that
@@ -162,10 +155,6 @@ def __check_date_alignment__(keys, date_info):
     return 0
 
 
-#=============================================
-# Verify that there are no gaps in time from
-# one time step to the next in the same file.
-#=============================================
 def __check_date_alignment_in_file__(date):
     """
     Evaluates the dates between time steps to verify that
@@ -218,10 +207,6 @@ def __check_date_alignment_in_file__(date):
     return 0
 
 
-#=============================================
-# Examine the file list and put them in sequential
-# order.
-#=============================================
 def get_files_in_order(files, alignment=True):
     """
     Examine the file list and put the files in

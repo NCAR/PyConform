@@ -11,9 +11,6 @@ from pyconform import parsing
 from testutils import print_test_message
 
 
-#=========================================================================
-# ParsedStringTypeTests
-#=========================================================================
 class ParsedStringTypeTests(unittest.TestCase):
 
     def test_pst_init(self):
@@ -97,12 +94,7 @@ class ParsedStringTypeTests(unittest.TestCase):
         self.assertEqual(actual, expected, 'Args do not match')
 
 
-#=========================================================================
-# DefinitionParserTests
-#=========================================================================
 class DefinitionParserTests(unittest.TestCase):
-
-    #===== QUOTED STRINGS ====================================================
 
     def test_parse_quote_funcarg_int(self):
         indata = 'f("1")'
@@ -149,8 +141,6 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'String parsing failed')
 
-#===== INTEGERS ==========================================================
-
     def test_parse_integer(self):
         indata = '1'
         actual = parsing.parse_definition(indata)
@@ -168,8 +158,6 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Integer parsing failed')
-
-#===== FLOATS ============================================================
 
     def test_parse_float_dec(self):
         indata = '1.'
@@ -306,8 +294,6 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Float parsing failed')
 
-#===== FUNCTIONS =========================================================
-
     def test_parse_func(self):
         indata = 'f()'
         actual = parsing.parse_definition(indata)
@@ -336,8 +322,6 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Function parsing failed')
-
-#===== VARIABLES =========================================================
 
     def test_parse_var(self):
         indata = 'x'
@@ -428,9 +412,6 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Variable time parsing failed')
 
-
-#===== NEGATION ==========================================================
-
     def test_parse_neg_integer(self):
         indata = '-1'
         actual = parsing.parse_definition(indata)
@@ -469,8 +450,6 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Negation parsing failed')
 
-#===== POSITIVE ==========================================================
-
     def test_parse_pos_integer(self):
         indata = '+1'
         actual = parsing.parse_definition(indata)
@@ -506,8 +485,6 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Positive operator parsing failed')
-
-#===== POWER =============================================================
 
     def test_parse_int_pow_int(self):
         indata = '2**1'
@@ -549,8 +526,6 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Power operator parsing failed')
 
-#===== DIV ===============================================================
-
     def test_parse_int_div_int(self):
         indata = '2/1'
         actual = parsing.parse_definition(indata)
@@ -590,8 +565,6 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Division operator parsing failed')
-
-#===== MUL ===============================================================
 
     def test_parse_int_mul_int(self):
         indata = '2*1'
@@ -637,8 +610,6 @@ class DefinitionParserTests(unittest.TestCase):
         self.assertEqual(actual, expected,
                          'Multiplication operator parsing failed')
 
-#===== ADD ===============================================================
-
     def test_parse_int_add_int(self):
         indata = '2+1'
         actual = parsing.parse_definition(indata)
@@ -678,8 +649,6 @@ class DefinitionParserTests(unittest.TestCase):
         print_test_message(testname, indata=indata,
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'Addition operator parsing failed')
-
-#===== SUB ===============================================================
 
     def test_parse_int_sub_int(self):
         indata = '2-1'
@@ -724,8 +693,6 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Subtraction operator parsing failed')
-
-#===== Integration =======================================================
 
     def test_parse_integrated_1(self):
         indata = '2-17.3*x**2'
@@ -787,11 +754,3 @@ class DefinitionParserTests(unittest.TestCase):
                            actual=actual, expected=expected)
         self.assertEqual(actual, expected,
                          'Integrated #5 operator parsing failed')
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

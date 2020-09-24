@@ -58,8 +58,3 @@ class Test(unittest.TestCase):
 
     def test_psitem(self):
         dvmd.psitem(self.time, self.levi, self.lat, self.vzm, self.vthzm, self.thzm)
-
-
-if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

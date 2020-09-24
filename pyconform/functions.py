@@ -14,16 +14,10 @@ from numpy.ma import sqrt, where
 from pyconform.physarray import PhysArray, UnitsError, getname
 
 
-#=========================================================================
-# is_constant - Determine if an argument is a constant (number or string)
-#=========================================================================
 def is_constant(arg):
     return isinstance(arg, (basestring, float, int)) or arg is None
 
 
-#=========================================================================
-# Find a function or operator based on key and number of arguments
-#=========================================================================
 def find(key, numargs=None):
     try:
         fop = find_operator(key, numargs=numargs)
@@ -44,9 +38,6 @@ def find(key, numargs=None):
         return fop
 
 
-#=========================================================================
-# FunctionBase - base class for Function and Operator Classes
-#=========================================================================
 class FunctionBase(object):
     __metaclass__ = ABCMeta
     key = 'function'
@@ -60,14 +51,6 @@ class FunctionBase(object):
         return None
 
 
-##########################################################################
-##### OPERATORS ##########################################################
-##########################################################################
-
-
-#=========================================================================
-# Get the function associated with the given key-symbol
-#=========================================================================
 def find_operator(key, numargs=None):
     if key not in __OPERATORS__:
         raise KeyError('Operator {!r} not found'.format(key))
@@ -87,16 +70,10 @@ def find_operator(key, numargs=None):
         return ops[numargs]
 
 
-#=========================================================================
-# operators
-#=========================================================================
 def list_operators():
     return sorted(__OPERATORS__.keys())
 
 
-#=========================================================================
-# Operator - From which all 'X op Y'-pattern operators derive
-#=========================================================================
 class Operator(FunctionBase):
     key = '?'
     numargs = 2
@@ -105,9 +82,6 @@ class Operator(FunctionBase):
         super(Operator, self).__init__(*args)
 
 
-#=========================================================================
-# NegationOperator
-#=========================================================================
 class NegationOperator(Operator):
     key = '-'
     numargs = 1
@@ -121,9 +95,6 @@ class NegationOperator(Operator):
         return -arg
 
 
-#=========================================================================
-# AdditionOperator
-#=========================================================================
 class AdditionOperator(Operator):
     key = '+'
     numargs = 2
@@ -139,9 +110,6 @@ class AdditionOperator(Operator):
         return left + right
 
 
-#=========================================================================
-# SubtractionOperator
-#=========================================================================
 class SubtractionOperator(Operator):
     key = '-'
     numargs = 2
@@ -157,9 +125,6 @@ class SubtractionOperator(Operator):
         return left - right
 
 
-#=========================================================================
-# PowerOperator
-#=========================================================================
 class PowerOperator(Operator):
     key = '**'
     numargs = 2
@@ -175,9 +140,6 @@ class PowerOperator(Operator):
         return left ** right
 
 
-#=========================================================================
-# MultiplicationOperator
-#=========================================================================
 class MultiplicationOperator(Operator):
     key = '*'
     numargs = 2
@@ -193,9 +155,6 @@ class MultiplicationOperator(Operator):
         return left * right
 
 
-#=========================================================================
-# DivisionOperator
-#=========================================================================
 class DivisionOperator(Operator):
     key = '/'
     numargs = 2
@@ -211,10 +170,6 @@ class DivisionOperator(Operator):
         return left / right
 
 
-#=========================================================================
-# Operator map - Fixed to prevent user-redefinition!
-#=========================================================================
-
 __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
                  '**': {2: PowerOperator},
                  '+': {2: AdditionOperator},
@@ -222,21 +177,11 @@ __OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
                  '/': {2: DivisionOperator}}
 
 
-##########################################################################
-##### FUNCTIONS ##########################################################
-##########################################################################
-
-#=========================================================================
-# Recursively return all subclasses of a given class
-#=========================================================================
 def _all_subclasses_(cls):
     return cls.__subclasses__() + [c for s in cls.__subclasses__()
                                    for c in _all_subclasses_(s)]
 
 
-#=========================================================================
-# Get the function associated with the given key-symbol
-#=========================================================================
 def find_function(key):
     func = None
     for c in _all_subclasses_(Function):
@@ -252,16 +197,10 @@ def find_function(key):
         return func
 
 
-#=========================================================================
-# list_functions
-#=========================================================================
 def list_functions():
     return [c.key for c in _all_subclasses_(Function)]
 
 
-#=========================================================================
-# Function - From which all 'func(...)'-pattern functions derive
-#=========================================================================
 class Function(FunctionBase):
     key = 'func'
 
@@ -280,9 +219,6 @@ class Function(FunctionBase):
         self._sumlike_dimensions.update(set(dims))
 
 
-#=========================================================================
-# SquareRoot
-#=========================================================================
 class SquareRootFunction(Function):
     key = 'sqrt'
 
@@ -309,9 +245,6 @@ class SquareRootFunction(Function):
             return sqrt(data)
 
 
-#=========================================================================
-# MeanFunction
-#=========================================================================
 class MeanFunction(Function):
     key = 'mean'
 
@@ -331,9 +264,6 @@ class MeanFunction(Function):
         return data.mean(dimensions=indims)
 
 
-#=========================================================================
-# SumFunction
-#=========================================================================
 class SumFunction(Function):
     key = 'sum'
 
@@ -358,9 +288,6 @@ class SumFunction(Function):
         return np.sum(data, indims[0])
 
 
-#=========================================================================
-# MinFunction
-#=========================================================================
 class MinFunction(Function):
     key = 'min'
 
@@ -390,9 +317,6 @@ class MinFunction(Function):
                          dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
-#=========================================================================
-# MaxFunction
-#=========================================================================
 class MaxFunction(Function):
     key = 'max'
 
@@ -422,9 +346,6 @@ class MaxFunction(Function):
                          dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
 
 
-#=========================================================================
-# PositiveUpFunction
-#=========================================================================
 class PositiveUpFunction(Function):
     key = 'up'
 
@@ -437,9 +358,6 @@ class PositiveUpFunction(Function):
         return PhysArray(data).up()
 
 
-#=========================================================================
-# PositiveDownFunction
-#=========================================================================
 class PositiveDownFunction(Function):
     key = 'down'
 
@@ -452,9 +370,6 @@ class PositiveDownFunction(Function):
         return PhysArray(data).down()
 
 
-#=========================================================================
-# ChangeUnitsFunction
-#=========================================================================
 class ChangeUnitsFunction(Function):
     key = 'chunits'
 
@@ -511,9 +426,6 @@ class ChangeUnitsFunction(Function):
         return PhysArray(data, name=new_name, units=self._newunits)
 
 
-#=========================================================================
-# LimitFunction
-#=========================================================================
 class LimitFunction(Function):
     key = 'limit'
 
@@ -547,9 +459,6 @@ class LimitFunction(Function):
         return PhysArray(data, name=new_name)
 
 
-#=========================================================================
-# RemoveUnitsFunction
-#=========================================================================
 class RemoveUnitsFunction(Function):
     key = 'rmunits'
 
@@ -563,9 +472,6 @@ class RemoveUnitsFunction(Function):
         return PhysArray(data, name=new_name, units=1)
 
 
-#=========================================================================
-# RenameDimensionsFunction
-#=========================================================================
 class RenameDimensionsFunction(Function):
     key = 'chdims'
 

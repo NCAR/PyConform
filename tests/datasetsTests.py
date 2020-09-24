@@ -25,9 +25,6 @@ from pyconform.datasets import (
 from testutils import print_test_message
 
 
-#===============================================================================
-# DimensionDescTests
-#===============================================================================
 class DimensionDescTests(unittest.TestCase):
     """
     Unit tests for DimensionDesc objects
@@ -216,9 +213,6 @@ class DimensionDescTests(unittest.TestCase):
         self.assertRaises(ValueError, DimensionDesc.unique, indata)
 
 
-#===============================================================================
-# VariableDescTests
-#===============================================================================
 class VariableDescTests(unittest.TestCase):
     """
     Unit tests for VariableDesc objects
@@ -458,9 +452,6 @@ class VariableDescTests(unittest.TestCase):
         self.assertRaises(expected, VariableDesc.unique, indata)
 
 
-#===================================================================================================
-# FileDescTests
-#===================================================================================================
 class FileDescTests(unittest.TestCase):
     """
     Unit Tests for the pyconform.datasets module
@@ -604,10 +595,6 @@ class FileDescTests(unittest.TestCase):
         self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
 
 
-
-#=========================================================================
-# DatasetDescTests - Tests for the datasets module
-#=========================================================================
 class DatasetDescTests(unittest.TestCase):
     """
     Unit Tests for the pyconform.datasets module
@@ -776,12 +763,12 @@ class DatasetDescTests(unittest.TestCase):
 
     def test_input_dataset_variable_files(self):
         inds = InputDatasetDesc('myinds', self.filenames.values())
-        actual = {v.name:v.files.keys() for v in inds.variables.itervalues()}
+        actual = {v.name: v.files.keys() for v in inds.variables.itervalues()}
         expected = {'lat': ['u1.nc', 'u2.nc'],
                     'lon': ['u1.nc', 'u2.nc'],
                     'time': ['u1.nc', 'u2.nc'],
-                     'u1': ['u1.nc'],
-                     'u2': ['u2.nc']}
+                    'u1': ['u1.nc'],
+                    'u2': ['u2.nc']}
         print_test_message('InputDatasetDesc.variables.files', actual=actual, expected=expected)
         self.assertEqual(actual, expected, 'InputDatasetDesc has wrong variable files')
 
@@ -815,7 +802,7 @@ class DatasetDescTests(unittest.TestCase):
 
     def test_output_dataset_variable_files(self):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
-        actual = {v.name:v.files.keys() for v in outds.variables.itervalues()}
+        actual = {v.name: v.files.keys() for v in outds.variables.itervalues()}
         expected = {'X': ['var1.nc', 'var2.nc'],
                     'Y': ['var1.nc', 'var2.nc'],
                     'T': ['var1.nc', 'var2.nc'],
@@ -839,7 +826,7 @@ class DatasetDescTests(unittest.TestCase):
         nc3_formats = ['NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA']
         for f in nc3_formats:
             for t in nc3_type_strs:
-                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)
+                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t, f)
                 try:
                     OutputDatasetDesc._validate_netcdf_type_(t, f)
                 except:
@@ -847,23 +834,15 @@ class DatasetDescTests(unittest.TestCase):
                 print '{}: Good'.format(msghdr)
 
             for t in nc4_type_strs:
-                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)
+                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t, f)
                 self.assertRaises(ValueError, OutputDatasetDesc._validate_netcdf_type_, t, f)
                 print '{}: Failed properly'.format(msghdr)
 
         for f in nc4_formats:
             for t in nc3_type_strs + nc4_type_strs:
-                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t,f)
+                msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t, f)
                 try:
                     OutputDatasetDesc._validate_netcdf_type_(t, f)
                 except:
                     self.fail('{}: Failed'.format(msghdr))
                 print '{}: Good'.format(msghdr)
-
-
-#===============================================================================
-# Command-Line Execution
-#===============================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

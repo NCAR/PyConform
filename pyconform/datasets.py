@@ -21,16 +21,10 @@ from numpy import dtype
 from pyconform.physarray import PhysArray
 
 
-#===================================================================================================
-# DefinitionWarning
-#===================================================================================================
 class DefinitionWarning(Warning):
     """Warning to indicate that a variable definition might be bad"""
 
 
-#===================================================================================================
-# _group_by_name_
-#===================================================================================================
 def _group_by_name_(*descs):
     """
     Return a dictionary of the objects elements, grouped by name
@@ -50,9 +44,6 @@ def _group_by_name_(*descs):
     return grp
 
 
-#===================================================================================================
-# _is_list_of_type_
-#===================================================================================================
 def _is_list_of_type_(obj, typ):
     """
     Check that an object is a list/tuple of a given type
@@ -66,9 +57,6 @@ def _is_list_of_type_(obj, typ):
     return all([isinstance(o, typ) for o in obj])
 
 
-#===================================================================================================
-# DimensionDesc
-#===================================================================================================
 class DimensionDesc(object):
     """
     Descriptor for a dimension in a DatasetDesc
@@ -188,9 +176,6 @@ class DimensionDesc(object):
         return ugrp
 
 
-#===================================================================================================
-# VariableDesc
-#===================================================================================================
 class VariableDesc(object):
     """
     Descriptor for a variable in a dataset
@@ -370,9 +355,6 @@ class VariableDesc(object):
         return ugrp
 
 
-#===================================================================================================
-# FileDesc
-#===================================================================================================
 class FileDesc(object):
     """
     A class describing the contents of a single dataset file
@@ -521,10 +503,6 @@ class FileDesc(object):
         return ugrp
 
 
-
-#===================================================================================================
-# DatasetDesc
-#===================================================================================================
 class DatasetDesc(object):
     """
     A class describing a self-consistent set of dimensions and variables in one or more files
@@ -604,9 +582,6 @@ class DatasetDesc(object):
         return self._files
 
 
-#===================================================================================================
-# InputDatasetDesc
-#===================================================================================================
 class InputDatasetDesc(DatasetDesc):
     """
     DatasetDesc that can be used as input (i.e., can be read from file)
@@ -668,9 +643,6 @@ class InputDatasetDesc(DatasetDesc):
         super(InputDatasetDesc, self).__init__(name, files=files)
 
 
-#===================================================================================================
-# OutputDatasetDesc
-#===================================================================================================
 class OutputDatasetDesc(DatasetDesc):
     """
     DatasetDesc that can be used for output (i.e., to be written to files)
@@ -753,9 +725,9 @@ class OutputDatasetDesc(DatasetDesc):
                 vdims = vdict['dimensions']
                 sldim = vdims[-1] if vkwds['datatype'] == 'char' else None
                 if vshape is None:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d, stringlen=(sldim==d)) for d in vdims)
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, stringlen=(sldim == d)) for d in vdims)
                 else:
-                    vkwds['dimensions'] = tuple(DimensionDesc(d, size=s, stringlen=(sldim==d)) for d, s in zip(vdims, vshape))
+                    vkwds['dimensions'] = tuple(DimensionDesc(d, size=s, stringlen=(sldim == d)) for d, s in zip(vdims, vshape))
             else:
                 err_msg = 'Dimensions are required for variable {!r} in dataset {!r}'.format(vname, name)
                 raise ValueError(err_msg)

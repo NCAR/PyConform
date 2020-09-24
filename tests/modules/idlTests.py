@@ -55,7 +55,3 @@ class Tests(unittest.TestCase):
         actual = int_tabulated(x, y)
         expected = 77.627388
         np.testing.assert_array_almost_equal(actual, expected, 5)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -16,9 +16,6 @@ from pyconform.physarray import PhysArray
 from testutils import print_test_message
 
 
-#=========================================================================
-# FindTests
-#=========================================================================
 class FindTests(unittest.TestCase):
     """
     Unit tests for finding functions and operators
@@ -180,9 +177,6 @@ class FindTests(unittest.TestCase):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=========================================================================
-# EvaluationTests
-#=========================================================================
 class EvaluationTests(unittest.TestCase):
     """
     Unit tests for evaluating functions and operators
@@ -784,11 +778,3 @@ class EvaluationTests(unittest.TestCase):
         expected = PhysArray([[1, 2], [3, 4]], name="chdims(x, 'A', 'B', 'C')", dimensions=('A', 'B'))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
-
-
-#=========================================================================
-# Command-Line Operation
-#=========================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

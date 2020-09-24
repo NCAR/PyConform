@@ -30,9 +30,6 @@ from pyconform.physarray import DimensionsError, PhysArray, UnitsError
 from testutils import print_ncfile, print_test_message
 
 
-#=======================================================================================================================
-# BaseTests
-#=======================================================================================================================
 class BaseTests(unittest.TestCase):
 
     def assertPhysArraysEqual(self, left, right, testname='Test', decimal=0):
@@ -54,9 +51,6 @@ class BaseTests(unittest.TestCase):
             self.assertEqual(left, right, '{} failed')
 
 
-#=======================================================================================================================
-# FlowNodeTests
-#=======================================================================================================================
 class FlowNodeTests(BaseTests):
     """
     Unit tests for the flownodes.FlowNode class
@@ -99,9 +93,6 @@ class FlowNodeTests(BaseTests):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# DataNodeTests
-#=======================================================================================================================
 class DataNodeTests(BaseTests):
     """
     Unit tests for the flownodes.DataNode class
@@ -136,9 +127,6 @@ class DataNodeTests(BaseTests):
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# ReadNodeTests
-#=======================================================================================================================
 class ReadNodeTests(BaseTests):
     """
     Unit tests for the flownodes.ReadNode class
@@ -233,9 +221,6 @@ class ReadNodeTests(BaseTests):
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# EvalNodeTests
-#=======================================================================================================================
 class EvalNodeTests(BaseTests):
     """
     Unit tests for the flownodes.EvalNode class
@@ -338,9 +323,6 @@ class EvalNodeTests(BaseTests):
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# MapNodeTests
-#=======================================================================================================================
 class MapNodeTests(BaseTests):
     """
     Unit tests for the flownodes.MapNode class
@@ -384,9 +366,6 @@ class MapNodeTests(BaseTests):
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# ValidateNodeTests
-#=======================================================================================================================
 class ValidateNodeTests(BaseTests):
     """
     Unit tests for the flownodes.ValidateNode class
@@ -619,9 +598,6 @@ class ValidateNodeTests(BaseTests):
         self.assertPhysArraysEqual(actual, expected, '{} failed'.format(testname))
 
 
-#=======================================================================================================================
-# WriteNodeTests
-#=======================================================================================================================
 class WriteNodeTests(BaseTests):
     """
     Unit tests for the flownodes.WriteNode class
@@ -651,7 +627,7 @@ class WriteNodeTests(BaseTests):
                      'T': {'axis': 'T', 'ta1': 'time attribute', 'units': str(tdata.units),
                            'calendar': tdata.units.calendar},
                      '_T': {'ta1': 'hidden time attribute', 'units': str(t2data.units),
-                           'calendar': t2data.units.calendar},
+                            'calendar': t2data.units.calendar},
                      'V': {'va1': 'v attribute 1', 'va2': 'v attribute 2', 'units': str(vdata.units)}}
 
         dimdescs = {n: DimensionDesc(n, s) for x in self.data.itervalues() for n, s in zip(x.dimensions, x.shape)}
@@ -866,11 +842,3 @@ class WriteNodeTests(BaseTests):
         print_test_message(testname, actual=actual, expected=expected, chunks=chunks)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
         print_ncfile(filename)
-
-
-#===============================================================================
-# Command-Line Operation
-#===============================================================================
-if __name__ == "__main__":
-    # import sys;sys.argv = ['', 'Test.testName']
-    unittest.main()

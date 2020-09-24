@@ -48,9 +48,9 @@ def deriv(x, y=None, axis=0):
     xsig = _signature_letters[axis]
     ysig = _signature_letters[:numpy.ndim(y1)]
     sig = '{},{}->{}'.format(ysig, xsig, ysig)
-    d = (numpy.einsum(sig, y0, a0) +
-         numpy.einsum(sig, y1, a1) +
-         numpy.einsum(sig, y2, a2))
+    d = (numpy.einsum(sig, y0, a0)
+         + numpy.einsum(sig, y1, a1)
+         + numpy.einsum(sig, y2, a2))
 
     i0 = tuple(0 if i == axis else slice(None) for i in range(numpy.ndim(y1)))
     i1 = tuple(1 if i == axis else slice(None) for i in range(numpy.ndim(y1)))
@@ -149,8 +149,8 @@ def spl_interp(xa, ya, y2a, x, axis=0):
     ysig = _signature_letters[:numpy.ndim(ya)]
     sig = '{},{}->{}'.format(ysig, xsig, ysig)
 
-    return (numpy.einsum(sig, yalo, a) + numpy.einsum(sig, yahi, b) +
-            numpy.einsum(sig, y2alo, c) + numpy.einsum(sig, y2ahi, d))
+    return (numpy.einsum(sig, yalo, a) + numpy.einsum(sig, yahi, b)
+            + numpy.einsum(sig, y2alo, c) + numpy.einsum(sig, y2ahi, d))
 
 
 def int_tabulated(x, y, axis=0):

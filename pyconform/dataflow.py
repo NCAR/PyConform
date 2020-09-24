@@ -37,16 +37,10 @@ from pyconform.parsing import FuncType, OpType, VarType, parse_definition
 from pyconform.physarray import PhysArray
 
 
-#=========================================================================
-# VariableNotFoundError
-#=========================================================================
 class VariableNotFoundError(ValueError):
     """Indicate if an input variable could not be found during construction"""
 
 
-#=========================================================================
-# DataFlow
-#=========================================================================
 class DataFlow(object):
     """
     An object describing the flow of data from input to output
