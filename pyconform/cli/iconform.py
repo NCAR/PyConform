@@ -28,57 +28,102 @@ data_types = {
     'real': 'real',
     'double': 'double',
     'character': 'char',
-    'integer': 'int'
+    'integer': 'int',
 }
 
 # The way the date should be formatted in the filenames
 date_strings = {
-    "1hr": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "1hrCM": '_{%Y%m%d%H%M-%Y%m%d%H%M}-clim',
-    "1hrPt": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "3hr": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "3hrPt": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "6hr": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "6hrPt": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "day": '_{%Y%m%d-%Y%m%d}',
-    "dec": '_{%Y-%Y}',
-    "fx": '',
-    "mon": '_{%Y%m-%Y%m}',
-    "monC": '_{%Y%m-%Y%m}-clim',
-    "monPt": '_{%Y%m-%Y%m}',
-    "subhrPt": '_{%Y%m%d%H%M-%Y%m%d%H%M}',
-    "yr": '_{%Y-%Y}',
-    "yrPt": '_{%Y-%Y}'
+    '1hr': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    '1hrCM': '_{%Y%m%d%H%M-%Y%m%d%H%M}-clim',
+    '1hrPt': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    '3hr': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    '3hrPt': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    '6hr': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    '6hrPt': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    'day': '_{%Y%m%d-%Y%m%d}',
+    'dec': '_{%Y-%Y}',
+    'fx': '',
+    'mon': '_{%Y%m-%Y%m}',
+    'monC': '_{%Y%m-%Y%m}-clim',
+    'monPt': '_{%Y%m-%Y%m}',
+    'subhrPt': '_{%Y%m%d%H%M-%Y%m%d%H%M}',
+    'yr': '_{%Y-%Y}',
+    'yrPt': '_{%Y-%Y}',
 }
 
 
 def parseArgs(argv=None):
 
-    desc = "This tool creates a specification file that is needed to run PyConform."
+    desc = 'This tool creates a specification file that is needed to run PyConform.'
 
-    parser = argparse.ArgumentParser(prog='createOutputSpecs',
-                                     description=desc)
-    parser.add_argument('-d', '--defFile', default=None, type=str,
-                        help='A file listing the variable definitions.', required=True)
-    parser.add_argument('-g', '--globalAttrFile', default=None, type=str,
-                        help='A file listing the global attributes that '
-                             'are common to all files.')
-    parser.add_argument('-e', '--exp', default='None', type=str,
-                        help='The name of the experiment.')
-    parser.add_argument('-m', '--mip', default='None', type=str,
-                        help='The name of the MIPs to generate spec files for')
-    parser.add_argument('-t', '--miptables', default='None', type=str,
-                        help='The name of the MIP Tables to generate spec files for')
-    parser.add_argument('-tt', '--mipTableType', default='xml', type=str,
-                        help='MIP table file type.  Can be xml, cmor, or excel.')
-    parser.add_argument('-u', '--userList', default=None, type=str,
-                        help='A file containing cf-compliant names to derive.')
-    parser.add_argument('-o', '--outputpath', default=os.getcwd(), type=str,
-                        help='Output pathname for the output specification file(s).')
-    parser.add_argument('-p', '--outdir', default=os.getcwd(), type=str,
-                        help='Output pathname for the conformer output files(s). This will be appended to each output file.')
-    parser.add_argument('-to', '--testoutput', default=False, type=bool,
-                        help='Create test output for xconform.')
+    parser = argparse.ArgumentParser(prog='createOutputSpecs', description=desc)
+    parser.add_argument(
+        '-d',
+        '--defFile',
+        default=None,
+        type=str,
+        help='A file listing the variable definitions.',
+        required=True,
+    )
+    parser.add_argument(
+        '-g',
+        '--globalAttrFile',
+        default=None,
+        type=str,
+        help='A file listing the global attributes that ' 'are common to all files.',
+    )
+    parser.add_argument(
+        '-e', '--exp', default='None', type=str, help='The name of the experiment.'
+    )
+    parser.add_argument(
+        '-m',
+        '--mip',
+        default='None',
+        type=str,
+        help='The name of the MIPs to generate spec files for',
+    )
+    parser.add_argument(
+        '-t',
+        '--miptables',
+        default='None',
+        type=str,
+        help='The name of the MIP Tables to generate spec files for',
+    )
+    parser.add_argument(
+        '-tt',
+        '--mipTableType',
+        default='xml',
+        type=str,
+        help='MIP table file type.  Can be xml, cmor, or excel.',
+    )
+    parser.add_argument(
+        '-u',
+        '--userList',
+        default=None,
+        type=str,
+        help='A file containing cf-compliant names to derive.',
+    )
+    parser.add_argument(
+        '-o',
+        '--outputpath',
+        default=os.getcwd(),
+        type=str,
+        help='Output pathname for the output specification file(s).',
+    )
+    parser.add_argument(
+        '-p',
+        '--outdir',
+        default=os.getcwd(),
+        type=str,
+        help='Output pathname for the conformer output files(s). This will be appended to each output file.',
+    )
+    parser.add_argument(
+        '-to',
+        '--testoutput',
+        default=False,
+        type=bool,
+        help='Create test output for xconform.',
+    )
 
     return parser.parse_args(argv)
 
@@ -108,9 +153,9 @@ def load(defs, key=None):
             line = line.split('#')[0].strip()
         # slit definition into the two parts
         split = line.split('=')
-        if (len(split) >= 2):
+        if len(split) >= 2:
             if key == 'ga' and split[1] == '':
-                def_dict[key][split[0].strip()] = "__FILL__"
+                def_dict[key][split[0].strip()] = '__FILL__'
                 ig_dict[key][split[0].strip()] = input_glob
             else:
                 ig_dict[key][split[0].strip()] = input_glob
@@ -120,7 +165,7 @@ def load(defs, key=None):
                     def_dict[key][split[0].strip()] = '='.join(split[1:]).strip()
         else:
             if len(line) > 0:
-                print 'Could not parse this line: ', line
+                print('Could not parse this line: ', line)
 
     if key == 'ga':
         return def_dict
@@ -130,122 +175,163 @@ def load(defs, key=None):
 
 def fill_missing_glob_attributes(attr, table, v, grids):
 
-    for a, d in attr.iteritems():
+    for a, d in attr.items():
         if d is not None:
-            if "__FILL__" in d:
-                if "activity_id" in a and "activity_id" in table:
-                    attr["activity_id"] = table["activity_id"]
-                elif "creation_date" in a:
-                    attr["creation_date"] = ""
-                elif "data_specs_version" in a and "data_specs_version" in table:
-                    attr["data_specs_version"] = table["data_specs_version"]
-                elif "experiment" in a and "experiment" in table:
-                    attr["experiment"] = table["experiment"]
-                elif "external_variables" in a:
-                    if "cell_measures" in v.keys():
-                        if "areacello" in v["cell_measures"]:
-                            if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
-                                attr["external_variables"] = "areacello"
+            if '__FILL__' in d:
+                if 'activity_id' in a and 'activity_id' in table:
+                    attr['activity_id'] = table['activity_id']
+                elif 'creation_date' in a:
+                    attr['creation_date'] = ''
+                elif 'data_specs_version' in a and 'data_specs_version' in table:
+                    attr['data_specs_version'] = table['data_specs_version']
+                elif 'experiment' in a and 'experiment' in table:
+                    attr['experiment'] = table['experiment']
+                elif 'external_variables' in a:
+                    if 'cell_measures' in v.keys():
+                        if 'areacello' in v['cell_measures']:
+                            if (
+                                'external_variables' not in attr.keys()
+                                or 'FILL' in attr['external_variables']
+                            ):
+                                attr['external_variables'] = 'areacello'
                             else:
-                                attr["external_variables"] = attr["external_variables"] + " areacello"
-                        if "areacella" in v["cell_measures"]:
-                            if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
-                                attr["external_variables"] = "areacella"
+                                attr['external_variables'] = (
+                                    attr['external_variables'] + ' areacello'
+                                )
+                        if 'areacella' in v['cell_measures']:
+                            if (
+                                'external_variables' not in attr.keys()
+                                or 'FILL' in attr['external_variables']
+                            ):
+                                attr['external_variables'] = 'areacella'
                             else:
-                                attr["external_variables"] = attr["external_variables"] + " areacella"
-                        if "areacellr" in v["cell_measures"]:
-                            if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
-                                attr["external_variables"] = "areacellr"
+                                attr['external_variables'] = (
+                                    attr['external_variables'] + ' areacella'
+                                )
+                        if 'areacellr' in v['cell_measures']:
+                            if (
+                                'external_variables' not in attr.keys()
+                                or 'FILL' in attr['external_variables']
+                            ):
+                                attr['external_variables'] = 'areacellr'
                             else:
-                                attr["external_variables"] = attr["external_variables"] + " areacellr"
-                        if "areacellg" in v["cell_measures"]:
-                            if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
-                                attr["external_variables"] = "areacellg"
+                                attr['external_variables'] = (
+                                    attr['external_variables'] + ' areacellr'
+                                )
+                        if 'areacellg' in v['cell_measures']:
+                            if (
+                                'external_variables' not in attr.keys()
+                                or 'FILL' in attr['external_variables']
+                            ):
+                                attr['external_variables'] = 'areacellg'
                             else:
-                                attr["external_variables"] = attr["external_variables"] + " areacellg"
-                        if "volcello" in v["cell_measures"]:
-                            if "external_variables" not in attr.keys() or "FILL" in attr["external_variables"]:
-                                attr["external_variables"] = "volcello"
+                                attr['external_variables'] = (
+                                    attr['external_variables'] + ' areacellg'
+                                )
+                        if 'volcello' in v['cell_measures']:
+                            if (
+                                'external_variables' not in attr.keys()
+                                or 'FILL' in attr['external_variables']
+                            ):
+                                attr['external_variables'] = 'volcello'
                             else:
-                                attr["external_variables"] = attr["external_variables"] + " volcello"
+                                attr['external_variables'] = (
+                                    attr['external_variables'] + ' volcello'
+                                )
 
-                elif "frequency" in a:
-                    attr["frequency"] = v["frequency"]
-                elif "realm" in a and "realm" in v.keys():
-                    attr["realm"] = v["realm"]
-                elif "table_id" in a:
-                    attr["table_id"] = v['mipTable']
-                elif "tracking_id" in a:
-                    attr["tracking_id"] = "hdl:21.14100/" + str(uuid.uuid4())
-                elif "variable_id" in a and "variable_id" in v.keys():
-                    attr["variable_id"] = v["variable_id"]
+                elif 'frequency' in a:
+                    attr['frequency'] = v['frequency']
+                elif 'realm' in a and 'realm' in v.keys():
+                    attr['realm'] = v['realm']
+                elif 'table_id' in a:
+                    attr['table_id'] = v['mipTable']
+                elif 'tracking_id' in a:
+                    attr['tracking_id'] = 'hdl:21.14100/' + str(uuid.uuid4())
+                elif 'variable_id' in a and 'variable_id' in v.keys():
+                    attr['variable_id'] = v['variable_id']
 
-    if "FILL" in attr["external_variables"]:
-        attr.pop("external_variables")
+    if 'FILL' in attr['external_variables']:
+        attr.pop('external_variables')
 
-    if "branch_method" in attr.keys():
-        if "no parent" not in attr["branch_method"]:
-            if "branch_time_in_child" in attr.keys():
-                if len(attr["branch_time_in_child"]) > 0:
+    if 'branch_method' in attr.keys():
+        if 'no parent' not in attr['branch_method']:
+            if 'branch_time_in_child' in attr.keys():
+                if len(attr['branch_time_in_child']) > 0:
                     try:
-                        attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0])
+                        attr['branch_time_in_child'] = float(
+                            attr['branch_time_in_child'].split('D')[0]
+                        )
                     except ValueError:
-                        attr["branch_time_in_child"] = attr["branch_time_in_child"].split('D')[0]
-            if "branch_time_in_parent" in attr.keys():
-                if len(attr["branch_time_in_parent"]) > 0:
+                        attr['branch_time_in_child'] = attr[
+                            'branch_time_in_child'
+                        ].split('D')[0]
+            if 'branch_time_in_parent' in attr.keys():
+                if len(attr['branch_time_in_parent']) > 0:
                     try:
-                        attr["branch_time_in_parent"] = float(attr["branch_time_in_parent"].split('D')[0])
+                        attr['branch_time_in_parent'] = float(
+                            attr['branch_time_in_parent'].split('D')[0]
+                        )
                     except ValueError:
-                        attr["branch_time_in_parent"] = attr["branch_time_in_parent"].split('D')[0]
-            if "parent_mip_era" in attr.keys() and len(attr["parent_activity_id"]) > 2:
-                attr["parent_mip_era"] = attr["mip_era"]
+                        attr['branch_time_in_parent'] = attr[
+                            'branch_time_in_parent'
+                        ].split('D')[0]
+            if 'parent_mip_era' in attr.keys() and len(attr['parent_activity_id']) > 2:
+                attr['parent_mip_era'] = attr['mip_era']
             else:
-                attr["parent_mip_era"] = "no parent"
-            if "parent_source_id" in attr.keys() and len(attr["parent_activity_id"]) > 2:
-                attr["parent_source_id"] = attr["source_id"]
+                attr['parent_mip_era'] = 'no parent'
+            if (
+                'parent_source_id' in attr.keys()
+                and len(attr['parent_activity_id']) > 2
+            ):
+                attr['parent_source_id'] = attr['source_id']
             else:
-                attr["parent_source_id"] = ""
-            if "parent_time_units" in attr.keys() and len(attr["parent_activity_id"]) > 2:
-                attr["parent_time_units"] = "days since 0001-01-01 00:00:00"
+                attr['parent_source_id'] = ''
+            if (
+                'parent_time_units' in attr.keys()
+                and len(attr['parent_activity_id']) > 2
+            ):
+                attr['parent_time_units'] = 'days since 0001-01-01 00:00:00'
             else:
-                attr["parent_time_units"] = "none"
+                attr['parent_time_units'] = 'none'
         else:
-            if "branch_time_in_child" in attr.keys():
-                attr["branch_time_in_child"] = float(attr["branch_time_in_child"].split('D')[0])
-            if "branch_time_in_parent" in attr.keys():
-                attr["branch_time_in_parent"] = 0.0
-            if "parent_mip_era" in attr.keys():
-                attr["parent_mip_era"] = "no parent"
-            if "parent_source_id" in attr.keys():
-                attr["parent_source_id"] = "no parent"
-            if "parent_time_units" in attr.keys():
-                attr["parent_time_units"] = "no parent"
+            if 'branch_time_in_child' in attr.keys():
+                attr['branch_time_in_child'] = float(
+                    attr['branch_time_in_child'].split('D')[0]
+                )
+            if 'branch_time_in_parent' in attr.keys():
+                attr['branch_time_in_parent'] = 0.0
+            if 'parent_mip_era' in attr.keys():
+                attr['parent_mip_era'] = 'no parent'
+            if 'parent_source_id' in attr.keys():
+                attr['parent_source_id'] = 'no parent'
+            if 'parent_time_units' in attr.keys():
+                attr['parent_time_units'] = 'no parent'
 
     else:
-        if "branch_time_in_child" in attr.keys():
-            attr["branch_time_in_child"] = "no parent"
-        if "branch_time_in_parent" in attr.keys():
-            attr["branch_time_in_parent"] = "no parent"
-        if "parent_mip_era" in attr.keys():
-            attr["parent_mip_era"] = "no parent"
-        if "parent_source_id" in attr.keys():
-            attr["parent_source_id"] = "no parent"
-        if "parent_time_units" in attr.keys():
-            attr["parent_time_units"] = "no parent"
+        if 'branch_time_in_child' in attr.keys():
+            attr['branch_time_in_child'] = 'no parent'
+        if 'branch_time_in_parent' in attr.keys():
+            attr['branch_time_in_parent'] = 'no parent'
+        if 'parent_mip_era' in attr.keys():
+            attr['parent_mip_era'] = 'no parent'
+        if 'parent_source_id' in attr.keys():
+            attr['parent_source_id'] = 'no parent'
+        if 'parent_time_units' in attr.keys():
+            attr['parent_time_units'] = 'no parent'
 
-    if "variant_label" in attr.keys():
-        pre = attr["variant_label"].split('r')[1]
-        attr["realization_index"] = int(pre.split('i')[0])
+    if 'variant_label' in attr.keys():
+        pre = attr['variant_label'].split('r')[1]
+        attr['realization_index'] = int(pre.split('i')[0])
         pre = pre.split('i')[1]
-        attr["initialization_index"] = int(pre.split('p')[0])
+        attr['initialization_index'] = int(pre.split('p')[0])
         pre = pre.split('p')[1]
-        attr["physics_index"] = int(pre.split('f')[0])
+        attr['physics_index'] = int(pre.split('f')[0])
         pre = int(pre.split('f')[1])
-        attr["forcing_index"] = int(pre)
+        attr['forcing_index'] = int(pre)
 
-    if "further_info_url" in attr.keys():
+    if 'further_info_url' in attr.keys():
         url_ok = True
-        if "__FILL__" in attr["further_info_url"]:
+        if '__FILL__' in attr['further_info_url']:
             if 'mip_era' in attr.keys():
                 mip_era = attr['mip_era']
             else:
@@ -271,18 +357,25 @@ def fill_missing_glob_attributes(attr, table, v, grids):
             else:
                 sub_experiment_id = ''
             if 'variant_label' in attr.keys():
-                ripf = attr["variant_label"]
+                ripf = attr['variant_label']
             else:
                 ripf = ''
                 url_ok = False
             if url_ok:
-                info_url = "{0}.{1}.{2}.{3}.{4}.{5}".format(mip_era, institution_id, source_id, experiment_id, sub_experiment_id, ripf)
-                attr['further_info_url'] = "https://furtherinfo.es-doc.org/" + info_url
-    if "grid" in attr.keys():
-        if len(attr["realm"]) > 0:
-            attr["grid"] = grids[attr["realm"].split()[0]]
+                info_url = '{0}.{1}.{2}.{3}.{4}.{5}'.format(
+                    mip_era,
+                    institution_id,
+                    source_id,
+                    experiment_id,
+                    sub_experiment_id,
+                    ripf,
+                )
+                attr['further_info_url'] = 'https://furtherinfo.es-doc.org/' + info_url
+    if 'grid' in attr.keys():
+        if len(attr['realm']) > 0:
+            attr['grid'] = grids[attr['realm'].split()[0]]
         else:
-            attr["grid"] = "CAN NOT FIND GRID - NO REALM IN DATAREQ"
+            attr['grid'] = 'CAN NOT FIND GRID - NO REALM IN DATAREQ'
 
     return attr
 
@@ -290,14 +383,14 @@ def fill_missing_glob_attributes(attr, table, v, grids):
 def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir):
 
     v2 = dict(v)
-    for key, value in v.iteritems():  # remove all attributes that do not have values
+    for key, value in v.items():  # remove all attributes that do not have values
         if value == '':
             v2.pop(key, None)
 
     attributes = dict(attr)
 
-    if "grids" in attributes.keys():
-        p1 = attributes["grids"].split(';')
+    if 'grids' in attributes.keys():
+        p1 = attributes['grids'].split(';')
         grids = {}
         for p in p1:
             g = p.split(':')[1]
@@ -308,16 +401,23 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     attributes = fill_missing_glob_attributes(attributes, table_info, v, grids)
 
     # Get variables needed to piece together the filename
-    ripf_list = ['realization_index', 'initialization_index', 'physics_index', 'forcing_index']
+    ripf_list = [
+        'realization_index',
+        'initialization_index',
+        'physics_index',
+        'forcing_index',
+    ]
     if all(ripf in attributes for ripf in ripf_list):
-        ripf = ("r{0}i{1}p{2}f{3}".format(str(attributes['realization_index']),
-                                          str(attributes['initialization_index']),
-                                          str(attributes['physics_index']),
-                                          str(attributes['forcing_index'])))
+        ripf = 'r{0}i{1}p{2}f{3}'.format(
+            str(attributes['realization_index']),
+            str(attributes['initialization_index']),
+            str(attributes['physics_index']),
+            str(attributes['forcing_index']),
+        )
     else:
         ripf = ''
     if len(ripf) < 1:
-        ripf = "None"
+        ripf = 'None'
     if 'mip_era' in attributes.keys():
         mip_era = attributes['mip_era']
     else:
@@ -347,10 +447,21 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
     if '--ALL--' in experiment:
         experiment = 'None'
 
-    f_format = attributes["netcdf_type"]
-    valid_formats = ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA']
+    f_format = attributes['netcdf_type']
+    valid_formats = [
+        'NETCDF4',
+        'NETCDF4_CLASSIC',
+        'NETCDF3_CLASSIC',
+        'NETCDF3_64BIT_OFFSET',
+        'NETCDF3_64BIT_DATA',
+    ]
     if f_format not in valid_formats:
-        print 'ERROR: ', f_format, ' is not a valid format.  Please choose from ', valid_formats
+        print(
+            'ERROR: ',
+            f_format,
+            ' is not a valid format.  Please choose from ',
+            valid_formats,
+        )
         sys.exit(-9)
     attributes.pop('netcdf_type', None)
 
@@ -372,16 +483,32 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
 
     # Put together the filename
     mipTable = v['mipTable']
-    if v["frequency"] in date_strings.keys():
-        dst = date_strings[v["frequency"]]
+    if v['frequency'] in date_strings.keys():
+        dst = date_strings[v['frequency']]
     else:
         dst = ''
     vid = v['variable_id']
 
-    f_name = ("{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc".format(
-              out_dir, mip_era, activity_id, institution_id, source_id, experiment, ripf, mipTable,
-              vid, grid, version,
-              vid, mipTable, source_id, experiment, ripf, grid, dst))
+    f_name = '{0}/{1}/{2}/{3}/{4}/{5}/{6}/{7}/{8}/{9}/{10}/{11}_{12}_{13}_{14}_{15}_{16}{17}.nc'.format(
+        out_dir,
+        mip_era,
+        activity_id,
+        institution_id,
+        source_id,
+        experiment,
+        ripf,
+        mipTable,
+        vid,
+        grid,
+        version,
+        vid,
+        mipTable,
+        source_id,
+        experiment,
+        ripf,
+        grid,
+        dst,
+    )
     var = {}
 
     # Remove any __FILL__ values in attributes
@@ -391,44 +518,53 @@ def defineVar(v, varName, attr, table_info, definition, ig, experiment, out_dir)
                 attributes[a] = ''
 
     # put together the dictionary entry for this variable
-    var["attributes"] = v2
-    var["definition"] = definition
+    var['attributes'] = v2
+    var['definition'] = definition
     if ig:
-        var["input_glob"] = ig
-    var["file"] = {}
-    var["file"]["attributes"] = attributes
-    var["file"]["attributes"]["variant_label"] = ripf
-    var["attributes"]["comment"] = definition
-    var["file"]["filename"] = f_name
-    var["file"]["format"] = f_format
+        var['input_glob'] = ig
+    var['file'] = {}
+    var['file']['attributes'] = attributes
+    var['file']['attributes']['variant_label'] = ripf
+    var['attributes']['comment'] = definition
+    var['file']['filename'] = f_name
+    var['file']['format'] = f_format
     if compression is not None:
-        var["file"]["compression"] = compression
+        var['file']['compression'] = compression
     if shuffle is not None:
-        var["file"]["shuffle"] = shuffle
+        var['file']['shuffle'] = shuffle
 
-    if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] is not None:
-        var["datatype"] = data_types[v['type']]
+    if (
+        'type' in v.keys()
+        and v['type'] != 'None'
+        and v['type'] != ''
+        and v['type'] is not None
+    ):
+        var['datatype'] = data_types[v['type']]
     else:
-        var["datatype"] = 'real'  # This is done because some of the variables in the request have no type listed yet
+        var[
+            'datatype'
+        ] = 'real'  # This is done because some of the variables in the request have no type listed yet
 
     #### Needed to get working with netcdf4_classic and netcdf3_classic
-#    if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] != None:
-#        if 'real' in data_types[v['type']]:
-#            var["datatype"]  = "float"
-#        else:
-#            var["datatype"]  = data_types[v['type']]
-#    else:
-#        var["datatype"] = 'float' #  This is done because some of the variables in the request have no type listed yet
+    #    if 'type' in v.keys() and v['type'] != 'None' and v['type'] != '' and v['type'] != None:
+    #        if 'real' in data_types[v['type']]:
+    #            var["datatype"]  = "float"
+    #        else:
+    #            var["datatype"]  = data_types[v['type']]
+    #    else:
+    #        var["datatype"] = 'float' #  This is done because some of the variables in the request have no type listed yet
 
     if 'requested' in v.keys():
         if v['requested'] != '':
             var['definition'] = v['requested']
     if 'coordinates' in v.keys():
-        var["dimensions"] = list(reversed(v['coordinates'].split('|')))
-        var["attributes"]['coordinates'] = ' '.join(list(reversed(v['coordinates'].split('|'))))
+        var['dimensions'] = list(reversed(v['coordinates'].split('|')))
+        var['attributes']['coordinates'] = ' '.join(
+            list(reversed(v['coordinates'].split('|')))
+        )
         # var["attributes"].pop('coordinates')
     else:
-        var["dimensions"] = []
+        var['dimensions'] = []
 
     # return the variable dictionary with all pieces added
     return var
@@ -442,17 +578,17 @@ def defineAxes(v, name):
     v2 = dict(v)
 
     # remove all of the attributes that have no values
-    for key, value in v.iteritems():
+    for key, value in v.items():
         if value == '':
             v2.pop(key, None)
     # Hardcode this value in for time.  Not ideal, but the request has it listed as "days since ?" and this will fail.
     if 'time' in name:
-        v2["units"] = "days since 0001-01-01 00:00:00"
+        v2['units'] = 'days since 0001-01-01 00:00:00'
 
     # put everything into a variable dictionary
-    var["attributes"] = v2
+    var['attributes'] = v2
     if 'type' in v.keys():
-        var["datatype"] = data_types[v['type']]
+        var['datatype'] = data_types[v['type']]
     if 'requested' in v.keys():
         if v['requested'] != '':
             try:
@@ -478,13 +614,23 @@ def getUserVars(fn):
     with open(fn) as f:
         for vr in f:
             vr = vr.strip()
-            if vr != "":
+            if vr != '':
                 variables.append(vr)
 
     return variables
 
 
-def create_output(exp_dict, definitions, input_glob, attributes, output_path, args, experiment, out_dir, testoutput):
+def create_output(
+    exp_dict,
+    definitions,
+    input_glob,
+    attributes,
+    output_path,
+    args,
+    experiment,
+    out_dir,
+    testoutput,
+):
 
     # create the output json files
 
@@ -492,7 +638,7 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
     AllMissing = {}
 
     # go through each one of the data requests from the experiments
-    for t, table_dict in exp_dict.iteritems():
+    for t, table_dict in exp_dict.items():
 
         ReqSpec = {}
         variables = {}
@@ -509,74 +655,152 @@ def create_output(exp_dict, definitions, input_glob, attributes, output_path, ar
         if 'generic_levels' in table_info.keys():
             g_levels = table_info['generic_levels']
             g_split = g_levels.split(' ')
-            for l in g_split:
-                axes[l] = {}
+            for i in g_split:
+                axes[i] = {}
 
         # identifier = t
         var_list = {}
 
         # For each variable in the definition file, create a file entry in the spec and define it
-        for v, d in variables.iteritems():
+        for v, d in variables.items():
             ts_key = None
             mip = d['mipTable']
             if mip in definitions.keys():
-                ig = ""
+                ig = ''
                 if v in definitions[mip].keys():
                     v_def = definitions[mip][v]
                     ig = input_glob[mip][v]
-                    var_list[v] = defineVar(d, v, attributes, table_info, v_def, ig, experiment, out_dir)
-                    realm = d["realm"].replace(' ', '_')
-                    ts_key = var_list[v]["file"]["attributes"]["activity_id"] + '_' + var_list[v]["attributes"]["mipTable"] + '_' + realm
+                    var_list[v] = defineVar(
+                        d, v, attributes, table_info, v_def, ig, experiment, out_dir
+                    )
+                    realm = d['realm'].replace(' ', '_')
+                    ts_key = (
+                        var_list[v]['file']['attributes']['activity_id']
+                        + '_'
+                        + var_list[v]['attributes']['mipTable']
+                        + '_'
+                        + realm
+                    )
                     if ts_key not in TableSpec.keys():
                         TableSpec[ts_key] = {}
-                    TableSpec[ts_key][var_list[v]["file"]["attributes"]["variable_id"]] = var_list[v]
-                    t_realm = "NoRealm"
-                    for k1, v1 in definitions.iteritems():
+                    TableSpec[ts_key][
+                        var_list[v]['file']['attributes']['variable_id']
+                    ] = var_list[v]
+                    t_realm = 'NoRealm'
+                    for k1, v1 in definitions.items():
                         if 'Coords' in k1:
                             if k1.split('_')[1] in realm:
                                 t_realm = k1.split('_')[1].strip()
-                    for dim in var_list[v]["dimensions"]:
-                        if dim not in TableSpec[ts_key].keys() and dim != '' and dim != 'None':
+                    for dim in var_list[v]['dimensions']:
+                        if (
+                            dim not in TableSpec[ts_key].keys()
+                            and dim != ''
+                            and dim != 'None'
+                        ):
                             TableSpec[ts_key][dim] = defineAxes(axes[dim], dim)
                             if 'Coords_' + t_realm in definitions.keys():
                                 if dim in definitions['Coords_' + t_realm].keys():
                                     if 'landUse' in dim:
-                                        TableSpec[ts_key][dim]['definition'] = [0, 1, 2, 3]
+                                        TableSpec[ts_key][dim]['definition'] = [
+                                            0,
+                                            1,
+                                            2,
+                                            3,
+                                        ]
                                     else:
-                                        TableSpec[ts_key][dim]['definition'] = definitions['Coords_' + t_realm][dim]
+                                        TableSpec[ts_key][dim][
+                                            'definition'
+                                        ] = definitions['Coords_' + t_realm][dim]
                                 else:
-                                    if 'definition' not in TableSpec[ts_key][dim].keys():
-                                        print "MISSING " + dim + " in " + 'Coords_' + t_realm + " (for variable " + v + ")"
+                                    if (
+                                        'definition'
+                                        not in TableSpec[ts_key][dim].keys()
+                                    ):
+                                        print(
+                                            'MISSING '
+                                            + dim
+                                            + ' in '
+                                            + 'Coords_'
+                                            + t_realm
+                                            + ' (for variable '
+                                            + v
+                                            + ')'
+                                        )
                 else:
-                    print 'missing:', v
+                    print('missing:', v)
             else:
                 AllMissing[t].append(v)
 
-        ReqSpec["variables"] = var_list
+        ReqSpec['variables'] = var_list
 
     # create json files per MIP+table
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
     if not testoutput:
-        for n, t in TableSpec.iteritems():
-            f = output_path + "/" + experiment + '_' + n + '_spec.json'
+        for n, t in TableSpec.items():
+            f = output_path + '/' + experiment + '_' + n + '_spec.json'
             with open(f, 'w') as outfile:
                 json.dump(t, outfile, sort_keys=True, indent=4)
     else:
-        ignore = ['latitude', 'longitude', 'olevel', 'plev19', 'time', 'time1', 'alevhalf',
-                  'ygre', 'xgre', 'vegtype', 'spectband', 'areacellg', 'alevel', 'xant', 'yant',
-                  'rho', 'tau', 'plev3', 'gridlatitude', 'plev39', 'plev4', 'plev27', 'plev3',
-                  'plev7h', 'plev7c', 'plev8', 'plev7h', 'sdepth', 'siline', 'basin', 'olevel',
-                  'site', 'soilpools', 'snowdepth', 'snowband', 'vegtype', 'lat', 'lon', 'lev']
-        for n, t in TableSpec.iteritems():
-            for vn, var in t.iteritems():
+        ignore = [
+            'latitude',
+            'longitude',
+            'olevel',
+            'plev19',
+            'time',
+            'time1',
+            'alevhalf',
+            'ygre',
+            'xgre',
+            'vegtype',
+            'spectband',
+            'areacellg',
+            'alevel',
+            'xant',
+            'yant',
+            'rho',
+            'tau',
+            'plev3',
+            'gridlatitude',
+            'plev39',
+            'plev4',
+            'plev27',
+            'plev3',
+            'plev7h',
+            'plev7c',
+            'plev8',
+            'plev7h',
+            'sdepth',
+            'siline',
+            'basin',
+            'olevel',
+            'site',
+            'soilpools',
+            'snowdepth',
+            'snowband',
+            'vegtype',
+            'lat',
+            'lon',
+            'lev',
+        ]
+        for n, t in TableSpec.items():
+            for vn, var in t.items():
                 if vn not in ignore:
                     varD = {}
                     varD[vn] = var
-                    for d in var["dimensions"]:
+                    for d in var['dimensions']:
                         varD[d] = t[d]
-                    f = output_path + "/" + experiment + '_' + n + '_' + vn + '_spec.json'
+                    f = (
+                        output_path
+                        + '/'
+                        + experiment
+                        + '_'
+                        + n
+                        + '_'
+                        + vn
+                        + '_spec.json'
+                    )
                     with open(f, 'w') as outfile:
                         json.dump(varD, outfile, sort_keys=True, indent=4)
 
@@ -612,8 +836,8 @@ def create_non_mip_output(variables, definitions, outputpath):
                     vs[d]['dimensions'] = d
         else:
             missing.append(vn)
-    spec["variables"] = vs
-    spec["variables_missing_defs"] = missing
+    spec['variables'] = vs
+    spec['variables_missing_defs'] = missing
 
     # Write output json file
     if not os.path.exists(outputpath):
@@ -628,46 +852,48 @@ def main(argv=None):
 
     args = parseArgs(argv)
 
-    print "\n"
-    print "------------------------------------------"
-    print 'Running createOutputSpecs with these args:\n'
-    print 'Variable Definitions: ', args.defFile
-    print 'Global Attributes to be added to each file: ', args.globalAttrFile
-    print 'Experiment Name: ', args.exp
-    print 'MIPs: ', args.mip
-    print 'MIP Tables: ', args.miptables
-    print 'MIP Table Type: ', args.mipTableType
-    print 'User supplied variable list: ', args.userList
-    print 'Will create output spec files within this directory:', args.outputpath
-    print "------------------------------------------"
+    print('\n')
+    print('------------------------------------------')
+    print('Running createOutputSpecs with these args:\n')
+    print('Variable Definitions: ', args.defFile)
+    print('Global Attributes to be added to each file: ', args.globalAttrFile)
+    print('Experiment Name: ', args.exp)
+    print('MIPs: ', args.mip)
+    print('MIP Tables: ', args.miptables)
+    print('MIP Table Type: ', args.mipTableType)
+    print('User supplied variable list: ', args.userList)
+    print('Will create output spec files within this directory:', args.outputpath)
+    print('------------------------------------------')
 
     # Open/Read the definition file
     if os.path.isfile(args.defFile):
         with open(args.defFile) as y_definitions:
             definitions, input_glob = load(y_definitions)
     else:
-        print 'Definition file does not exist: ', args.defFile
+        print('Definition file does not exist: ', args.defFile)
         os.sys.exit(1)
 
     # Open/Read the global attributes file
     attributes = {}
     if args.globalAttrFile:
-        for gaFile in args.globalAttrFile.split(","):
+        for gaFile in args.globalAttrFile.split(','):
             if os.path.isfile(gaFile):
-                if "json" in gaFile:
-                    print 'opening ', gaFile
+                if 'json' in gaFile:
+                    print('opening ', gaFile)
                     with open(gaFile) as gaF:
                         ga = json.load(gaF)
                     for k in ga.keys():
                         if ga[k] is None:
-                            ga[k] = ""
+                            ga[k] = ''
                     attributes.update(ga)
                 else:
                     with open(gaFile) as y_attributes:
-                        attributes = load(y_attributes, key="ga")["ga"]
+                        attributes = load(y_attributes, key='ga')['ga']
             else:
                 if args.globalAttrFile and not os.path.isfile(args.globalAttrFile):
-                    print 'Global Attributes file does not exist: ', args.globalAttrFile
+                    print(
+                        'Global Attributes file does not exist: '
+                    ), args.globalAttrFile
                     os.sys.exit(1)
 
     # Open/Read the MIP table
@@ -697,11 +923,23 @@ def main(argv=None):
         create_non_mip_output(variables, definitions, args.outputpath)
     else:
         for exp in exps:
-            exp_dict = miptableparser.mip_table_parser(exp, mips, tables, variables, type=args.mipTableType)
+            exp_dict = miptableparser.mip_table_parser(
+                exp, mips, tables, variables, type=args.mipTableType
+            )
 
             if len(exp_dict.keys()) > 0:
                 # Write the spec files out to disk
-                create_output(exp_dict, definitions, input_glob, attributes, args.outputpath, args, exp, args.outdir, args.testoutput)
+                create_output(
+                    exp_dict,
+                    definitions,
+                    input_glob,
+                    attributes,
+                    args.outputpath,
+                    args,
+                    exp,
+                    args.outdir,
+                    args.testoutput,
+                )
 
 
 if __name__ == '__main__':

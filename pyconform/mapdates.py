@@ -13,7 +13,7 @@ import os
 import cf_units
 from dateutil import parser
 
-import climIO
+from . import climIO
 
 
 def __get_time_info__(f, io):
@@ -37,7 +37,7 @@ def __get_time_info__(f, io):
     _tc, _dim, att = io.get_var_info(f, 'time')
     stand_cal = cf_units.Unit('days since 1-1-1 0:0:0', calendar=att['calendar'])
     cal_unit = cf_units.Unit(att['units'], calendar=att['calendar'])
-    if ('bounds' in att.keys()):
+    if 'bounds' in att.keys():
         # print 'Using bounds'
         tb = f.variables[att['bounds']]
         j = len(tb)
@@ -58,20 +58,22 @@ def __get_time_info__(f, io):
     date_info['time'] = time
 
     # Get second and third time bounds to figure out the time period
-    t1 = (parser.parse(
-        str(cf_units.num2date(d1, att['units'], calendar=att['calendar']))).timetuple())
-    t2 = (parser.parse(
-        str(cf_units.num2date(d2, att['units'], calendar=att['calendar']))).timetuple())
+    t1 = parser.parse(
+        str(cf_units.num2date(d1, att['units'], calendar=att['calendar']))
+    ).timetuple()
+    t2 = parser.parse(
+        str(cf_units.num2date(d2, att['units'], calendar=att['calendar']))
+    ).timetuple()
     # Get time difference between the steps
     t_step = d2 - d1
     h = t2[3] - t1[3]
-    if (t1[3] != t2[3]):
+    if t1[3] != t2[3]:
         t_per = str(h) + 'hour'
-    elif (t1[2] != t2[2]):
+    elif t1[2] != t2[2]:
         t_per = 'day'
-    elif (t1[1] != t2[1]):
+    elif t1[1] != t2[1]:
         t_per = 'mon'
-    elif (t1[0] != t2[0]):
+    elif t1[0] != t2[0]:
         t_per = 'year'
     else:
         t_per = 'UNKNOWN'
@@ -118,8 +120,15 @@ def __check_date_alignment__(keys, date_info):
     t_step = date_info[keys[0]]['t_step']
 
     if date_info[keys[0]]['t_per'] == 'mon':
-        date = (parser.parse(str(cf_units.num2date(date_info[keys[0]]['tn'],
-                                                   date_info[keys[0]]['units'], calendar=date_info[keys[0]]['calendar']))).timetuple())
+        date = parser.parse(
+            str(
+                cf_units.num2date(
+                    date_info[keys[0]]['tn'],
+                    date_info[keys[0]]['units'],
+                    calendar=date_info[keys[0]]['calendar'],
+                )
+            )
+        ).timetuple()
         if date[1] == 12:
             next_val = 1
         else:
@@ -130,26 +139,45 @@ def __check_date_alignment__(keys, date_info):
 
     for i in range(1, len(keys)):
         if date_info[keys[i]]['t_per'] == 'mon':
-            new_date = (parser.parse(str(cf_units.num2date(date_info[keys[i]]['t0'],
-                                                           date_info[keys[i]]['units'], calendar=date_info[keys[i]]['calendar']))).timetuple())
-            if (next_val == new_date[1]):
-                date = (parser.parse(str(cf_units.num2date(date_info[keys[i]]['tn'],
-                                                           date_info[keys[i]]['units'], calendar=date_info[keys[i]]['calendar']))).timetuple())
+            new_date = parser.parse(
+                str(
+                    cf_units.num2date(
+                        date_info[keys[i]]['t0'],
+                        date_info[keys[i]]['units'],
+                        calendar=date_info[keys[i]]['calendar'],
+                    )
+                )
+            ).timetuple()
+            if next_val == new_date[1]:
+                date = parser.parse(
+                    str(
+                        cf_units.num2date(
+                            date_info[keys[i]]['tn'],
+                            date_info[keys[i]]['units'],
+                            calendar=date_info[keys[i]]['calendar'],
+                        )
+                    )
+                ).timetuple()
                 if date[1] == 12:
                     next_val = 1
                 else:
                     next_val = date[1] + 1
             else:
-                print "Disconnect? Expected: ", next_val, " Got: ", new_date[1]
+                print('Disconnect? Expected: ', next_val, ' Got: ', new_date[1])
                 return 1
         else:
-            if (next_val == date_info[keys[i]]['t0']):
+            if next_val == date_info[keys[i]]['t0']:
                 # print "Looks
                 # okay",date_info[keys[i]]['t0'],'-',date_info[keys[i]]['tn']
                 prev_last = date_info[keys[i]]['tn']
                 next_val = prev_last + t_step
             else:
-                print "Disconnect? Expected: ", next_val, " Got: ", date_info[keys[i]]['t0']
+                print(
+                    'Disconnect? Expected: ',
+                    next_val,
+                    ' Got: ',
+                    date_info[keys[i]]['t0'],
+                )
                 return 1
 
     return 0
@@ -175,34 +203,55 @@ def __check_date_alignment_in_file__(date):
     # between slices.
     if t_per == 'mon':
         if t_per == 'mon':
-            date1 = (parser.parse(str(cf_units.num2date(t[0],
-                                                        date['units'], calendar=date['calendar']))).timetuple())
+            date1 = parser.parse(
+                str(cf_units.num2date(t[0], date['units'], calendar=date['calendar']))
+            ).timetuple()
             if date1[1] == 12:
                 next_val = 1
             else:
                 next_val = date1[1] + 1
         for i in range(1, len(t)):
-            new_date = (parser.parse(str(cf_units.num2date(t[i],
-                                                           date['units'], calendar=date['calendar']))).timetuple())
-            if (next_val == new_date[1]):
-                date1 = (parser.parse(str(cf_units.num2date(t[i],
-                                                            date['units'], calendar=date['calendar']))).timetuple())
+            new_date = parser.parse(
+                str(cf_units.num2date(t[i], date['units'], calendar=date['calendar']))
+            ).timetuple()
+            if next_val == new_date[1]:
+                date1 = parser.parse(
+                    str(
+                        cf_units.num2date(
+                            t[i], date['units'], calendar=date['calendar']
+                        )
+                    )
+                ).timetuple()
                 if date1[1] == 12:
                     next_val = 1
                 else:
                     next_val = date1[1] + 1
             else:
-                print "Disconnect? Expected: ", next_val, " Got: ", new_date[1], ' around time step: ', i
+                print(
+                    'Disconnect? Expected: ',
+                    next_val,
+                    ' Got: ',
+                    new_date[1],
+                    ' around time step: ',
+                    i,
+                )
                 return 1
     # All other time periods should have the same number of days between
     # slices.
     else:
         for i in range(1, len(t)):
-            if (prev_time + t_step == t[i]):
+            if prev_time + t_step == t[i]:
                 # Time step looks okay
                 prev_time = t[i]
             else:
-                print "Disconnect? Expected: ", str(prev_time + t_step), " Got: ", t[i], ' around time step: ', i
+                print(
+                    'Disconnect? Expected: ',
+                    str(prev_time + t_step),
+                    ' Got: ',
+                    t[i],
+                    ' around time step: ',
+                    i,
+                )
                 return 1
     return 0
 

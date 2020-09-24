@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 from collections import OrderedDict
+from functools import reduce
 from os import remove
 from os.path import exists
 
@@ -22,7 +23,8 @@ from pyconform.datasets import (
     OutputDatasetDesc,
     VariableDesc,
 )
-from testutils import print_test_message
+
+from .testutils import print_test_message
 
 
 class DimensionDescTests(unittest.TestCase):
@@ -34,7 +36,9 @@ class DimensionDescTests(unittest.TestCase):
         ddesc = DimensionDesc('x')
         actual = type(ddesc)
         expected = DimensionDesc
-        print_test_message('type(DimensionDesc)', actual=str(actual), expected=str(expected))
+        print_test_message(
+            'type(DimensionDesc)', actual=str(actual), expected=str(expected)
+        )
         self.assertEqual(actual, expected, 'DimensionDesc has wrong type')
 
     def test_name(self):
@@ -42,14 +46,21 @@ class DimensionDescTests(unittest.TestCase):
         ddesc = DimensionDesc(indata)
         actual = ddesc.name
         expected = indata
-        print_test_message('DimensionDesc.name', indata=indata, actual=str(actual), expected=str(expected))
+        print_test_message(
+            'DimensionDesc.name',
+            indata=indata,
+            actual=str(actual),
+            expected=str(expected),
+        )
         self.assertEqual(actual, expected, 'DimensionDesc.name does not match')
 
     def test_size_default(self):
         ddesc = DimensionDesc('x')
         actual = ddesc.size
         expected = None
-        print_test_message('DimensionDesc.size == None', actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.size == None', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'Default DimensionDesc.size is not None')
 
     def test_size(self):
@@ -57,7 +68,9 @@ class DimensionDescTests(unittest.TestCase):
         ddesc = DimensionDesc('x', size=indata)
         actual = ddesc.size
         expected = indata
-        print_test_message('DimensionDesc.size', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.size', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'DimensionDesc.size is not set properly')
 
     def test_limited_default(self):
@@ -71,43 +84,59 @@ class DimensionDescTests(unittest.TestCase):
         ddesc = DimensionDesc('x', size=1, unlimited=True)
         actual = ddesc.unlimited
         expected = True
-        print_test_message('DimensionDesc.unlimited == True', actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.unlimited == True', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'DimensionDesc.unlimited is not True')
 
     def test_is_set_false(self):
         ddesc = DimensionDesc('x')
         actual = ddesc.is_set()
         expected = False
-        print_test_message('DimensionDesc.is_set == False', actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.is_set == False', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'DimensionDesc is set when it should not be')
 
     def test_is_set_true(self):
         ddesc = DimensionDesc('x', 1)
         actual = ddesc.is_set()
         expected = True
-        print_test_message('DimensionDesc.is_set == True', actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.is_set == True', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'DimensionDesc is not set when it should be')
 
     def test_set(self):
         expected = DimensionDesc('x', 1)
         actual = DimensionDesc('y')
         actual.set(expected)
-        print_test_message('DimensionDesc.set()', actual=str(actual), expected=str(expected))
+        print_test_message(
+            'DimensionDesc.set()', actual=str(actual), expected=str(expected)
+        )
         self.assertEqual(actual.name, 'y', 'DimensionDesc name not correct after set')
-        self.assertEqual(actual.size, expected.size, 'DimensionDesc size not correct after set')
+        self.assertEqual(
+            actual.size, expected.size, 'DimensionDesc size not correct after set'
+        )
 
     def test_reset(self):
         expected = DimensionDesc('x', 1)
         actual = DimensionDesc('y', 2)
         actual.set(expected)
-        print_test_message('DimensionDesc.set()', actual=str(actual), expected=str(expected))
+        print_test_message(
+            'DimensionDesc.set()', actual=str(actual), expected=str(expected)
+        )
         self.assertEqual(actual.name, 'y', 'DimensionDesc name not correct after set')
-        self.assertEqual(actual.size, expected.size, 'DimensionDesc size not correct after set')
+        self.assertEqual(
+            actual.size, expected.size, 'DimensionDesc size not correct after set'
+        )
 
     def test_set_bad(self):
         indata = 'z'
         ddesc = DimensionDesc('y')
-        print_test_message('DimensionDesc.set({})'.format(indata), indata=indata, desc=str(ddesc))
+        print_test_message(
+            'DimensionDesc.set({})'.format(indata), indata=indata, desc=str(ddesc)
+        )
         self.assertRaises(TypeError, ddesc.set, indata)
 
     def test_unset(self):
@@ -124,7 +153,9 @@ class DimensionDescTests(unittest.TestCase):
         ddesc2 = DimensionDesc('x', size=1, unlimited=True)
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc == DimensionDesc', actual=str(actual), expected=str(expected))
+        print_test_message(
+            'DimensionDesc == DimensionDesc', actual=str(actual), expected=str(expected)
+        )
         self.assertEqual(actual, expected, 'Identical DimensionDesc objects not equal')
 
     def test_equals_diff_name(self):
@@ -132,80 +163,135 @@ class DimensionDescTests(unittest.TestCase):
         ddesc2 = DimensionDesc('b', size=1, unlimited=True)
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc(a) != DimensionDesc(b)', actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently named DimensionDesc objects equal')
+        print_test_message(
+            'DimensionDesc(a) != DimensionDesc(b)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently named DimensionDesc objects equal'
+        )
 
     def test_equals_diff_size(self):
         ddesc1 = DimensionDesc('x', size=1, unlimited=True)
         ddesc2 = DimensionDesc('x', size=2, unlimited=True)
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc(1) != DimensionDesc(2)', actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently sized DimensionDesc objects equal')
+        print_test_message(
+            'DimensionDesc(1) != DimensionDesc(2)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently sized DimensionDesc objects equal'
+        )
 
     def test_equals_diff_ulim(self):
         ddesc1 = DimensionDesc('x', size=1, unlimited=False)
         ddesc2 = DimensionDesc('x', size=1, unlimited=True)
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc(1) != DimensionDesc(2)', actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently limited DimensionDesc objects equal')
+        print_test_message(
+            'DimensionDesc(1) != DimensionDesc(2)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently limited DimensionDesc objects equal'
+        )
 
     def test_equals_diff_1set(self):
         ddesc1 = DimensionDesc('x', 1, True)
         ddesc2 = DimensionDesc('x')
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Set DimensionsDesc equals unset DimensionDesc')
+        print_test_message(
+            'DimensionDesc(1) == DimensionDesc(2)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Set DimensionsDesc equals unset DimensionDesc'
+        )
 
     def test_equals_same_unset(self):
         ddesc1 = DimensionDesc('x')
         ddesc2 = DimensionDesc('x')
         actual = ddesc1
         expected = ddesc2
-        print_test_message('DimensionDesc(1) == DimensionDesc(2)', actual=str(actual), expected=str(expected))
-        self.assertEqual(actual, expected, 'Unset DimensionsDesc not equal to unset DimensionDesc')
+        print_test_message(
+            'DimensionDesc(1) == DimensionDesc(2)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertEqual(
+            actual, expected, 'Unset DimensionsDesc not equal to unset DimensionDesc'
+        )
 
     def test_unique_empty(self):
         indata = []
         actual = DimensionDesc.unique(indata)
         expected = OrderedDict()
-        print_test_message('DimensionDesc.unique([])', indata=indata,
-                           actual=actual, expected=expected)
+        print_test_message(
+            'DimensionDesc.unique([])', indata=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'DimensionDesc.unique fails with empty list')
 
     def test_unique_single(self):
         indata = [DimensionDesc('x', 1)]
         actual = DimensionDesc.unique(indata)
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('DimensionDesc.unique([d1])', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'DimensionDesc.unique fails with single-item list')
+        print_test_message(
+            'DimensionDesc.unique([d1])',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'DimensionDesc.unique fails with single-item list'
+        )
 
     def test_unique_all_unique(self):
         indata = [DimensionDesc('x', 1), DimensionDesc('y', 1)]
         actual = DimensionDesc.unique(indata)
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('DimensionDesc.unique([d1, d2])', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'DimensionDesc.unique fails with all-unqiue list')
+        print_test_message(
+            'DimensionDesc.unique([d1, d2])',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'DimensionDesc.unique fails with all-unqiue list'
+        )
 
     def test_unique_same_names_unset(self):
         indata = [DimensionDesc('x'), DimensionDesc('x')]
         actual = DimensionDesc.unique(indata)
         expected = OrderedDict([(indata[0].name, indata[0])])
-        print_test_message('DimensionDesc.unique([d1, d1])', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'DimensionDesc.unique fails with same names, all unset')
+        print_test_message(
+            'DimensionDesc.unique([d1, d1])',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'DimensionDesc.unique fails with same names, all unset'
+        )
 
     def test_unique_same_names_1set(self):
         indata = [DimensionDesc('x'), DimensionDesc('x', 2)]
         actual = DimensionDesc.unique(indata)
         expected = OrderedDict([(indata[1].name, indata[1])])
-        print_test_message('DimensionDesc.unique([d1, d1+])', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'DimensionDesc.unique fails with same names, 1 set')
+        print_test_message(
+            'DimensionDesc.unique([d1, d1+])',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'DimensionDesc.unique fails with same names, 1 set'
+        )
 
     def test_unique_same_names_2set_diff(self):
         indata = [DimensionDesc('x', 1), DimensionDesc('x', 2)]
@@ -230,127 +316,182 @@ class VariableDescTests(unittest.TestCase):
         vdesc = VariableDesc(indata)
         actual = vdesc.name
         expected = indata
-        print_test_message('VariableDesc.name', indata=indata, actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.name', indata=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'VariableDesc.name does not match')
 
     def test_datatype_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.datatype
         expected = None
-        print_test_message('VariableDesc.datatype == float', actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.datatype == float', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'Default VariableDesc.datatype is not float')
 
     def test_dimensions_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.dimensions
         expected = OrderedDict()
-        print_test_message('VariableDesc.dimensions == ()', actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.dimensions == ()', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'Default VariableDesc.dimensions is not ()')
 
     def test_attributes_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.attributes
         expected = {}
-        print_test_message('VariableDesc.attributes == ()', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.attributes is not OrderedDict()')
+        print_test_message(
+            'VariableDesc.attributes == ()', actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.attributes is not OrderedDict()'
+        )
 
     def test_definition_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.definition
         expected = None
-        print_test_message('VariableDesc.definition == ()', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.definition is not None')
+        print_test_message(
+            'VariableDesc.definition == ()', actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.definition is not None'
+        )
 
     def test_datatype(self):
         vdesc = VariableDesc('x', datatype='float')
         actual = vdesc.datatype
         expected = 'float'
-        print_test_message('VariableDesc.datatype == float64', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.datatype is not float64')
+        print_test_message(
+            'VariableDesc.datatype == float64', actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.datatype is not float64'
+        )
 
     def test_dimensions(self):
         indata = (DimensionDesc('y'), DimensionDesc('z'))
         vdesc = VariableDesc('x', dimensions=indata)
         actual = vdesc.dimensions
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('VariableDesc.dimensions == ()', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Default VariableDesc.dimensions is not {}'.format(indata))
+        print_test_message(
+            'VariableDesc.dimensions == ()',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.dimensions is not {}'.format(indata)
+        )
 
     def test_attributes(self):
         indata = OrderedDict([('a1', 'attrib1'), ('a2', 'attrib2')])
         vdesc = VariableDesc('x', attributes=indata)
         actual = vdesc.attributes
         expected = indata
-        print_test_message('VariableDesc.attributes', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Default VariableDesc.attributes is not {}'.format(indata))
+        print_test_message(
+            'VariableDesc.attributes', indata=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.attributes is not {}'.format(indata)
+        )
 
     def test_definition(self):
         indata = 'y + z'
         vdesc = VariableDesc('x', definition=indata)
         actual = vdesc.definition
         expected = indata
-        print_test_message('VariableDesc.definition', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Default VariableDesc.definition is not {!r}'.format(indata))
+        print_test_message(
+            'VariableDesc.definition', indata=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual,
+            expected,
+            'Default VariableDesc.definition is not {!r}'.format(indata),
+        )
 
     def test_data(self):
         indata = (1, 2, 3, 4, 5, 6)
         vdesc = VariableDesc('x', definition=indata)
         actual = vdesc.definition
         expected = indata
-        print_test_message('VariableDesc.definition', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected,
-                         'Default VariableDesc.definition is not {!r}'.format(indata))
+        print_test_message(
+            'VariableDesc.definition', indata=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual,
+            expected,
+            'Default VariableDesc.definition is not {!r}'.format(indata),
+        )
 
     def test_equals_same(self):
-        kwargs = {'datatype': 'double',
-                  'dimensions': tuple(DimensionDesc(d) for d in ('a', 'b')),
-                  'attributes': {'a1': 'at1', 'a2': 'at2'},
-                  'definition': 'y + z'}
+        kwargs = {
+            'datatype': 'double',
+            'dimensions': tuple(DimensionDesc(d) for d in ('a', 'b')),
+            'attributes': {'a1': 'at1', 'a2': 'at2'},
+            'definition': 'y + z',
+        }
         actual = VariableDesc('x', **kwargs)
         expected = VariableDesc('x', **kwargs)
-        print_test_message('VariableDesc == VariableDesc',
-                           actual=str(actual), expected=str(expected))
+        print_test_message(
+            'VariableDesc == VariableDesc', actual=str(actual), expected=str(expected)
+        )
         self.assertEqual(actual, expected, 'Identical VariableDesc objects not equal')
 
     def test_equals_diff_name(self):
-        kwargs = {'datatype': 'double',
-                  'dimensions': tuple(DimensionDesc(d) for d in ('a', 'b')),
-                  'attributes': {'a1': 'at1', 'a2': 'at2'},
-                  'definition': 'y + z'}
+        kwargs = {
+            'datatype': 'double',
+            'dimensions': tuple(DimensionDesc(d) for d in ('a', 'b')),
+            'attributes': {'a1': 'at1', 'a2': 'at2'},
+            'definition': 'y + z',
+        }
         actual = VariableDesc('a', **kwargs)
         expected = VariableDesc('b', **kwargs)
-        print_test_message('VariableDesc(a) != VariableDesc(b)',
-                           actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently named VariableDesc objects equal')
+        print_test_message(
+            'VariableDesc(a) != VariableDesc(b)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently named VariableDesc objects equal'
+        )
 
     def test_equals_diff_dtype(self):
         actual = VariableDesc('x', datatype='double')
         expected = VariableDesc('x', datatype='float')
-        print_test_message('VariableDesc(d) != VariableDesc(f)',
-                           actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently typed VariableDesc objects equal')
+        print_test_message(
+            'VariableDesc(d) != VariableDesc(f)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently typed VariableDesc objects equal'
+        )
 
     def test_equals_diff_dims(self):
         vdims1 = tuple(DimensionDesc(d) for d in ('a', 'b'))
         vdims2 = tuple(DimensionDesc(d) for d in ('a', 'b', 'c'))
         actual = VariableDesc('x', dimensions=vdims1)
         expected = VariableDesc('x', dimensions=vdims2)
-        print_test_message('VariableDesc(dims1) != VariableDesc(dims2)',
-                           actual=str(actual), expected=str(expected))
-        self.assertNotEqual(actual, expected, 'Differently dimensioned VariableDesc objects equal')
+        print_test_message(
+            'VariableDesc(dims1) != VariableDesc(dims2)',
+            actual=str(actual),
+            expected=str(expected),
+        )
+        self.assertNotEqual(
+            actual, expected, 'Differently dimensioned VariableDesc objects equal'
+        )
 
     def test_units_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.units()
         expected = None
-        print_test_message('VariableDesc.units() == nounit', actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.units() == nounit', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'Default VariableDesc.units() not None')
 
     def test_units(self):
@@ -358,23 +499,38 @@ class VariableDescTests(unittest.TestCase):
         vdesc = VariableDesc('x', attributes={'units': indata})
         actual = vdesc.units()
         expected = indata
-        print_test_message('VariableDesc.units()', indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.units() not {}'.format(indata))
+        print_test_message(
+            'VariableDesc.units()', indata=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.units() not {}'.format(indata)
+        )
 
     def test_refdatetime_default(self):
         vdesc = VariableDesc('x')
         actual = vdesc.refdatetime()
         expected = None
-        print_test_message('VariableDesc.refdatetime() == None', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.refdatetime() not None')
+        print_test_message(
+            'VariableDesc.refdatetime() == None', actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.refdatetime() not None'
+        )
 
     def test_refdatetime(self):
         indata = '0001-01-01 00:00:00 -05:00'
         vdesc = VariableDesc('x', attributes={'units': 'days since {}'.format(indata)})
         actual = vdesc.refdatetime()
         expected = indata
-        print_test_message('VariableDesc.refdatetime()', indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.refdatetime() not {}'.format(indata))
+        print_test_message(
+            'VariableDesc.refdatetime()',
+            indata=indata,
+            actual=actual,
+            expected=expected,
+        )
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.refdatetime() not {}'.format(indata)
+        )
 
     def test_calendar_default(self):
         vdesc = VariableDesc('x')
@@ -388,15 +544,20 @@ class VariableDescTests(unittest.TestCase):
         vdesc = VariableDesc('x', attributes={'units': 'days', 'calendar': indata})
         actual = vdesc.calendar()
         expected = indata
-        print_test_message('VariableDesc.calendar()', indata=indata,
-                           actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'VariableDesc.calendar() not {}'.format(indata))
+        print_test_message(
+            'VariableDesc.calendar()', indata=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'VariableDesc.calendar() not {}'.format(indata)
+        )
 
     def test_cfunits_default(self):
         vdesc = VariableDesc('time')
         actual = vdesc.cfunits()
         expected = Unit('?')
-        print_test_message('VariableDesc.cfunits() == None', actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.cfunits() == None', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'Default VariableDesc.cfunits() not None')
 
     def test_cfunits(self):
@@ -406,47 +567,71 @@ class VariableDescTests(unittest.TestCase):
         actual = vdesc.cfunits()
         expected = Unit(units, calendar=calendar)
         print_test_message('VariableDesc.cfunits()', actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'Default VariableDesc.cfunits() not {}'.format(expected))
+        self.assertEqual(
+            actual, expected, 'Default VariableDesc.cfunits() not {}'.format(expected)
+        )
 
     def test_unique_empty(self):
         indata = []
         actual = VariableDesc.unique(indata)
         expected = OrderedDict()
-        print_test_message('VariableDesc.unique()', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'VariableDesc.unique()', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'VariableDesc.unique failes with empty list')
 
     def test_unique_single(self):
         indata = [VariableDesc('x')]
         actual = VariableDesc.unique(indata)
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('VariableDesc.unique()', input=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'VariableDesc.unique failes with single-item list')
+        print_test_message(
+            'VariableDesc.unique()', input=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'VariableDesc.unique failes with single-item list'
+        )
 
     def test_unique_same_names(self):
         indata = [VariableDesc('x'), VariableDesc('x')]
         actual = VariableDesc.unique(indata)
         expected = OrderedDict([(indata[0].name, indata[0])])
-        print_test_message('VariableDesc.unique()', input=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'VariableDesc.unique failes with all-same list')
+        print_test_message(
+            'VariableDesc.unique()', input=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'VariableDesc.unique failes with all-same list'
+        )
 
     def test_unique_diff_names(self):
         indata = [VariableDesc('x'), VariableDesc('y')]
         actual = VariableDesc.unique(indata)
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('VariableDesc.unique()', input=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'VariableDesc.unique failes with all-same list')
+        print_test_message(
+            'VariableDesc.unique()', input=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'VariableDesc.unique failes with all-same list'
+        )
 
     def test_unique_same_names_same_dims(self):
-        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]),
-                  VariableDesc('x', dimensions=[DimensionDesc('x')])]
+        indata = [
+            VariableDesc('x', dimensions=[DimensionDesc('x')]),
+            VariableDesc('x', dimensions=[DimensionDesc('x')]),
+        ]
         actual = VariableDesc.unique(indata)
         expected = OrderedDict([(indata[0].name, indata[0])])
-        print_test_message('VariableDesc.unique()', input=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, 'VariableDesc.unique failes with all-same list')
+        print_test_message(
+            'VariableDesc.unique()', input=indata, actual=actual, expected=expected
+        )
+        self.assertEqual(
+            actual, expected, 'VariableDesc.unique failes with all-same list'
+        )
 
     def test_unique_same_names_diff_dims(self):
-        indata = [VariableDesc('x', dimensions=[DimensionDesc('x')]),
-                  VariableDesc('x', dimensions=[DimensionDesc('y')])]
+        indata = [
+            VariableDesc('x', dimensions=[DimensionDesc('x')]),
+            VariableDesc('x', dimensions=[DimensionDesc('y')]),
+        ]
         expected = ValueError
         print_test_message('VariableDesc.unique()', input=indata, expected=expected)
         self.assertRaises(expected, VariableDesc.unique, indata)
@@ -462,8 +647,12 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc(indata)
         actual = type(fdesc)
         expected = FileDesc
-        print_test_message('FileDesc.__init__({})'.format(indata),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.__init__({})'.format(indata),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'No FileDesc created')
 
     def test_name(self):
@@ -471,8 +660,12 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc(indata)
         actual = fdesc.name
         expected = indata
-        print_test_message('FileDesc.name == {}'.format(indata),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.name == {}'.format(indata),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.name failed')
 
     def test_exists_false(self):
@@ -482,8 +675,12 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc(indata)
         actual = fdesc.exists()
         expected = False
-        print_test_message('FileDesc.exists() == {}'.format(expected),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.exists() == {}'.format(expected),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.exists() failed')
 
     def test_exists_true(self):
@@ -493,8 +690,12 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc(indata)
         actual = fdesc.exists()
         expected = True
-        print_test_message('FileDesc.exists() == {}'.format(expected),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.exists() == {}'.format(expected),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.exists() failed')
         if exists(indata):
             remove(indata)
@@ -504,8 +705,12 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc(indata)
         actual = fdesc.format
         expected = 'NETCDF4_CLASSIC'
-        print_test_message('FileDesc.format == {}'.format(expected),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.format == {}'.format(expected),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.format failed')
 
     def test_format_valid(self):
@@ -513,23 +718,31 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc('test.nc', format=indata)
         actual = fdesc.format
         expected = indata
-        print_test_message('FileDesc.format == {}'.format(expected),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.format == {}'.format(expected),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.format failed')
 
     def test_format_invalid(self):
         indata = 'STUFF'
         expected = TypeError
-        print_test_message('FileDesc(format={})'.format(indata),
-                           input=indata, expected=expected)
+        print_test_message(
+            'FileDesc(format={})'.format(indata), input=indata, expected=expected
+        )
         self.assertRaises(expected, FileDesc, 'test.nc', format=indata)
 
     def test_attributes_default(self):
         fdesc = FileDesc('test.nc')
         actual = fdesc.attributes
         expected = {}
-        print_test_message('FileDesc.attributes == {}'.format(expected),
-                           actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.attributes == {}'.format(expected),
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.attributes failed')
 
     def test_attributes_valid(self):
@@ -537,15 +750,22 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc('test.nc', attributes=indata)
         actual = fdesc.attributes
         expected = indata
-        print_test_message('FileDesc.attributes == {}'.format(expected),
-                           input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.attributes == {}'.format(expected),
+            input=indata,
+            actual=actual,
+            expected=expected,
+        )
         self.assertEqual(actual, expected, 'FileDesc.attributes failed')
 
     def test_attributes_invalid(self):
         indata = [('a', 'attribute 1'), ('b', 'attribute 2')]
         expected = TypeError
-        print_test_message('FileDesc.attributes == {}'.format(expected),
-                           input=indata, expected=expected)
+        print_test_message(
+            'FileDesc.attributes == {}'.format(expected),
+            input=indata,
+            expected=expected,
+        )
         self.assertRaises(expected, FileDesc, 'test.nc', attributes=indata)
 
     def test_variables_scalar(self):
@@ -553,20 +773,28 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc('test.nc', variables=indata)
         actual = fdesc.variables
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('FileDesc.variables', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.variables', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'FileDesc.variables failed')
         actual = fdesc.dimensions
         expected = OrderedDict()
-        print_test_message('FileDesc.dimensions', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.dimensions', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
 
     def test_variables_same_dims(self):
-        indata = (VariableDesc('a', dimensions=[DimensionDesc('x', 4)]),
-                  VariableDesc('b', dimensions=[DimensionDesc('x', 4)]))
+        indata = (
+            VariableDesc('a', dimensions=[DimensionDesc('x', 4)]),
+            VariableDesc('b', dimensions=[DimensionDesc('x', 4)]),
+        )
         fdesc = FileDesc('test.nc', variables=indata)
         actual = fdesc.variables
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('FileDesc.variables', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.variables', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'FileDesc.variables failed')
         adim = fdesc.variables['a'].dimensions['x']
         bdim = fdesc.variables['b'].dimensions['x']
@@ -587,11 +815,15 @@ class FileDescTests(unittest.TestCase):
         fdesc = FileDesc('test.nc', variables=indata, autoparse_time_variable='_t')
         actual = fdesc.variables
         expected = OrderedDict((d.name, d) for d in indata)
-        print_test_message('FileDesc.variables', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.variables', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'FileDesc.variables failed')
         actual = fdesc.dimensions
         expected = OrderedDict()
-        print_test_message('FileDesc.dimensions', input=indata, actual=actual, expected=expected)
+        print_test_message(
+            'FileDesc.dimensions', input=indata, actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'FileDesc.dimensions failed')
 
 
@@ -604,49 +836,62 @@ class DatasetDescTests(unittest.TestCase):
         self.filenames = OrderedDict([('u1', 'u1.nc'), ('u2', 'u2.nc')])
         self._clear_()
 
-        self.fattribs = OrderedDict([('a1', 'attribute 1'),
-                                     ('a2', 'attribute 2')])
+        self.fattribs = OrderedDict([('a1', 'attribute 1'), ('a2', 'attribute 2')])
         self.dims = OrderedDict([('time', 4), ('lat', 3), ('lon', 2)])
-        self.vdims = OrderedDict([('u1', ('time', 'lat', 'lon')),
-                                  ('u2', ('time', 'lat', 'lon'))])
-        self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
-                                            'standard_name': 'latitude'}),
-                                   ('lon', {'units': 'degrees_east',
-                                            'standard_name': 'longitude'}),
-                                   ('time', {'units': 'days since 1979-01-01 0:0:0',
-                                             'calendar': 'noleap',
-                                             'standard_name': 'time'}),
-                                   ('u1', {'units': 'm',
-                                           'standard_name': 'u variable 1'}),
-                                   ('u2', {'units': 'm',
-                                           'standard_name': 'u variable 2'})])
+        self.vdims = OrderedDict(
+            [('u1', ('time', 'lat', 'lon')), ('u2', ('time', 'lat', 'lon'))]
+        )
+        self.vattrs = OrderedDict(
+            [
+                ('lat', {'units': 'degrees_north', 'standard_name': 'latitude'}),
+                ('lon', {'units': 'degrees_east', 'standard_name': 'longitude'}),
+                (
+                    'time',
+                    {
+                        'units': 'days since 1979-01-01 0:0:0',
+                        'calendar': 'noleap',
+                        'standard_name': 'time',
+                    },
+                ),
+                ('u1', {'units': 'm', 'standard_name': 'u variable 1'}),
+                ('u2', {'units': 'm', 'standard_name': 'u variable 2'}),
+            ]
+        )
         self.dtypes = {'lat': 'f', 'lon': 'f', 'time': 'f', 'u1': 'd', 'u2': 'd'}
-        ydat = np.linspace(-90, 90, num=self.dims['lat'],
-                           endpoint=True, dtype=self.dtypes['lat'])
-        xdat = np.linspace(-180, 180, num=self.dims['lon'],
-                           endpoint=False, dtype=self.dtypes['lon'])
-        tdat = np.linspace(0, self.dims['time'], num=self.dims['time'],
-                           endpoint=False, dtype=self.dtypes['time'])
-        ulen = reduce(lambda x, y: x * y, self.dims.itervalues(), 1)
-        ushape = tuple(d for d in self.dims.itervalues())
-        u1dat = np.linspace(0, ulen, num=ulen, endpoint=False,
-                            dtype=self.dtypes['u1']).reshape(ushape)
-        u2dat = np.linspace(0, ulen, num=ulen, endpoint=False,
-                            dtype=self.dtypes['u2']).reshape(ushape)
-        self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat,
-                     'u1': u1dat, 'u2': u2dat}
+        ydat = np.linspace(
+            -90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']
+        )
+        xdat = np.linspace(
+            -180, 180, num=self.dims['lon'], endpoint=False, dtype=self.dtypes['lon']
+        )
+        tdat = np.linspace(
+            0,
+            self.dims['time'],
+            num=self.dims['time'],
+            endpoint=False,
+            dtype=self.dtypes['time'],
+        )
+        ulen = reduce(lambda x, y: x * y, self.dims.values(), 1)
+        ushape = tuple(d for d in self.dims.values())
+        u1dat = np.linspace(
+            0, ulen, num=ulen, endpoint=False, dtype=self.dtypes['u1']
+        ).reshape(ushape)
+        u2dat = np.linspace(
+            0, ulen, num=ulen, endpoint=False, dtype=self.dtypes['u2']
+        ).reshape(ushape)
+        self.vdat = {'lat': ydat, 'lon': xdat, 'time': tdat, 'u1': u1dat, 'u2': u2dat}
 
-        for vname, fname in self.filenames.iteritems():
+        for vname, fname in self.filenames.items():
             ncf = NCDataset(fname, 'w')
             ncf.setncatts(self.fattribs)
             ncvars = {}
-            for dname, dvalue in self.dims.iteritems():
+            for dname, dvalue in self.dims.items():
                 dsize = dvalue if dname != 'time' else None
                 ncf.createDimension(dname, dsize)
                 ncvars[dname] = ncf.createVariable(dname, 'd', (dname,))
             ncvars[vname] = ncf.createVariable(vname, 'd', self.vdims[vname])
-            for vnam, vobj in ncvars.iteritems():
-                for aname, avalue in self.vattrs[vnam].iteritems():
+            for vnam, vobj in ncvars.items():
+                for aname, avalue in self.vattrs[vnam].items():
                     setattr(vobj, aname, avalue)
                 vobj[:] = self.vdat[vnam]
             ncf.close()
@@ -656,7 +901,9 @@ class DatasetDescTests(unittest.TestCase):
         vdicts['W'] = OrderedDict()
         vdicts['W']['datatype'] = 'double'
         vdicts['W']['dimensions'] = ('w',)
-        vdicts['W']['definition'] = np.array([1., 2., 3., 4., 5., 6., 7., 8.], dtype='float64')
+        vdicts['W']['definition'] = np.array(
+            [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], dtype='float64'
+        )
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'something'
         vattribs['units'] = '1'
@@ -729,7 +976,7 @@ class DatasetDescTests(unittest.TestCase):
         self._clear_()
 
     def _clear_(self):
-        for fname in self.filenames.itervalues():
+        for fname in self.filenames.values():
             if exists(fname):
                 remove(fname)
 
@@ -758,25 +1005,33 @@ class DatasetDescTests(unittest.TestCase):
         inds = InputDatasetDesc('myinds', self.filenames.values())
         actual = sorted(inds.variables.keys())
         expected = sorted(self.vdat.keys())
-        print_test_message('InputDatasetDesc.variables', actual=actual, expected=expected)
+        print_test_message(
+            'InputDatasetDesc.variables', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'InputDatasetDesc has wrong variables')
 
     def test_input_dataset_variable_files(self):
         inds = InputDatasetDesc('myinds', self.filenames.values())
-        actual = {v.name: v.files.keys() for v in inds.variables.itervalues()}
-        expected = {'lat': ['u1.nc', 'u2.nc'],
-                    'lon': ['u1.nc', 'u2.nc'],
-                    'time': ['u1.nc', 'u2.nc'],
-                    'u1': ['u1.nc'],
-                    'u2': ['u2.nc']}
-        print_test_message('InputDatasetDesc.variables.files', actual=actual, expected=expected)
+        actual = {v.name: list(v.files.keys()) for v in inds.variables.values()}
+        expected = {
+            'lat': ['u1.nc', 'u2.nc'],
+            'lon': ['u1.nc', 'u2.nc'],
+            'time': ['u1.nc', 'u2.nc'],
+            'u1': ['u1.nc'],
+            'u2': ['u2.nc'],
+        }
+        print_test_message(
+            'InputDatasetDesc.variables.files', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'InputDatasetDesc has wrong variable files')
 
     def test_input_dataset_dimensions(self):
         inds = InputDatasetDesc('myinds', self.filenames.values())
         actual = sorted(inds.dimensions.keys())
         expected = sorted(self.dims.keys())
-        print_test_message('InputDatasetDesc.dimensions', actual=actual, expected=expected)
+        print_test_message(
+            'InputDatasetDesc.dimensions', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'InputDatasetDesc has wrong dimensions')
 
     def test_output_dataset_type(self):
@@ -797,33 +1052,48 @@ class DatasetDescTests(unittest.TestCase):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
         actual = sorted(outds.variables.keys())
         expected = sorted(self.dsdict.keys())
-        print_test_message('OutputDatasetDesc.variables', actual=actual, expected=expected)
+        print_test_message(
+            'OutputDatasetDesc.variables', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong variables')
 
     def test_output_dataset_variable_files(self):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
-        actual = {v.name: v.files.keys() for v in outds.variables.itervalues()}
-        expected = {'X': ['var1.nc', 'var2.nc'],
-                    'Y': ['var1.nc', 'var2.nc'],
-                    'T': ['var1.nc', 'var2.nc'],
-                    'W': ['var1.nc'],
-                    'V1': ['var1.nc', 'var2.nc'],
-                    'V2': ['var2.nc']}
-        print_test_message('OutputDatasetDesc.variables.files', actual=actual, expected=expected)
+        actual = {v.name: list(v.files.keys()) for v in outds.variables.values()}
+        expected = {
+            'X': ['var1.nc', 'var2.nc'],
+            'Y': ['var1.nc', 'var2.nc'],
+            'T': ['var1.nc', 'var2.nc'],
+            'W': ['var1.nc'],
+            'V1': ['var1.nc', 'var2.nc'],
+            'V2': ['var2.nc'],
+        }
+        print_test_message(
+            'OutputDatasetDesc.variables.files', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong variable files')
 
     def test_output_dataset_dimensions(self):
         outds = OutputDatasetDesc('myoutds', self.dsdict)
         actual = sorted(outds.dimensions.keys())
         expected = sorted(['t', 'x', 'y', 'w'])
-        print_test_message('OutputDatasetDesc.dimensions', actual=actual, expected=expected)
+        print_test_message(
+            'OutputDatasetDesc.dimensions', actual=actual, expected=expected
+        )
         self.assertEqual(actual, expected, 'OutputDatasetDesc has wrong dimensions')
 
     def test_output_dataset_validate_type_str(self):
         nc3_type_strs = OutputDatasetDesc._NC_TYPES_[3]
-        nc4_type_strs = [t for t in OutputDatasetDesc._NC_TYPES_[4] if t not in nc3_type_strs]
+        nc4_type_strs = [
+            t for t in OutputDatasetDesc._NC_TYPES_[4] if t not in nc3_type_strs
+        ]
         nc4_formats = ['NETCDF4']
-        nc3_formats = ['NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT_OFFSET', 'NETCDF3_64BIT_DATA']
+        nc3_formats = [
+            'NETCDF4_CLASSIC',
+            'NETCDF3_CLASSIC',
+            'NETCDF3_64BIT_OFFSET',
+            'NETCDF3_64BIT_DATA',
+        ]
         for f in nc3_formats:
             for t in nc3_type_strs:
                 msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t, f)
@@ -831,12 +1101,14 @@ class DatasetDescTests(unittest.TestCase):
                     OutputDatasetDesc._validate_netcdf_type_(t, f)
                 except:
                     self.fail('{}: Failed'.format(msghdr))
-                print '{}: Good'.format(msghdr)
+                print('{}: Good'.format(msghdr))
 
             for t in nc4_type_strs:
                 msghdr = 'OutputDatasetDesc._validate_netcdf_type_({}, {})'.format(t, f)
-                self.assertRaises(ValueError, OutputDatasetDesc._validate_netcdf_type_, t, f)
-                print '{}: Failed properly'.format(msghdr)
+                self.assertRaises(
+                    ValueError, OutputDatasetDesc._validate_netcdf_type_, t, f
+                )
+                print('{}: Failed properly'.format(msghdr))
 
         for f in nc4_formats:
             for t in nc3_type_strs + nc4_type_strs:
@@ -845,4 +1117,4 @@ class DatasetDescTests(unittest.TestCase):
                     OutputDatasetDesc._validate_netcdf_type_(t, f)
                 except:
                     self.fail('{}: Failed'.format(msghdr))
-                print '{}: Good'.format(msghdr)
+                print('{}: Good'.format(msghdr))

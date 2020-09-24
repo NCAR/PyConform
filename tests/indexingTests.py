@@ -10,7 +10,8 @@ import unittest
 import numpy
 
 from pyconform.indexing import align_index, index_str, index_tuple, join
-from testutils import print_test_message
+
+from .testutils import print_test_message
 
 
 class IndexStrTests(unittest.TestCase):
@@ -152,8 +153,10 @@ class JoinTests(unittest.TestCase):
             for s2 in self.slices:
                 good = numpy.array_equal(A[s1][s2], A[join((indata,), s1, s2)])
                 if not good:
-                    print 'Failure: join(({},), {}, {})'.format(indata, s1, s2)
+                    print('Failure: join(({},), {}, {})'.format(indata, s1, s2))
                     nfailures += 1
         testname = 'join(({},), slice, slice)'.format(indata)
-        print_test_message(testname, num_failures=nfailures, num_success=ntests - nfailures)
+        print_test_message(
+            testname, num_failures=nfailures, num_success=ntests - nfailures
+        )
         self.assertEqual(nfailures, 0, '{} failures'.format(nfailures))

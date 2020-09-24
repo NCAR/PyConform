@@ -6,7 +6,7 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 See the LICENSE.rst file for details
 """
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 __version__ = '0.3.0'
 
@@ -25,7 +25,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/x-rst',
     url='https://github.com/NCAR/PyConform',
-    packages=find_packages(exclude=["tests"]),
+    packages=find_packages(exclude=['tests']),
     classifiers=[
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.6',

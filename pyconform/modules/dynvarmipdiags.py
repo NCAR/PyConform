@@ -12,10 +12,10 @@ import numpy
 from pyconform.modules.idl import deriv, int_tabulated
 
 # Constants
-p0 = 101325.
+p0 = 101325.0
 a = 6.37123e6
 om = 7.29212e-5
-H = 7000.
+H = 7000.0
 g0 = 9.80665
 
 
@@ -33,7 +33,9 @@ def _init_wtem(time, levi, lat, wzm, vthzm, thzm):
         dthdp = deriv(levi100, thzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
         tmp = numpy.einsum('ij...,j->ij...', psieddy, coslat)
-        dpsidy = numpy.einsum('ij...,j->ij...', deriv(latrad, tmp, axis=1), 1.0 / (a * coslat))
+        dpsidy = numpy.einsum(
+            'ij...,j->ij...', deriv(latrad, tmp, axis=1), 1.0 / (a * coslat)
+        )
         wtem[itime, ...] = _wzm[itime, ...] + dpsidy
     return wtem
 
@@ -101,7 +103,9 @@ def _init_epfy(time, levi, lat, uzm, uvzm, vthzm, thzm):
         dthdp = deriv(levi100, thzm[itime, ...])
         dudp = deriv(levi100, uzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
-        epfy[itime, ...] = a * numpy.einsum('j,ij...->ij...', coslat, (dudp * psieddy - uvzm[itime, ...]))
+        epfy[itime, ...] = a * numpy.einsum(
+            'j,ij...->ij...', coslat, (dudp * psieddy - uvzm[itime, ...])
+        )
     return epfy
 
 
@@ -129,7 +133,9 @@ def _init_epfz(time, levi, lat, uzm, uwzm, vthzm, thzm):
         dudphi = deriv(latrad, ucos, axis=1) / a
         dthdp = deriv(levi100, thzm[itime, ...])
         psieddy = vthzm[itime, ...] / dthdp
-        epfz[itime, ...] = a * numpy.einsum('j,ij...->ij...', coslat, (f - dudphi) * psieddy - _uwzm[itime, ...])
+        epfz[itime, ...] = a * numpy.einsum(
+            'j,ij...->ij...', coslat, (f - dudphi) * psieddy - _uwzm[itime, ...]
+        )
     return epfz
 
 
@@ -155,7 +161,9 @@ def utendepfd(time, levi, lat, uzm, uvzm, uwzm, vthzm, thzm):
         tmp = numpy.einsum('ij...,j->ij...', epfy[itime, ...], coslat)
         depfydphi = numpy.einsum('ij...,j->ij...', deriv(latrad, tmp, axis=1), iacoslat)
         depfzdp = deriv(levi100, epfz[itime, ...])
-        utendepfd[itime, ...] = numpy.einsum('ij...,j->ij...', depfydphi + depfzdp, iacoslat)
+        utendepfd[itime, ...] = numpy.einsum(
+            'ij...,j->ij...', depfydphi + depfzdp, iacoslat
+        )
     return utendepfd
 
 
@@ -178,7 +186,9 @@ def psitem(time, levi, lat, vzm, vthzm, thzm):
         psieddy = vthzm[itime, ...] / dthdp
         vzmwithzero[1:, ...] = vzm[itime, ...]
         for ilev in range(1, nlevi + 1):
-            result = int_tabulated(levi100withzero[0:ilev + 1], vzmwithzero[0:ilev + 1, ...])
+            result = int_tabulated(
+                levi100withzero[0 : ilev + 1], vzmwithzero[0 : ilev + 1, ...]
+            )
             tmp1 = (2 * numpy.pi * a * coslat) / g0
             tmp2 = result - psieddy[ilev - 1, ...]
             psitem[itime, ilev - 1, ...] = numpy.einsum('i,i...->i...', tmp1, tmp2)

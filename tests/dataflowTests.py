@@ -7,6 +7,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import unittest
 from collections import OrderedDict
+from functools import reduce
 from os import remove
 from os.path import exists
 
@@ -14,7 +15,8 @@ import numpy
 from netCDF4 import Dataset as NCDataset
 
 from pyconform import dataflow, datasets
-from testutils import print_ncfile, print_test_message
+
+from .testutils import print_ncfile, print_test_message
 
 
 class DataFlowTests(unittest.TestCase):
@@ -23,63 +25,111 @@ class DataFlowTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.filenames = OrderedDict([('u1', 'u1.nc'),
-                                      ('u2', 'u2.nc'),
-                                      ('u3', 'u3.nc')])
+        self.filenames = OrderedDict(
+            [('u1', 'u1.nc'), ('u2', 'u2.nc'), ('u3', 'u3.nc')]
+        )
         self.cleanInputFiles()
 
-        self.fattribs = OrderedDict([('a1', 'attribute 1'),
-                                     ('a2', 'attribute 2')])
+        self.fattribs = OrderedDict([('a1', 'attribute 1'), ('a2', 'attribute 2')])
         self.dims = OrderedDict(
-            [('time', 4), ('lat', 7), ('lon', 9), ('strlen', 6), ('ncat', 3), ('bnds', 2)])
-        self.vdims = OrderedDict([('time', ('time',)),
-                                  ('time_bnds', ('time', 'bnds')),
-                                  ('lat', ('lat',)),
-                                  ('lon', ('lon',)),
-                                  ('cat', ('ncat', 'strlen')),
-                                  ('u1', ('time', 'lat', 'lon')),
-                                  ('u2', ('time', 'lat', 'lon')),
-                                  ('u3', ('time', 'lat', 'lon')),
-                                  ('tyears', ('time',)),
-                                  ('p0', tuple())])
-        self.vattrs = OrderedDict([('lat', {'units': 'degrees_north',
-                                            'standard_name': 'latitude'}),
-                                   ('lon', {'units': 'degrees_east',
-                                            'standard_name': 'longitude'}),
-                                   ('time', {'units': 'days since 1979-01-01 0:0:0',
-                                             'calendar': 'noleap',
-                                             'standard_name': 'time'}),
-                                   ('time_bnds', {'units': 'days since 1979-01-01 0:0:0',
-                                                  'calendar': 'noleap'}),
-                                   ('cat', {'standard_name': 'categories'}),
-                                   ('u1', {'units': 'km',
-                                           'standard_name': 'u variable 1'}),
-                                   ('u2', {'units': 'm',
-                                           'standard_name': 'u variable 2'}),
-                                   ('u3', {'units': 'kg',
-                                           'standard_name': 'u variable 3',
-                                           'positive': 'down'}),
-                                   ('tyears', {'units': 'years since 1979-01-01',
-                                               'calendar': 'noleap'}),
-                                   ('p0', {'units': 10})])
-        self.dtypes = {'lat': 'd', 'lon': 'd', 'time': 'd', 'tyears': 'd', 'p0': 'd',
-                       'time_bnds': 'd', 'cat': 'c', 'u1': 'f', 'u2': 'f', 'u3': 'f'}
+            [
+                ('time', 4),
+                ('lat', 7),
+                ('lon', 9),
+                ('strlen', 6),
+                ('ncat', 3),
+                ('bnds', 2),
+            ]
+        )
+        self.vdims = OrderedDict(
+            [
+                ('time', ('time',)),
+                ('time_bnds', ('time', 'bnds')),
+                ('lat', ('lat',)),
+                ('lon', ('lon',)),
+                ('cat', ('ncat', 'strlen')),
+                ('u1', ('time', 'lat', 'lon')),
+                ('u2', ('time', 'lat', 'lon')),
+                ('u3', ('time', 'lat', 'lon')),
+                ('tyears', ('time',)),
+                ('p0', tuple()),
+            ]
+        )
+        self.vattrs = OrderedDict(
+            [
+                ('lat', {'units': 'degrees_north', 'standard_name': 'latitude'}),
+                ('lon', {'units': 'degrees_east', 'standard_name': 'longitude'}),
+                (
+                    'time',
+                    {
+                        'units': 'days since 1979-01-01 0:0:0',
+                        'calendar': 'noleap',
+                        'standard_name': 'time',
+                    },
+                ),
+                (
+                    'time_bnds',
+                    {'units': 'days since 1979-01-01 0:0:0', 'calendar': 'noleap'},
+                ),
+                ('cat', {'standard_name': 'categories'}),
+                ('u1', {'units': 'km', 'standard_name': 'u variable 1'}),
+                ('u2', {'units': 'm', 'standard_name': 'u variable 2'}),
+                (
+                    'u3',
+                    {
+                        'units': 'kg',
+                        'standard_name': 'u variable 3',
+                        'positive': 'down',
+                    },
+                ),
+                ('tyears', {'units': 'years since 1979-01-01', 'calendar': 'noleap'}),
+                ('p0', {'units': 10}),
+            ]
+        )
+        self.dtypes = {
+            'lat': 'd',
+            'lon': 'd',
+            'time': 'd',
+            'tyears': 'd',
+            'p0': 'd',
+            'time_bnds': 'd',
+            'cat': 'c',
+            'u1': 'f',
+            'u2': 'f',
+            'u3': 'f',
+        }
 
-        ulen = reduce(lambda x, y: x * y,
-                      (self.dims[d] for d in self.vdims['u1']), 1)
+        ulen = reduce(lambda x, y: x * y, (self.dims[d] for d in self.vdims['u1']), 1)
         ushape = tuple(self.dims[d] for d in self.vdims['u1'])
         cshape = tuple(self.dims[d] for d in self.vdims['cat'])
         tdata = numpy.arange(self.dims['time'], dtype=self.dtypes['time'])
-        self.vdat = {'lat': numpy.linspace(-90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']),
-                     'lon': -numpy.linspace(-180, 180, num=self.dims['lon'], dtype=self.dtypes['lon'])[::-1],
-                     'time': tdata,
-                     'time_bnds': numpy.array([[i, i + 1] for i in range(self.dims['time'])], dtype=self.dtypes['time_bnds']),
-                     'cat': numpy.asarray(['left', 'middle', 'right'], dtype='S').view(self.dtypes['cat']).reshape(cshape),
-                     'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(ushape),
-                     'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(ushape),
-                     'u3': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u3']).reshape(ushape),
-                     'tyears': tdata / 365.0,
-                     'p0': 0.1}
+        self.vdat = {
+            'lat': numpy.linspace(
+                -90, 90, num=self.dims['lat'], endpoint=True, dtype=self.dtypes['lat']
+            ),
+            'lon': -numpy.linspace(
+                -180, 180, num=self.dims['lon'], dtype=self.dtypes['lon']
+            )[::-1],
+            'time': tdata,
+            'time_bnds': numpy.array(
+                [[i, i + 1] for i in range(self.dims['time'])],
+                dtype=self.dtypes['time_bnds'],
+            ),
+            'cat': numpy.asarray(['left', 'middle', 'right'], dtype='S')
+            .view(self.dtypes['cat'])
+            .reshape(cshape),
+            'u1': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u1']).reshape(
+                ushape
+            ),
+            'u2': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u2']).reshape(
+                ushape
+            ),
+            'u3': numpy.linspace(0, ulen, num=ulen, dtype=self.dtypes['u3']).reshape(
+                ushape
+            ),
+            'tyears': tdata / 365.0,
+            'p0': 0.1,
+        }
 
         for vname in self.filenames:
             fname = self.filenames[vname]
@@ -91,9 +141,11 @@ class DataFlowTests(unittest.TestCase):
                 ncf.createDimension(dname, dsize)
             for uname in [u for u in self.vdims if u not in self.filenames]:
                 ncvars[uname] = ncf.createVariable(
-                    uname, self.dtypes[uname], self.vdims[uname])
+                    uname, self.dtypes[uname], self.vdims[uname]
+                )
             ncvars[vname] = ncf.createVariable(
-                vname, self.dtypes[vname], self.vdims[vname])
+                vname, self.dtypes[vname], self.vdims[vname]
+            )
             for vnam in ncvars:
                 vobj = ncvars[vnam]
                 for aname in self.vattrs[vnam]:
@@ -103,8 +155,7 @@ class DataFlowTests(unittest.TestCase):
             print_ncfile(fname)
             print
 
-        self.inpds = datasets.InputDatasetDesc(
-            'inpds', self.filenames.values())
+        self.inpds = datasets.InputDatasetDesc('inpds', self.filenames.values())
 
         vdicts = OrderedDict()
 
@@ -187,7 +238,9 @@ class DataFlowTests(unittest.TestCase):
         vdicts['T2'] = OrderedDict()
         vdicts['T2']['datatype'] = 'double'
         vdicts['T2']['dimensions'] = ('t',)
-        vdicts['T2']['definition'] = 'chunits(tyears * 365, units="days since 1979-01-01", calendar="noleap")'
+        vdicts['T2'][
+            'definition'
+        ] = 'chunits(tyears * 365, units="days since 1979-01-01", calendar="noleap")'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time_years'
         vattribs['units'] = 'days since 1979-01-01 00:00:00'
@@ -197,7 +250,9 @@ class DataFlowTests(unittest.TestCase):
         vdicts['_T'] = OrderedDict()
         vdicts['_T']['datatype'] = 'double'
         vdicts['_T']['dimensions'] = ('t',)
-        vdicts['_T']['definition'] = 'chunits(rmunits(tyears) * 365 + 10, units="days since 1979-01-01", calendar="noleap")'
+        vdicts['_T'][
+            'definition'
+        ] = 'chunits(rmunits(tyears) * 365 + 10, units="days since 1979-01-01", calendar="noleap")'
         vattribs = OrderedDict()
         vattribs['standard_name'] = 'time_hidden'
         vattribs['units'] = 'days since 1979-01-01 00:00:00'
@@ -329,18 +384,26 @@ class DataFlowTests(unittest.TestCase):
 
         self.outds = datasets.OutputDatasetDesc('outds', self.dsdict)
 
-        self.outfiles = dict((vname, vdict['file']['filename'].replace('{%Y%m%d-%Y%m%d}', '19790101-19790104'))
-                             for vname, vdict in vdicts.iteritems() if 'file' in vdict)
+        self.outfiles = dict(
+            (
+                vname,
+                vdict['file']['filename'].replace(
+                    '{%Y%m%d-%Y%m%d}', '19790101-19790104'
+                ),
+            )
+            for vname, vdict in vdicts.items()
+            if 'file' in vdict
+        )
         self.outfiles['V1'] = 'var1_19790111-19790114.nc'
         self.cleanOutputFiles()
 
     def cleanInputFiles(self):
-        for fname in self.filenames.itervalues():
+        for fname in self.filenames.values():
             if exists(fname):
                 remove(fname)
 
     def cleanOutputFiles(self):
-        for fname in self.outfiles.itervalues():
+        for fname in self.outfiles.values():
             if exists(fname):
                 remove(fname)
 
@@ -360,8 +423,14 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().dimension_map'
         df = dataflow.DataFlow(self.inpds, self.outds)
         actual = df.dimension_map
-        expected = {'lat': 'y', 'strlen': 'n', 'lon': 'x',
-                    'ncat': 'c', 'time': 't', 'bnds': 'd'}
+        expected = {
+            'lat': 'y',
+            'strlen': 'n',
+            'lon': 'x',
+            'ncat': 'c',
+            'time': 't',
+            'bnds': 'd',
+        }
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
 
@@ -369,7 +438,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(history=True)
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -388,7 +457,7 @@ class DataFlowTests(unittest.TestCase):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(chunks={'y': 3})
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))
@@ -401,14 +470,15 @@ class DataFlowTests(unittest.TestCase):
         df = dataflow.DataFlow(self.inpds, self.outds)
         expected = ValueError
         print_test_message(testname, expected=expected)
-        self.assertRaises(expected, df.execute,
-                          chunks=OrderedDict([('x', 4), ('y', 3)]))
+        self.assertRaises(
+            expected, df.execute, chunks=OrderedDict([('x', 4), ('y', 3)])
+        )
 
     def test_execute_chunks_2D_t_y(self):
         testname = 'DataFlow().execute()'
         df = dataflow.DataFlow(self.inpds, self.outds)
         df.execute(chunks=OrderedDict([('t', 2), ('y', 3)]))
-        actual = all(exists(f) for f in self.outfiles.itervalues())
+        actual = all(exists(f) for f in self.outfiles.values())
         expected = True
         print_test_message(testname, actual=actual, expected=expected)
         self.assertEqual(actual, expected, '{} failed'.format(testname))

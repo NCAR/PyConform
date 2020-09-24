@@ -22,7 +22,15 @@ class delpFunction(Function):
         p_hybi = self.arguments[3][index]
 
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_PS.dimensions[0], p_hybi.dimensions[0], p_PS.dimensions[1], p_PS.dimensions[2]])
+            return PhysArray(
+                np.zeros((0, 0, 0, 0)),
+                dimensions=[
+                    p_PS.dimensions[0],
+                    p_hybi.dimensions[0],
+                    p_PS.dimensions[1],
+                    p_PS.dimensions[2],
+                ],
+            )
 
         PO = p_PO.data
         PS = p_PS.data
@@ -31,14 +39,22 @@ class delpFunction(Function):
 
         p = (hyai * PO) + (hybi * PS)
         j = len(hybi)
-        delp = np.ma.zeros((p_PS.dimensions[0], p_hybi.dimensions[0], p_PS.dimensions[1], p_PS.dimensions[2]))
+        delp = np.ma.zeros(
+            (
+                p_PS.dimensions[0],
+                p_hybi.dimensions[0],
+                p_PS.dimensions[1],
+                p_PS.dimensions[2],
+            )
+        )
         for i in range(0, j - 1):
             delp[:, i, :, :] = p[:, i + 1, :, :] - p[:, i, :, :]
 
         new_name = 'delp({}{}{}{})'.format(
-            p_PO.name, p_PS.name, p_hyai.name, p_hybi.name)
+            p_PO.name, p_PS.name, p_hyai.name, p_hybi.name
+        )
 
-        return PhysArray(delp, name=new_name, units="Pa")
+        return PhysArray(delp, name=new_name, units='Pa')
 
 
 class rhoFunction(Function):
@@ -55,7 +71,15 @@ class rhoFunction(Function):
         p_T = self.arguments[4][index]
 
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_T.dimensions[0], p_T.dimensions[1], p_T.dimensions[2], p_T.dimensions[3]])
+            return PhysArray(
+                np.zeros((0, 0, 0, 0)),
+                dimensions=[
+                    p_T.dimensions[0],
+                    p_T.dimensions[1],
+                    p_T.dimensions[2],
+                    p_T.dimensions[3],
+                ],
+            )
 
         PO = p_PO.data
         PS = p_PS.data
@@ -67,9 +91,10 @@ class rhoFunction(Function):
         rho = p / (287.04 * T)
 
         new_name = 'rho({}{}{}{}{})'.format(
-            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name)
+            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name
+        )
 
-        return PhysArray(rho, name=new_name, units="cm-3")
+        return PhysArray(rho, name=new_name, units='cm-3')
 
 
 class pm25Function(Function):
@@ -87,7 +112,15 @@ class pm25Function(Function):
         p_PM25_o = self.arguments[5][index]
 
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0, 0)), dimensions=[p_T.dimensions[0], p_T.dimensions[1], p_T.dimensions[2], p_T.dimensions[3]])
+            return PhysArray(
+                np.zeros((0, 0, 0, 0)),
+                dimensions=[
+                    p_T.dimensions[0],
+                    p_T.dimensions[1],
+                    p_T.dimensions[2],
+                    p_T.dimensions[3],
+                ],
+            )
 
         PO = p_PO.data
         PS = p_PS.data
@@ -97,12 +130,13 @@ class pm25Function(Function):
         PM25_o = p_PM25_o.data
 
         p = (hyam * PO) + (hybm * PS)
-        pm25 = PM25_o * 287. * T / p
+        pm25 = PM25_o * 287.0 * T / p
 
         new_name = 'pm25({}{}{}{}{}{})'.format(
-            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name. p_T.name, p_PM25_o.name)
+            p_PO.name, p_PS.name, p_hyam.name, p_hybm.name, p_T.name, p_PM25_o.name
+        )
 
-        return PhysArray(pm25, name=new_name, units="kg/kg")
+        return PhysArray(pm25, name=new_name, units='kg/kg')
 
 
 # class tozFunction(Function):

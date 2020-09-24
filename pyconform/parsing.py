@@ -71,21 +71,31 @@ OpType.__str__ = lambda self: op_str(self)
 FuncType = namedtuple('FuncType', ['key', 'args', 'kwds'])
 FuncType.__new__.__defaults__ = (None, [], {})
 FuncType.__str__ = lambda self: '{}({})'.format(
-    self.key, ','.join([str(a) for a in self.args]
-                       + ['{}={}'.format(k, self.kwds[k]) for k in self.kwds]))
+    self.key,
+    ','.join(
+        [str(a) for a in self.args]
+        + ['{}={}'.format(k, self.kwds[k]) for k in self.kwds]
+    ),
+)
 
 VarType = namedtuple('VarType', ['key', 'ind'])
 VarType.__new__.__defaults__ = (None, [])
 VarType.__str__ = lambda self: '{}{}'.format(
-    self.key, '' if len(self.ind) == 0 else '[{}]'.format(','.join([ind_str(a) for a in self.ind])))
+    self.key,
+    ''
+    if len(self.ind) == 0
+    else '[{}]'.format(','.join([ind_str(a) for a in self.ind])),
+)
 
 
-precedence = (('left', 'EQ'),
-              ('left', '<', '>', 'LEQ', 'GEQ'),
-              ('left', '+', '-'),
-              ('left', '*', '/'),
-              ('right', 'NEG', 'POS'),
-              ('left', 'POW'))
+precedence = (
+    ('left', 'EQ'),
+    ('left', '<', '>', 'LEQ', 'GEQ'),
+    ('left', '+', '-'),
+    ('left', '*', '/'),
+    ('right', 'NEG', 'POS'),
+    ('left', 'POW'),
+)
 
 
 def p_array_like(p):
@@ -238,8 +248,9 @@ def p_expression_binary(p):
     array_like : array_like GEQ array_like
     array_like : array_like EQ array_like
     """
-    if (isinstance(p[1], (OpType, FuncType, VarType))
-            or isinstance(p[3], (OpType, FuncType, VarType))):
+    if isinstance(p[1], (OpType, FuncType, VarType)) or isinstance(
+        p[3], (OpType, FuncType, VarType)
+    ):
         p[0] = OpType(p[2], [p[1], p[3]])
     elif p[2] == '**':
         p[0] = p[1] ** p[3]

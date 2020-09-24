@@ -15,7 +15,7 @@ from pyconform.physarray import PhysArray, UnitsError, getname
 
 
 def is_constant(arg):
-    return isinstance(arg, (basestring, float, int)) or arg is None
+    return isinstance(arg, (str, float, int)) or arg is None
 
 
 def find(key, numargs=None):
@@ -27,8 +27,7 @@ def find(key, numargs=None):
         return fop
 
     if numargs is not None:
-        raise KeyError(
-            'No operator {!r} with {} arguments found'.format(key, numargs))
+        raise KeyError('No operator {!r} with {} arguments found'.format(key, numargs))
 
     try:
         fop = find_function(key)
@@ -59,13 +58,16 @@ def find_operator(key, numargs=None):
         if len(ops) == 0:
             raise KeyError('Operator {!r} found but not defined'.format(key))
         elif len(ops) == 1:
-            return ops[ops.keys()[0]]
+            return ops[tuple(ops.keys())[0]]
         else:
-            raise KeyError(('Operator {!r} has multiple definitions, '
-                            'number of arguments required').format(key))
+            raise KeyError(
+                (
+                    'Operator {!r} has multiple definitions, '
+                    'number of arguments required'
+                ).format(key)
+            )
     elif numargs not in ops:
-        raise KeyError(
-            'Operator {!r} with {} arguments not found'.format(key, numargs))
+        raise KeyError('Operator {!r} with {} arguments not found'.format(key, numargs))
     else:
         return ops[numargs]
 
@@ -90,8 +92,11 @@ class NegationOperator(Operator):
         super(NegationOperator, self).__init__(arg)
 
     def __getitem__(self, index):
-        arg = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
+        arg = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
         return -arg
 
 
@@ -103,10 +108,16 @@ class AdditionOperator(Operator):
         super(AdditionOperator, self).__init__(left, right)
 
     def __getitem__(self, index):
-        left = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        right = self.arguments[1] if is_constant(
-            self.arguments[1]) else self.arguments[1][index]
+        left = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        right = (
+            self.arguments[1]
+            if is_constant(self.arguments[1])
+            else self.arguments[1][index]
+        )
         return left + right
 
 
@@ -118,10 +129,16 @@ class SubtractionOperator(Operator):
         super(SubtractionOperator, self).__init__(left, right)
 
     def __getitem__(self, index):
-        left = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        right = self.arguments[1] if is_constant(
-            self.arguments[1]) else self.arguments[1][index]
+        left = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        right = (
+            self.arguments[1]
+            if is_constant(self.arguments[1])
+            else self.arguments[1][index]
+        )
         return left - right
 
 
@@ -133,10 +150,16 @@ class PowerOperator(Operator):
         super(PowerOperator, self).__init__(left, right)
 
     def __getitem__(self, index):
-        left = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        right = self.arguments[1] if is_constant(
-            self.arguments[1]) else self.arguments[1][index]
+        left = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        right = (
+            self.arguments[1]
+            if is_constant(self.arguments[1])
+            else self.arguments[1][index]
+        )
         return left ** right
 
 
@@ -148,10 +171,16 @@ class MultiplicationOperator(Operator):
         super(MultiplicationOperator, self).__init__(left, right)
 
     def __getitem__(self, index):
-        left = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        right = self.arguments[1] if is_constant(
-            self.arguments[1]) else self.arguments[1][index]
+        left = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        right = (
+            self.arguments[1]
+            if is_constant(self.arguments[1])
+            else self.arguments[1][index]
+        )
         return left * right
 
 
@@ -163,23 +192,32 @@ class DivisionOperator(Operator):
         super(DivisionOperator, self).__init__(left, right)
 
     def __getitem__(self, index):
-        left = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        right = self.arguments[1] if is_constant(
-            self.arguments[1]) else self.arguments[1][index]
+        left = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        right = (
+            self.arguments[1]
+            if is_constant(self.arguments[1])
+            else self.arguments[1][index]
+        )
         return left / right
 
 
-__OPERATORS__ = {'-': {1: NegationOperator, 2: SubtractionOperator},
-                 '**': {2: PowerOperator},
-                 '+': {2: AdditionOperator},
-                 '*': {2: MultiplicationOperator},
-                 '/': {2: DivisionOperator}}
+__OPERATORS__ = {
+    '-': {1: NegationOperator, 2: SubtractionOperator},
+    '**': {2: PowerOperator},
+    '+': {2: AdditionOperator},
+    '*': {2: MultiplicationOperator},
+    '/': {2: DivisionOperator},
+}
 
 
 def _all_subclasses_(cls):
-    return cls.__subclasses__() + [c for s in cls.__subclasses__()
-                                   for c in _all_subclasses_(s)]
+    return cls.__subclasses__() + [
+        c for s in cls.__subclasses__() for c in _all_subclasses_(s)
+    ]
 
 
 def find_function(key):
@@ -189,8 +227,7 @@ def find_function(key):
             if func is None:
                 func = c
             else:
-                raise RuntimeError(
-                    'Function {!r} is multiply defined'.format(key))
+                raise RuntimeError('Function {!r} is multiply defined'.format(key))
     if func is None:
         raise KeyError('Function {!r} not found'.format(key))
     else:
@@ -230,7 +267,8 @@ class SquareRootFunction(Function):
                 units = data_info.units.root(2)
             except:
                 raise UnitsError(
-                    'sqrt: Cannot take square-root of units {!r}'.format(data.units))
+                    'sqrt: Cannot take square-root of units {!r}'.format(data.units)
+                )
             self._units = units
         else:
             self._units = None
@@ -239,8 +277,13 @@ class SquareRootFunction(Function):
         data_r = self.arguments[0]
         data = data_r if is_constant(data_r) else data_r[index]
         if isinstance(data, PhysArray):
-            return PhysArray(sqrt(data), units=self._units, name='sqrt({})'.format(data.name),
-                             dimensions=data.dimensions, positive=data.positive)
+            return PhysArray(
+                sqrt(data),
+                units=self._units,
+                name='sqrt({})'.format(data.name),
+                dimensions=data.dimensions,
+                positive=data.positive,
+            )
         else:
             return sqrt(data)
 
@@ -254,7 +297,7 @@ class MeanFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('mean: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('mean: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -273,7 +316,7 @@ class SumFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('sum: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('sum: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -297,7 +340,7 @@ class MinFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('min: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('min: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -305,16 +348,22 @@ class MinFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), dimensions=[data.dimensions[0],
-                                                              data.dimensions[2],
-                                                              data.dimensions[3]])
+            return PhysArray(
+                np.zeros((0, 0, 0)),
+                dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]],
+            )
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'min({},{})'.format(data.name, dimensions)
         m = np.amin(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
-                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(
+            m,
+            name=new_name,
+            positive=data.positive,
+            units=data.units,
+            dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]],
+        )
 
 
 class MaxFunction(Function):
@@ -326,7 +375,7 @@ class MaxFunction(Function):
         data_info = data if is_constant(data) else data[None]
         if not isinstance(data_info, PhysArray):
             raise TypeError('max: Data must be a PhysArray')
-        if not all(isinstance(d, basestring) for d in dimensions):
+        if not all(isinstance(d, str) for d in dimensions):
             raise TypeError('max: Dimensions must be strings')
 
     def __getitem__(self, index):
@@ -334,16 +383,23 @@ class MaxFunction(Function):
         dimensions = self.arguments[1:]
         indims = []
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)), units=data.units, dimensions=[data.dimensions[0],
-                                                                                data.dimensions[2],
-                                                                                data.dimensions[3]])
+            return PhysArray(
+                np.zeros((0, 0, 0)),
+                units=data.units,
+                dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]],
+            )
         for d in dimensions:
             if d in data.dimensions:
                 indims.append(data.dimensions.index(d))
         new_name = 'max({},{})'.format(data.name, dimensions[0])
         m = np.amax(data, axis=indims[0])
-        return PhysArray(m, name=new_name, positive=data.positive, units=data.units,
-                         dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]])
+        return PhysArray(
+            m,
+            name=new_name,
+            positive=data.positive,
+            units=data.units,
+            dimensions=[data.dimensions[0], data.dimensions[2], data.dimensions[3]],
+        )
 
 
 class PositiveUpFunction(Function):
@@ -375,7 +431,8 @@ class ChangeUnitsFunction(Function):
 
     def __init__(self, data, units=None, refdate=None, calendar=None):
         super(ChangeUnitsFunction, self).__init__(
-            data, units=units, refdate=refdate, calendar=calendar)
+            data, units=units, refdate=refdate, calendar=calendar
+        )
 
         dunits = Unit(1) if is_constant(data) else data[None].units
         dcal = dunits.calendar
@@ -395,15 +452,14 @@ class ChangeUnitsFunction(Function):
 
         unit = dunit if units is None else uunit
 
-        if isinstance(refdate, basestring):
+        if isinstance(refdate, str):
             ref = refdate
         elif refdate is None:
             ref = dref if uref is None else uref
         else:
-            raise ValueError(
-                'chunits: Reference date must be a string, if given')
+            raise ValueError('chunits: Reference date must be a string, if given')
 
-        if isinstance(calendar, basestring):
+        if isinstance(calendar, str):
             cal = calendar
         elif calendar is None:
             cal = dcal if ucal is None else ucal
@@ -413,14 +469,19 @@ class ChangeUnitsFunction(Function):
         if ref is None:
             self._newunits = Unit(unit, calendar=cal)
         else:
-            self._newunits = Unit(
-                '{} since {}'.format(unit, ref), calendar=cal)
+            self._newunits = Unit('{} since {}'.format(unit, ref), calendar=cal)
 
     def __getitem__(self, index):
-        data = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
-        cal_str = '' if self._newunits.calendar is None else '|{}'.format(
-            self._newunits.calendar)
+        data = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
+        cal_str = (
+            ''
+            if self._newunits.calendar is None
+            else '|{}'.format(self._newunits.calendar)
+        )
         unit_str = '{}{}'.format(self._newunits, cal_str)
         new_name = 'chunits({}, units={})'.format(data.name, unit_str)
         return PhysArray(data, name=new_name, units=self._newunits)
@@ -433,8 +494,11 @@ class LimitFunction(Function):
         super(LimitFunction, self).__init__(data, below=below, above=above)
 
     def __getitem__(self, index):
-        data = self.arguments[0] if is_constant(
-            self.arguments[0]) else self.arguments[0][index]
+        data = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
 
         above_val = self.keywords['above']
         below_val = self.keywords['below']
@@ -466,8 +530,11 @@ class RemoveUnitsFunction(Function):
         super(RemoveUnitsFunction, self).__init__(data)
 
     def __getitem__(self, index):
-        data = (self.arguments[0] if is_constant(self.arguments[0])
-                else self.arguments[0][index])
+        data = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
         new_name = 'rmunits({!s})'.format(getname(data))
         return PhysArray(data, name=new_name, units=1)
 
@@ -479,7 +546,11 @@ class RenameDimensionsFunction(Function):
         super(RenameDimensionsFunction, self).__init__(data, *dims)
 
     def __getitem__(self, index):
-        data = self.arguments[0] if is_constant(self.arguments[0]) else self.arguments[0][index]
+        data = (
+            self.arguments[0]
+            if is_constant(self.arguments[0])
+            else self.arguments[0][index]
+        )
         if len(self.arguments) == 1:
             return data
         dims = self.arguments[1:]

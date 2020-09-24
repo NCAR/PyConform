@@ -33,8 +33,6 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from types import EllipsisType
-
 from numpy import index_exp
 
 
@@ -46,7 +44,7 @@ def index_str(index):
         return ':'
     elif isinstance(index, int):
         return str(index)
-    elif isinstance(index, EllipsisType):
+    elif index is Ellipsis:
         return '...'
     elif isinstance(index, slice):
         strrep = ''
@@ -77,19 +75,23 @@ def index_tuple(index, ndims):
     idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
-    elocs = [loc for loc, i in enumerate(idx) if isinstance(i, EllipsisType)]
+    elocs = [loc for loc, i in enumerate(idx) if i is Ellipsis]
     if len(elocs) == 0:
         nfill = ndims - len(idx)
         if nfill < 0:
-            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError(
+                'Too many indices for array with {} dimensions'.format(ndims)
+            )
         return idx + (slice(None),) * nfill
     elif len(elocs) == 1:
         eloc = elocs[0]
         prefix = idx[:eloc]
-        suffix = idx[eloc + 1:]
+        suffix = idx[eloc + 1 :]
         nfill = ndims - len(prefix) - len(suffix)
         if nfill < 0:
-            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError(
+                'Too many indices for array with {} dimensions'.format(ndims)
+            )
         return prefix + (slice(None),) * nfill + suffix
     else:
         raise IndexError('Too many ellipsis in index expression {}'.format(idx))
@@ -128,7 +130,7 @@ def join(shape0, index1, index2):
 
     ndims0 = len(shape0)
     idx1 = index_tuple(index1, ndims0)
-    ndims1 = map(lambda i: isinstance(i, slice), idx1).count(True)
+    ndims1 = tuple(map(lambda i: isinstance(i, slice), idx1)).count(True)
     idx2 = index_tuple(index2, ndims1)
 
     idx2_l = list(idx2)

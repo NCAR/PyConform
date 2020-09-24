@@ -42,37 +42,100 @@ def cli(argv=None):
               specification file (specfile)."""
 
     parser = ArgumentParser(description=desc)
-    parser.add_argument('-c', '--chunk', dest='chunks', default=[],
-                        metavar='NAME,SIZE', action='append', type=chunk,
-                        help=('Chunk sizes for each dimension specified in the '
-                              'output specification file.  Data will be read/written '
-                              'in sizes given by these chunks. [Default: no chunking]'))
-    parser.add_argument('-d', '--deflate', default=None, metavar='DEFLATELEVEL', type=int,
-                        help=('Override deflate levels of all output files with given value.  '
-                              '(can be any integer from 0 to 9, with 0 meaning no compression)'))
-    parser.add_argument('--debug', default=False, action='store_true',
-                        help=('Whether to enable rudimentary debug features'))
-    parser.add_argument('-e', '--error', default=False, action='store_true',
-                        help=('Whether to error when validation checks do not pass (True) or '
-                              'simply print a warning message (False) [Default: False]'))
-    parser.add_argument('-f', '--stdfile', default=None, metavar='STANDARDIZATION', type=str,
-                        help=('JSON-formatted standardization (output specification) file '
-                              '[REQUIRED]'))
-    parser.add_argument('-m', '--module', default=None, metavar='MODULE', action='append',
-                        help=('Module file path with user-defined functions that must be loaded '
-                              'before the Conformation operation can be done'))
-    parser.add_argument('-n', '--no_history', default=False, action='store_true',
-                        help=('Whether to omit the addition of the "history" attribute in each '
-                              'output variable, which stores the provenance information generated '
-                              'at execution time [Default: False]'))
-    parser.add_argument('-s', '--serial', default=False, action='store_true',
-                        help=('Whether to run in serial (True) or parallel '
-                              '(False). [Default: False]'))
-    parser.add_argument('infiles', metavar='INFILE', nargs='*', type=str,
-                        help=('Input file path or globstring specifying input data for the '
-                              'PyConform operation.  If no input files are specified, then '
-                              'PyConform will validate the output specification file only, and '
-                              'then exit.  [No default]'))
+    parser.add_argument(
+        '-c',
+        '--chunk',
+        dest='chunks',
+        default=[],
+        metavar='NAME,SIZE',
+        action='append',
+        type=chunk,
+        help=(
+            'Chunk sizes for each dimension specified in the '
+            'output specification file.  Data will be read/written '
+            'in sizes given by these chunks. [Default: no chunking]'
+        ),
+    )
+    parser.add_argument(
+        '-d',
+        '--deflate',
+        default=None,
+        metavar='DEFLATELEVEL',
+        type=int,
+        help=(
+            'Override deflate levels of all output files with given value.  '
+            '(can be any integer from 0 to 9, with 0 meaning no compression)'
+        ),
+    )
+    parser.add_argument(
+        '--debug',
+        default=False,
+        action='store_true',
+        help=('Whether to enable rudimentary debug features'),
+    )
+    parser.add_argument(
+        '-e',
+        '--error',
+        default=False,
+        action='store_true',
+        help=(
+            'Whether to error when validation checks do not pass (True) or '
+            'simply print a warning message (False) [Default: False]'
+        ),
+    )
+    parser.add_argument(
+        '-f',
+        '--stdfile',
+        default=None,
+        metavar='STANDARDIZATION',
+        type=str,
+        help=(
+            'JSON-formatted standardization (output specification) file ' '[REQUIRED]'
+        ),
+    )
+    parser.add_argument(
+        '-m',
+        '--module',
+        default=None,
+        metavar='MODULE',
+        action='append',
+        help=(
+            'Module file path with user-defined functions that must be loaded '
+            'before the Conformation operation can be done'
+        ),
+    )
+    parser.add_argument(
+        '-n',
+        '--no_history',
+        default=False,
+        action='store_true',
+        help=(
+            'Whether to omit the addition of the "history" attribute in each '
+            'output variable, which stores the provenance information generated '
+            'at execution time [Default: False]'
+        ),
+    )
+    parser.add_argument(
+        '-s',
+        '--serial',
+        default=False,
+        action='store_true',
+        help=(
+            'Whether to run in serial (True) or parallel ' '(False). [Default: False]'
+        ),
+    )
+    parser.add_argument(
+        'infiles',
+        metavar='INFILE',
+        nargs='*',
+        type=str,
+        help=(
+            'Input file path or globstring specifying input data for the '
+            'PyConform operation.  If no input files are specified, then '
+            'PyConform will validate the output specification file only, and '
+            'then exit.  [No default]'
+        ),
+    )
 
     return parser.parse_args(argv)
 
@@ -88,16 +151,16 @@ def main(argv=None):
 
         # Check that the specfile exists
         if not exists(args.stdfile):
-            raise OSError(('Output specification file {!r} not '
-                           'found').format(args.stdfile))
+            raise OSError(
+                ('Output specification file {!r} not ' 'found').format(args.stdfile)
+            )
 
         # Read the specfile into a dictionary
-        print 'Reading standardization file: {}'.format(args.stdfile)
-        dsdict = json_load(open(args.stdfile, 'r'),
-                           object_pairs_hook=OrderedDict)
+        print('Reading standardization file: {}'.format(args.stdfile))
+        dsdict = json_load(open(args.stdfile, 'r'), object_pairs_hook=OrderedDict)
 
         # Parse the output Dataset
-        print 'Creating output dataset descriptor from standardization file...'
+        print('Creating output dataset descriptor from standardization file...')
         outds = OutputDatasetDesc(dsdict=dsdict)
 
     else:
@@ -119,11 +182,15 @@ def main(argv=None):
 
         # If no input files, stop here
         if len(infiles) == 0:
-            print 'Standardization file validated.'
+            print('Standardization file validated.')
             return
 
         # Parse the input Dataset
-        print 'Creating input dataset descriptor from {} input files...'.format(len(infiles))
+        print(
+            'Creating input dataset descriptor from {} input files...'.format(
+                len(infiles)
+            )
+        )
         inpds = InputDatasetDesc(filenames=infiles)
 
     else:
@@ -137,7 +204,7 @@ def main(argv=None):
 
     # Check for warn/error
     if args.error:
-        simplefilter("error", ValidationWarning)
+        simplefilter('error', ValidationWarning)
 
     # Try importing all of the necessary user-defined modules
     if args.module is not None:
@@ -146,13 +213,18 @@ def main(argv=None):
 
     # Setup the PyConform data flow on all nodes
     if scomm.is_manager():
-        print 'Creating the data flow...'.format(len(infiles))
+        print('Creating the data flow...')
     dataflow = DataFlow(inpds, outds)
 
     # Execute the data flow (write to files)
     history = not args.no_history
-    dataflow.execute(chunks=dict(args.chunks), scomm=scomm, history=history,
-                     deflate=args.deflate, debug=args.debug)
+    dataflow.execute(
+        chunks=dict(args.chunks),
+        scomm=scomm,
+        history=history,
+        deflate=args.deflate,
+        debug=args.debug,
+    )
 
 
 if __name__ == '__main__':

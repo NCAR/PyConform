@@ -8,7 +8,9 @@ LICENSE: See the LICENSE.rst file for details
 import sys
 
 
-def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_axes={}, user_tableInfo={}):
+def mip_table_parser(
+    exp, mip, table, variables, type=None, user_vars={}, user_axes={}, user_tableInfo={}
+):
     """
     Function will parse three different MIP table formats: tab deliminated, CMOR, and XML.
     After the table has been parsed, the information is standardized into the three dictionaries
@@ -38,7 +40,12 @@ def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_a
     table_var_fields = {
         'cell_measures': ['cell_measures'],
         'cell_methods': ['cell_methods'],
-        'cf_standard_name': ['CF Standard Name', 'CF_Standard_Name', 'cf_standard_name', 'standard_name'],
+        'cf_standard_name': [
+            'CF Standard Name',
+            'CF_Standard_Name',
+            'cf_standard_name',
+            'standard_name',
+        ],
         'comment': ['comment'],
         'deflate': ['deflate'],
         'deflate_level': ['deflate_level'],
@@ -63,7 +70,7 @@ def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_a
         'type': ['type'],
         'units': ['units'],
         'valid_max': ['valid_max'],
-        'valid_min': ['valid_min']
+        'valid_min': ['valid_min'],
     }
 
     # Standardized identifiers for axes fields
@@ -95,7 +102,7 @@ def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_a
         'valid_min': ['valid_min'],
         'value': ['value'],
         'z_bounds_factors': ['z_bounds_factors'],
-        'z_factors': ['z_factors']
+        'z_factors': ['z_factors'],
     }
 
     # Standardized identifiers for table information fields
@@ -119,7 +126,7 @@ def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_a
         'required_global_attributes': ['required_global_attributes'],
         'table_date': ['table_date'],
         'table_id': ['table_id'],
-        'tracking_prefix': ['tracking_prefix']
+        'tracking_prefix': ['tracking_prefix'],
     }
 
     # Set the type of table and return a dictionary that contains the read information.
@@ -129,8 +136,18 @@ def mip_table_parser(exp, mip, table, variables, type=None, user_vars={}, user_a
         p = ParseCmorTable()
     elif type == 'xml':
         p = ParseXML()
-    return p.parse_table(exp, mip, table, variables, table_var_fields, table_axes_fields,
-                         table_fields, user_vars, user_axes, user_tableInfo)
+    return p.parse_table(
+        exp,
+        mip,
+        table,
+        variables,
+        table_var_fields,
+        table_axes_fields,
+        table_fields,
+        user_vars,
+        user_axes,
+        user_tableInfo,
+    )
 
 
 def _get_key(key, table, user_table):
@@ -147,24 +164,40 @@ def _get_key(key, table, user_table):
         k (str): The key to use that matches the standardization.  Program will exit if no matching
                  key is found.
     """
-    for k, v in table.iteritems():
+    for k, v in table.items():
         if key in v:  # Search for field name in standard dictionary.
             return k
-        elif k in user_table.keys():  # Search for field name in user created dictionary.
+        elif (
+            k in user_table.keys()
+        ):  # Search for field name in user created dictionary.
             if key in user_table[k]:
                 return k
     # field name is not recognized.  Exit the program with an error.
-    print('Error: ', key, ' is not a valid field name at this time.  Please define and resubmit.')
+    print(
+        'Error: ',
+        key,
+        ' is not a valid field name at this time.  Please define and resubmit.',
+    )
     sys.exit(1)
 
 
 class ParseExcel(object):
-
     def __init__(self):
         super(ParseExcel, self).__init__()
 
-    def parse_table(self, exp, mip, table, variables, table_var_fields, table_axes_fields,
-                    table_fields, user_vars, user_axes, user_tableInfo):
+    def parse_table(
+        self,
+        exp,
+        mip,
+        table,
+        variables,
+        table_var_fields,
+        table_axes_fields,
+        table_fields,
+        user_vars,
+        user_axes,
+        user_tableInfo,
+    ):
         """
         Function will parse a tab deliminated file and return a dictionary containing
         the parsed fields.
@@ -213,12 +246,14 @@ class ParseExcel(object):
                             variables[vn][cols[c]] = s.rows[r][c].value
                         variables[vn]['variable_id'] = vn
                         variables[vn]['mipTable'] = sheet
-                        variables[vn]['coordinates'] = variables[vn]['dimensions'].strip().replace(' ', '|')
-                        dims = variables[vn]['dimensions'].encode("utf-8").split()
+                        variables[vn]['coordinates'] = (
+                            variables[vn]['dimensions'].strip().replace(' ', '|')
+                        )
+                        dims = variables[vn]['dimensions'].encode('utf-8').split()
                         for dim in dims:
                             if dim not in axes.keys():
                                 axes[dim] = {}
-                    table_info["table_id"] = sheet
+                    table_info['table_id'] = sheet
                     table_dict[sheet] = {}
                     table_dict[sheet]['variables'] = variables
                     table_dict[sheet]['axes'] = axes
@@ -228,9 +263,19 @@ class ParseExcel(object):
 
 
 class ParseCmorTable(object):
-
-    def parse_table(self, exp, mip, table, v_list, table_var_fields, table_axes_fields,
-                    table_fields, user_vars, user_axes, user_tableInfo):
+    def parse_table(
+        self,
+        exp,
+        mip,
+        table,
+        v_list,
+        table_var_fields,
+        table_axes_fields,
+        table_fields,
+        user_vars,
+        user_axes,
+        user_tableInfo,
+    ):
         """
         Function will parse a CMOR table text file and return a dictionary containing
         the parsed fields.
@@ -260,26 +305,28 @@ class ParseCmorTable(object):
 
         # Open and load the CMOR/CMIP json file
         total_request = {}
-        print table
+        print(table)
         for t in table:
             table_dict = {}
             with open(t) as f:
                 mt = json.load(f)
 
             if len(v_list) == 0:
-                v_list = mt["variable_entry"].keys()
+                v_list = list(mt['variable_entry'].keys())
 
             variables = {}
             axes = {}
             for var in v_list:
-                v = mt["variable_entry"][var]
+                v = mt['variable_entry'][var]
                 variables[var] = v
-                variables[var]["variable_id"] = var
+                variables[var]['variable_id'] = var
                 variables[var]['realm'] = mt['Header']['realm']
-                variables[var]['mipTable'] = mt['Header']['table_id'].replace('Table ', '')
+                variables[var]['mipTable'] = mt['Header']['table_id'].replace(
+                    'Table ', ''
+                )
                 variables[var]['frequency'] = mt['Header']['frequency']
                 variables[var]['coordinates'] = v['dimensions'].replace(' ', '|')
-                dims = v['dimensions'].encode("utf-8").split()
+                dims = v['dimensions'].encode('utf-8').split()
                 for dim in dims:
                     if dim not in axes.keys() and dim in mt['axis_entry'].keys():
                         axes[dim] = mt['axis_entry'][dim]
@@ -294,9 +341,19 @@ class ParseCmorTable(object):
 
 
 class ParseXML(object):
-
-    def parse_table(self, exp, mips, tables, v_list, table_var_fields, table_axes_fields,
-                    table_fields, user_vars, user_axes, user_tableInfo):
+    def parse_table(
+        self,
+        exp,
+        mips,
+        tables,
+        v_list,
+        table_var_fields,
+        table_axes_fields,
+        table_fields,
+        user_vars,
+        user_axes,
+        user_tableInfo,
+    ):
         """
         Function will parse an XML file using dreqPy and return a dictionary containing
         the parsed fields.
@@ -348,9 +405,20 @@ class ParseXML(object):
             # print '\033[91m','Invalid experiment name.  Please choose from the folowing options:','\033[0m'
             # print sorted(dq.inx.experiment.label.keys()),len(dq.inx.experiment.label.keys())
             # return {}
-            print '\033[91m', 'This experiment name is not registered within the data request.', '\033[0m'
-            print '\033[91m', 'Using a generic exp name instead.  If you think this name should be registered, verify the name is correct from the list below.', '\033[0m'
-            print sorted(dq.inx.experiment.label.keys()), len(dq.inx.experiment.label.keys())
+            print(
+                '\033[91m',
+                'This experiment name is not registered within the data request.',
+                '\033[0m',
+            )
+            print(
+                '\033[91m',
+                'Using a generic exp name instead.  If you think this name should be registered, verify the name is correct from the list below.',
+                '\033[0m',
+            )
+            print(
+                sorted(dq.inx.experiment.label.keys()),
+                len(dq.inx.experiment.label.keys()),
+            )
             e_id = dq.inx.experiment.label['historical']
         activity_id = dq.inx.uid[e_id[0]].mip
 
@@ -408,8 +476,8 @@ class ParseXML(object):
                         if hasattr(c_var, 'mipTable'):
                             var['mipTable'] = c_var.mipTable
                             if c_var.mipTable in tables or '--ALL--' in tables:
-                                var["_FillValue"] = "1.0E20"
-                                var["missing_value"] = 1.0E20
+                                var['_FillValue'] = '1.0E20'
+                                var['missing_value'] = 1.0e20
                                 if hasattr(c_var, 'deflate'):
                                     var['deflate'] = c_var.deflate
                                 if hasattr(c_var, 'deflate_level'):
@@ -452,10 +520,14 @@ class ParseXML(object):
                                 if hasattr(c_var, 'type'):
                                     var['type'] = c_var.type
                                 if hasattr(c_var, 'valid_max'):
-                                    if isinstance(c_var.valid_max, (int, long, float, complex)):
+                                    if isinstance(
+                                        c_var.valid_max, (int, float, complex)
+                                    ):
                                         var['valid_max'] = c_var.valid_max
                                 if hasattr(c_var, 'valid_min'):
-                                    if isinstance(c_var.valid_min, (int, long, float, complex)):
+                                    if isinstance(
+                                        c_var.valid_min, (int, float, complex)
+                                    ):
                                         var['valid_min'] = c_var.valid_min
 
                                 # Set what we can from the standard section
@@ -466,10 +538,16 @@ class ParseXML(object):
                                     if hasattr(s_var, 'cell_methods'):
                                         var['cell_methods'] = s_var.cell_methods
                                         if hasattr(s_var, 'coords'):
-                                            if isinstance(s_var.cids, list) :
-                                                var['coordinates'] = dq.inx.uid[s_var.cids[0]].label
+                                            if isinstance(s_var.cids, list):
+                                                var['coordinates'] = dq.inx.uid[
+                                                    s_var.cids[0]
+                                                ].label
                                                 c = dq.inx.uid[s_var.cids[0]]
-                                                if c not in axes_list and c != '' and c != 'None':
+                                                if (
+                                                    c not in axes_list
+                                                    and c != ''
+                                                    and c != 'None'
+                                                ):
                                                     axes_list.append(c)
 
                                     # Set what we can from the time section
@@ -492,7 +570,9 @@ class ParseXML(object):
                                             if 'coordinates' not in var.keys():
                                                 var['coordinates'] = extra_dim
                                             else:
-                                                var['coordinates'] = extra_dim + "|" + var['coordinates']
+                                                var['coordinates'] = (
+                                                    extra_dim + '|' + var['coordinates']
+                                                )
                                             if extra_dim not in axes_list:
                                                 axes_list.append(extra_dim)
 
@@ -506,21 +586,43 @@ class ParseXML(object):
                                                     if len(sp_var_d) > 1:
                                                         if sp_var_d[-1] == '|':
                                                             sp_var_d = sp_var_d[:-1]
-                                                    var['coordinates'] = sp_var_d + '|' + var['coordinates']
+                                                    var['coordinates'] = (
+                                                        sp_var_d
+                                                        + '|'
+                                                        + var['coordinates']
+                                                    )
                                                 else:
-                                                    var['coordinates'] = sp_var.dimensions
-                                                if 'grid_latitude' in var['coordinates']:
-                                                    var['coordinates'] = var['coordinates'].replace('grid_latitude', 'gridlatitude')
+                                                    var[
+                                                        'coordinates'
+                                                    ] = sp_var.dimensions
+                                                if (
+                                                    'grid_latitude'
+                                                    in var['coordinates']
+                                                ):
+                                                    var['coordinates'] = var[
+                                                        'coordinates'
+                                                    ].replace(
+                                                        'grid_latitude', 'gridlatitude'
+                                                    )
                                                 dims = var['coordinates'].split('|')
                                                 for d in dims:
-                                                    if d not in axes_list and d != '' and d != 'None':
-                                                        if 'copy' not in var['id'] and '?' not in d:
+                                                    if (
+                                                        d not in axes_list
+                                                        and d != ''
+                                                        and d != 'None'
+                                                    ):
+                                                        if (
+                                                            'copy' not in var['id']
+                                                            and '?' not in d
+                                                        ):
                                                             axes_list.append(d)
 
                                     if 'coordinates' in var.keys():
                                         if len(var['coordinates']) > 1:
                                             if var['coordinates'][-1] == '|':
-                                                var['coordinates'] = var['coordinates'][:-1]
+                                                var['coordinates'] = var['coordinates'][
+                                                    :-1
+                                                ]
 
                                 # Set what we can from the variable section
                                 if hasattr(c_var, 'vid'):
@@ -532,9 +634,9 @@ class ParseXML(object):
                                     if hasattr(v_var, 'long_name'):
                                         var['long_name'] = v_var.sn
                                     if hasattr(v_var, 'units'):
-                                        if v_var.units == "":
+                                        if v_var.units == '':
                                             var['units'] = 'None'
-                                            print c_var.label, " does not have units"
+                                            print(c_var.label, ' does not have units')
                                         else:
                                             var['units'] = v_var.units
 
@@ -549,7 +651,7 @@ class ParseXML(object):
                                 v = dq.inx.grids.uid[id[0]]
                             ax = {}
                             if hasattr(v, 'units'):
-                                if v.units == "":
+                                if v.units == '':
                                     ax['units'] = '1'
                                 else:
                                     ax['units'] = v.units
@@ -558,10 +660,10 @@ class ParseXML(object):
                             if hasattr(v, 'axis'):
                                 ax['axis'] = v.axis
                             if hasattr(v, 'valid_max'):
-                                if isinstance(v.valid_max, (int, long, float, complex)):
+                                if isinstance(v.valid_max, (int, float, complex)):
                                     ax['valid_max'] = v.valid_max
                             if hasattr(v, 'valid_min'):
-                                if isinstance(v.valid_min, (int, long, float, complex)):
+                                if isinstance(v.valid_min, (int, float, complex)):
                                     ax['valid_min'] = v.valid_min
                             if hasattr(v, 'standardName'):
                                 if isinstance(v.standardName, (str)):
@@ -583,7 +685,7 @@ class ParseXML(object):
                                 ax['title'] = v.title
                             if hasattr(v, 'bounds'):
                                 if 'yes' in v.bounds:
-                                    ax['bounds'] = v.label + "_bnds"
+                                    ax['bounds'] = v.label + '_bnds'
                             if hasattr(v, 'requested'):
                                 ax['requested'] = v.requested
                             if hasattr(v, 'altLabel'):
@@ -595,13 +697,13 @@ class ParseXML(object):
                             axes[a] = ax
                         else:
                             v = a
-                            print "Cannot find link for dimension: ", v
+                            print('Cannot find link for dimension: ', v)
 
                     try:
                         table_dict['variables'] = variables
                         table_dict['axes'] = axes
                     except UnboundLocalError:
-                        print 'Does not fit criteria: ', exp
+                        print('Does not fit criteria: ', exp)
                     table_dict['table_info'] = table_info
                     tab = rvg.label
                     table_info['table_id'] = tab
