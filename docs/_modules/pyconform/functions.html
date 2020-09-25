@@ -1,38 +1,39 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.functions &mdash; PyConform 0.2.8 documentation</title>
+  <title>pyconform.functions &mdash; PyConform 0.3.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
@@ -48,7 +49,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home"> PyConform
+            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> PyConform
           
 
           
@@ -58,7 +59,7 @@
             
             
               <div class="version">
-                0.2
+                0.3
               </div>
             
           
@@ -75,6 +76,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -93,6 +95,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -131,7 +134,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
@@ -154,27 +157,23 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Functions for FunctionEvaluator Actions</span>
 
-<span class="sd">Copyright 2017-2018, University Corporation for Atmospheric Research</span>
+<span class="sd">Copyright 2017-2020, University Corporation for Atmospheric Research</span>
 <span class="sd">LICENSE: See the LICENSE.rst file for details</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">pyconform.physarray</span> <span class="kn">import</span> <span class="n">PhysArray</span><span class="p">,</span> <span class="n">UnitsError</span><span class="p">,</span> <span class="n">getname</span>
-<span class="kn">from</span> <span class="nn">numpy.ma</span> <span class="kn">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">where</span>
-<span class="kn">from</span> <span class="nn">cf_units</span> <span class="kn">import</span> <span class="n">Unit</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">cf_units</span> <span class="kn">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">numpy.ma</span> <span class="kn">import</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">where</span>
+
+<span class="kn">from</span> <span class="nn">pyconform.physarray</span> <span class="kn">import</span> <span class="n">PhysArray</span><span class="p">,</span> <span class="n">UnitsError</span><span class="p">,</span> <span class="n">getname</span>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># is_constant - Determine if an argument is a constant (number or string)</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="is_constant"><a class="viewcode-back" href="../../functions.html#pyconform.functions.is_constant">[docs]</a><span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
-    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="n">basestring</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span> <span class="ow">or</span> <span class="n">arg</span> <span class="ow">is</span> <span class="kc">None</span></div>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span> <span class="ow">or</span> <span class="n">arg</span> <span class="ow">is</span> <span class="kc">None</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Find a function or operator based on key and number of arguments</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="find"><a class="viewcode-back" href="../../functions.html#pyconform.functions.find">[docs]</a><span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">fop</span> <span class="o">=</span> <span class="n">find_operator</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="o">=</span><span class="n">numargs</span><span class="p">)</span>
@@ -184,23 +183,19 @@
         <span class="k">return</span> <span class="n">fop</span>
 
     <span class="k">if</span> <span class="n">numargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-            <span class="s1">&#39;No operator </span><span class="si">{!r}</span><span class="s1"> with </span><span class="si">{}</span><span class="s1"> arguments found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No operator </span><span class="si">{!r}</span><span class="s2"> with </span><span class="si">{}</span><span class="s2"> arguments found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="p">))</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">fop</span> <span class="o">=</span> <span class="n">find_function</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
     <span class="k">except</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;No operator or function </span><span class="si">{!r}</span><span class="s1"> found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;No operator or function </span><span class="si">{!r}</span><span class="s2"> found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">fop</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># FunctionBase - base class for Function and Operator Classes</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="FunctionBase"><a class="viewcode-back" href="../../functions.html#pyconform.functions.FunctionBase">[docs]</a><span class="k">class</span> <span class="nc">FunctionBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;function&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;function&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">args</span>
@@ -211,183 +206,176 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<span class="c1">##########################################################################</span>
-<span class="c1">##### OPERATORS ##########################################################</span>
-<span class="c1">##########################################################################</span>
-
-
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Get the function associated with the given key-symbol</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="find_operator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.find_operator">[docs]</a><span class="k">def</span> <span class="nf">find_operator</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">__OPERATORS__</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Operator </span><span class="si">{!r}</span><span class="s1"> not found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Operator </span><span class="si">{!r}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="n">ops</span> <span class="o">=</span> <span class="n">__OPERATORS__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">numargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Operator </span><span class="si">{!r}</span><span class="s1"> found but not defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Operator </span><span class="si">{!r}</span><span class="s2"> found but not defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">ops</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">ops</span><span class="p">[</span><span class="n">ops</span><span class="o">.</span><span class="n">keys</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">return</span> <span class="n">ops</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ops</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">((</span><span class="s1">&#39;Operator </span><span class="si">{!r}</span><span class="s1"> has multiple definitions, &#39;</span>
-                            <span class="s1">&#39;number of arguments required&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="s2">&quot;Operator </span><span class="si">{!r}</span><span class="s2"> has multiple definitions, &quot;</span>
+                    <span class="s2">&quot;number of arguments required&quot;</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">elif</span> <span class="n">numargs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ops</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
-            <span class="s1">&#39;Operator </span><span class="si">{!r}</span><span class="s1"> with </span><span class="si">{}</span><span class="s1"> arguments not found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Operator </span><span class="si">{!r}</span><span class="s2"> with </span><span class="si">{}</span><span class="s2"> arguments not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">numargs</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">ops</span><span class="p">[</span><span class="n">numargs</span><span class="p">]</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># operators</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="list_operators"><a class="viewcode-back" href="../../functions.html#pyconform.functions.list_operators">[docs]</a><span class="k">def</span> <span class="nf">list_operators</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">__OPERATORS__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Operator - From which all &#39;X op Y&#39;-pattern operators derive</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="Operator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.Operator">[docs]</a><span class="k">class</span> <span class="nc">Operator</span><span class="p">(</span><span class="n">FunctionBase</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;?&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;?&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Operator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># NegationOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="NegationOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.NegationOperator">[docs]</a><span class="k">class</span> <span class="nc">NegationOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NegationOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="o">-</span><span class="n">arg</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># AdditionOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="AdditionOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.AdditionOperator">[docs]</a><span class="k">class</span> <span class="nc">AdditionOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;+&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AdditionOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">left</span> <span class="o">+</span> <span class="n">right</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># SubtractionOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="SubtractionOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.SubtractionOperator">[docs]</a><span class="k">class</span> <span class="nc">SubtractionOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SubtractionOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">left</span> <span class="o">-</span> <span class="n">right</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># PowerOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="PowerOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.PowerOperator">[docs]</a><span class="k">class</span> <span class="nc">PowerOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;**&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;**&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PowerOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">left</span> <span class="o">**</span> <span class="n">right</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># MultiplicationOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="MultiplicationOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.MultiplicationOperator">[docs]</a><span class="k">class</span> <span class="nc">MultiplicationOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;*&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;*&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MultiplicationOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">left</span> <span class="o">*</span> <span class="n">right</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># DivisionOperator</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="DivisionOperator"><a class="viewcode-back" href="../../functions.html#pyconform.functions.DivisionOperator">[docs]</a><span class="k">class</span> <span class="nc">DivisionOperator</span><span class="p">(</span><span class="n">Operator</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span>
     <span class="n">numargs</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DivisionOperator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">left</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">return</span> <span class="n">left</span> <span class="o">/</span> <span class="n">right</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Operator map - Fixed to prevent user-redefinition!</span>
-<span class="c1">#=========================================================================</span>
-
-<span class="n">__OPERATORS__</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;-&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="n">NegationOperator</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="n">SubtractionOperator</span><span class="p">},</span>
-                 <span class="s1">&#39;**&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">PowerOperator</span><span class="p">},</span>
-                 <span class="s1">&#39;+&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">AdditionOperator</span><span class="p">},</span>
-                 <span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">MultiplicationOperator</span><span class="p">},</span>
-                 <span class="s1">&#39;/&#39;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">DivisionOperator</span><span class="p">}}</span>
+<span class="n">__OPERATORS__</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;-&quot;</span><span class="p">:</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="n">NegationOperator</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="n">SubtractionOperator</span><span class="p">},</span>
+    <span class="s2">&quot;**&quot;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">PowerOperator</span><span class="p">},</span>
+    <span class="s2">&quot;+&quot;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">AdditionOperator</span><span class="p">},</span>
+    <span class="s2">&quot;*&quot;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">MultiplicationOperator</span><span class="p">},</span>
+    <span class="s2">&quot;/&quot;</span><span class="p">:</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="n">DivisionOperator</span><span class="p">},</span>
+<span class="p">}</span>
 
 
-<span class="c1">##########################################################################</span>
-<span class="c1">##### FUNCTIONS ##########################################################</span>
-<span class="c1">##########################################################################</span>
-
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Recursively return all subclasses of a given class</span>
-<span class="c1">#=========================================================================</span>
 <span class="k">def</span> <span class="nf">_all_subclasses_</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span>
-                                   <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_all_subclasses_</span><span class="p">(</span><span class="n">s</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="n">c</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__subclasses__</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_all_subclasses_</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="p">]</span>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Get the function associated with the given key-symbol</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="find_function"><a class="viewcode-back" href="../../functions.html#pyconform.functions.find_function">[docs]</a><span class="k">def</span> <span class="nf">find_function</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
     <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_all_subclasses_</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
@@ -395,26 +383,19 @@
             <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">func</span> <span class="o">=</span> <span class="n">c</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                    <span class="s1">&#39;Function </span><span class="si">{!r}</span><span class="s1"> is multiply defined&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Function </span><span class="si">{!r}</span><span class="s2"> is multiply defined&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Function </span><span class="si">{!r}</span><span class="s1"> not found&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Function </span><span class="si">{!r}</span><span class="s2"> not found&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">func</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># list_functions</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="list_functions"><a class="viewcode-back" href="../../functions.html#pyconform.functions.list_functions">[docs]</a><span class="k">def</span> <span class="nf">list_functions</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">key</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_all_subclasses_</span><span class="p">(</span><span class="n">Function</span><span class="p">)]</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># Function - From which all &#39;func(...)&#39;-pattern functions derive</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="Function"><a class="viewcode-back" href="../../functions.html#pyconform.functions.Function">[docs]</a><span class="k">class</span> <span class="nc">Function</span><span class="p">(</span><span class="n">FunctionBase</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;func&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;func&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Function</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
@@ -431,11 +412,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_sumlike_dimensions</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dims</span><span class="p">))</span></div></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># SquareRoot</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="SquareRootFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.SquareRootFunction">[docs]</a><span class="k">class</span> <span class="nc">SquareRootFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;sqrt&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;sqrt&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SquareRootFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -445,7 +423,8 @@
                 <span class="n">units</span> <span class="o">=</span> <span class="n">data_info</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">root</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">UnitsError</span><span class="p">(</span>
-                    <span class="s1">&#39;sqrt: Cannot take square-root of units </span><span class="si">{!r}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">))</span>
+                    <span class="s2">&quot;sqrt: Cannot take square-root of units </span><span class="si">{!r}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="kc">None</span>
@@ -454,26 +433,28 @@
         <span class="n">data_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data_r</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data_r</span><span class="p">)</span> <span class="k">else</span> <span class="n">data_r</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;sqrt(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-                             <span class="n">dimensions</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span>
+                <span class="n">sqrt</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;sqrt(</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">,</span>
+                <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># MeanFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="MeanFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.MeanFunction">[docs]</a><span class="k">class</span> <span class="nc">MeanFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;mean&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MeanFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_sumlike_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="n">data_info</span> <span class="o">=</span> <span class="n">data</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_info</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;mean: Data must be a PhysArray&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;mean: Dimensions must be strings&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;mean: Data must be a PhysArray&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;mean: Dimensions must be strings&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
@@ -482,20 +463,17 @@
         <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dimensions</span><span class="o">=</span><span class="n">indims</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># SumFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="SumFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.SumFunction">[docs]</a><span class="k">class</span> <span class="nc">SumFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;sum&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;sum&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SumFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_sumlike_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="n">data_info</span> <span class="o">=</span> <span class="n">data</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_info</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;sum: Data must be a PhysArray&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;sum: Dimensions must be strings&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;sum: Data must be a PhysArray&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;sum: Dimensions must be strings&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
@@ -509,75 +487,79 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">indims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># MinFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="MinFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.MinFunction">[docs]</a><span class="k">class</span> <span class="nc">MinFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;min&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;min&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MinFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_sumlike_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="n">data_info</span> <span class="o">=</span> <span class="n">data</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_info</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;min: Data must be a PhysArray&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;min: Dimensions must be strings&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;min: Data must be a PhysArray&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;min: Dimensions must be strings&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
         <span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">indims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                                              <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-                                                              <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+            <span class="p">)</span>
         <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
                 <span class="n">indims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;min(</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">)</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;min(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">indims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
-                         <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span></div>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span>
+            <span class="n">m</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span>
+            <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+        <span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># MaxFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="MaxFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.MaxFunction">[docs]</a><span class="k">class</span> <span class="nc">MaxFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;max&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">MaxFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_sumlike_dimensions</span><span class="p">(</span><span class="o">*</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="n">data_info</span> <span class="o">=</span> <span class="n">data</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_info</span><span class="p">,</span> <span class="n">PhysArray</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;max: Data must be a PhysArray&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">basestring</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;max: Dimensions must be strings&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;max: Data must be a PhysArray&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;max: Dimensions must be strings&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
         <span class="n">dimensions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">indims</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span> <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                                                                <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
-                                                                                <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span>
+            <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+                <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+            <span class="p">)</span>
         <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dimensions</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
                 <span class="n">indims</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;max(</span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;max(</span><span class="si">{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">indims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span> <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
-                         <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]])</span></div>
+        <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span>
+            <span class="n">m</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span>
+            <span class="n">positive</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">positive</span><span class="p">,</span>
+            <span class="n">units</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">units</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span>
+        <span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># PositiveUpFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="PositiveUpFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.PositiveUpFunction">[docs]</a><span class="k">class</span> <span class="nc">PositiveUpFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;up&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;up&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PositiveUpFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -588,11 +570,8 @@
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">up</span><span class="p">()</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># PositiveDownFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="PositiveDownFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.PositiveDownFunction">[docs]</a><span class="k">class</span> <span class="nc">PositiveDownFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;down&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;down&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">PositiveDownFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -603,20 +582,18 @@
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">down</span><span class="p">()</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># ChangeUnitsFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="ChangeUnitsFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.ChangeUnitsFunction">[docs]</a><span class="k">class</span> <span class="nc">ChangeUnitsFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;chunits&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;chunits&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">refdate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">calendar</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">ChangeUnitsFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">refdate</span><span class="o">=</span><span class="n">refdate</span><span class="p">,</span> <span class="n">calendar</span><span class="o">=</span><span class="n">calendar</span><span class="p">)</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">,</span> <span class="n">refdate</span><span class="o">=</span><span class="n">refdate</span><span class="p">,</span> <span class="n">calendar</span><span class="o">=</span><span class="n">calendar</span>
+        <span class="p">)</span>
 
         <span class="n">dunits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="k">else</span> <span class="n">data</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">units</span>
         <span class="n">dcal</span> <span class="o">=</span> <span class="n">dunits</span><span class="o">.</span><span class="n">calendar</span>
         <span class="k">if</span> <span class="n">dunits</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">():</span>
-            <span class="n">dunit</span><span class="p">,</span> <span class="n">dref</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dunits</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;since&#39;</span><span class="p">)]</span>
+            <span class="n">dunit</span><span class="p">,</span> <span class="n">dref</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dunits</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;since&quot;</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dunit</span> <span class="o">=</span> <span class="n">dunits</span><span class="o">.</span><span class="n">origin</span>
             <span class="n">dref</span> <span class="o">=</span> <span class="kc">None</span>
@@ -624,112 +601,117 @@
         <span class="n">uobj</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">units</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="n">units</span><span class="p">)</span> <span class="k">else</span> <span class="n">units</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span><span class="o">.</span><span class="n">units</span>
         <span class="n">ucal</span> <span class="o">=</span> <span class="n">uobj</span><span class="o">.</span><span class="n">calendar</span>
         <span class="k">if</span> <span class="n">uobj</span><span class="o">.</span><span class="n">is_time_reference</span><span class="p">():</span>
-            <span class="n">uunit</span><span class="p">,</span> <span class="n">uref</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">uobj</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;since&#39;</span><span class="p">)]</span>
+            <span class="n">uunit</span><span class="p">,</span> <span class="n">uref</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">uobj</span><span class="o">.</span><span class="n">origin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;since&quot;</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">uunit</span> <span class="o">=</span> <span class="n">uobj</span><span class="o">.</span><span class="n">origin</span>
             <span class="n">uref</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">unit</span> <span class="o">=</span> <span class="n">dunit</span> <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">uunit</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">refdate</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">refdate</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">ref</span> <span class="o">=</span> <span class="n">refdate</span>
         <span class="k">elif</span> <span class="n">refdate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ref</span> <span class="o">=</span> <span class="n">dref</span> <span class="k">if</span> <span class="n">uref</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">uref</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;chunits: Reference date must be a string, if given&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;chunits: Reference date must be a string, if given&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calendar</span><span class="p">,</span> <span class="n">basestring</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calendar</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">cal</span> <span class="o">=</span> <span class="n">calendar</span>
         <span class="k">elif</span> <span class="n">calendar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">cal</span> <span class="o">=</span> <span class="n">dcal</span> <span class="k">if</span> <span class="n">ucal</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ucal</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;chunits: Calendar must be a string, if given&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;chunits: Calendar must be a string, if given&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">calendar</span><span class="o">=</span><span class="n">cal</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span>
-                <span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> since </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">ref</span><span class="p">),</span> <span class="n">calendar</span><span class="o">=</span><span class="n">cal</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> since </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="n">ref</span><span class="p">),</span> <span class="n">calendar</span><span class="o">=</span><span class="n">cal</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">cal_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="o">.</span><span class="n">calendar</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;|</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span>
-        <span class="n">unit_str</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="p">,</span> <span class="n">cal_str</span><span class="p">)</span>
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;chunits(</span><span class="si">{}</span><span class="s1">, units=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_str</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">cal_str</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="o">.</span><span class="n">calendar</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="s2">&quot;|</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="o">.</span><span class="n">calendar</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">unit_str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="p">,</span> <span class="n">cal_str</span><span class="p">)</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;chunits(</span><span class="si">{}</span><span class="s2">, units=</span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">unit_str</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_newunits</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># LimitFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="LimitFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.LimitFunction">[docs]</a><span class="k">class</span> <span class="nc">LimitFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;limit&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;limit&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">below</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">above</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">LimitFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">below</span><span class="o">=</span><span class="n">below</span><span class="p">,</span> <span class="n">above</span><span class="o">=</span><span class="n">above</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
 
-        <span class="n">above_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s1">&#39;above&#39;</span><span class="p">]</span>
-        <span class="n">below_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s1">&#39;below&#39;</span><span class="p">]</span>
+        <span class="n">above_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;above&quot;</span><span class="p">]</span>
+        <span class="n">below_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">[</span><span class="s2">&quot;below&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">above_val</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">below_val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data</span>
 
-        <span class="n">above_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">above_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="n">above_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">above_ind</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="n">data</span> <span class="o">&gt;</span> <span class="n">above_val</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">above_ind</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">above_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">above_val</span>
-                <span class="n">above_str</span> <span class="o">=</span> <span class="s1">&#39;, above=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">above_val</span><span class="p">)</span>
+                <span class="n">above_str</span> <span class="o">=</span> <span class="s2">&quot;, above=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">above_val</span><span class="p">)</span>
 
-        <span class="n">below_str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">below_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="n">below_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">below_ind</span> <span class="o">=</span> <span class="n">where</span><span class="p">(</span><span class="n">data</span> <span class="o">&lt;</span> <span class="n">below_val</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">below_ind</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">data</span><span class="p">[</span><span class="n">below_ind</span><span class="p">]</span> <span class="o">=</span> <span class="n">below_val</span>
-                <span class="n">below_str</span> <span class="o">=</span> <span class="s1">&#39;, below=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">below_val</span><span class="p">)</span>
+                <span class="n">below_str</span> <span class="o">=</span> <span class="s2">&quot;, below=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">below_val</span><span class="p">)</span>
 
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;limit(</span><span class="si">{}{}{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">above_str</span><span class="p">,</span> <span class="n">below_str</span><span class="p">)</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;limit(</span><span class="si">{}{}{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">above_str</span><span class="p">,</span> <span class="n">below_str</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># RemoveUnitsFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="RemoveUnitsFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.RemoveUnitsFunction">[docs]</a><span class="k">class</span> <span class="nc">RemoveUnitsFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;rmunits&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;rmunits&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RemoveUnitsFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">])</span>
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;rmunits(</span><span class="si">{!s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">getname</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;rmunits(</span><span class="si">{!s}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">getname</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">PhysArray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_name</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
 
-<span class="c1">#=========================================================================</span>
-<span class="c1"># RenameDimensionsFunction</span>
-<span class="c1">#=========================================================================</span>
 <div class="viewcode-block" id="RenameDimensionsFunction"><a class="viewcode-back" href="../../functions.html#pyconform.functions.RenameDimensionsFunction">[docs]</a><span class="k">class</span> <span class="nc">RenameDimensionsFunction</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-    <span class="n">key</span> <span class="o">=</span> <span class="s1">&#39;chdims&#39;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;chdims&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">RenameDimensionsFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">*</span><span class="n">dims</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">data</span>
         <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="n">dim_names</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
-        <span class="n">new_name</span> <span class="o">=</span> <span class="s1">&#39;chdims(</span><span class="si">{!s}</span><span class="s1">, </span><span class="si">{!s}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">getname</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dim_names</span><span class="p">)</span>
+        <span class="n">dim_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">repr</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">])</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="s2">&quot;chdims(</span><span class="si">{!s}</span><span class="s2">, </span><span class="si">{!s}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">getname</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dim_names</span><span class="p">)</span>
         <span class="n">new_dims</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
         <span class="n">dlen</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dims</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_dims</span><span class="p">))</span>
         <span class="n">new_dims</span><span class="p">[:</span><span class="n">dlen</span><span class="p">]</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[:</span><span class="n">dlen</span><span class="p">]</span>
@@ -746,11 +728,19 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, University Corporation for Atmospheric Research
+        
+        &copy; Copyright 2017-2020, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -761,7 +751,6 @@
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

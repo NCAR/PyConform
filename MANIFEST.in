@@ -1,0 +1,10 @@
+include CHANGELOG.rst
+include CODE_OF_CONDUCT.md
+include LICENSE.rst
+include README.rst
+include requirements.txt
+
+recursive-include pyconform *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+prune ci*

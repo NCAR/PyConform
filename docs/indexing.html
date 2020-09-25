@@ -1,38 +1,39 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyconform.indexing &mdash; PyConform 0.2.8 documentation</title>
+  <title>pyconform.indexing &mdash; PyConform 0.3.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="pyconform.parsing" href="parsing.html" />
@@ -50,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> PyConform
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyConform
           
 
           
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                0.2
+                0.3
               </div>
             
           
@@ -77,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -107,6 +109,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -145,7 +148,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
           <li><a href="pyconform.html">The PyConform Package</a> &raquo;</li>
         
@@ -173,10 +176,10 @@
 <p>Indexing Functions</p>
 <p>The ‘index_str’ method gives a compact string representation of an indexing object (i.e., an
 object returned by the Numpy.index_exp[] method).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">idx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">idx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">index_str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">index_str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 <span class="go">&#39;1:2:3, 4&#39;</span>
 </pre></div>
 </div>
@@ -184,7 +187,8 @@ object returned by the Numpy.index_exp[] method).</p>
 <p>The ‘join’ operation in this module is designed to reduce multiple slicing operations, where
 consecutive slices are reduced to a single slice:</p>
 <blockquote>
-<div>A[slice1][slice2] = A[slice12]</div></blockquote>
+<div><p>A[slice1][slice2] = A[slice12]</p>
+</div></blockquote>
 <p>Most Python programmers that work with Numpy have been told that slicing an array results in a
 ‘view’ of the array.  Namely, they have been told that slicing the array costs nothing, so multiple
 consecutive slices need no reduction.</p>
@@ -195,55 +199,47 @@ of that array.  The I/O operation can be costly, so it is worth our time to inve
 reducing the amount of data read, as well as limiting the possibility of overrunning memory with
 a large read.</p>
 <hr class="docutils" />
-<p>Copyright 2017-2018, University Corporation for Atmospheric Research
+<p>Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details</p>
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.indexing.align_index">
-<code class="descclassname">pyconform.indexing.</code><code class="descname">align_index</code><span class="sig-paren">(</span><em>index</em>, <em>dimensions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#align_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.align_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.indexing.</code><code class="sig-name descname">align_index</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">dimensions</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#align_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.align_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute an index tuple or dictionary with indices aligned according to dimension name</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>index</strong> – An index or a dictionary of indices keyed by dimension name</li>
-<li><strong>dimensions</strong> (<em>tuple</em>) – A tuple of named dimensions for each axis of the data</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>index</strong> – An index or a dictionary of indices keyed by dimension name</p></li>
+<li><p><strong>dimensions</strong> (<em>tuple</em>) – A tuple of named dimensions for each axis of the data</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.indexing.index_str">
-<code class="descclassname">pyconform.indexing.</code><code class="descname">index_str</code><span class="sig-paren">(</span><em>index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#index_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.index_str" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.indexing.</code><code class="sig-name descname">index_str</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#index_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.index_str" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an index expression into a compact string</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.indexing.index_tuple">
-<code class="descclassname">pyconform.indexing.</code><code class="descname">index_tuple</code><span class="sig-paren">(</span><em>index</em>, <em>ndims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#index_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.index_tuple" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.indexing.</code><code class="sig-name descname">index_tuple</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">index</span></em>, <em class="sig-param"><span class="n">ndims</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#index_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.index_tuple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate an index tuple from a given index expression and number of dimensions</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.indexing.join">
-<code class="descclassname">pyconform.indexing.</code><code class="descname">join</code><span class="sig-paren">(</span><em>shape0</em>, <em>index1</em>, <em>index2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.join" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.indexing.</code><code class="sig-name descname">join</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape0</span></em>, <em class="sig-param"><span class="n">index1</span></em>, <em class="sig-param"><span class="n">index2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/indexing.html#join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.indexing.join" title="Permalink to this definition">¶</a></dt>
 <dd><p>Join two index expressions into a single index expression</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>shape0</strong> – The shape of the original array</li>
-<li><strong>index1</strong> – The first index expression to apply to the array</li>
-<li><strong>index2</strong> – The second index expression to apply to the array</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>shape0</strong> – The shape of the original array</p></li>
+<li><p><strong>index1</strong> – The first index expression to apply to the array</p></li>
+<li><p><strong>index2</strong> – The second index expression to apply to the array</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -268,11 +264,19 @@ LICENSE: See the LICENSE.rst file for details</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, University Corporation for Atmospheric Research
+        
+        &copy; Copyright 2017-2020, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -283,7 +287,6 @@ LICENSE: See the LICENSE.rst file for details</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

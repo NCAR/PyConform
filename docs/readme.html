@@ -1,38 +1,39 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>PyConform &mdash; PyConform 0.2.8 documentation</title>
+  <title>PyConform &mdash; PyConform 0.3.0 documentation</title>
   
-
-  
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="The PyConform Package" href="pyconform.html" />
@@ -50,7 +51,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> PyConform
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyConform
           
 
           
@@ -60,7 +61,7 @@
             
             
               <div class="version">
-                0.2
+                0.3
               </div>
             
           
@@ -77,6 +78,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -91,7 +93,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#obtaining-the-source-code">Obtaining the Source Code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#building-installing-from-source">Building &amp; Installing from Source</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#before-using-the-pyconform-package">Before Using the PyConform Package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pyconform.html">The PyConform Package</a></li>
@@ -102,6 +103,7 @@
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -140,7 +142,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
       <li>PyConform</li>
     
@@ -161,22 +163,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="pyconform">
+  <a class="reference external image-reference" href="https://doi.org/10.5281/zenodo.3895009"><img alt="https://zenodo.org/badge/DOI/10.5281/zenodo.3895009.svg" src="https://zenodo.org/badge/DOI/10.5281/zenodo.3895009.svg" /></a>
+<a class="reference external image-reference" href="https://codecov.io/gh/NCAR/PyConform"><img alt="https://codecov.io/gh/NCAR/PyConform/branch/master/graph/badge.svg" src="https://codecov.io/gh/NCAR/PyConform/branch/master/graph/badge.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/NCAR/PyConform/actions?query=workflow%3ATests"><img alt="https://github.com/NCAR/PyConform/workflows/Tests/badge.svg" src="https://github.com/NCAR/PyConform/workflows/Tests/badge.svg" /></a>
+<a class="reference external image-reference" href="https://github.com/NCAR/PyConform/actions?query=workflow%3ALinting"><img alt="https://github.com/NCAR/PyConform/workflows/Linting/badge.svg" src="https://github.com/NCAR/PyConform/workflows/Linting/badge.svg" /></a>
+<div class="section" id="pyconform">
 <h1>PyConform<a class="headerlink" href="#pyconform" title="Permalink to this headline">¶</a></h1>
 <p>A package for transforming a NetCDF dataset into a defined format
 suitable for publication according to a defined publication standard.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">AUTHORS:</th><td class="field-body">Sheri Mickelson, Kevin Paul</td>
-</tr>
-<tr class="field-even field"><th class="field-name">COPYRIGHT:</th><td class="field-body">2017, University Corporation for Atmospheric Research</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">LICENSE:</th><td class="field-body">See the LICENSE.rst file for details</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">AUTHORS</dt>
+<dd class="field-odd"><p>Sheri Mickelson, Kevin Paul</p>
+</dd>
+<dt class="field-even">COPYRIGHT</dt>
+<dd class="field-even"><p>2020, University Corporation for Atmospheric Research</p>
+</dd>
+<dt class="field-odd">LICENSE</dt>
+<dd class="field-odd"><p>See the LICENSE.rst file for details</p>
+</dd>
+</dl>
 <p>Send questions and comments to Kevin Paul (<a class="reference external" href="mailto:kpaul&#37;&#52;&#48;ucar&#46;edu">kpaul<span>&#64;</span>ucar<span>&#46;</span>edu</a>) or
 Sheri Mickelson (<a class="reference external" href="mailto:mickelso&#37;&#52;&#48;ucar&#46;edu">mickelso<span>&#64;</span>ucar<span>&#46;</span>edu</a>).</p>
 <div class="section" id="overview">
@@ -187,8 +192,8 @@ for CMIP6 <em>specifically for NCAR’s CESM CMIP6 workflow</em>, but we attempt
 design the code in a way that is general purpose.  PyConform attempts to divide
 the standardization problem specification step into two separate pieces:</p>
 <ol class="arabic simple">
-<li>a specification of the <em>standard</em>, and</li>
-<li>a specification of the <em>conversion process</em>.</li>
+<li><p>a specification of the <em>standard</em>, and</p></li>
+<li><p>a specification of the <em>conversion process</em>.</p></li>
 </ol>
 <p>This separate was created to allow the <em>standard</em> to be defined by (for example)
 the MIP designers and the <em>conversion process</em> to be defined by the model
@@ -199,23 +204,23 @@ standardized output.</p>
 <p>Currently, the main considerations that need to be made when creating
 <em>definitions</em> are the following:</p>
 <ol class="arabic simple">
-<li>physical units will be converted <em>automatically</em>, if possible according to
-the <code class="docutils literal notranslate"><span class="pre">cf_units</span></code> package,</li>
-<li>the <em>dimensions</em> of the resulting data variable produced by the <em>definition</em>
+<li><p>physical units will be converted <em>automatically</em>, if possible according to
+the <code class="docutils literal notranslate"><span class="pre">cf_units</span></code> package,</p></li>
+<li><p>the <em>dimensions</em> of the resulting data variable produced by the <em>definition</em>
 operation must be <em>mappable</em> to requested dimensions specified in the
-standard, and</li>
-<li>special operations/computations that are not supplied with PyConform in
+standard, and</p></li>
+<li><p>special operations/computations that are not supplied with PyConform in
 the <code class="docutils literal notranslate"><span class="pre">functions</span></code> module may need to be written by hand and called explicitly
-in the output variable <em>definition</em>.</li>
+in the output variable <em>definition</em>.</p></li>
 </ol>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
+<p class="admonition-title">Warning</p>
 <p>PyConform should only be used with caution!  As mentioned, it was created
 specifically for NCAR’s contributions to CMIP6.  PyConform is not designed
 to fix <em>problems</em> with your input data, and as such is completely incapable
 of detecting many problems with your data!  (That is, “garbage in, garbage
 out!”)</p>
-<p class="last">The <em>core</em> part of PyConform was designed and implemented
+<p>The <em>core</em> part of PyConform was designed and implemented
 before a full understanding of the requirements could be obtained.  Full
 testing of PyConform could not be done without knowing what all of the
 input (i.e., model output) data would look like!  And, to make matters
@@ -224,8 +229,8 @@ more difficult, the <em>specification</em> utility that PyConform depends upon
 PyConform’s testing had to be done <em>on-the-fly</em>.</p>
 </div>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last"><strong>Deprecation:</strong>
+<p class="admonition-title">Warning</p>
+<p><strong>Deprecation:</strong>
 With the completion of CMIP6, this project is essentially deprecated.  Much
 of the operations and core functionality of this tool can be reproduced in
 a much more robust way with <a class="reference external" href="http://xarray.pydata.org/">Xarray</a>.  The parallelism provided via MPI
@@ -240,17 +245,19 @@ welcome any others to take on that challenge!</p>
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>The PyConform package directly depends upon 4 main external packages:</p>
 <ul class="simple">
-<li>ASAPTools (&gt;=0.6)</li>
-<li>netCDF4-python</li>
-<li>cf-units</li>
-<li>dreqpy</li>
+<li><p>ASAPTools (&gt;=0.6)</p></li>
+<li><p>cf-units</p></li>
+<li><p>dreqpy</p></li>
+<li><p>netCDF4-python</p></li>
+<li><p>ply</p></li>
+<li><p>python-dateutil</p></li>
 </ul>
 <p>These dependencies imply the dependencies:</p>
 <ul class="simple">
-<li>numpy (&gt;=1.5)</li>
-<li>netCDF4</li>
-<li>MPI</li>
-<li>UDUNITS2</li>
+<li><p>numpy (&gt;=1.5)</p></li>
+<li><p>netCDF4</p></li>
+<li><p>MPI</p></li>
+<li><p>UDUNITS2</p></li>
 </ul>
 <p>Additionally, the entire package is designed to work with Python v2.7 and up
 to (but not including) Python v3.0.</p>
@@ -299,27 +306,6 @@ to install.  To do this, type (on unix machines):</p>
 user installs, and therefore only needs to be added to the PYTHONPATH once.</p>
 <p>The <a class="reference external" href="https://ncar.github.io/pyconform">documentation</a> for PyConform is hosted on GitHub Pages.</p>
 </div>
-<div class="section" id="before-using-the-pyconform-package">
-<h2>Before Using the PyConform Package<a class="headerlink" href="#before-using-the-pyconform-package" title="Permalink to this headline">¶</a></h2>
-<p>Before the PyConform package can be used, you must make sure that the
-site-packages directory containing the ‘pyconform’ source directory is in
-your PYTHONPATH.  Depending on the PREFIX used during installation, this
-path should look like be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$PREFIX/lib/python2.7/site-packages
-</pre></div>
-</div>
-<p>depending on the version of Python that you
-are using to install the package.</p>
-<p>To use the PyConform scripts (e.g., …), you must add the
-script binary directory to your PATH.  Depending on the PREFIX used during
-installation, this path will be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$PREFIX/bin/
-</pre></div>
-</div>
-<p>Once the script binary directory has been added to your PATH and the
-site-packages directory has been added to your PYTHONPATH, you may use the
-PyConform package without issue.</p>
-</div>
 </div>
 
 
@@ -342,11 +328,19 @@ PyConform package without issue.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2017, University Corporation for Atmospheric Research
+        
+        &copy; Copyright 2017-2020, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -357,7 +351,6 @@ PyConform package without issue.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

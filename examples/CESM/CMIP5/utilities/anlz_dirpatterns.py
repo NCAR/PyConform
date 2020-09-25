@@ -4,7 +4,7 @@ anlz_dirpatterns
 
 Command-Line Utility to analyze data directory patterns in CMIP5 data
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -40,7 +40,7 @@ def main(argv=None):
     # Read the patterns file
     with open('cmip5_patterns.txt') as f:
         ncvars = [line.split() for line in f]
-                    
+
     # Analyze freq/realm/table correlations
     frtcorr = {}
     for ncvar in ncvars:
@@ -59,7 +59,7 @@ def main(argv=None):
     else:
         print "  None"
     print
-    
+
     # Analyze freq/table correlations
     ftcorr = {}
     for ncvar in ncvars:
@@ -87,8 +87,8 @@ def main(argv=None):
     else:
         print "  None"
     print
-    
-    # Group variables by table 
+
+    # Group variables by table
     vtcorr = {}
     vrcorr = {}
     for ncvar in ncvars:
@@ -112,7 +112,7 @@ def main(argv=None):
     else:
         print "  None"
     print
-    
+
     print 'Variables in multiple realms:'
     multvr = [var for var in vrcorr if len(vrcorr[var]) > 1]
     if len(multvr) > 0:
@@ -121,7 +121,7 @@ def main(argv=None):
     else:
         print "  None"
     print
-    
+
     # Analyze variable groups by freq/realm/table patterns
     vgroups = {}
     for ncvar in ncvars:
@@ -131,7 +131,7 @@ def main(argv=None):
             vgroups[frt] = [set(vars)]
         else:
             vgroups[frt].append(set(vars))
-    
+
     # Determine if all variable groups are subsets of the largest set
     vgsubsets = {}
     vgsuperset = {}
@@ -150,7 +150,7 @@ def main(argv=None):
                 unmatched = vg - largest
                 for v in unmatched:
                     vgsubsets[frt].add(v)
-    
+
     print 'Variables in groups that can not represent a single freq/realm/table set:'
     uniqsubsets = [frt for frt in vgsubsets if len(vgsubsets[frt]) > 0]
     if len(uniqsubsets) > 0:
@@ -164,7 +164,7 @@ def main(argv=None):
     for frt in vgsuperset:
         print "  {}: {}".format(frt, ', '.join(sorted(vgsuperset[frt])))
     print
-             
+
 
 #===================================================================================================
 # Command-line Operation

@@ -1,6 +1,15 @@
 .. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3895009.svg
    :target: https://doi.org/10.5281/zenodo.3895009
 
+.. image:: https://codecov.io/gh/NCAR/PyConform/branch/master/graph/badge.svg
+  :target: https://codecov.io/gh/NCAR/PyConform
+
+.. image:: https://github.com/NCAR/PyConform/workflows/Tests/badge.svg
+  :target: https://github.com/NCAR/PyConform/actions?query=workflow%3ATests
+
+.. image:: https://github.com/NCAR/PyConform/workflows/Linting/badge.svg
+  :target: https://github.com/NCAR/PyConform/actions?query=workflow%3ALinting
+
 PyConform
 =========
 
@@ -8,7 +17,7 @@ A package for transforming a NetCDF dataset into a defined format
 suitable for publication according to a defined publication standard.
 
 :AUTHORS: Sheri Mickelson, Kevin Paul
-:COPYRIGHT: 2017, University Corporation for Atmospheric Research
+:COPYRIGHT: 2020, University Corporation for Atmospheric Research
 :LICENSE: See the LICENSE.rst file for details
 
 Send questions and comments to Kevin Paul (kpaul@ucar.edu) or
@@ -81,9 +90,11 @@ Dependencies
 The PyConform package directly depends upon 4 main external packages:
 
 * ASAPTools (>=0.6)
-* netCDF4-python
 * cf-units
 * dreqpy
+* netCDF4-python
+* ply
+* python-dateutil
 
 These dependencies imply the dependencies:
 
@@ -146,27 +157,3 @@ user installs, and therefore only needs to be added to the PYTHONPATH once.
 The documentation_ for PyConform is hosted on GitHub Pages.
 
 .. _documentation:  https://ncar.github.io/pyconform
-
-
-Before Using the PyConform Package
-----------------------------------
-
-Before the PyConform package can be used, you must make sure that the
-site-packages directory containing the 'pyconform' source directory is in
-your PYTHONPATH.  Depending on the PREFIX used during installation, this
-path should look like be::
-
-    $PREFIX/lib/python2.7/site-packages
-
-depending on the version of Python that you
-are using to install the package.
-
-To use the PyConform scripts (e.g., ...), you must add the
-script binary directory to your PATH.  Depending on the PREFIX used during
-installation, this path will be::
-
-    $PREFIX/bin/
-
-Once the script binary directory has been added to your PATH and the
-site-packages directory has been added to your PYTHONPATH, you may use the
-PyConform package without issue.

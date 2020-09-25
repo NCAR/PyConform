@@ -4,7 +4,7 @@ make_stdfile
 
 Command-Line Utility to make a standardization file from a set of "correct" output files
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -71,36 +71,36 @@ def main(argv=None):
 
     # CCPS-Style of CMIP5 data output (lowest directory where NetCDF files are found):
     # <root>/<table>/CMOR/CMIP5/output/<institution>/<model>/<experiment>/<frequency>/<realm>/<variable>/<ensemble>
-    
+
     # ESGF-Style of CMIP5 data output (lowest directory where NetCDF files are found):
     # <root>/CMIP5/output1/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/<ensemble>/latest/<variable>
-    
+
     # Note: <ensemble> and <variable> are in a different order, so we have to automate the way
     # that the <ensemble> is chosen.  For this purpose, we take the <ensemble> that has the lowest
     # alphanumeric sort order.
-    
+
     # Hence, the ROOT directory that is supplied should stop before <variable> or <ensemble>:
     # CCPS: <root>/<table>/CMOR/CMIP5/output/<institution>/<model>/<experiment>/<frequency>/<realm>/
     # ESGF: <root>/CMIP5/output1/<institution>/<model>/<experiment>/<frequency>/<realm>/<table>/
-    
+
     # From both of these ROOT strings, we can extract <institution>, <model>, <experiment>,
     # <frequency>, <realm>, and <table>:
     if args.ccps:
         root, table, CMOR, CMIP5, output, inst, model, expt, freq, realm = ROOT.rsplit('/', 9)
     else:
         root, inst, model, expt, freq, realm, table = ROOT.rsplit('/', 6)
-    
+
     # Check for consistency
     if inst != 'NCAR' and model != 'CCSM4':
         raise ValueError('Root appears to be malformed')
-    
+
     print 'Institution:     {}'.format(inst)
     print 'Model:           {}'.format(model)
     print 'Experiment:      {}'.format(expt)
     print 'Frequency:       {}'.format(freq)
     print 'Realm:           {}'.format(realm)
     print 'Table:           {}'.format(table)
-    
+
     # Pick a common ensemble member for all variables
     vardirs = {}
     if args.ccps:
@@ -122,12 +122,12 @@ def main(argv=None):
         vdir = pjoin(ROOT, rip, 'latest')
         for var in listdir(vdir):
             vardirs[var] = pjoin(vdir, var)
-        
+
     print 'Ensemble Member: {}'.format(rip)
     print
-    
+
     skipatts = set(args.skip)
-    
+
     stdinfo = {}
     for var in vardirs:
         vdir = vardirs[var]
@@ -149,11 +149,11 @@ def main(argv=None):
                     fname = '{}_{}_{}_{}_{}_YYYYMM.nc'.format(v,table,model,expt,rip)
                     stdinfo[v]["file"] = {"filename": fname,
                                           "attributes": fattrs}
-    
+
     stdname = '{}_{}_{}_{}.json'.format(model, expt, realm, table)
     write_standardization(stdname, stdinfo)
     print "Done."
-    
+
 
 #===================================================================================================
 # Command-line Operation

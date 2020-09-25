@@ -4,7 +4,7 @@ insert_defs
 
 Command-Line Utility to push definitions into a standardization file
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -41,7 +41,7 @@ def main(argv=None):
         raise ValueError('Standardization file {} not found'.format(STDFILE))
     with open(STDFILE) as f:
         stdinfo = json.load(f)
-    
+
     DEFFILE = args.deffile
     if not isfile(DEFFILE):
         raise ValueError('Definitions file {} not found'.format(DEFFILE))
@@ -53,18 +53,18 @@ def main(argv=None):
                 var, vardef = [s.strip() for s in cline.split('=')[:2]]
                 if len(vardef) > 0 and len(var) > 0:
                     vardefs[var] = vardef
-    
+
     overwrites = []
     unchanged = []
     for v in stdinfo:
         if v in vardefs:
             if 'definition' in stdinfo[v]:
-                if (isinstance(stdinfo[v]['definition'], basestring) and 
+                if (isinstance(stdinfo[v]['definition'], basestring) and
                     vardefs[v] != stdinfo[v]['definition']):
                     overwrites.append((v,vardefs[v]))
                 else:
                     unchanged.append(v)
-    
+
     for v, vdef in overwrites:
         print 'Overwritting: {} = {!r} --> {!r}'.format(v, stdinfo[v]['definition'], vdef)
         stdinfo[v]['definition'] = vdef
@@ -73,7 +73,7 @@ def main(argv=None):
         print 'Not overwriting definitions for {}'.format(', '.join(unchanged))
 
     write_standardization(STDFILE, stdinfo)
-    
+
 
 #===================================================================================================
 # Command-line Operation

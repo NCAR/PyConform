@@ -4,7 +4,7 @@ make_varmeta
 
 Command-Line Utility to extract variable attributes in CMIP5 data
 
-Copyright 2017-2018, University Corporation for Atmospheric Research
+Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
@@ -58,7 +58,7 @@ def main(argv=None):
     # Read the patterns file
     with open('cmip5_patterns.txt') as f:
         ncvars = [line.split() for line in f]
-    
+
     # Variables by attributes
     vatts = {}
     for ncvar in ncvars:
