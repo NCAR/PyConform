@@ -18,7 +18,7 @@ LICENSE: See the LICENSE.rst file for details
 
 import numpy
 
-_signature_letters = 'ijklmnabcdefgh'
+_signature_letters = "ijklmnabcdefgh"
 
 
 def deriv(x, y=None, axis=0):
@@ -46,11 +46,13 @@ def deriv(x, y=None, axis=0):
     a2 = -x01 / (x02 * x12)
 
     xsig = _signature_letters[axis]
-    ysig = _signature_letters[:numpy.ndim(y1)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
-    d = (numpy.einsum(sig, y0, a0)
-         + numpy.einsum(sig, y1, a1)
-         + numpy.einsum(sig, y2, a2))
+    ysig = _signature_letters[: numpy.ndim(y1)]
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
+    d = (
+        numpy.einsum(sig, y0, a0)
+        + numpy.einsum(sig, y1, a1)
+        + numpy.einsum(sig, y2, a2)
+    )
 
     i0 = tuple(0 if i == axis else slice(None) for i in range(numpy.ndim(y1)))
     i1 = tuple(1 if i == axis else slice(None) for i in range(numpy.ndim(y1)))
@@ -85,8 +87,8 @@ def spl_init(x1, y1, axis=0):
     psig[-1] = (x1[-1] - x2[-1]) / (x0[-1] - x2[-1])
 
     xsig = _signature_letters[axis]
-    ysig = _signature_letters[:numpy.ndim(y1)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    ysig = _signature_letters[: numpy.ndim(y1)]
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
 
     pu_a = numpy.einsum(sig, y2 - y1, 1.0 / ((x2 - x1) * (x2 - x0)))
     pu_b = numpy.einsum(sig, y1 - y0, 1.0 / ((x1 - x0) * (x2 - x0)))
@@ -99,20 +101,16 @@ def spl_init(x1, y1, axis=0):
     b[i0] = 0.0
     u[i0] = 0.0
     for i in range(1, n - 1):
-        j = tuple(i if k == axis else slice(None)
-                  for k in range(numpy.ndim(y1)))
-        jm1 = tuple(i - 1 if k == axis else slice(None)
-                    for k in range(numpy.ndim(y1)))
+        j = tuple(i if k == axis else slice(None) for k in range(numpy.ndim(y1)))
+        jm1 = tuple(i - 1 if k == axis else slice(None) for k in range(numpy.ndim(y1)))
         p = psig[i] * b[jm1] + 2.0
         b[j] = (psig[i] - 1.0) / p
         u[j] = (6.0 * pu[j] - psig[i] * u[jm1]) / p
     i0 = tuple(-1 if i == axis else slice(None) for i in range(numpy.ndim(y1)))
     b[i0] = 0.0
     for i in range(n - 2, -1, -1):
-        j = tuple(i if k == axis else slice(None)
-                  for k in range(numpy.ndim(y1)))
-        jp1 = tuple(i + 1 if k == axis else slice(None)
-                    for k in range(numpy.ndim(y1)))
+        j = tuple(i if k == axis else slice(None) for k in range(numpy.ndim(y1)))
+        jp1 = tuple(i + 1 if k == axis else slice(None) for k in range(numpy.ndim(y1)))
         b[j] = b[j] * b[jp1] + u[j]
     return b
 
@@ -146,11 +144,15 @@ def spl_interp(xa, ya, y2a, x, axis=0):
     d = (b ** 3 - b) * (h ** 2) / 6.0
 
     xsig = _signature_letters[axis]
-    ysig = _signature_letters[:numpy.ndim(ya)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    ysig = _signature_letters[: numpy.ndim(ya)]
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
 
-    return (numpy.einsum(sig, yalo, a) + numpy.einsum(sig, yahi, b)
-            + numpy.einsum(sig, y2alo, c) + numpy.einsum(sig, y2ahi, d))
+    return (
+        numpy.einsum(sig, yalo, a)
+        + numpy.einsum(sig, yahi, b)
+        + numpy.einsum(sig, y2alo, c)
+        + numpy.einsum(sig, y2ahi, d)
+    )
 
 
 def int_tabulated(x, y, axis=0):
@@ -161,7 +163,7 @@ def int_tabulated(x, y, axis=0):
     nseg = nx - 1
     while nseg % 4 != 0:
         nseg += 1
-    nint = nseg / 4
+    nint = nseg // 4
     xmin = numpy.min(x)
     xmax = numpy.max(x)
     h = (xmax - xmin) / float(nseg)
@@ -169,8 +171,8 @@ def int_tabulated(x, y, axis=0):
     z_spl = spl_init(x, y, axis=axis)
     z_unif = spl_interp(x, y, z_spl, x_unif, axis=axis)
     coef_l = [7] + [32, 12, 32, 14] * (nint - 1) + [32, 12, 32, 7]
-    coeffs = 2.0 * h * numpy.array(coef_l, dtype='d') / 45.0
+    coeffs = 2.0 * h * numpy.array(coef_l, dtype="d") / 45.0
     xsig = _signature_letters[axis]
-    ysig = _signature_letters[:numpy.ndim(y)]
-    sig = '{},{}->{}'.format(ysig, xsig, ysig)
+    ysig = _signature_letters[: numpy.ndim(y)]
+    sig = "{},{}->{}".format(ysig, xsig, ysig)
     return numpy.sum(numpy.einsum(sig, z_unif, coeffs), axis=axis)

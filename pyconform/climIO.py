@@ -13,12 +13,14 @@ import sys
 
 try:
     import Nio
+
     HAS_NIO = True
 except ImportError:
     HAS_NIO = False
 
 try:
     import netCDF4
+
     HAS_NETCDF4 = True
 except ImportError:
     HAS_NETCDF4 = False
@@ -36,51 +38,51 @@ def init_climIO(override=None):
     """
     if override is None:
         if HAS_NIO:
-            use = 'Nio'
+            use = "Nio"
             io_ver = PyNioPort()
         elif HAS_NETCDF4:
-            use = 'netCDF4'
+            use = "netCDF4"
             io_ver = NetCDF4PyPort()
         else:
-            print 'ERROR: Could not find PyNio or netCDF4 in PYTHONPATH'
+            print("ERROR: Could not find PyNio or netCDF4 in PYTHONPATH")
             sys.exit(10)
-    elif override == 'Nio':
+    elif override == "Nio":
         if HAS_NIO:
-            use = 'Nio'
+            use = "Nio"
             io_ver = PyNioPort()
         else:
-            print 'ERROR: Could not find PyNio in PYTHONPATH'
+            print("ERROR: Could not find PyNio in PYTHONPATH")
             sys.exit(10)
-    elif override == 'netCDF4':
+    elif override == "netCDF4":
         if HAS_NETCDF4:
-            use = 'netCDF4'
+            use = "netCDF4"
             io_ver = NetCDF4PyPort()
         else:
-            print 'ERROR: Could not find netCDF4 in PYTHONPATH'
+            print("ERROR: Could not find netCDF4 in PYTHONPATH")
             sys.exit(10)
-    print 'I/O Library: ', use
+    print("I/O Library: ", use)
     return io_ver
 
 
 def get_filename(var, month_dict, split):
 
     # Derive the input file name
-    i_fn = month_dict['directory'] + '/' + month_dict['fn']
+    i_fn = month_dict["directory"] + "/" + month_dict["fn"]
     if not (os.path.isfile(i_fn)):
-        i_fn = month_dict['fn']
+        i_fn = month_dict["fn"]
         if not (os.path.isfile(i_fn)):
-            i_fn = month_dict['directory'] + '/'
-            for p in month_dict['pattern']:
-                if p == '$prefix':
-                    i_fn = i_fn + month_dict['fn']
-                elif p == '$var':
+            i_fn = month_dict["directory"] + "/"
+            for p in month_dict["pattern"]:
+                if p == "$prefix":
+                    i_fn = i_fn + month_dict["fn"]
+                elif p == "$var":
                     i_fn = i_fn + var
-                elif p == '$date_pattern':
-                    i_fn = i_fn + month_dict['date_stamp']
-                elif p == '$hem':
+                elif p == "$date_pattern":
+                    i_fn = i_fn + month_dict["date_stamp"]
+                elif p == "$hem":
                     i_fn = i_fn + split
-                elif p == '$suffix':
-                    i_fn = i_fn + month_dict['suffix']
+                elif p == "$suffix":
+                    i_fn = i_fn + month_dict["suffix"]
                 else:
                     i_fn = i_fn + p
             if not (os.path.isfile(i_fn)):
@@ -89,7 +91,6 @@ def get_filename(var, month_dict, split):
 
 
 class PyNioPort(object):
-
     def __init__(self):
         super(PyNioPort, self).__init__()
 
@@ -157,23 +158,27 @@ class PyNioPort(object):
         # Set pyNIO netcdf file options
         opt = Nio.options()
         # The netcdf output format
-        if ('netcdf4c' in ncformat):
-            opt.Format = 'NetCDF4Classic'
-            if (ncformat[-1].isdigit()):
+        if "netcdf4c" in ncformat:
+            opt.Format = "NetCDF4Classic"
+            if ncformat[-1].isdigit():
                 opt.CompressionLevel = ncformat[-1]
-        elif (ncformat == 'netcdf4'):
-            opt.Format = 'NetCDF4Classic'
-        elif (ncformat == 'netcdf'):
-            opt.Format = 'Classic'
-        elif (ncformat == 'netcdfLarge'):
-            opt.Format = '64BitOffset'
+        elif ncformat == "netcdf4":
+            opt.Format = "NetCDF4Classic"
+        elif ncformat == "netcdf":
+            opt.Format = "Classic"
+        elif ncformat == "netcdfLarge":
+            opt.Format = "64BitOffset"
         else:
-            print "WARNING: Selected netcdf file format (", ncformat, ") is not recongnized."
-            print "Defaulting to netcdf4Classic format."
-            opt.Format = 'NetCDF4Classic'
+            print(
+                "WARNING: Selected netcdf file format (",
+                ncformat,
+                ") is not recongnized.",
+            )
+            print("Defaulting to netcdf4Classic format.")
+            opt.Format = "NetCDF4Classic"
         opt.PreFill = False
         if hist_string is None:
-            hist_string = 'clim-convert' + new_file_name
+            hist_string = "clim-convert" + new_file_name
         # Open new output file
         new_file = Nio.open_file(new_file_name, "w", options=opt, history=hist_string)
 
@@ -252,8 +257,8 @@ class PyNioPort(object):
         attr = temp_file.attributes
         dims = temp_file.dimensions
         for n, v in attr.items():
-            if n == 'history':
-                v = 'Standardized' + '\n' + v
+            if n == "history":
+                v = "Standardized" + "\n" + v
             setattr(new_file, n, v)
         for var_d, l in dims.items():
             if var_d == "time":
@@ -263,13 +268,19 @@ class PyNioPort(object):
         # define meta vars
         for meta_name in meta_list:
             typeCode, dims, attribs = self.get_var_info(temp_file, meta_name)
-            all_vars[meta_name] = self.create_var(new_file, meta_name, typeCode, dims, attribs)
+            all_vars[meta_name] = self.create_var(
+                new_file, meta_name, typeCode, dims, attribs
+            )
         # define var
         typeCode, dims, attribs = self.get_var_info(temp_file, template_var)
-        all_vars[var_name] = self.create_var(new_file, var_name, typeCode, dims, attribs)
+        all_vars[var_name] = self.create_var(
+            new_file, var_name, typeCode, dims, attribs
+        )
         # Write meta vars
         for meta_name in meta_list:
-            self.write_meta_var(all_vars[meta_name], meta_name, temp_file.variables[meta_name])
+            self.write_meta_var(
+                all_vars[meta_name], meta_name, temp_file.variables[meta_name]
+            )
 
         return all_vars, new_file
 
@@ -300,28 +311,27 @@ class PyNioPort(object):
         """
         import numpy as np
 
-        if (all_vars[var_name].typecode() == 'i'):
+        if all_vars[var_name].typecode() == "i":
             t = np.long
         else:
             t = np.float32
 
         if not values.shape:
-            if (index == -99):
+            if index == -99:
                 all_vars[var_name][0] = values.astype(t)
             else:
                 all_vars[var_name][index] = values.astype(t)
         else:
-            if 'time' == var_name:
+            if "time" == var_name:
                 all_vars[var_name][0] = values[0].astype(t)
             else:
-                if (index == -99):
+                if index == -99:
                     all_vars[var_name][:] = values[:].astype(t)
                 else:
                     all_vars[var_name][index] = values[:].astype(t)
 
 
 class NetCDF4PyPort(object):
-
     def __init__(self):
         super(NetCDF4PyPort, self).__init__()
         self.compressionLevel = 0
@@ -388,22 +398,26 @@ class NetCDF4PyPort(object):
             new_file (netCDF4.Dataset): A pointer to a netCDF4.Dataset object.
         """
         # The netcdf output format
-        if ('netcdf4c' in ncformat):
-            Format = 'NETCDF4_CLASSIC'
-            if (ncformat[-1].isdigit()):
+        if "netcdf4c" in ncformat:
+            Format = "NETCDF4_CLASSIC"
+            if ncformat[-1].isdigit():
                 self.compressionLevel = ncformat[-1]
-        elif (ncformat == 'netcdf4'):
-            Format = 'NETCDF4_CLASSIC'
-        elif (ncformat == 'netcdf'):
-            Format = 'NETCDF3_CLASSIC'
-        elif (ncformat == 'netcdfLarge'):
-            Format = 'NETCDF3_64BIT'
+        elif ncformat == "netcdf4":
+            Format = "NETCDF4_CLASSIC"
+        elif ncformat == "netcdf":
+            Format = "NETCDF3_CLASSIC"
+        elif ncformat == "netcdfLarge":
+            Format = "NETCDF3_64BIT"
         else:
-            print "WARNING: Selected netcdf file format (", ncformat, ") is not recongnized."
-            print "Defaulting to netcdf4Classic format."
-            Format = 'NETCDF4_CLASSIC'
+            print(
+                "WARNING: Selected netcdf file format (",
+                ncformat,
+                ") is not recongnized.",
+            )
+            print("Defaulting to netcdf4Classic format.")
+            Format = "NETCDF4_CLASSIC"
         if hist_string is None:
-            hist_string = 'clim-convert' + new_file_name
+            hist_string = "clim-convert" + new_file_name
         # Open new output file
         new_file = netCDF4.Dataset(new_file_name, "w", format=Format)
         new_file.history = hist_string
@@ -434,7 +448,13 @@ class NetCDF4PyPort(object):
             var (netCDF4.Variable): Returns a netCDF4.Variable object.
         """
         if self.compressionLevel > 0:
-            var = new_file.createVariable(var_name, typeCode, tuple(dims), zlib=True, complevel=int(self.compressionLevel))
+            var = new_file.createVariable(
+                var_name,
+                typeCode,
+                tuple(dims),
+                zlib=True,
+                complevel=int(self.compressionLevel),
+            )
         else:
             var = new_file.createVariable(var_name, typeCode, tuple(dims))
         for att in attrib:
@@ -491,8 +511,8 @@ class NetCDF4PyPort(object):
         dims = temp_file.dimensions
         for n in attr:
             v = temp_file.getncattr(n)
-            if n == 'history':
-                v = 'Standardized' + '\n' + v
+            if n == "history":
+                v = "Standardized" + "\n" + v
             new_file.setncattr(n, v)
         for var_d, l in dims.items():
             if var_d == "time":
@@ -502,13 +522,19 @@ class NetCDF4PyPort(object):
         # define meta vars
         for meta_name in meta_list:
             typeCode, dims, attribs = self.get_var_info(temp_file, meta_name)
-            all_vars[meta_name] = self.create_var(new_file, meta_name, typeCode, dims, attribs)
+            all_vars[meta_name] = self.create_var(
+                new_file, meta_name, typeCode, dims, attribs
+            )
         # define var
         typeCode, dims, attribs = self.get_var_info(temp_file, template_var)
-        all_vars[var_name] = self.create_var(new_file, var_name, typeCode, dims, attribs)
+        all_vars[var_name] = self.create_var(
+            new_file, var_name, typeCode, dims, attribs
+        )
         # Write meta vars
         for meta_name in meta_list:
-            self.write_meta_var(all_vars[meta_name], meta_name, temp_file.variables[meta_name])
+            self.write_meta_var(
+                all_vars[meta_name], meta_name, temp_file.variables[meta_name]
+            )
 
         return all_vars, new_file
 
@@ -536,21 +562,21 @@ class NetCDF4PyPort(object):
         """
         import numpy as np
 
-        if (all_vars[var_name].datatype == 'i'):
+        if all_vars[var_name].datatype == "i":
             t = np.long
         else:
             t = np.float32
 
         if not values.shape:
-            if (index == -99):
+            if index == -99:
                 all_vars[var_name][0] = values.astype(t)
             else:
                 all_vars[var_name][index] = values.astype(t)
         else:
-            if 'time' == var_name:
+            if "time" == var_name:
                 all_vars[var_name][0] = values[0].astype(t)
             else:
-                if (index == -99):
+                if index == -99:
                     all_vars[var_name][0, :] = values[:].astype(t)
                 else:
                     all_vars[var_name][index, :] = values[:].astype(t)

@@ -33,8 +33,6 @@ Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details
 """
 
-from types import EllipsisType
-
 from numpy import index_exp
 
 
@@ -43,28 +41,28 @@ def index_str(index):
     Convert an index expression into a compact string
     """
     if index is None:
-        return ':'
+        return ":"
     elif isinstance(index, int):
         return str(index)
-    elif isinstance(index, EllipsisType):
-        return '...'
+    elif index is Ellipsis:
+        return "..."
     elif isinstance(index, slice):
-        strrep = ''
+        strrep = ""
         if index.start is not None:
             strrep += str(index.start)
-        strrep += ':'
+        strrep += ":"
         if index.stop is not None:
             strrep += str(index.stop)
         if index.step is not None:
-            strrep += ':{!s}'.format(index.step)
+            strrep += ":{!s}".format(index.step)
         return strrep
     elif isinstance(index, tuple):
-        return ', '.join(index_str(i) for i in index)
+        return ", ".join(index_str(i) for i in index)
     elif isinstance(index, dict):
         dims = sorted(index)
-        return ', '.join('{!r}: {}'.format(d, index_str(index[d])) for d in dims)
+        return ", ".join("{!r}: {}".format(d, index_str(index[d])) for d in dims)
     else:
-        raise TypeError('Unsupported index type {!r}'.format(type(index)))
+        raise TypeError("Unsupported index type {!r}".format(type(index)))
 
 
 def index_tuple(index, ndims):
@@ -77,22 +75,26 @@ def index_tuple(index, ndims):
     idx = index_exp[index]
 
     # Find the locations of all Ellipsis in the index expression
-    elocs = [loc for loc, i in enumerate(idx) if isinstance(i, EllipsisType)]
+    elocs = [loc for loc, i in enumerate(idx) if i is Ellipsis]
     if len(elocs) == 0:
         nfill = ndims - len(idx)
         if nfill < 0:
-            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError(
+                "Too many indices for array with {} dimensions".format(ndims)
+            )
         return idx + (slice(None),) * nfill
     elif len(elocs) == 1:
         eloc = elocs[0]
         prefix = idx[:eloc]
-        suffix = idx[eloc + 1:]
+        suffix = idx[eloc + 1 :]
         nfill = ndims - len(prefix) - len(suffix)
         if nfill < 0:
-            raise IndexError('Too many indices for array with {} dimensions'.format(ndims))
+            raise IndexError(
+                "Too many indices for array with {} dimensions".format(ndims)
+            )
         return prefix + (slice(None),) * nfill + suffix
     else:
-        raise IndexError('Too many ellipsis in index expression {}'.format(idx))
+        raise IndexError("Too many ellipsis in index expression {}".format(idx))
 
 
 def align_index(index, dimensions):
@@ -121,14 +123,14 @@ def join(shape0, index1, index2):
         index2: The second index expression to apply to the array
     """
     if not isinstance(shape0, tuple):
-        raise TypeError('Array shape must be a tuple')
+        raise TypeError("Array shape must be a tuple")
     for n in shape0:
         if not isinstance(n, int):
-            raise TypeError('Array shape must be a tuple of integers')
+            raise TypeError("Array shape must be a tuple of integers")
 
     ndims0 = len(shape0)
     idx1 = index_tuple(index1, ndims0)
-    ndims1 = map(lambda i: isinstance(i, slice), idx1).count(True)
+    ndims1 = tuple(map(lambda i: isinstance(i, slice), idx1)).count(True)
     idx2 = index_tuple(index2, ndims1)
 
     idx2_l = list(idx2)
@@ -154,10 +156,10 @@ def join(shape0, index1, index2):
                     idx12.append(slice(0, 0))
             else:
                 if i2 < -l1 or i2 >= l1:
-                    raise IndexError('Second index out of range in array')
+                    raise IndexError("Second index out of range in array")
                 idx12.append(start1 + i2 * step1)
         else:
             if i1 < -l0 or i1 >= l0:
-                raise IndexError('First index out of range in array')
+                raise IndexError("First index out of range in array")
             idx12.append(i1)
     return tuple(idx12)

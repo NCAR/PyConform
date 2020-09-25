@@ -13,7 +13,6 @@ import pyconform.modules.dynvarmipdiags as dvmd
 
 
 class Test(unittest.TestCase):
-
     def setUp(self):
         self.ntime = 5
         self.nlevi = 4
@@ -42,19 +41,36 @@ class Test(unittest.TestCase):
         dvmd.wtem(self.time, self.levi, self.lat, self.wzm, self.vthzm, self.thzm)
 
     def test_utendvtem(self):
-        dvmd.utendvtem(self.time, self.levi, self.lat, self.uzm, self.vzm, self.vthzm, self.thzm)
+        dvmd.utendvtem(
+            self.time, self.levi, self.lat, self.uzm, self.vzm, self.vthzm, self.thzm
+        )
 
     def test_utendwtem(self):
-        dvmd.utendwtem(self.time, self.levi, self.lat, self.uzm, self.wzm, self.vthzm, self.thzm)
+        dvmd.utendwtem(
+            self.time, self.levi, self.lat, self.uzm, self.wzm, self.vthzm, self.thzm
+        )
 
     def test_epfy(self):
-        dvmd.epfy(self.time, self.levi, self.lat, self.uzm, self.uvzm, self.vthzm, self.thzm)
+        dvmd.epfy(
+            self.time, self.levi, self.lat, self.uzm, self.uvzm, self.vthzm, self.thzm
+        )
 
     def test_epfz(self):
-        dvmd.epfz(self.time, self.levi, self.lat, self.uzm, self.uwzm, self.vthzm, self.thzm)
+        dvmd.epfz(
+            self.time, self.levi, self.lat, self.uzm, self.uwzm, self.vthzm, self.thzm
+        )
 
     def test_utendepfd(self):
-        dvmd.utendepfd(self.time, self.levi, self.lat, self.uzm, self.uvzm, self.uwzm, self.vthzm, self.thzm)
+        dvmd.utendepfd(
+            self.time,
+            self.levi,
+            self.lat,
+            self.uzm,
+            self.uvzm,
+            self.uwzm,
+            self.vthzm,
+            self.thzm,
+        )
 
     def test_psitem(self):
         dvmd.psitem(self.time, self.levi, self.lat, self.vzm, self.vthzm, self.thzm)

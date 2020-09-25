@@ -10,7 +10,8 @@ import unittest
 import numpy
 
 from pyconform.indexing import align_index, index_str, index_tuple, join
-from testutils import print_test_message
+
+from .testutils import print_test_message
 
 
 class IndexStrTests(unittest.TestCase):
@@ -20,35 +21,35 @@ class IndexStrTests(unittest.TestCase):
 
     def test_index_str_int(self):
         indata = 3
-        testname = 'index_str({!r})'.format(indata)
+        testname = "index_str({!r})".format(indata)
         actual = index_str(indata)
         expected = str(indata)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_index_str_slice(self):
         indata = slice(1, 2, 3)
-        testname = 'index_str({!r})'.format(indata)
+        testname = "index_str({!r})".format(indata)
         actual = index_str(indata)
-        expected = '1:2:3'
+        expected = "1:2:3"
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_index_str_tuple(self):
         indata = (4, slice(3, 1, -4))
-        testname = 'index_str({!r})'.format(indata)
+        testname = "index_str({!r})".format(indata)
         actual = index_str(indata)
-        expected = '4, 3:1:-4'
+        expected = "4, 3:1:-4"
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_index_str_dict(self):
-        indata = {'x': 4, 'y': slice(3, 1, -4)}
-        testname = 'index_str({!r})'.format(indata)
+        indata = {"x": 4, "y": slice(3, 1, -4)}
+        testname = "index_str({!r})".format(indata)
         actual = index_str(indata)
         expected = "'x': 4, 'y': 3:1:-4"
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
 
 class IndexTupleTests(unittest.TestCase):
@@ -58,31 +59,31 @@ class IndexTupleTests(unittest.TestCase):
 
     def test_int(self):
         indata = (4, 3)
-        testname = 'index_tuple({}, {})'.format(*indata)
+        testname = "index_tuple({}, {})".format(*indata)
         actual = index_tuple(*indata)
         expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_slice(self):
         indata = (slice(1, 6, 3), 3)
-        testname = 'index_tuple({}, {})'.format(*indata)
+        testname = "index_tuple({}, {})".format(*indata)
         actual = index_tuple(*indata)
         expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_tuple(self):
         indata = ((4, slice(1, 6, 3)), 3)
-        testname = 'index_tuple({}, {})'.format(*indata)
+        testname = "index_tuple({}, {})".format(*indata)
         actual = index_tuple(*indata)
         expected = indata[0] + (slice(None),)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_tuple_too_large(self):
         indata = ((4, slice(1, 6, 3), 6, 7), 3)
-        testname = 'index_tuple({}, {})'.format(*indata)
+        testname = "index_tuple({}, {})".format(*indata)
         expected = IndexError
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(expected, index_tuple, *indata)
@@ -94,43 +95,43 @@ class AlignIndexTests(unittest.TestCase):
     """
 
     def test_int(self):
-        indata = (4, ('a', 'b', 'c'))
-        testname = 'align_index({}, {})'.format(*indata)
+        indata = (4, ("a", "b", "c"))
+        testname = "align_index({}, {})".format(*indata)
         actual = align_index(*indata)
         expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_slice(self):
-        indata = (slice(1, 5, 2), ('a', 'b', 'c'))
-        testname = 'align_index({}, {})'.format(*indata)
+        indata = (slice(1, 5, 2), ("a", "b", "c"))
+        testname = "align_index({}, {})".format(*indata)
         actual = align_index(*indata)
         expected = (indata[0], slice(None), slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_tuple(self):
-        indata = ((4, slice(1, 5, 2)), ('a', 'b', 'c'))
-        testname = 'align_index({}, {})'.format(*indata)
+        indata = ((4, slice(1, 5, 2)), ("a", "b", "c"))
+        testname = "align_index({}, {})".format(*indata)
         actual = align_index(*indata)
         expected = indata[0] + (slice(None),)
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
     def test_tuple_too_long(self):
-        indata = ((4, slice(1, 5, 2), 5, 9), ('a', 'b', 'c'))
-        testname = 'align_index({}, {})'.format(*indata)
+        indata = ((4, slice(1, 5, 2), 5, 9), ("a", "b", "c"))
+        testname = "align_index({}, {})".format(*indata)
         expected = IndexError
         print_test_message(testname, indata=indata, expected=expected)
         self.assertRaises(expected, align_index, *indata)
 
     def test_dict(self):
-        indata = ({'a': slice(1, 5, 2), 'b': 6}, ('a', 'b', 'c'))
-        testname = 'align_index({}, {})'.format(*indata)
+        indata = ({"a": slice(1, 5, 2), "b": 6}, ("a", "b", "c"))
+        testname = "align_index({}, {})".format(*indata)
         actual = align_index(*indata)
-        expected = (indata[0]['a'], indata[0]['b'], slice(None))
+        expected = (indata[0]["a"], indata[0]["b"], slice(None))
         print_test_message(testname, indata=indata, actual=actual, expected=expected)
-        self.assertEqual(actual, expected, '{} failed'.format(testname))
+        self.assertEqual(actual, expected, "{} failed".format(testname))
 
 
 class JoinTests(unittest.TestCase):
@@ -152,8 +153,10 @@ class JoinTests(unittest.TestCase):
             for s2 in self.slices:
                 good = numpy.array_equal(A[s1][s2], A[join((indata,), s1, s2)])
                 if not good:
-                    print 'Failure: join(({},), {}, {})'.format(indata, s1, s2)
+                    print("Failure: join(({},), {}, {})".format(indata, s1, s2))
                     nfailures += 1
-        testname = 'join(({},), slice, slice)'.format(indata)
-        print_test_message(testname, num_failures=nfailures, num_success=ntests - nfailures)
-        self.assertEqual(nfailures, 0, '{} failures'.format(nfailures))
+        testname = "join(({},), slice, slice)".format(indata)
+        print_test_message(
+            testname, num_failures=nfailures, num_success=ntests - nfailures
+        )
+        self.assertEqual(nfailures, 0, "{} failures".format(nfailures))

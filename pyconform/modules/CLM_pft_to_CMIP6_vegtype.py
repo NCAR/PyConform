@@ -10,21 +10,51 @@ from pyconform.physarray import PhysArray
 
 
 class CLM_pft_to_CMIP6_vegtype_Function(Function):
-    key = 'CLM_pft_to_CMIP6_vegtype'
+    key = "CLM_pft_to_CMIP6_vegtype"
     numargs = 18
 
     def __init__(
-        self, GPP, vegType, time, lat, lon, grid1d_ixy, grid1d_jxy, grid1d_lon,
-        grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
-        pfts1d_lon, pfts1d_lat, pfts1d_active, pfts1d_itype_veg,
-        pfts1d_wtgcell, pfts1d_wtlunit
+        self,
+        GPP,
+        vegType,
+        time,
+        lat,
+        lon,
+        grid1d_ixy,
+        grid1d_jxy,
+        grid1d_lon,
+        grid1d_lat,
+        land1d_lon,
+        land1d_lat,
+        land1d_ityplunit,
+        pfts1d_lon,
+        pfts1d_lat,
+        pfts1d_active,
+        pfts1d_itype_veg,
+        pfts1d_wtgcell,
+        pfts1d_wtlunit,
     ):
 
         super(CLM_pft_to_CMIP6_vegtype_Function, self).__init__(
-            GPP, vegType, time, lat, lon, grid1d_ixy, grid1d_jxy, grid1d_lon,
-            grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
-            pfts1d_lon, pfts1d_lat, pfts1d_active, pfts1d_itype_veg,
-            pfts1d_wtgcell, pfts1d_wtlunit)
+            GPP,
+            vegType,
+            time,
+            lat,
+            lon,
+            grid1d_ixy,
+            grid1d_jxy,
+            grid1d_lon,
+            grid1d_lat,
+            land1d_lon,
+            land1d_lat,
+            land1d_ityplunit,
+            pfts1d_lon,
+            pfts1d_lat,
+            pfts1d_active,
+            pfts1d_itype_veg,
+            pfts1d_wtgcell,
+            pfts1d_wtlunit,
+        )
 
     def __getitem__(self, index):
 
@@ -50,10 +80,14 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
         ppfts1d_wtlunit = self.arguments[17][index]
 
         if index is None:
-            return PhysArray(np.zeros((0, 0, 0)),
-                             dimensions=[ptime.dimensions[0],
-                                         plat.dimensions[0],
-                                         plon.dimensions[0]])
+            return PhysArray(
+                np.zeros((0, 0, 0)),
+                dimensions=[
+                    ptime.dimensions[0],
+                    plat.dimensions[0],
+                    plon.dimensions[0],
+                ],
+            )
 
         GPP = pGPP.data
         time = ptime.data
@@ -74,7 +108,7 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
         pfts1d_wtlunit = ppfts1d_wtlunit.data
 
         # Tolerance check for weights summing to 1
-        eps = 1.e-5
+        eps = 1.0e-5
 
         # If 1, pft is active
         active_pft = 1
@@ -136,55 +170,99 @@ class CLM_pft_to_CMIP6_vegtype_Function(Function):
 
                     # Check for valid veg landunit
                     if landunit_indx.size > 0:
-                        if 'grass' in vegType:
+                        if "grass" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
-                            pft_indx = np.where(np.all(t_var == tu, axis=1) * (pfts1d_wtgcell > 0.) * (pfts1d_itype_veg >= beg_grass_pfts) * (pfts1d_itype_veg <= end_grass_pfts))[0]
-                        elif 'shrub' in vegType:
+                            pft_indx = np.where(
+                                np.all(t_var == tu, axis=1)
+                                * (pfts1d_wtgcell > 0.0)
+                                * (pfts1d_itype_veg >= beg_grass_pfts)
+                                * (pfts1d_itype_veg <= end_grass_pfts)
+                            )[0]
+                        elif "shrub" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
-                            pft_indx = np.where(np.all(t_var == tu, axis=1) * (pfts1d_wtgcell > 0.) * (pfts1d_itype_veg >= beg_shrub_pfts) * (pfts1d_itype_veg <= end_shrub_pfts))[0]
-                        elif 'tree' in vegType:
+                            pft_indx = np.where(
+                                np.all(t_var == tu, axis=1)
+                                * (pfts1d_wtgcell > 0.0)
+                                * (pfts1d_itype_veg >= beg_shrub_pfts)
+                                * (pfts1d_itype_veg <= end_shrub_pfts)
+                            )[0]
+                        elif "tree" in vegType:
                             t_var = (grid1d_lon_pt, grid1d_lat_pt, active_pft)
-                            pft_indx = np.where(np.all(t_var == tu, axis=1) * (pfts1d_wtgcell > 0.) * (pfts1d_itype_veg >= beg_tree_pfts) * (pfts1d_itype_veg <= end_tree_pfts))[0]
+                            pft_indx = np.where(
+                                np.all(t_var == tu, axis=1)
+                                * (pfts1d_wtgcell > 0.0)
+                                * (pfts1d_itype_veg >= beg_tree_pfts)
+                                * (pfts1d_itype_veg <= end_tree_pfts)
+                            )[0]
 
                         # Check for valid pfts and compute weighted average
                         if pft_indx.size > 0:
                             for t in range(len(time)):
-                                if 'grass' in vegType:
-                                    pfts1d_wtlunit_grass = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+                                if "grass" in vegType:
+                                    pfts1d_wtlunit_grass = (
+                                        pfts1d_wtlunit[pft_indx]
+                                    ).astype(np.float32)
                                     dum = GPP[t, pft_indx]
-                                    weights = pfts1d_wtlunit_grass / np.sum(pfts1d_wtlunit_grass)
+                                    weights = pfts1d_wtlunit_grass / np.sum(
+                                        pfts1d_wtlunit_grass
+                                    )
                                     if np.absolute(1.0 - np.sum(weights)) > eps:
                                         print("Weights do not sum to 1, exiting")
                                         sys.exit(-1)
                                     varo_vegType[t, jxy, ixy] = np.sum(dum * weights)
 
-                                elif 'shrub' in vegType:
-                                    pfts1d_wtlunit_shrub = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+                                elif "shrub" in vegType:
+                                    pfts1d_wtlunit_shrub = (
+                                        pfts1d_wtlunit[pft_indx]
+                                    ).astype(np.float32)
                                     dum = GPP[t, pft_indx]
-                                    weights = pfts1d_wtlunit_shrub / np.sum(pfts1d_wtlunit_shrub)
+                                    weights = pfts1d_wtlunit_shrub / np.sum(
+                                        pfts1d_wtlunit_shrub
+                                    )
                                     varo_vegType[t, jxy, ixy] = np.sum(dum * weights)
 
-                                elif 'tree' in vegType:
-                                    pfts1d_wtlunit_tree = (pfts1d_wtlunit[pft_indx]).astype(np.float32)
+                                elif "tree" in vegType:
+                                    pfts1d_wtlunit_tree = (
+                                        pfts1d_wtlunit[pft_indx]
+                                    ).astype(np.float32)
                                     dum = GPP[t, pft_indx]
-                                    weights = pfts1d_wtlunit_tree / np.sum(pfts1d_wtlunit_tree)
+                                    weights = pfts1d_wtlunit_tree / np.sum(
+                                        pfts1d_wtlunit_tree
+                                    )
                                     varo_vegType[t, jxy, ixy] = np.sum(dum * weights)
 
                         else:
-                            varo_vegType[:, jxy, ixy] = 1e+20
+                            varo_vegType[:, jxy, ixy] = 1e20
                     else:
-                        varo_vegType[:, jxy, ixy] = 1e+20
+                        varo_vegType[:, jxy, ixy] = 1e20
                 else:
-                    varo_vegType[:, jxy, ixy] = 1e+20
+                    varo_vegType[:, jxy, ixy] = 1e20
 
-        new_name = 'CLM_pft_to_CMIP6_vegtype({}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{})'.format(
-            pGPP.name, vegType, ptime.name, plat.name, plon.name, pgrid1d_ixy.name,
-            pgrid1d_jxy.name, pgrid1d_lon.name, pgrid1d_lat.name, pland1d_lon.name,
-            pland1d_lat.name, pland1d_ityplunit.name, ppfts1d_lon.name, ppfts1d_lat.name,
-            ppfts1d_active.name, ppfts1d_itype_veg.name, ppfts1d_wtgcell.name, ppfts1d_wtlunit.name)
+        new_name = (
+            "CLM_pft_to_CMIP6_vegtype({}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{})".format(
+                pGPP.name,
+                vegType,
+                ptime.name,
+                plat.name,
+                plon.name,
+                pgrid1d_ixy.name,
+                pgrid1d_jxy.name,
+                pgrid1d_lon.name,
+                pgrid1d_lat.name,
+                pland1d_lon.name,
+                pland1d_lat.name,
+                pland1d_ityplunit.name,
+                ppfts1d_lon.name,
+                ppfts1d_lat.name,
+                ppfts1d_active.name,
+                ppfts1d_itype_veg.name,
+                ppfts1d_wtgcell.name,
+                ppfts1d_wtlunit.name,
+            )
+        )
 
-        varo_vegType[varo_vegType >= 1e+16] = 1e+20
-        ma_varo_vegType = np.ma.masked_values(varo_vegType, 1e+20)
+        varo_vegType[varo_vegType >= 1e16] = 1e20
+        ma_varo_vegType = np.ma.masked_values(varo_vegType, 1e20)
 
         return PhysArray(ma_varo_vegType, name=new_name, units=pGPP.units)
 
@@ -199,58 +277,109 @@ def main(argv=None):
 
     cdf_file = nc.Dataset(f_dir + f_in, "r")
 
-    ntim = cdf_file.variables['time'][:]
-    nlat = cdf_file.variables['lat'][:]
-    nlon = cdf_file.variables['lon'][:]
+    ntim = cdf_file.variables["time"][:]
+    nlat = cdf_file.variables["lat"][:]
+    nlon = cdf_file.variables["lon"][:]
 
-    grid1d_ixy = cdf_file.variables['grid1d_ixy'][:]
-    grid1d_jxy = cdf_file.variables['grid1d_jxy'][:]
-    grid1d_lon = cdf_file.variables['grid1d_lon'][:]
-    grid1d_lat = cdf_file.variables['grid1d_lat'][:]
-    land1d_lon = cdf_file.variables['land1d_lon'][:]
-    land1d_lat = cdf_file.variables['land1d_lat'][:]
-    land1d_ityplunit = cdf_file.variables['land1d_ityplunit'][:]
-    pfts1d_lon = cdf_file.variables['pfts1d_lon'][:]
-    pfts1d_lat = cdf_file.variables['pfts1d_lat'][:]
-    pfts1d_active = cdf_file.variables['pfts1d_active'][:]
-    pfts1d_itype_veg = cdf_file.variables['pfts1d_itype_veg'][:]
-    pfts1d_wtgcell = cdf_file.variables['pfts1d_wtgcell'][:]
-    pfts1d_wtlunit = cdf_file.variables['pfts1d_wtlunit'][:]
+    grid1d_ixy = cdf_file.variables["grid1d_ixy"][:]
+    grid1d_jxy = cdf_file.variables["grid1d_jxy"][:]
+    grid1d_lon = cdf_file.variables["grid1d_lon"][:]
+    grid1d_lat = cdf_file.variables["grid1d_lat"][:]
+    land1d_lon = cdf_file.variables["land1d_lon"][:]
+    land1d_lat = cdf_file.variables["land1d_lat"][:]
+    land1d_ityplunit = cdf_file.variables["land1d_ityplunit"][:]
+    pfts1d_lon = cdf_file.variables["pfts1d_lon"][:]
+    pfts1d_lat = cdf_file.variables["pfts1d_lat"][:]
+    pfts1d_active = cdf_file.variables["pfts1d_active"][:]
+    pfts1d_itype_veg = cdf_file.variables["pfts1d_itype_veg"][:]
+    pfts1d_wtgcell = cdf_file.variables["pfts1d_wtgcell"][:]
+    pfts1d_wtlunit = cdf_file.variables["pfts1d_wtlunit"][:]
 
-    GPP = cdf_file.variables['GPP'][:]
+    GPP = cdf_file.variables["GPP"][:]
 
     cdf_file.close()
 
     out_file = nc.Dataset(f_outfir + f_out, "w")
 
-    out_file.createDimension('time', None)
-    out_file.createDimension('lat', len(nlat))
-    out_file.createDimension('lon', len(nlon))
-    gppGrass = out_file.createVariable('gppGrass', 'f4', ('time', 'lat', 'lon'), fill_value=1.e36)
-    gppShrub = out_file.createVariable('gppShrub', 'f4', ('time', 'lat', 'lon'), fill_value=1.e36)
-    gppTree = out_file.createVariable('gppTree', 'f4', ('time', 'lat', 'lon'), fill_value=1.e36)
+    out_file.createDimension("time", None)
+    out_file.createDimension("lat", len(nlat))
+    out_file.createDimension("lon", len(nlon))
+    gppGrass = out_file.createVariable(
+        "gppGrass", "f4", ("time", "lat", "lon"), fill_value=1.0e36
+    )
+    gppShrub = out_file.createVariable(
+        "gppShrub", "f4", ("time", "lat", "lon"), fill_value=1.0e36
+    )
+    gppTree = out_file.createVariable(
+        "gppTree", "f4", ("time", "lat", "lon"), fill_value=1.0e36
+    )
 
-    print 'Looking for grass'
+    print("Looking for grass")
     gppGrass[:] = CLM_pft_to_CMIP6_vegtype_Function(
-        GPP, 'grass', ntim, nlat, nlon, grid1d_ixy, grid1d_jxy, grid1d_lon,
-        grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
-        pfts1d_lon, pfts1d_lat, pfts1d_active, pfts1d_itype_veg,
-        pfts1d_wtgcell, pfts1d_wtlunit)
-    print 'Looking for shrubs'
+        GPP,
+        "grass",
+        ntim,
+        nlat,
+        nlon,
+        grid1d_ixy,
+        grid1d_jxy,
+        grid1d_lon,
+        grid1d_lat,
+        land1d_lon,
+        land1d_lat,
+        land1d_ityplunit,
+        pfts1d_lon,
+        pfts1d_lat,
+        pfts1d_active,
+        pfts1d_itype_veg,
+        pfts1d_wtgcell,
+        pfts1d_wtlunit,
+    )
+    print("Looking for shrubs")
     gppShrub[:] = CLM_pft_to_CMIP6_vegtype_Function(
-        GPP, 'shrub', ntim, nlat, nlon, grid1d_ixy, grid1d_jxy, grid1d_lon,
-        grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
-        pfts1d_lon, pfts1d_lat, pfts1d_active, pfts1d_itype_veg,
-        pfts1d_wtgcell, pfts1d_wtlunit)
-    print 'Looking for trees'
+        GPP,
+        "shrub",
+        ntim,
+        nlat,
+        nlon,
+        grid1d_ixy,
+        grid1d_jxy,
+        grid1d_lon,
+        grid1d_lat,
+        land1d_lon,
+        land1d_lat,
+        land1d_ityplunit,
+        pfts1d_lon,
+        pfts1d_lat,
+        pfts1d_active,
+        pfts1d_itype_veg,
+        pfts1d_wtgcell,
+        pfts1d_wtlunit,
+    )
+    print("Looking for trees")
     gppTree[:] = CLM_pft_to_CMIP6_vegtype_Function(
-        GPP, 'tree', ntim, nlat, nlon, grid1d_ixy, grid1d_jxy, grid1d_lon,
-        grid1d_lat, land1d_lon, land1d_lat, land1d_ityplunit,
-        pfts1d_lon, pfts1d_lat, pfts1d_active, pfts1d_itype_veg,
-        pfts1d_wtgcell, pfts1d_wtlunit)
+        GPP,
+        "tree",
+        ntim,
+        nlat,
+        nlon,
+        grid1d_ixy,
+        grid1d_jxy,
+        grid1d_lon,
+        grid1d_lat,
+        land1d_lon,
+        land1d_lat,
+        land1d_ityplunit,
+        pfts1d_lon,
+        pfts1d_lat,
+        pfts1d_active,
+        pfts1d_itype_veg,
+        pfts1d_wtgcell,
+        pfts1d_wtlunit,
+    )
 
     out_file.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
