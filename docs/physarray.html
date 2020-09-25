@@ -1,71 +1,72 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8">
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pyconform.physarray &mdash; PyConform 0.3.0 documentation</title>
+  
 
-  <title>pyconform.physarray &mdash; PyConform 0.2.8 documentation</title>
-
-
-
-
-
-
-
-
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-
-
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-
-
-
+  
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="pyconform.functions" href="functions.html" />
-    <link rel="prev" title="The PyConform Package" href="pyconform.html" />
+    <link rel="prev" title="The PyConform Package" href="pyconform.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
 
-
+   
   <div class="wy-grid-for-nav">
-
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
+          
 
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> PyConform
+          
 
-
-            <a href="index.html" class="icon icon-home"> PyConform
-
-
-
+          
           </a>
 
-
-
-
+          
+            
+            
               <div class="version">
-                0.2
+                0.3
               </div>
+            
+          
 
-
-
-
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -74,16 +75,17 @@
   </form>
 </div>
 
-
+          
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-
-
-
-
-
-
+          
+            
+            
+              
+            
+            
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="readme.html">PyConform</a></li>
@@ -104,28 +106,29 @@
 <li class="toctree-l1"><a class="reference internal" href="license.html">Product License</a></li>
 </ul>
 
-
-
+            
+          
         </div>
+        
       </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
-
+      
       <nav class="wy-nav-top" aria-label="top navigation">
-
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">PyConform</a>
-
+        
       </nav>
 
 
       <div class="wy-nav-content">
-
+        
         <div class="rst-content">
-
-
+        
+          
 
 
 
@@ -144,30 +147,30 @@
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
-
-      <li><a href="index.html">Docs</a> &raquo;</li>
-
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
           <li><a href="pyconform.html">The PyConform Package</a> &raquo;</li>
-
+        
       <li>pyconform.physarray</li>
-
-
+    
+    
       <li class="wy-breadcrumbs-aside">
-
-
+        
+            
             <a href="_sources/physarray.rst.txt" rel="nofollow"> View page source</a>
-
-
+          
+        
       </li>
-
+    
   </ul>
 
-
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-
+            
   <div class="section" id="module-pyconform.physarray">
 <span id="pyconform-physarray"></span><h1>pyconform.physarray<a class="headerlink" href="#module-pyconform.physarray" title="Permalink to this headline">¶</a></h1>
 <p>Physical Array Class</p>
@@ -177,282 +180,279 @@ its data the units associated with the data, the dimensions associated with each
 the data.</p>
 <p>Copyright 2017-2020, University Corporation for Atmospheric Research
 LICENSE: See the LICENSE.rst file for details</p>
-<dl class="class">
+<dl class="py class">
 <dt id="pyconform.physarray.CharArray">
-<em class="property">class </em><code class="descclassname">pyconform.physarray.</code><code class="descname">CharArray</code><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">CharArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indata</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dimensions</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pyconform.physarray.PhysArray" title="pyconform.physarray.PhysArray"><code class="xref py py-class docutils literal notranslate"><span class="pre">pyconform.physarray.PhysArray</span></code></a></p>
 <p>Special kind of PhysArray to deal with string arrays</p>
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.convert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">units</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with new units</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>units</strong> (<em>Unit</em>) – The new units to which to convert the PhysArray</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>units</strong> (<em>Unit</em>) – The new units to which to convert the PhysArray</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.invert">
-<code class="descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.invert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.invert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with the value of the array inverted (1/value)</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.positive">
-<code class="descname">positive</code><a class="headerlink" href="#pyconform.physarray.CharArray.positive" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">positive</code><a class="headerlink" href="#pyconform.physarray.CharArray.positive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Positive direction (up or down) for the data</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.stretch">
-<code class="descname">stretch</code><span class="sig-paren">(</span><em>newlen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.stretch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">stretch</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">newlen</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.stretch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.stretch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.transpose">
-<code class="descname">transpose</code><span class="sig-paren">(</span><em>*dims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.transpose" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">transpose</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">dims</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#CharArray.transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.CharArray.transpose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with dimensions transposed in the order given</p>
 <p>Does nothing if no transpose is necesary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dims</strong> (<em>tuple</em>) – Tuple of dimension names in the new order</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dims</strong> (<em>tuple</em>) – Tuple of dimension names in the new order</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.CharArray.units">
-<code class="descname">units</code><a class="headerlink" href="#pyconform.physarray.CharArray.units" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">units</code><a class="headerlink" href="#pyconform.physarray.CharArray.units" title="Permalink to this definition">¶</a></dt>
 <dd><p>Units of the data</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="exception">
+<dl class="py exception">
 <dt id="pyconform.physarray.DimensionsError">
-<em class="property">exception </em><code class="descclassname">pyconform.physarray.</code><code class="descname">DimensionsError</code><a class="reference internal" href="_modules/pyconform/physarray.html#DimensionsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.DimensionsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
+<em class="property">exception </em><code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">DimensionsError</code><a class="reference internal" href="_modules/pyconform/physarray.html#DimensionsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.DimensionsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>Exception indicating an error involving dimensions of a PhysArray object</p>
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="pyconform.physarray.PhysArray">
-<em class="property">class </em><code class="descclassname">pyconform.physarray.</code><code class="descname">PhysArray</code><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">PhysArray</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">indata</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">units</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dimensions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">positive</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ma.core.MaskedArray</span></code></p>
 <p>A PhysArray is an array of data with both units and dimensions</p>
 <p>The PhysArray is deried from the Numpy MaskedArray and is the basic object
 along the edges of a Data Flow graph.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.convert">
-<code class="descname">convert</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.convert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">convert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">units</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.convert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.convert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with new units</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>units</strong> (<em>Unit</em>) – The new units to which to convert the PhysArray</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>units</strong> (<em>Unit</em>) – The new units to which to convert the PhysArray</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.dimensions">
-<code class="descname">dimensions</code><a class="headerlink" href="#pyconform.physarray.PhysArray.dimensions" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">dimensions</code><a class="headerlink" href="#pyconform.physarray.PhysArray.dimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Named dimensions of the data</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.down">
-<code class="descname">down</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.down"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.down" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">down</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.down"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.down" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the direction of the positive attribute to ‘down’ and multiply by -1, if necessary</p>
 <p>Only multiplies by -1 if the positive attribute is already set to ‘up’.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.flip">
-<code class="descname">flip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.flip" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">flip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.flip" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flip the direction of the positive attribute, if set, and correspondingly multiply by -1</p>
 <p>Does nothing if the positive attribute is not set (i.e., equals None)</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.invert">
-<code class="descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.invert" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">invert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.invert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with the value of the array inverted (1/value)</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.mean">
-<code class="descname">mean</code><span class="sig-paren">(</span><em>dimensions=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.mean" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">mean</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.mean" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the average of the array elements along given axis.</p>
 <p>Masked entries are ignored, and result elements which are not
 finite will be masked.</p>
 <p>Refer to <cite>numpy.mean</cite> for full documentation.</p>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">ndarray.mean()</span></code></dt>
-<dd>corresponding function for ndarrays</dd>
-<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.mean()</span></code></dt>
-<dd>Equivalent function</dd>
-<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.ma.average()</span></code></dt>
-<dd>Weighted average.</dd>
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.ndarray.mean()</span></code></dt><dd><p>corresponding function for ndarrays</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.mean()</span></code></dt><dd><p>Equivalent function</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.ma.average()</span></code></dt><dd><p>Weighted average.</p>
+</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
-<span class="go">masked_array(data = [1 2 --],</span>
-<span class="go">             mask = [False False  True],</span>
-<span class="go">       fill_value = 999999)</span>
+<span class="go">masked_array(data=[1, 2, --],</span>
+<span class="go">             mask=[False, False,  True],</span>
+<span class="go">       fill_value=999999)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 <span class="go">1.5</span>
 </pre></div>
 </div>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.name">
-<code class="descname">name</code><a class="headerlink" href="#pyconform.physarray.PhysArray.name" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#pyconform.physarray.PhysArray.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>String name for the data</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.positive">
-<code class="descname">positive</code><a class="headerlink" href="#pyconform.physarray.PhysArray.positive" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">positive</code><a class="headerlink" href="#pyconform.physarray.PhysArray.positive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Positive direction (up or down) for the data</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.sum">
-<code class="descname">sum</code><span class="sig-paren">(</span><em>dimensions=None</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.sum" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dimensions</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the sum of the array elements over the given axis.</p>
 <p>Masked elements are set to 0 internally.</p>
 <p>Refer to <cite>numpy.sum</cite> for full documentation.</p>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<dl class="last docutils">
-<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">ndarray.sum()</span></code></dt>
-<dd>corresponding function for ndarrays</dd>
-<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.sum()</span></code></dt>
-<dd>equivalent function</dd>
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.ndarray.sum()</span></code></dt><dd><p>corresponding function for ndarrays</p>
+</dd>
+<dt><code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.sum()</span></code></dt><dd><p>equivalent function</p>
+</dd>
 </dl>
 </div>
 <p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],[</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">]],</span> <span class="n">mask</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="go">[[1 -- 3]</span>
-<span class="go"> [-- 5 --]</span>
-<span class="go"> [7 -- 9]]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">],[</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">]],</span> <span class="n">mask</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span>
+<span class="go">masked_array(</span>
+<span class="go">  data=[[1, --, 3],</span>
+<span class="go">        [--, 5, --],</span>
+<span class="go">        [7, --, 9]],</span>
+<span class="go">  mask=[[False,  True, False],</span>
+<span class="go">        [ True, False,  True],</span>
+<span class="go">        [False,  True, False]],</span>
+<span class="go">  fill_value=999999)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 <span class="go">25</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-<span class="go">[4 5 16]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
-<span class="go">[8 5 12]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">masked_array(data=[4, 5, 16],</span>
+<span class="go">             mask=[False, False, False],</span>
+<span class="go">       fill_value=999999)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="go">masked_array(data=[8, 5, 12],</span>
+<span class="go">             mask=[False, False, False],</span>
+<span class="go">       fill_value=999999)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
-<span class="go">&lt;type &#39;numpy.int64&#39;&gt;</span>
+<span class="go">&lt;class &#39;numpy.int64&#39;&gt;</span>
 </pre></div>
 </div>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.transpose">
-<code class="descname">transpose</code><span class="sig-paren">(</span><em>*dims</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.transpose" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">transpose</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">dims</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.transpose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.transpose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new PhysArray with dimensions transposed in the order given</p>
 <p>Does nothing if no transpose is necesary</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dims</strong> (<em>tuple</em>) – Tuple of dimension names in the new order</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dims</strong> (<em>tuple</em>) – Tuple of dimension names in the new order</p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.units">
-<code class="descname">units</code><a class="headerlink" href="#pyconform.physarray.PhysArray.units" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">units</code><a class="headerlink" href="#pyconform.physarray.PhysArray.units" title="Permalink to this definition">¶</a></dt>
 <dd><p>Units of the data</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="pyconform.physarray.PhysArray.up">
-<code class="descname">up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.up" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">up</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#PhysArray.up"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.PhysArray.up" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the direction of the positive attribute to ‘up’ and multiply by -1, if necessary</p>
 <p>Only multiplies by -1 if the positive attribute is already set to ‘down’.</p>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="exception">
+<dl class="py exception">
 <dt id="pyconform.physarray.UnitsError">
-<em class="property">exception </em><code class="descclassname">pyconform.physarray.</code><code class="descname">UnitsError</code><a class="reference internal" href="_modules/pyconform/physarray.html#UnitsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.UnitsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">exceptions.ValueError</span></code></p>
+<em class="property">exception </em><code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">UnitsError</code><a class="reference internal" href="_modules/pyconform/physarray.html#UnitsError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.UnitsError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
 <p>Exception indicating an error involving units of a PhysArray object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getdata">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getdata</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdata" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getdata</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdata" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the ndarray data associated with an object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getdimensions">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getdimensions</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdimensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdimensions" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getdimensions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdimensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdimensions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the dimensions-tuple associated with the object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getdtype">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getdtype</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdtype" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getdtype</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getdtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getdtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the dtype associated with an object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getmask">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getmask</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getmask" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getmask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getmask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getmask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the mask associated with an object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getname">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getname</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getname" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getname</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getname" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the string name associated with an object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getpositive">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getpositive</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getpositive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getpositive" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getpositive</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getpositive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getpositive" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the positive attribute associated with the object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getshape">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getshape</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getshape" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getshape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getshape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the shape associated with an object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.getunits">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">getunits</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getunits" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">getunits</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#getunits"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.getunits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the Unit associated with the object</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="pyconform.physarray.ischartype">
-<code class="descclassname">pyconform.physarray.</code><code class="descname">ischartype</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#ischartype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.ischartype" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pyconform.physarray.</code><code class="sig-name descname">ischartype</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pyconform/physarray.html#ischartype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pyconform.physarray.ischartype" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return whether the object is a string/character type</p>
 </dd></dl>
 
@@ -460,29 +460,37 @@ finite will be masked.</p>
 
 
            </div>
-
+           
           </div>
           <footer>
-
+  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-
+      
         <a href="functions.html" class="btn btn-neutral float-right" title="pyconform.functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-
-
+      
+      
         <a href="pyconform.html" class="btn btn-neutral float-left" title="The PyConform Package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
+      
     </div>
-
+  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
+        
         &copy; Copyright 2017-2020, University Corporation for Atmospheric Research
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -492,8 +500,7 @@ finite will be masked.</p>
     </section>
 
   </div>
-
-
+  
 
   <script type="text/javascript">
       jQuery(function () {
@@ -501,10 +508,10 @@ finite will be masked.</p>
       });
   </script>
 
-
-
-
-
+  
+  
+    
+   
 
 </body>
 </html>
