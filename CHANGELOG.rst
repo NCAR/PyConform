@@ -36,3 +36,9 @@ VERSION 0.2.1
 VERSION 0.2.2
 -------------
  - New user-defined function API
+
+VERSION 0.3.0
+-------------
+ - Code ported to Python 3.6+ (No longer supports Python 2.7)
+ - Update to testing suite (using PyTest) and adding GitHub Actions
+ - General modernization of the package repository
